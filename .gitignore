@@ -1,0 +1,17 @@
+*.class
+.project
+.java-version
+
+# Package Files #
+*.jar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+*.classpath
+.settings/
+*.DS_Store
+data/
+internalscripts/
+src/main/resources/benchmark.properties
+src/main/resources/testNumber.properties
+target/
+
