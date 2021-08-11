@@ -24,8 +24,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.SequenceInputStream;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -48,6 +51,13 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.helpers.Categories;
@@ -116,7 +126,11 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.yaml.snakeyaml.Yaml;
 
-public class BenchmarkScore {
+@Mojo(name = "create-scorecard", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
+public class BenchmarkScore extends AbstractMojo {
+
+    @Parameter(property = "configFile")
+    String scoringConfigFile;
 
     // The 1st line of a supplied expectedresults.csv file looks like:
     // # test name, category, real vulnerability, cwe, TESTSUITENAME version: x.y, YYYY-MM-DD
@@ -134,10 +148,7 @@ public class BenchmarkScore {
     private static final String GUIDEFILENAME = "Scorecard_Guide.html";
     private static final String HOMEFILENAME = "Scorecard_Home.html";
     // scorecard dir normally created under current user directory
-    private static final String SCORECARDDIRNAME = "scorecard";
-    // The static scorecard resources, which are copied to the generated scorecard directory
-    public static final String PATHTOSCORECARDRESOURCES =
-            Utils.RESOURCES_DIR + SCORECARDDIRNAME + File.separator;
+    public static final String SCORECARDDIRNAME = "scorecard";
 
     // The name of this file if generated. This value is calculated by code below. Not set via
     // config.
@@ -151,7 +162,7 @@ public class BenchmarkScore {
     // to scorecard generation.
 
     // Indicates that the names of Commercial tools should be anonymized
-    public static boolean anonymousMode = false;
+    static boolean anonymousMode = false;
     // Indicates that the results of Commercial tools should be suppressed. Only show their
     // averages.
     public static boolean showAveOnlyMode = false;
@@ -227,15 +238,18 @@ public class BenchmarkScore {
                 "Usage: -cf /PATH/TO/scoringconfigfile.yaml or -cr scoringconfigfile.yaml (where file is a resource)";
 
         File yamlFile = null;
+        InputStream yamlFileStream = null;
         if (args == null || args.length == 0) {
             // No arguments is OK
         } else if (args.length != 0 && args.length != 2) {
             System.out.println(USAGE_MSG);
         } else if (args.length == 2) {
+            // -cf indicates use the specified configuration file to config Permute params
             if ("-cf".equalsIgnoreCase(args[0])) {
-                // -cf indicates use the specified configuration file to config Permute params
                 yamlFile = new File(args[1]);
-                if (!yamlFile.exists()) {
+                try {
+                    yamlFileStream = new FileInputStream(yamlFile);
+                } catch (FileNotFoundException e) {
                     System.out.println(
                             "ERROR: YAML scoring configuration file: '" + args[1] + "' not found!");
                     return false;
@@ -243,9 +257,8 @@ public class BenchmarkScore {
             } else if ("-cr".equalsIgnoreCase(args[0])) {
                 // -cr indicates use the specified configuration file resource to config Permute
                 // params
-                yamlFile =
-                        Utils.getFileFromClasspath(args[1], BenchmarkScore.class.getClassLoader());
-                if (yamlFile == null || !yamlFile.exists()) {
+                yamlFileStream = BenchmarkScore.class.getClassLoader().getResourceAsStream(args[1]);
+                if (yamlFileStream == null) {
                     System.out.println(
                             "ERROR: YAML scoring configuration file: '"
                                     + args[1]
@@ -261,43 +274,58 @@ public class BenchmarkScore {
 
         // Find Default Scoring Config File
         final String DEFAULTCONFIGFILE = "defaultscoringconfig.yaml";
-        File defYamlFile =
-                Utils.getFileFromClasspath(
-                        DEFAULTCONFIGFILE, BenchmarkScore.class.getClassLoader());
-        if (defYamlFile == null || !defYamlFile.exists()) {
+        InputStream defYamlFileStream = null;
+        try {
+            defYamlFileStream =
+                    BenchmarkScore.class.getClassLoader().getResourceAsStream(DEFAULTCONFIGFILE);
+        } catch (Exception e) {
             System.out.println(
                     "ERROR: default YAML scoring configuration file: '"
                             + DEFAULTCONFIGFILE
                             + "' not found on classpath!");
+            e.printStackTrace();
             return false;
         }
 
         Yaml yaml = new Yaml();
         Map<String, Object> yamlConfig = null;
-        if (yamlFile != null) {
+        if (yamlFileStream != null) {
             // If specified, load Both Default and Custom YAML file in ONE Stream, so Custom Values
             // Override Default
-            try (SequenceInputStream stream =
-                    new SequenceInputStream(
-                            new FileInputStream(defYamlFile), new FileInputStream(yamlFile))) {
-                yamlConfig = yaml.load(stream);
-                System.out.println(
-                        "YAML Scoring config file found and loaded. File used was: "
-                                + yamlFile.getAbsolutePath());
-            } catch (IOException e) {
-                // This can't happen, but just in case
-                e.printStackTrace();
-                return false;
+            InputStream fullStream = new SequenceInputStream(defYamlFileStream, yamlFileStream);
+            yamlConfig = yaml.load(fullStream);
+            System.out.print("YAML Scoring config file found and loaded. File used was: ");
+            if (yamlFile != null) { // Not null means the a normal file was used, not a resource
+                System.out.println(yamlFile.getAbsolutePath());
+            } else {
+                try {
+                    System.out.println(
+                            BenchmarkScore.class.getClassLoader().getResource(args[1]).toURI());
+                } catch (URISyntaxException e) {
+                    // This should never happen
+                    System.out.println(
+                            "Couldn't determine URI of existing resource: '"
+                                    + args[1]
+                                    + "' for some reason.");
+                    e.printStackTrace();
+                }
             }
         } else { // just load the default file
-            try (FileInputStream yamlStream = new FileInputStream(defYamlFile)) {
-
-                yamlConfig = yaml.load(yamlStream);
+            yamlConfig = yaml.load(defYamlFileStream);
+            System.out.println(
+                    "default YAML Scoring config file found and loaded. File used was: ");
+            try {
                 System.out.println(
-                        "default YAML Scoring config file found and loaded. File used was: "
-                                + defYamlFile.getAbsolutePath());
-            } catch (IOException e) {
-                // This can't happen, but just in case
+                        BenchmarkScore.class
+                                .getClassLoader()
+                                .getResource(DEFAULTCONFIGFILE)
+                                .toURI());
+            } catch (URISyntaxException e) {
+                // This should never happen
+                System.out.println(
+                        "Couldn't determine URI of existing resource: '"
+                                + DEFAULTCONFIGFILE
+                                + "' for some reason.");
                 e.printStackTrace();
             }
         }
@@ -333,6 +361,24 @@ public class BenchmarkScore {
         return allParamsOK;
     }
 
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        // The Maven plugin invocation of this can have configFile be null, so we check for that
+        // specifically
+        if (null == scoringConfigFile) {
+            String[] emptyMainArgs = {};
+            main(emptyMainArgs); // Invoke scorecard generation with no params
+        } else {
+            String[] mainArgs = {"-cf", scoringConfigFile};
+            main(mainArgs);
+        }
+    }
+
+    /**
+     * This is the original main() method used to invoke the scorecard generator. e.g., mvn validate
+     * -Pscorecard -Dexec.args="-cf ../julietjs/config/julietscoringconfig.yaml"
+     *
+     * @param args - The command line arguments.
+     */
     public static void main(String[] args) {
 
         if (!processCommandLineArgs(args)) {
@@ -342,10 +388,9 @@ public class BenchmarkScore {
 
         // Load in the categories definitions from the config file.
         try {
-            File categoriesFile =
-                    Utils.getFileFromClasspath(
-                            Categories.FILENAME, BenchmarkScore.class.getClassLoader());
-            CATEGORIES = new Categories(categoriesFile);
+            InputStream categoriesFileStream =
+                    BenchmarkScore.class.getClassLoader().getResourceAsStream(Categories.FILENAME);
+            CATEGORIES = new Categories(categoriesFileStream);
         } catch (ParserConfigurationException | SAXException | IOException e1) {
             System.out.println("ERROR: couldn't load categories from categories config file.");
             e1.printStackTrace();
@@ -379,10 +424,10 @@ public class BenchmarkScore {
 
             // Step 2: Now copy the entire /content directory, that either didn't exist, or was just
             // deleted with everything else
-            File dest1 = new File(scoreCardDir, "content");
-            FileUtils.copyDirectory(new File(PATHTOSCORECARDRESOURCES + "content"), dest1);
+            File contentDir = new File(scoreCardDir, "content");
+            Utils.copyFilesFromDirRecursively("scorecard/content", contentDir.toPath());
 
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException | IllegalArgumentException e) {
             System.out.println(
                     "Error dealing with scorecard directory: '"
                             + scoreCardDir.getAbsolutePath()
@@ -395,17 +440,10 @@ public class BenchmarkScore {
         Path homeFilePath = null; // Save value for use in a later step
         try {
             final String SCORECARDDIR = scoreCardDir.getPath() + File.separator;
-            homeFilePath =
-                    Files.copy(
-                            Paths.get(PATHTOSCORECARDRESOURCES + HOMEFILENAME),
-                            Paths.get(SCORECARDDIR + HOMEFILENAME),
-                            StandardCopyOption.REPLACE_EXISTING);
-
-            Files.copy(
-                    Paths.get(PATHTOSCORECARDRESOURCES + GUIDEFILENAME),
-                    Paths.get(SCORECARDDIR + GUIDEFILENAME),
-                    StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
+            homeFilePath = new File(scoreCardDir, HOMEFILENAME).toPath();
+            Utils.copyFilesFromDirRecursively("scorecard/" + HOMEFILENAME, scoreCardDir.toPath());
+            Utils.copyFilesFromDirRecursively("scorecard/" + GUIDEFILENAME, scoreCardDir.toPath());
+        } catch (Exception e) {
             System.out.println("Problem copying home and guide files");
             e.printStackTrace();
         }
@@ -451,8 +489,6 @@ public class BenchmarkScore {
 
                                 // read in the expected results for this directory of results
                                 expectedResults = readExpectedResults(resultsDirFile);
-                                System.out.println(
-                                        "Getting expected results from: " + resultsDirFile);
                                 if (expectedResults == null) {
                                     System.out.println(
                                             "Couldn't read expected results file: "
@@ -535,7 +571,6 @@ public class BenchmarkScore {
 
                 // Step 4b: Read the expected results so we know what each tool 'should do'
                 File expected = new File(expectedResultsFileName);
-                System.out.println("Getting expected results from: " + expectedResultsFileName);
                 TestSuiteResults expectedResults = readExpectedResults(expected);
                 if (expectedResults == null) {
                     System.out.println("Couldn't read expected results file: " + expected);
@@ -1339,12 +1374,10 @@ public class BenchmarkScore {
 
     // Create a TestResults object that contains the expected results for this version
     // of the test suite.
-    private static TestSuiteResults readExpectedResults(File f1) throws Exception {
+    private static TestSuiteResults readExpectedResults(File file) {
         TestSuiteResults tr = new TestSuiteResults("Expected", true, null);
-        BufferedReader fr = null;
 
-        try {
-            fr = new BufferedReader(new FileReader(f1));
+        try (final BufferedReader fr = new BufferedReader(new FileReader(file)); ) {
             // Read the 1st line. Parse out the test suite name and version #, which looks like:
             // # test name, category, real vulnerability, cwe, TESTSUITENAME version: x.y,
             // YYYY-MM-DD
@@ -1413,8 +1446,13 @@ public class BenchmarkScore {
                     }
                 }
             }
-        } finally {
-            if (fr != null) fr.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("ERROR: Can't find expected results file: " + file);
+            System.exit(-1);
+        } catch (IOException e) {
+            System.out.println("ERROR: Reading contents of expected results file: " + file);
+            e.printStackTrace();
+            System.exit(-1);
         }
         return tr;
     }
@@ -1520,6 +1558,8 @@ public class BenchmarkScore {
         averageNonCommerciaToolResults = new HashMap<String, CategoryResults>();
         overallAveToolResults = new HashMap<String, CategoryResults>();
 
+        final ClassLoader CL = BenchmarkScore.class.getClassLoader();
+
         for (String cat : catSet) {
             try {
 
@@ -1545,10 +1585,17 @@ public class BenchmarkScore {
                                 + "_Scorecard_for_"
                                 + cat.replace(' ', '_');
                 File htmlFile = new File(scoreCardDir, filename + ".html");
-                Files.copy(
-                        Paths.get(PATHTOSCORECARDRESOURCES + "vulntemplate.html"),
-                        new FileOutputStream(htmlFile));
-                String html = new String(Files.readAllBytes(htmlFile.toPath()));
+
+                // Resources in a jar file have to be loaded as streams. Not directly as Files.
+                final String VULNTEMPLATERESOURCE = scoreCardDir + "/vulntemplate.html";
+                InputStream vulnTemplateStream = CL.getResourceAsStream(VULNTEMPLATERESOURCE);
+                if (vulnTemplateStream == null) {
+                    System.out.println(
+                            "ERROR - vulnTemplate stream is null for resource: "
+                                    + VULNTEMPLATERESOURCE);
+                }
+
+                String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
                 html =
                         html.replace(
                                 "${testsuite}",
@@ -1657,7 +1704,6 @@ public class BenchmarkScore {
             htmlForCommercialAverages.append("</table>\n");
 
             try {
-
                 commercialAveScorecardFilename =
                         TESTSUITE + "_v" + TESTSUITEVERSION + "_Scorecard_for_Commercial_Tools";
                 Path htmlfile =
@@ -1666,11 +1712,10 @@ public class BenchmarkScore {
                                         + File.separator
                                         + commercialAveScorecardFilename
                                         + ".html");
-                Files.copy(
-                        Paths.get(PATHTOSCORECARDRESOURCES + "commercialAveTemplate.html"),
-                        htmlfile,
-                        StandardCopyOption.REPLACE_EXISTING);
-                String html = new String(Files.readAllBytes(htmlfile));
+                // Resources in a jar file have to be loaded as streams. Not directly as Files.
+                InputStream vulnTemplateStream =
+                        CL.getResourceAsStream(scoreCardDir + "/commercialAveTemplate.html");
+                String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
                 html =
                         html.replace(
                                 "${testsuite}",

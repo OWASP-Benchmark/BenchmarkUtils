@@ -30,8 +30,8 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class ContrastReader extends Reader {
 
-    static final String NODEFINDINGLINEINDICATOR = "contrast:rules:sinks - ";
-    static final String NODEAGENTVERSIONLINEINDICATOR = "contrast:contrast-init - agent v";
+    private static final String NODEFINDINGLINEINDICATOR = "contrast:rules:sinks - ";
+    private static final String NODEAGENTVERSIONLINEINDICATOR = "contrast:contrast-init - agent v";
 
     public static void main(String[] args) throws Exception {
         File f = new File("results/Benchmark_1.2-Contrast.log");

@@ -17,8 +17,8 @@
  */
 package org.owasp.benchmarkutils.helpers;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
@@ -45,11 +45,29 @@ public class Categories {
         System.exit(-1);
     }
 
-    public Categories(File file) throws ParserConfigurationException, SAXException, IOException {
-        load(file);
+    /**
+     * Initialize all the categories from the InputStream connected to the target XML file.
+     *
+     * @param xmlFileStream - the InputStream from the categories.xml file.
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException
+     */
+    public Categories(InputStream xmlFileStream)
+            throws ParserConfigurationException, SAXException, IOException {
+        load(xmlFileStream);
     }
 
-    private void load(File file) throws ParserConfigurationException, SAXException, IOException {
+    /**
+     * Load the categories from the InputStream connected to the target XML file.
+     *
+     * @param xmlFileStream - the InputStream from the categories.xml file.
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException
+     */
+    private void load(InputStream xmlFileStream)
+            throws ParserConfigurationException, SAXException, IOException {
         Map<String, Category> idToCategoryMap = new HashMap<String, Category>();
         Map<String, Category> nameToCategoryMap = new HashMap<String, Category>();
 
@@ -60,7 +78,7 @@ public class Categories {
 
         DocumentBuilder db = dbf.newDocumentBuilder();
 
-        Document document = db.parse(file);
+        Document document = db.parse(xmlFileStream);
         document.getDocumentElement().normalize();
 
         // Here comes the root node

@@ -34,7 +34,7 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class HdivReader extends Reader {
 
-    Set<String> invalid = new HashSet<>();
+    private Set<String> invalid = new HashSet<>();
 
     public static void main(final String[] args) throws Exception {
         File f = new File("hdivAgentLog.hlg");
@@ -146,7 +146,7 @@ public class HdivReader extends Reader {
         }
     }
 
-    enum Type {
+    private enum Type {
         CMD_INJECTION(78),
         INSECURE_HASHING("crypto-bad-mac", 328),
         INSECURE_CIPHER("crypto-bad-ciphers", 327),

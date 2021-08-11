@@ -222,6 +222,8 @@ public class NJSScanReader extends Reader {
             case 522: // Insufficiently protected credentials
             case 613: // Insufficient session expiration
             case 614: // Sensitive cookie without Secure Attribute <-- care about this one
+            case 693: // Protection Mechanism Failure (e.g., One or more Security Response header is
+                // explicitly disabled in Helmet)
             case 798: // Hard coded credentials
             case 1275: // Sensitive cookie w/ Improper SameSite Attribute
                 break; // Don't care about these, or mapping is correct, so return 'as is'.

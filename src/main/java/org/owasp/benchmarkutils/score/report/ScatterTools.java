@@ -36,8 +36,8 @@ import org.owasp.benchmarkutils.score.CategoryResults;
 import org.owasp.benchmarkutils.score.ToolResults;
 
 public class ScatterTools extends ScatterPlot {
-    public char averageLabel;
-    public double atpr, afpr;
+    private char averageLabel;
+    private double atpr, afpr;
 
     public ScatterTools(String title, int height, ToolResults toolResults) {
         display("          " + title, height, toolResults);
@@ -140,7 +140,7 @@ public class ScatterTools extends ScatterPlot {
         return sb.toString();
     }
 
-    SecureRandom sr = new SecureRandom();
+    private SecureRandom sr = new SecureRandom();
 
     private HashMap<Point2D, String> makePointList(ToolResults toolResults) {
         HashMap<Point2D, String> map = new HashMap<Point2D, String>();

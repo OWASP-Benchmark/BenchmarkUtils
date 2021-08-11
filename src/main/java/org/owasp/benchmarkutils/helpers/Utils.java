@@ -23,40 +23,36 @@ import static java.nio.file.StandardOpenOption.CREATE;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
-import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
-import javax.net.ssl.SSLContext;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.util.EntityUtils;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
 import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest.TestCaseType;
@@ -101,79 +97,48 @@ public class Utils {
         }
     }
 
-    public static String getCookie(HttpServletRequest request, String paramName) {
-        Cookie[] values = request.getCookies();
-        String param = "none";
-        if (paramName != null) {
-            for (int i = 0; i < values.length; i++) {
-                if (values[i].getName().equals(paramName)) {
-                    param = values[i].getValue();
-                    break; // break out of for loop when param found
-                }
-            }
-        }
-        return param;
-    }
-
-    public static String getParam(HttpServletRequest request, String paramName) {
-        String param = request.getParameter(paramName);
-        return param;
-    }
-
-    public static String getOSCommandString(String append) {
-
-        String command = null;
-        String osName = System.getProperty("os.name");
-        if (osName.indexOf("Windows") != -1) {
-            command = "cmd.exe /c " + append + " ";
-        } else {
-            command = append + " ";
-        }
-
-        return command;
-    }
-
-    public static String getInsecureOSCommandString(ClassLoader classLoader) {
-        String command = null;
-        String osName = System.getProperty("os.name");
-        if (osName.indexOf("Windows") != -1) {
-            command = Utils.getFileFromClasspath("insecureCmd.bat", classLoader).getAbsolutePath();
-        } else {
-            command = Utils.getFileFromClasspath("insecureCmd.sh", classLoader).getAbsolutePath();
-        }
-        return command;
-    }
-
-    public static List<String> getOSCommandArray(String append) {
-
-        ArrayList<String> cmds = new ArrayList<String>();
-
-        String osName = System.getProperty("os.name");
-        if (osName.indexOf("Windows") != -1) {
-            cmds.add("cmd.exe");
-            cmds.add("/c");
-            if (append != null) {
-                cmds.add(append);
-            }
-        } else {
-            cmds.add("sh");
-            cmds.add("-c");
-            if (append != null) {
-                cmds.add(append);
-            }
-        }
-
-        return cmds;
-    }
-
+    /**
+     * Find the specified file on the class path and return a File handle to it. Note: If the
+     * specified file is inside of a JAR on the classpath, this method will throw an error or return
+     * null, as you can't return a File object for something inside a JAR. You need to instead
+     * return a Stream for that resource.
+     *
+     * @param fileName The file to retrieve
+     * @param classLoader The classloader to use
+     * @return A File object referencing the specified file, if found. Otherwise null.
+     */
     public static File getFileFromClasspath(String fileName, ClassLoader classLoader) {
+
         URL url = classLoader.getResource(fileName);
         if (url != null) {
             try {
-                return new File(url.toURI().getPath());
+                System.out.println("getFileFromClasspath() url is: " + url);
+                URI resourceURI = url.toURI();
+                String externalFormURI = url.toExternalForm();
+                System.out.println(
+                        "getFileFromClasspath() url.toURI() is: "
+                                + resourceURI
+                                + " and external form is: "
+                                + externalFormURI);
+                //                String filePath = resourceURI.getPath();
+                //                System.out.println("getFileFromClasspath() url.toURI().getPath()
+                // is: " + filePath);
+                //                if (resourceURI != null) return new File(resourceURI);
+                if (externalFormURI != null) return new File(externalFormURI);
+                else {
+                    System.out.println(
+                            "The path for the resource: '"
+                                    + fileName
+                                    + "' with URI: "
+                                    + resourceURI
+                                    + " is null for some reason. So can't load that resource as a file.");
+                    return null;
+                }
             } catch (URISyntaxException e) {
                 System.out.println(
-                        "The file '" + fileName + "' from the classpath cannot be loaded.");
+                        "The path for the resource: '"
+                                + fileName
+                                + "' can't be computed due to the following error:");
                 e.printStackTrace();
             }
         } else
@@ -182,31 +147,35 @@ public class Utils {
     }
 
     public static List<String> getLinesFromFile(File file) {
-        if (!file.exists()) {
-            try {
-                System.out.println("Can't find file to get lines from: " + file.getCanonicalFile());
-            } catch (IOException e) {
-                System.out.println("Can't find file to get lines from.");
-                e.printStackTrace();
-            }
+        if (file == null) {
+            System.out.println("ERROR: getLinesFromFile() invoked with null file parameter.");
             return null;
         }
+        String filename = file.getName();
+        try {
+            try {
+                filename = file.getCanonicalPath();
+            } catch (IOException e) {
+                // Do nothing, thus using default getName() value.
+            }
+            return getLinesFromStream(new FileInputStream(file), filename);
+        } catch (FileNotFoundException e) {
+            System.out.println("Can't find file to get lines from: " + filename);
+            return null;
+        }
+    }
+
+    public static List<String> getLinesFromStream(InputStream fileStream, String sourceFileName) {
 
         List<String> sourceLines = new ArrayList<String>();
 
-        try (FileReader fr = new FileReader(file);
-                BufferedReader br = new BufferedReader(fr); ) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(fileStream))) {
             String line;
             while ((line = br.readLine()) != null) {
                 sourceLines.add(line);
             }
         } catch (Exception e) {
-            try {
-                System.out.println("Problem reading contents of file: " + file.getCanonicalFile());
-            } catch (IOException e2) {
-                System.out.println("Problem reading file to get lines from.");
-                e2.printStackTrace();
-            }
+            System.out.println("Problem reading contents of file stream: " + sourceFileName);
             e.printStackTrace();
         }
 
@@ -246,126 +215,6 @@ public class Utils {
             os.println(line);
         }
     }
-
-    public static boolean writeLineToFile(Path pathToFileDir, String completeName, String line) {
-        boolean result = true;
-        PrintStream os = null;
-        try {
-            Files.createDirectories(pathToFileDir);
-            File f = new File(completeName);
-            if (!f.exists()) {
-                f.createNewFile();
-            }
-            FileOutputStream fos = new FileOutputStream(f, true);
-            os = new PrintStream(fos);
-            os.println(line);
-        } catch (IOException e1) {
-            result = false;
-            e1.printStackTrace();
-        } finally {
-            os.close();
-        }
-
-        return result;
-    }
-
-    public static boolean deleteFile(String completeName) {
-        boolean result = true;
-        File f = new File(completeName);
-        if (f.exists()) {
-            try {
-                f.delete();
-            } catch (SecurityException e) {
-                System.out.println("Can't delete file: " + completeName);
-                result = false;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * UNUSED METHOD!!! Why was it created? Parses all the XML in the provided InputStream to
-     * generate a List of test case requests. If testing that case fails, add its failure to the
-     * list of failed test cases. (Not sure about this aspect of what it does.)
-     *
-     * @param http The inputstream to parse the XML test case request from (e.g., contents of
-     *     benchmark-crawler(or attack)-http.xml
-     * @param failedTestCases A list of error messages, 1 for each test case that failed.
-     * @return A List of TestCaseRequest objects based on the file contents.
-     * @throws Exception
-     */
-    /*	private static List<AbstractTestCaseRequest> parseHttpFile(InputStream http, List<String> failedTestCases) {
-
-    		Node root = null;
-    		DocumentBuilder newCrawlerBuilder = null;
-    		try {
-    			DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-    			InputSource is = new InputSource(http);
-    			Document doc = docBuilder.parse(is);
-    			root = doc.getDocumentElement();
-
-    			newCrawlerBuilder = docBuilderFactory.newDocumentBuilder();
-    		} catch (ParserConfigurationException e) {
-    			System.out.println("ERROR: Problem creating new DocumentBuilder");
-    			e.printStackTrace();
-    			System.exit(-1);
-    		} catch (IOException | SAXException e2) {
-    			System.out.println("ERROR: Parsing XML input file.");
-    			e2.printStackTrace();
-    			System.exit(-1);
-    		}
-
-    		Document newCrawlerDoc = newCrawlerBuilder.newDocument();
-    		Element newCrawlerRootElement = newCrawlerDoc.createElement("benchmarkSuite");
-    		newCrawlerDoc.appendChild(newCrawlerRootElement);
-
-    		List<AbstractTestCaseRequest> requests = new ArrayList<AbstractTestCaseRequest>();
-    		List<Node> tests = XMLCrawler.getNamedChildren("benchmarkTest", root);
-    		// TODO: What does this loop do? Figure out, and document here, and in javadoc for this method.
-    		for (Node test : tests) {
-    			String URL = XMLCrawler.getAttributeValue("URL", test).trim();
-    			// ToDo: don't use 18 (instead calculate length of TESTCASE_NAME and # digits
-    			if (failedTestCases
-    					.contains(URL.substring(URL.indexOf(BenchmarkScore.TESTCASENAME),
-    							URL.indexOf(BenchmarkScore.TESTCASENAME) + 18))) {
-    				requests.add(parseHttpTest(test));
-    				Node newNode = test.cloneNode(true);
-    				newCrawlerDoc.adoptNode(newNode);
-    				newCrawlerDoc.getDocumentElement().appendChild(newNode);
-    			} else {
-    				// The test case passed
-    			}
-    		}
-
-    		// TODO: What is this delete for??
-    		String failedTCFile = DATA_DIR + "benchmark-failed-http.xml";
-    		File file = new File(failedTCFile);
-    		if (file.exists()) {
-    			if (file.delete()) {
-    				// System.out.println("Crawler file " + fileName + " deleted.");
-    			}
-    		}
-
-    		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-    		try {
-    			Transformer transformer = transformerFactory.newTransformer();
-    			DOMSource source = new DOMSource(newCrawlerDoc);
-
-    			StreamResult result = new StreamResult(failedTCFile);
-
-    			// Output to console for testing
-    			// StreamResult result = new StreamResult(System.out);
-
-    			transformer.transform(source, result);
-    		} catch (TransformerException e) {
-    			// System.out.println("Problem closing Crawler XML file: " +
-    			// fileName);
-    			e.printStackTrace();
-    		}
-
-    		return requests;
-    	}
-    */
 
     public static List<AbstractTestCaseRequest> parseHttpFile(File file)
             throws TestCaseRequestFileParseException {
@@ -513,6 +362,12 @@ public class Utils {
         return nameValuePairs;
     }
 
+    /**
+     * A utility method to read all the lines out of a CSV file that indicate failed test cases.
+     *
+     * @param csvFile The file to read.
+     * @return A List of all the lines in the .csv that indicate a test case failure.
+     */
     public static List<String> readCSVFailedTC(String csvFile) {
         String line = "";
         String cvsSplitBy = ",";
@@ -532,53 +387,142 @@ public class Utils {
         return csv;
     }
 
-    /*
-     * A utility method used by the generated Java Cipher test cases.
-     */
-    private static javax.crypto.Cipher cipher = null;
+    // from: https://stackoverflow.com/questions/1386809/copy-directory-from-a-jar-file
+    // answer by: lpiepiora.  Example usage:
+    // copyFromJar("/path/to/the/dir/in/jar", Paths.get("/tmp/from-jar"))
+    // Modified by DRW to handle individual source files, not just directories
 
-    public static Cipher getCipher() {
-        if (cipher == null) {
-            try {
-                cipher =
-                        javax.crypto.Cipher.getInstance(
-                                "RSA/ECB/OAEPWithSHA-512AndMGF1Padding", "SunJCE");
-                // Prepare the cipher to encrypt
-                java.security.KeyPairGenerator keyGen =
-                        java.security.KeyPairGenerator.getInstance("RSA");
-                keyGen.initialize(4096);
-                java.security.PublicKey publicKey = keyGen.genKeyPair().getPublic();
-                cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, publicKey);
-            } catch (NoSuchAlgorithmException
-                    | NoSuchProviderException
-                    | NoSuchPaddingException
-                    | InvalidKeyException e) {
-                e.printStackTrace();
+    /**
+     * This method copies all the files starting at source, to target. Source can be a file or
+     * directory on the filesystem, or a file or directory inside a JAR file.
+     *
+     * @param source the file or directory to start copying from
+     * @param target the destination directory
+     */
+    public static void copyFilesFromDirRecursively(String source, final Path target) {
+
+        // In case the caller provides a trailing /
+        if (source.endsWith("/")) source = source.substring(0, source.length() - 1);
+        final String sourceLoc = source;
+
+        final ClassLoader CL = Utils.class.getClassLoader();
+        final URL srcURL = CL.getResource(sourceLoc);
+
+        if (srcURL == null) {
+            System.out.println(
+                    "ERROR: copyFilesFromDirRecursively() can't find source resource: "
+                            + sourceLoc);
+            return;
+        } else if (srcURL.getProtocol().equals("file")) {
+            // Copy the files from one directory to another using the normal
+            // FileUtils.copyDirectory() method
+
+            File sourceFile = new File(sourceLoc);
+            if (sourceFile.exists()) {
+                try {
+                    FileUtils.copyDirectory(sourceFile, target.toFile());
+                } catch (IOException e) {
+                    System.out.println("ERROR: couldn't copyDirectory()");
+                    e.printStackTrace();
+                    return;
+                }
+            } else {
+                System.out.println(
+                        "ERROR: copyFilesFromDirRecursively() can't find source File: "
+                                + sourceLoc);
+                return;
             }
         }
-        return cipher;
-    }
 
-    public static SSLConnectionSocketFactory getSSLFactory() throws Exception {
-        SSLContext sslcontext =
-                SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build();
-        // Allow TLSv1 protocol only
-        SSLConnectionSocketFactory sslsf =
-                new SSLConnectionSocketFactory(
-                        sslcontext, new String[] {"TLSv1"}, null, NoopHostnameVerifier.INSTANCE);
-        return sslsf;
-    }
-
-    public static void printRequestBase(HttpRequestBase request) {
-        System.out.println(request.toString());
-        for (Header header : request.getAllHeaders()) {
-            System.out.println(header.getName() + " : " + header.getValue());
+        if (!srcURL.getProtocol().equals("jar")) {
+            System.out.println(
+                    "ERROR: source resource not a file: or jar: resource. It is: " + srcURL);
+            return;
         }
-        HttpEntity entity = ((HttpPost) request).getEntity();
+
+        // Copy the files out of the JAR to the target dir using the stackoverflow
+        // copy-directory-from-a-jar-file solution
+        URI resource;
+        try {
+            //            resource = CL.getResource("").toURI();
+            resource = CL.getResource(sourceLoc).toURI();
+        } catch (URISyntaxException e2) {
+            System.out.println("ERROR: couldn't find resource: " + sourceLoc);
+            e2.printStackTrace();
+            return;
+        }
+
+        FileSystem fileSystem;
+        try {
+            // If the target location already exists, use it.
+            fileSystem = FileSystems.getFileSystem(resource);
+        } catch (FileSystemNotFoundException e) {
+            try {
+                // Otherwise create it
+                fileSystem =
+                        FileSystems.newFileSystem(resource, Collections.<String, String>emptyMap());
+            } catch (IOException e1) {
+                e1.printStackTrace();
+                return;
+            }
+        }
+
+        // The following is done to calculate whether the sourceLoc is a file or directory
+        // This is needed later in visitFile() to calculate the properly replacement path
+        // when copying a single file, rather than a directory of files.
+        String jarSource = sourceLoc; // Default location
+
+        URL jarURL = Utils.class.getProtectionDomain().getCodeSource().getLocation();
+        try {
+            JarFile myJar = new JarFile(new File(jarURL.toURI()));
+            JarEntry entry = myJar.getJarEntry(sourceLoc);
+            if (entry == null) {
+                System.out.println(
+                        "ERROR: Target resource file: '" + sourceLoc + "' can't be found");
+                return;
+            } else if (!entry.isDirectory()) {
+                // IF the source is not a directory, we use the directory containing the file as
+                // the jarPath
+                int slashLoc = sourceLoc.lastIndexOf('/');
+                if (slashLoc == -1)
+                    slashLoc = 0; // In case there is no containing directory. TODO: UNTESTED
+                jarSource = sourceLoc.substring(0, slashLoc);
+            }
+        } catch (IOException | URISyntaxException e) {
+            System.out.println(
+                    "ERROR trying to determine if: '" + sourceLoc + "' is a file or directory.");
+            e.printStackTrace();
+            return;
+        }
+        final String jarSourcePath = jarSource;
+
+        Path jarPath = fileSystem.getPath("/" + sourceLoc);
 
         try {
-            System.out.println(EntityUtils.toString(entity));
-        } catch (ParseException | IOException e) {
+            Files.walkFileTree(
+                    jarPath,
+                    new SimpleFileVisitor<Path>() {
+
+                        @Override
+                        public FileVisitResult preVisitDirectory(
+                                Path dir, BasicFileAttributes attrs) throws IOException {
+                            Files.createDirectories(
+                                    target.resolve(jarPath.relativize(dir).toString()));
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        @Override
+                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                                throws IOException {
+                            String targetLoc = file.toString().substring(1);
+                            targetLoc = targetLoc.replace(jarSourcePath, target.toString());
+                            Path targetPath = new File(targetLoc).toPath();
+                            Files.copy(file, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
+        } catch (IOException e) {
+            System.out.println("ERROR trying to copy resources from JAR file to file system.");
             e.printStackTrace();
         }
     }

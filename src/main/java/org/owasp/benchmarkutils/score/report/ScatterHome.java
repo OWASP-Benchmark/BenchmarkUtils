@@ -47,8 +47,8 @@ public class ScatterHome extends ScatterPlot {
     private static char averageLabel;
     private double afr = 0;
     private double atr = 0;
-    public final String focus;
-    public static final char INITIAL_LABEL = 'A';
+    private final String focus;
+    static final char INITIAL_LABEL = 'A';
 
     /**
      * This calculates the summary chart across all the tools analyzed against a test suite.
@@ -179,7 +179,7 @@ public class ScatterHome extends ScatterPlot {
         return sb.toString();
     }
 
-    static SecureRandom sr = new SecureRandom();
+    private static SecureRandom sr = new SecureRandom();
     // This method generates all the points put on the home page chart. One per tool.
     private HashMap<Point2D, String> makePointList(Set<Tool> tools) {
         HashMap<Point2D, String> map = new HashMap<Point2D, String>();

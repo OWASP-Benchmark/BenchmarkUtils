@@ -19,11 +19,12 @@ package org.owasp.benchmarkutils.score.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.Map;
+import org.apache.commons.io.IOUtils;
 import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CategoryResults;
@@ -53,15 +54,16 @@ public class ToolReport {
             String actualCSVResultsFileName,
             Map<String, CategoryResults> overallAveToolResults)
             throws IOException, URISyntaxException {
-        String template =
-                new String(
-                        Files.readAllBytes(
-                                Paths.get(
-                                        BenchmarkScore.PATHTOSCORECARDRESOURCES
-                                                + "template.html")));
 
         ToolResults overallToolResults = currentTool.getOverallResults();
-        String html = template;
+
+        // Resources in a jar file have to be loaded as streams. Not directly as Files.
+        InputStream vulnTemplateStream =
+                ToolReport.class
+                        .getClassLoader()
+                        .getResourceAsStream(BenchmarkScore.SCORECARDDIRNAME + "/template.html");
+        String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
+
         html =
                 html.replace(
                         "${testsuite}", BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE));

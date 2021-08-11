@@ -43,7 +43,7 @@ public class ToolBarChart extends ScatterPlot {
     private static final Color BLUECOLUMN = Color.decode("#4572a7"); // Blue
     private static final Color PURPLECOLUMN = Color.decode("#7851a9"); // Royal purple
 
-    public enum BarChartType {
+    enum BarChartType {
         Precision,
         Recall
     }

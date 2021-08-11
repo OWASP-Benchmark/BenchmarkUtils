@@ -36,7 +36,7 @@ import org.xml.sax.InputSource;
 
 public class ThunderScanReader extends Reader {
 
-    static List<String> fileListDuplicates = new ArrayList<String>();
+    private static List<String> fileListDuplicates = new ArrayList<String>();
 
     public TestSuiteResults parse(File f) throws Exception {
 
