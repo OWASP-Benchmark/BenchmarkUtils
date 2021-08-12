@@ -38,6 +38,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -413,25 +414,45 @@ public class Utils {
                     "ERROR: copyFilesFromDirRecursively() can't find source resource: "
                             + sourceLoc);
             return;
-        } else if (srcURL.getProtocol().equals("file")) {
+        }
+
+        if (srcURL.getProtocol().equals("file")) {
             // Copy the files from one directory to another using the normal
             // FileUtils.copyDirectory() method
 
-            File sourceFile = new File(sourceLoc);
-            if (sourceFile.exists()) {
-                try {
-                    FileUtils.copyDirectory(sourceFile, target.toFile());
-                } catch (IOException e) {
-                    System.out.println("ERROR: couldn't copyDirectory()");
-                    e.printStackTrace();
-                    return;
-                }
-            } else {
+            File sourceFile;
+            try {
+                sourceFile = Paths.get(srcURL.toURI()).toFile();
+            } catch (URISyntaxException e1) {
+                // This should never happen since CL.getResource() found it
+                e1.printStackTrace();
+                return;
+            }
+            if (sourceFile.exists())
+                if (sourceFile.isDirectory())
+                    try {
+                        FileUtils.copyDirectory(sourceFile, target.toFile(), false);
+                    } catch (IOException e) {
+                        System.out.println("ERROR: couldn't copyDirectory()");
+                        e.printStackTrace();
+                    }
+                else
+                    // Simply copy file to target dir
+                    try {
+                        Files.copy(
+                                sourceFile.toPath(),
+                                Paths.get(target.toString(), sourceFile.getName()),
+                                StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException e) {
+                        System.out.println("ERROR: couldn't copy source file to target directory,");
+                        e.printStackTrace();
+                    }
+            else
                 System.out.println(
                         "ERROR: copyFilesFromDirRecursively() can't find source File: "
                                 + sourceLoc);
-                return;
-            }
+
+            return; // File(s) copied or it failed
         }
 
         if (!srcURL.getProtocol().equals("jar")) {

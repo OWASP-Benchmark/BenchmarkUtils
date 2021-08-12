@@ -439,7 +439,6 @@ public class BenchmarkScore extends AbstractMojo {
         // Step 3: Copy over the Homepage and Guide templates
         Path homeFilePath = null; // Save value for use in a later step
         try {
-            final String SCORECARDDIR = scoreCardDir.getPath() + File.separator;
             homeFilePath = new File(scoreCardDir, HOMEFILENAME).toPath();
             Utils.copyFilesFromDirRecursively("scorecard/" + HOMEFILENAME, scoreCardDir.toPath());
             Utils.copyFilesFromDirRecursively("scorecard/" + GUIDEFILENAME, scoreCardDir.toPath());
@@ -1587,7 +1586,7 @@ public class BenchmarkScore extends AbstractMojo {
                 File htmlFile = new File(scoreCardDir, filename + ".html");
 
                 // Resources in a jar file have to be loaded as streams. Not directly as Files.
-                final String VULNTEMPLATERESOURCE = scoreCardDir + "/vulntemplate.html";
+                final String VULNTEMPLATERESOURCE = "scorecard/vulntemplate.html";
                 InputStream vulnTemplateStream = CL.getResourceAsStream(VULNTEMPLATERESOURCE);
                 if (vulnTemplateStream == null) {
                     System.out.println(
