@@ -28,13 +28,22 @@ import java.util.Date;
 import java.util.List;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
 import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 
 /**
  * TODO: Refactor this class. There is way too much duplication of code in BenchmarkCrawler here.
  */
+@Mojo(
+        name = "run-verification-crawler",
+        requiresProject = false,
+        defaultPhase = LifecyclePhase.COMPILE)
 public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
+
     private static List<String> crawlerOutputString = new ArrayList<String>();
     private static int maxTimeInSeconds = 2;
     private static boolean isTimingEnabled = false;
@@ -42,6 +51,12 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     private static final String CRAWLER_TIMES_FILE = "crawlerSlowTimes.txt";
     // The following is reconfigurable via parameters to main()
     private static String CRAWLER_TIMES_PATH = Utils.DATA_DIR; // default data dir
+
+    BenchmarkCrawlerVerification() {
+        // Default constructor required for to support Maven plugin API.
+        // The BenchmarkCrawlerVerification(File) must eventually be used before run()
+        // is invoked on that instance of the Crawler.
+    }
 
     BenchmarkCrawlerVerification(File file) {
         super(file);
@@ -280,7 +295,17 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         return crawlerFile;
     }
 
-    public static void main(String[] args) throws Exception {
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        if (null == crawlerFileName) {
+            System.out.println("ERROR: A verification crawler file must be specified.");
+        } else {
+            String[] mainArgs = {"-f", crawlerFileName};
+            main(mainArgs);
+        }
+    }
+
+    public static void main(String[] args) {
 
         File crawlerFile = processCommandLineArgs(args);
         if (crawlerFile == null) {

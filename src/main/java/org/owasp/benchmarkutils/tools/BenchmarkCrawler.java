@@ -41,11 +41,28 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 
-public class BenchmarkCrawler {
-    private File crawlerFile;
+@Mojo(name = "run-crawler", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
+public class BenchmarkCrawler extends AbstractMojo {
+
+    @Parameter(property = "crawlerFile")
+    String crawlerFileName;
+
+    private File crawlerFile = null;
+
+    BenchmarkCrawler() {
+        // Default constructor required for to support Maven plugin API.
+        // The BenchmarkCrawler(File) must eventually be used before run() is invoked on that
+        // instance of the Crawler.
+    }
 
     BenchmarkCrawler(File file) {
         this.crawlerFile = file;
@@ -128,7 +145,7 @@ public class BenchmarkCrawler {
      * @param request - THe HTTP request to issue
      * @throws IOException
      */
-    protected ResponseInfo sendRequest(
+    static ResponseInfo sendRequest(
             CloseableHttpClient httpclient, AbstractTestCaseRequest requestTC) {
         ResponseInfo responseInfo = new ResponseInfo();
         HttpRequestBase request = requestTC.buildRequest();
@@ -211,13 +228,21 @@ public class BenchmarkCrawler {
         return crawlerFile;
     }
 
-    public static void main(String[] args) throws Exception {
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        if (null == crawlerFileName) {
+            System.out.println("ERROR: A crawler file must be specified.");
+        } else {
+            String[] mainArgs = {"-f", crawlerFileName};
+            main(mainArgs);
+        }
+    }
+
+    public static void main(String[] args) {
 
         File crawlerFile = processCommandLineArgs(args);
         if (crawlerFile == null) {
             return;
         }
-
         BenchmarkCrawler crawler = new BenchmarkCrawler(crawlerFile);
         crawler.run();
     }

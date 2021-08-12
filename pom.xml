@@ -56,34 +56,6 @@
         </profile>
 
         <profile>
-            <id>crawlerVerification</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>${version.exec.maven}</version>
-                        <executions>
-                            <execution>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>java</goal>
-                                </goals>
-                                <configuration>
-                                    <mainClass>org.owasp.benchmarkutils.tools.BenchmarkCrawlerVerification</mainClass>
-                                    <arguments>
-                                        <argument>${addlArg1}</argument> <!-- -f here -->
-                                        <argument>${addlArg2}</argument> <!-- filename here -->
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
             <id>scorecard</id>
             <build>
                 <plugins>
