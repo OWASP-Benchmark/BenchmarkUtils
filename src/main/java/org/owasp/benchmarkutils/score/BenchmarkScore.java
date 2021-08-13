@@ -98,7 +98,6 @@ import org.owasp.benchmarkutils.score.parsers.ParasoftReader;
 import org.owasp.benchmarkutils.score.parsers.QualysWASReader;
 import org.owasp.benchmarkutils.score.parsers.Rapid7Reader;
 import org.owasp.benchmarkutils.score.parsers.Reader;
-import org.owasp.benchmarkutils.score.parsers.SeczoneReader;
 import org.owasp.benchmarkutils.score.parsers.SeekerReader;
 import org.owasp.benchmarkutils.score.parsers.SemgrepReader;
 import org.owasp.benchmarkutils.score.parsers.ShiftLeftReader;
@@ -992,12 +991,6 @@ public class BenchmarkScore extends AbstractMojo {
                                             "Error: No matching parser found for JSON file: "
                                                     + filename);
                                 }
-
-                                //  } else if ( fileContains(fileToParse,
-                                // "\"shiftleft_managed\":")) {
-                                //    tr = new ShiftLeftNGSASTReader().parse(fileToParse );
-                                //	else {
-
                             } // end catch SonarQubeJsonReader - hotspots
                         } // end catch SonarQubeJsonReader - issues
                     } // end catch SemgrepReader
@@ -1125,13 +1118,7 @@ public class BenchmarkScore extends AbstractMojo {
                     tr = new WebInspectReader().parse(root);
                 } else if (nodeName.equals("WAS_SCAN_REPORT")) {
                     tr = new QualysWASReader().parse(fileToParse, root);
-                }
-
-                //  else if ( nodeName.equals( "all" ) ) {
-                //      tr = new ShiftLeftNGSASTReader().parse( fileToParse, root );
-                //  }
-
-                else
+                } else
                     System.out.println("Error: No matching parser found for XML file: " + filename);
             } // end else
         } // end if endsWith ".xml"
@@ -1186,8 +1173,6 @@ public class BenchmarkScore extends AbstractMojo {
             // line1 contains: Starting Contrast (for Java) or contrast:contrastAgent (for Node)
             if (line1 != null && line1.toLowerCase().contains(" contrast")) {
                 tr = new ContrastReader().parse(fileToParse);
-            } else if (line1 != null && line1.contains("seczone.iast")) {
-                tr = new SeczoneReader().parse(fileToParse);
             } else System.out.println("Error: No matching parser found for .log file: " + filename);
         } else if (filename.endsWith(".hcl")) {
             tr = new HCLReader().parse(fileToParse);
@@ -1195,13 +1180,7 @@ public class BenchmarkScore extends AbstractMojo {
             tr = new HdivReader().parse(fileToParse);
         } else if (filename.endsWith(".sl")) {
             tr = new ShiftLeftReader().parse(fileToParse);
-        }
-        /*
-                else if ( filename.endsWith( ".sl_titles" ) ) {
-                    tr = new ShiftLeftReader2().parse( fileToParse );
-                }
-        */
-        else System.out.println("Error: No matching parser found for file: " + filename);
+        } else System.out.println("Error: No matching parser found for file: " + filename);
 
         // If we have results, see if the version # is in the results file name.
         if (tr != null) {
