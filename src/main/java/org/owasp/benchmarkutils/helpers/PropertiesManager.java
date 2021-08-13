@@ -30,6 +30,7 @@ public class PropertiesManager {
     // This loads the default benchmark.properties file
     public PropertiesManager() {
         file = Utils.getFileFromClasspath("benchmark.properties", this.getClass().getClassLoader());
+        //        file = new File("src/main/resources/benchmark.properties");
     }
 
     // This can be used to load an alternate properties file specified by the fileName
