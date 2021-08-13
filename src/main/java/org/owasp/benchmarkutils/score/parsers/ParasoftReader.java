@@ -115,7 +115,7 @@ public class ParasoftReader extends Reader {
 
     private TestCaseResult parseFlowViol(Node flaw) {
         // <FlowViol sev="1" ln="64" hash="-1497144802" ruleSCSCMsg="Tainting Point" tool="jtest"
-        // locType="sr" sym="=TempProject/java&lt;org.owasp.benchmarkutils.testcode" lang="java"
+        // locType="sr" sym="=TempProject/java&lt;org.owasp.benchmark.testcode" lang="java"
         // msg="Injection of data received from servlet request (&quot;param&quot;) to filename
         // setting method"
         // id="924224628" rule="BD.SECURITY.TDFNAMES" config="1" dumpId="37" ruleSAFMsg="Dangerous

@@ -80,7 +80,7 @@ public class CASTAIPReader extends Reader {
     // Package\src\main\java\org\owasp\benchmark\testcode\BenchmarkTest00007.java">
     // <violation beginline="39" endline="70" begincolumn="2" endcolumn="3" rule=" " ruleset="Secure
     // Coding - Input Validation"
-    // fullname="org.owasp.benchmarkutils.testcode.BenchmarkTest00007.doPost" type="Java Method"
+    // fullname="org.owasp.benchmark.testcode.BenchmarkTest00007.doPost" type="Java Method"
     // critical="YES" >
     // Avoid OS command injection vulnerabilities ( CWE-78 )</violation></file>
 

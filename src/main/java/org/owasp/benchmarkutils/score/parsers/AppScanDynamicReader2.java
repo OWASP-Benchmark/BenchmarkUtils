@@ -96,7 +96,7 @@ public class AppScanDynamicReader2 extends Reader {
                     e.printStackTrace();
                 }
 
-                //				if (tn == -1) System.out.println("Found vuln outside of test case of type: " +
+                // if (tn == -1) System.out.println("Found vuln outside of test case of type: " +
                 // issueType);
 
                 // Add the vuln found in a test case to the results for this tool

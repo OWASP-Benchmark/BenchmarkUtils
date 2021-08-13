@@ -58,11 +58,11 @@ public class ToolReport {
         ToolResults overallToolResults = currentTool.getOverallResults();
 
         // Resources in a jar file have to be loaded as streams. Not directly as Files.
-        InputStream vulnTemplateStream =
+        InputStream templateFileStream =
                 ToolReport.class
                         .getClassLoader()
                         .getResourceAsStream(BenchmarkScore.SCORECARDDIRNAME + "/template.html");
-        String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
+        String html = IOUtils.toString(templateFileStream, StandardCharsets.UTF_8);
 
         html =
                 html.replace(

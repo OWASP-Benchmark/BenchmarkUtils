@@ -25,10 +25,11 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
-/*
- * TestSuiteResults contains the expected results for each test case in a test suite, if its initialized with the expected results file. Or the actual results for a single tool against each test case in test suite.
+/**
+ * TestSuiteResults contains the expected results for each test case in a test suite, if its
+ * initialized with the expected results file. Or the actual results for a single tool against each
+ * test case in test suite.
  */
-
 public class TestSuiteResults {
 
     // The types of tools that can generate results

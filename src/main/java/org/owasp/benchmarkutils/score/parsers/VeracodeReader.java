@@ -102,7 +102,7 @@ public class VeracodeReader extends Reader {
          * grace_period_expires="2015-05-28 15:28:35 UTC", issueid="4234", line="81",
          * mitigation_status="none", mitigation_status_desc="Not Mitigated", module="Class files
          * within benchmark_classes-1.1.zip", note="", pcirelated="true", remediation_status="New",
-         * remediationeffort="3", scope="org.owasp.benchmarkutils.testcode.BenchmarkTest00020",
+         * remediationeffort="3", scope="org.owasp.benchmark.testcode.BenchmarkTest00020",
          * severity="5", sourcefile="BenchmarkTest00020.java",
          * sourcefilepath="org/owasp/benchmark/testcode/", type="java.lang.Runtime.exec"]
          */

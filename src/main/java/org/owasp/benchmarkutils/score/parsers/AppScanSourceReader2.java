@@ -91,7 +91,7 @@ public class AppScanSourceReader2 extends Reader {
                     }
                 } else {
                     // Parse out test # from:
-                    // org.owasp.benchmarkutils.testcode.BenchmarkTest01484.doPost(HttpServletRequest;HttpServletResponse):void
+                    // org.owasp.benchmark.testcode.BenchmarkTest01484.doPost(HttpServletRequest;HttpServletResponse):void
                     String methodSig = methodSigNode.getTextContent();
                     if (methodSig != null && methodSig.contains(BenchmarkScore.TESTCASENAME)) {
                         String s =

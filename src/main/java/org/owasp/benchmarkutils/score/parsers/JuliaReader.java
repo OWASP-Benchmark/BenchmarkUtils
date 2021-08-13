@@ -64,7 +64,7 @@ public class JuliaReader extends Reader {
     // refactoring resilient
     // TODO: Update to handle package paths from other test suites
     private static final String prefixOfTest =
-            "org.owasp.benchmarkutils.testcode." + BenchmarkScore.TESTCASENAME;
+            "org.owasp.benchmark.testcode." + BenchmarkScore.TESTCASENAME;
 
     private TestCaseResult parseJuliaBug(Node n) {
         TestCaseResult tcr = new TestCaseResult();
