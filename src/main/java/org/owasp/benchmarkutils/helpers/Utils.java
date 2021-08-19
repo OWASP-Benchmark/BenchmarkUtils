@@ -273,16 +273,6 @@ public class Utils {
         List<Node> formParamsNodes = XMLCrawler.getNamedChildren("formparam", test);
         List<NameValuePair> formParams = parseNameValuePairs(formParamsNodes);
 
-        List<Node> payloadNodes = XMLCrawler.getNamedChildren("payload", test);
-        if (payloadNodes.size() > 1)
-            throw new TestCaseRequestFileParseException(
-                    "There cannot be multiple payloads for a request");
-        String payload =
-                null; // Set to null by default because normal crawler files don't specify a payload
-        // value
-        if (payloadNodes.size() == 1)
-            payload = XMLCrawler.getAttributeValue("value", payloadNodes.get(0));
-
         switch (tcType) {
             case SERVLET:
                 request =
@@ -290,7 +280,6 @@ public class Utils {
                                 url,
                                 tcType,
                                 category,
-                                payload,
                                 name,
                                 uiTemplateFile,
                                 templateFile,
@@ -311,7 +300,6 @@ public class Utils {
                                 url,
                                 tcType,
                                 category,
-                                payload,
                                 name,
                                 uiTemplateFile,
                                 templateFile,
@@ -332,7 +320,6 @@ public class Utils {
                                 url,
                                 tcType,
                                 category,
-                                payload,
                                 name,
                                 uiTemplateFile,
                                 templateFile,

@@ -209,35 +209,33 @@ public class RegressionTesting {
     }
 
     /**
-     * Method to verify if the provided payload was included in the response, or the status code
-     * wasn't a 200.
+     * Method to verify if the provided attackSuccessIndicator was included in the response, or the
+     * status code wasn't a 200.
      *
      * @param testCaseRequest - The TestCaseRequest for this test case.
      * @param response - The response from this test case.
-     * @param payload - The payload to look for in the response to determine if the attack was
-     *     successful.
+     * @param attackSuccessIndicator - The value to look for in the response to determine if the
+     *     attack was successful.
      * @param statusCode - The status code from the response. Anything but 200 is considered a test
      *     case failure.
      *     <p>Has the following side effects: testCaseRequest.setPassed() - If test is verifiable,
-     *     and payload not found in response, set to false, otherwise true. Set to true for all
-     *     non-verifiable True Positives.
+     *     and attackSuccessIndicator not found in response, setPassed set to false, otherwise true.
+     *     Set to true for all non-verifiable True Positives.
      */
     public static void verifyTestCase(
             AbstractTestCaseRequest testCaseRequest,
             String response,
-            String payload,
+            String attackSuccessIndicator,
             int statusCode) {
 
-        payload = payload.replace("REFERER", ""); // Rip out any REFERER values
-
         if (testCaseRequest.isVulnerability()) {
-            if (response.contains(payload)) {
+            if (response.contains(attackSuccessIndicator)) {
                 testCaseRequest.setPassed(true);
             } else {
                 testCaseRequest.setPassed(false);
             }
-        } // Verify the XSS false positives are NOT exploitable
-        else if (response.contains(payload)) {
+        } // Verify false positives are NOT exploitable
+        else if (response.contains(attackSuccessIndicator)) {
             testCaseRequest.setPassed(false);
         } else {
             testCaseRequest.setPassed(true);

@@ -57,7 +57,6 @@ public abstract class AbstractTestCaseRequest {
     private boolean isVulnerability;
     private String attackSuccessString;
     private String name;
-    private String payload;
 
     private String query;
     private String sinkFile;
@@ -72,7 +71,6 @@ public abstract class AbstractTestCaseRequest {
             String fullURL,
             TestCaseType tcType,
             String category,
-            String payload,
             String name,
             String uiTemplateFile,
             String templateFile,
@@ -90,7 +88,6 @@ public abstract class AbstractTestCaseRequest {
         this.fullURL = fullURL;
         this.tcType = tcType;
         this.category = category;
-        this.payload = payload;
         this.name = name;
         this.uiTemplateFile = uiTemplateFile;
         this.templateFile = templateFile;
@@ -170,10 +167,6 @@ public abstract class AbstractTestCaseRequest {
         return this.name;
     }
 
-    public String getPayload() {
-        return this.payload;
-    }
-
     public String getQuery() {
         return this.query;
     }
@@ -250,10 +243,6 @@ public abstract class AbstractTestCaseRequest {
         this.isPassed = isPassed;
     }
 
-    public void setPayload(String payload) {
-        this.payload = payload;
-    }
-
     public void setQuery(String query) {
         this.query = query;
     }
@@ -297,8 +286,6 @@ public abstract class AbstractTestCaseRequest {
                 + tcType
                 + ", category="
                 + category
-                + ", payload="
-                + payload
                 + ", name="
                 + name
                 + ", uiTemplateFile="

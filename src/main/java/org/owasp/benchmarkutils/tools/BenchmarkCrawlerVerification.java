@@ -202,35 +202,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         if (attackSuccessIndicator != null) {
             RegressionTesting.verifyTestCase(
                     request, responseString, attackSuccessIndicator, statusCode);
-        } else
-            switch (request.getCategory()) {
-                case "xss":
-                    // for XSS, if dangerous payload is reflected unchanged in the response, then it
-                    // is
-                    // vulnerable to XSS.
-                    RegressionTesting.verifyTestCase(
-                            request,
-                            responseString,
-                            request.getPayload(), // See if parameter value is echoed in response
-                            statusCode);
-
-                    // In case the test fails, set the attack success string so it will be logged in
-                    // the failure log properly
-                    request.setAttackSuccessString(request.getPayload());
-                    break;
-                case "xxe":
-                    // for XXE, if the response includes the specific XXE target value, then it is
-                    // vulnerable to XXE
-                    final String XXESUCCESS = "U_R_L33T!";
-                    RegressionTesting.verifyTestCase(
-                            request, responseString, XXESUCCESS, statusCode);
-                    // In case the test fails, set the attack success string so it will be logged in
-                    // the failure log properly
-                    request.setAttackSuccessString(XXESUCCESS);
-                    break;
-                default:
-                    // Do nothing.
-            }
+        }
     }
 
     /**
