@@ -188,6 +188,7 @@ public class Tool implements Comparable<Tool> {
      * Compares the name and version of this tool, to the name and version of the supplied tool.
      * Used to sort Tools by tool name and version.
      */
+    @Override
     public int compareTo(Tool r) {
         return this.getToolNameAndVersion()
                 .toLowerCase()

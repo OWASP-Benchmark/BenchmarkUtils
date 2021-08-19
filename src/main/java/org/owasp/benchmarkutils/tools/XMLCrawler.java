@@ -25,6 +25,14 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class XMLCrawler {
+
+    /**
+     * Returns the requested node.
+     *
+     * @param name - The name of the node to look for.
+     * @param list - The List of Nodes to search through.
+     * @return The requested Node if found. Null if not found.
+     */
     public static Node getNamedNode(String name, NodeList list) {
         for (int i = 0; i < list.getLength(); i++) {
             Node n = list.item(i);
@@ -35,11 +43,25 @@ public class XMLCrawler {
         return null;
     }
 
+    /**
+     * Returns the requested node.
+     *
+     * @param name - The name of the node to look for.
+     * @param list - The parent Node to search.
+     * @return The requested Node if found. Null if not found.
+     */
     public static Node getNamedChild(String name, Node parent) {
         NodeList children = parent.getChildNodes();
         return getNamedNode(name, children);
     }
 
+    /**
+     * Returns a List of the requested nodes.
+     *
+     * @param name - The name of the nodes to look for.
+     * @param list - The List of Nodes to search through.
+     * @return A List of the nodes found. The list will be empty if no matches are found.
+     */
     public static List<Node> getNamedChildren(String name, List<Node> list) {
         List<Node> results = new ArrayList<Node>();
         for (Node n : list) {
@@ -55,11 +77,25 @@ public class XMLCrawler {
         return results;
     }
 
+    /**
+     * Returns a List of the requested nodes.
+     *
+     * @param name - The name of the nodes to look for.
+     * @param list - The parent Node to search.
+     * @return A List of the nodes found. The list will be empty if no matches are found.
+     */
     public static List<Node> getNamedChildren(String name, Node parent) {
         NodeList children = parent.getChildNodes();
         return getNamedNodes(name, children);
     }
 
+    /**
+     * Returns a List of the requested nodes.
+     *
+     * @param name - The name of the nodes to look for.
+     * @param list - The List of Nodes to search through.
+     * @return A List of the nodes found. The list will be empty if no matches are found.
+     */
     public static List<Node> getNamedNodes(String name, NodeList list) {
         List<Node> results = new ArrayList<Node>();
         for (int i = 0; i < list.getLength(); i++) {

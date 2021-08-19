@@ -277,7 +277,11 @@ public class Utils {
         if (payloadNodes.size() > 1)
             throw new TestCaseRequestFileParseException(
                     "There cannot be multiple payloads for a request");
-        String payload = XMLCrawler.getAttributeValue("value", payloadNodes.get(0));
+        String payload =
+                null; // Set to null by default because normal crawler files don't specify a payload
+        // value
+        if (payloadNodes.size() == 1)
+            payload = XMLCrawler.getAttributeValue("value", payloadNodes.get(0));
 
         switch (tcType) {
             case SERVLET:
