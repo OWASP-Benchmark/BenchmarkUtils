@@ -866,7 +866,7 @@ public class BenchmarkScore extends AbstractMojo {
     /**
      * This method translates vulnerability names, e.g., Cross-Site Scripting, to their CWE number.
      *
-     * @param The category to translate.
+     * @param categoryName - The category to translate.
      * @return The CWE # of that category.
      */
     public static int translateNameToCWE(String categoryName) {
@@ -887,7 +887,7 @@ public class BenchmarkScore extends AbstractMojo {
      * Return map of each vuln category to the actual result counts for that category in the
      * supplied TestSuiteResults.
      *
-     * @param actualResults to calculate scores from.
+     * @param actualResults - Results to calculate scores from.
      * @return A Map<String, TP_FN_TN_FP_Counts> of the vuln categories by name, to the scores for
      *     this tool.
      */
@@ -1218,7 +1218,7 @@ public class BenchmarkScore extends AbstractMojo {
             for (int i = 0; i <= lineNum; i++) {
                 line = br.readLine();
             }
-            while ("".equals(line)) {
+            while (line.length() == 0) { // Skip empty lines
                 line = br.readLine();
             }
             return line;
@@ -1445,23 +1445,19 @@ public class BenchmarkScore extends AbstractMojo {
      */
     private static String produceResultsFile(TestSuiteResults actual, File scoreCardDir) {
 
-        File resultsFile = null;
-        PrintStream ps = null;
-
-        try {
-            String testSuiteVersion = actual.getTestSuiteVersion();
-            String resultsFileName =
-                    scoreCardDir.getAbsolutePath()
-                            + File.separator
-                            + TESTSUITE
-                            + "_v"
-                            + testSuiteVersion
-                            + "_Scorecard_for_"
-                            + actual.getToolNameAndVersion().replace(' ', '_')
-                            + ".csv";
-            resultsFile = new File(resultsFileName);
-            FileOutputStream fos = new FileOutputStream(resultsFile, false);
-            ps = new PrintStream(fos);
+        String testSuiteVersion = actual.getTestSuiteVersion();
+        String resultsFileName =
+                scoreCardDir.getAbsolutePath()
+                        + File.separator
+                        + TESTSUITE
+                        + "_v"
+                        + testSuiteVersion
+                        + "_Scorecard_for_"
+                        + actual.getToolNameAndVersion().replace(' ', '_')
+                        + ".csv";
+        File resultsFile = new File(resultsFileName);
+        try (FileOutputStream fos = new FileOutputStream(resultsFile, false);
+                PrintStream ps = new PrintStream(fos); ) {
 
             Set<Integer> testCaseKeys = actual.keySet();
 
@@ -1508,8 +1504,8 @@ public class BenchmarkScore extends AbstractMojo {
         } catch (FileNotFoundException e) {
             System.out.println(
                     "ERROR: Can't create actual results file: " + resultsFile.getAbsolutePath());
-        } finally {
-            if (ps != null) ps.close();
+        } catch (IOException e1) {
+            e1.printStackTrace();
         }
 
         return null; // Should have returned results file name earlier if successful

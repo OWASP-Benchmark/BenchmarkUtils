@@ -139,9 +139,13 @@ public class CodeQLReader extends Reader {
                 // " CWE: " + cweForRule);
                 if (cweForRule == null) {
                     switch (ruleId) {
+                        case "java/inefficient-boxed-constructor":
                         case "java/inefficient-empty-string-test":
                         case "java/missing-override-annotation":
                         case "java/non-static-nested-class":
+                        case "java/unsafe-get-resource":
+                        case "js/automatic-semicolon-insertion":
+                        case "js/unused-local-variable":
                             break; // We've seen these before and they're OK, so don't print warning
 
                         default:
@@ -160,7 +164,7 @@ public class CodeQLReader extends Reader {
                             "WARNING: Unexpectedly found more than one location for finding against rule: "
                                     + ruleId);
                 }
-                int cwe = mapCWE(cweForRule);
+                int cwe = mapCWE(ruleId, cweForRule);
                 tcr.setCWE(cwe);
                 // tcr.setCategory( props.getString( "subcategoryShortDescription" ) ); //
                 // Couldn't find any Category info in results file
@@ -173,17 +177,17 @@ public class CodeQLReader extends Reader {
         return null;
     }
 
-    private int mapCWE(Integer cweNumber) {
+    private int mapCWE(String ruleName, Integer cweNumber) {
 
         switch (cweNumber) {
                 // These are properly mapped by default
             case 22: // java/path-injection and zipslip
-            case 78: // java/command-line-injection
-            case 79: // java/xss
-            case 89: // java/sql-injection and similar sqli rules
+            case 78: // java & js/command-line-injection
+            case 79: // java/xss & js/reflected-xss
+            case 89: // java & js/sql-injection and similar sqli rules
             case 90: // java/ldap-injection
             case 327: // java/weak-cryptographic-algorithm
-            case 611: // java/xxe
+            case 611: // java & js/xxe
             case 614: // java/insecure-cookie
             case 643: // java/xml/xpath-injection
                 return cweNumber.intValue(); // Return CWE as is
@@ -221,16 +225,26 @@ public class CodeQLReader extends Reader {
                 */
 
             case 113: // java/http-response-splitting
+            case 117: // js/log-injection
             case 134: // java/tainted-format-string
             case 209: // java/stack-trace-exposure
-            case 404: // java/TODO
-            case 561: // java/TODO
-            case 570: // java/TODO
-            case 685: // java/TODO
+            case 404: // java/database-resource-leak
+            case 477: // java/deprecated-call
+            case 485: // java/abstract-to-concrete-cast
+            case 561: // java/unused-parameter
+            case 563: // js/useless-assignment-to-local
+            case 570: // java/constant-comparison
+            case 685: // java/unused-format-argument
+            case 730: // js/regex-injection (i.e., DOS)
+            case 776: // js/xml-bomb (i.e., XEE, as opposed to XXE, which is already mapped above
+            case 843: // js/type-confusion-through-parameter-tampering
                 return cweNumber.intValue(); // Return CWE as is
             default:
                 System.out.println(
-                        "CodeQL parser encountered new unmapped vulnerability type: " + cweNumber);
+                        "CodeQL parser encountered new unmapped vulnerability type: "
+                                + cweNumber
+                                + " for rule: "
+                                + ruleName);
         }
         return 0; // Not mapped to anything
     }
