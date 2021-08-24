@@ -128,13 +128,13 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
             // Log the elapsed time for all test cases
             long stop = System.currentTimeMillis();
-            double seconds = (int) (stop - start) / 1000.0;
+            int seconds = (int) (stop - start) / 1000;
 
             Date now = new Date();
 
             completionMessage =
                     String.format(
-                            "Verification crawl ran on %tF %<tT for %s v%s took %f seconds%n",
+                            "Verification crawl ran on %tF %<tT for %s v%s took %d seconds%n",
                             now,
                             BenchmarkScore.TESTSUITE,
                             BenchmarkScore.TESTSUITEVERSION,
@@ -206,7 +206,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         HttpUriRequest requestBase = responseInfo.getRequestBase();
         String outputString =
                 String.format(
-                        "--> (%d : %f sec)%n",
+                        "--> (%d : %d sec)%n",
                         responseInfo.getStatusCode(), responseInfo.getTimeInSeconds());
         if (isTimingEnabled) {
             if (responseInfo.getTimeInSeconds() >= maxTimeInSeconds) {

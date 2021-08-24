@@ -4,7 +4,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 
 class ResponseInfo {
     private String responseString;
-    private double seconds;
+    private int seconds;
     private int statusCode;
     private HttpUriRequest requestBase;
 
@@ -16,11 +16,11 @@ class ResponseInfo {
         this.responseString = responseString;
     }
 
-    public double getTimeInSeconds() {
+    public int getTimeInSeconds() {
         return seconds;
     }
 
-    public void setTimeInSeconds(double seconds) {
+    public void setTimeInSeconds(int seconds) {
         this.seconds = seconds;
     }
 

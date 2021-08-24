@@ -17,7 +17,6 @@
  */
 package org.owasp.benchmarkutils.tools;
 
-import java.lang.invoke.MethodHandles;
 import java.util.Comparator;
 import java.util.List;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -329,7 +328,7 @@ public abstract class AbstractTestCaseRequest {
 
     @Override
     public String toString() {
-        return MethodHandles.lookup().lookupClass().getSimpleName()
+        return this.getClass().getSimpleName()
                 + " [category="
                 + category
                 + ", cookies="

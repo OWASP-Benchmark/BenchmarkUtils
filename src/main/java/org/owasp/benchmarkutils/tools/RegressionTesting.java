@@ -18,12 +18,11 @@
 package org.owasp.benchmarkutils.tools;
 
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableSortedMultiset;
 import com.google.common.collect.Multiset;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -59,6 +58,9 @@ public class RegressionTesting {
 
     static Set<String> unverifiableSinks = new TreeSet<>();
 
+    static Multiset<String> nonDiscriminatorySinks = HashMultiset.create();
+    static Multiset<String> failSinks = HashMultiset.create();
+
     static Map<AbstractTestCaseRequest, String> failedTruePositivesList =
             new LinkedHashMap<AbstractTestCaseRequest, String>();
     static Map<AbstractTestCaseRequest, String> failedFalsePositivesList =
@@ -72,122 +74,141 @@ public class RegressionTesting {
     private static final List<String> CATEGORIES_INCLUDED_IN_TEST =
             Arrays.asList(new String[] {"xss", "xxe"});
 
+    // TODO: Since this is static, we might only be able to use (close) it once.
+    static SimpleFileLogger ftcLogger;
+
     /**
      * Write a log file containing the details of all failed test cases.
      *
      * @param results
      * @param dataDir
      * @throws IOException
+     * @throws LoggerConfigurationException
      */
     public static void genFailedTCFile(List<TestCaseVerificationResults> results, String dataDir)
-            throws IOException {
+            throws IOException, LoggerConfigurationException {
 
-        // TODO: Use try-with-resources
         final File FILE_FAILEDTC = new File(dataDir, FILENAME_FAILEDTC);
-        PrintStream fout = new PrintStream(new FileOutputStream(FILE_FAILEDTC));
+        SimpleFileLogger.setFile("FAILEDTC", FILE_FAILEDTC);
 
-        totalCount = results.size();
+        try (SimpleFileLogger ftc = SimpleFileLogger.getLogger("FAILEDTC")) {
 
-        for (TestCaseVerificationResults result : results) {
-            AbstractTestCaseRequest request = result.getRequest();
+            ftcLogger = ftc;
 
-            String sinkMetaDataFilename =
-                    (result.getRequest().getSinkFile() != null)
-                            ? new File(result.getRequest().getSinkFile()).getName()
-                            : null;
-            if (result.isUnverifiable()) {
-                if (result.isDeclaredUnverifiable()) {
-                    declaredUnverifiable++;
-                } else {
-                    undeclaredUnverifiable++;
-                    unverifiableSinks.add(sinkMetaDataFilename);
-                }
-            } else {
-                if (result.isPassed()) {
-                    if (request.isVulnerability()) truePositivePassedCount++;
-                    else falsePositivePassedCount++;
-                } else {
-                    if (request.isVulnerability()) truePositiveFailedCount++;
-                    else falsePositiveFailedCount++;
-                }
-                verifiedCount++;
-            }
-        }
+            totalCount = results.size();
 
-        if (truePositiveFailedCount + falsePositiveFailedCount > 0) {
             for (TestCaseVerificationResults result : results) {
                 AbstractTestCaseRequest request = result.getRequest();
-                if (isIncludedInTest(request)) {
-                    if (isVerbosityOn) {
-                        System.out.println();
-                        System.out.printf(
-                                "Test case request %s (category: %s, isVulnerability: %b, isNonverifiable: %b, isPassed: %b)%n",
-                                request.getName(),
-                                request.getCategory(),
-                                request.isVulnerability(),
-                                result.isUnverifiable(),
-                                result.isPassed());
-                        System.out.println(request.getFullURL());
-                    }
 
-                    if (!result.isUnverifiable() && !result.isPassed()) {
-                        System.out.printf(
-                                "FAILURE: %b positive %s test case request %s%n",
-                                request.isVulnerability(),
-                                request.getCategory(),
-                                request.getName());
+                String sinkMetaDataFilename =
+                        (result.getRequest().getSinkFile() != null)
+                                ? new File(result.getRequest().getSinkFile()).getName()
+                                : null;
+                if (result.isUnverifiable()) {
+                    if (result.isDeclaredUnverifiable()) {
+                        declaredUnverifiable++;
+                    } else {
+                        undeclaredUnverifiable++;
+                        unverifiableSinks.add(sinkMetaDataFilename);
+                    }
+                } else {
+                    if (result.isPassed()) {
+                        if (request.isVulnerability()) truePositivePassedCount++;
+                        else falsePositivePassedCount++;
+                    } else {
+                        if (request.isVulnerability()) truePositiveFailedCount++;
+                        else falsePositiveFailedCount++;
+                    }
+                    verifiedCount++;
+                }
+            }
+
+            if (truePositiveFailedCount + falsePositiveFailedCount > 0) {
+                for (TestCaseVerificationResults result : results) {
+                    AbstractTestCaseRequest request = result.getRequest();
+                    if (isIncludedInTest(request)) {
+                        if (isVerbosityOn) {
+                            System.out.println();
+                            System.out.printf(
+                                    "Test case request %s (category: %s, isVulnerability: %b, isNonverifiable: %b, isPassed: %b)%n",
+                                    request.getName(),
+                                    request.getCategory(),
+                                    request.isVulnerability(),
+                                    result.isUnverifiable(),
+                                    result.isPassed());
+                            System.out.println(request.getFullURL());
+                        }
+
+                        if (!result.isUnverifiable() && !result.isPassed()) {
+                            System.out.printf(
+                                    "FAILURE: %s positive %s test case request %s%n",
+                                    request.isVulnerability() ? "True" : "False",
+                                    request.getCategory(),
+                                    request.getName());
+                        }
                     }
                 }
             }
-        }
 
-        if (truePositiveFailedCount + falsePositiveFailedCount > 0) {
-            for (TestCaseVerificationResults result : results) {
-                ResponseInfo responseInfo = result.getResponseToAttackValue();
-                AbstractTestCaseRequest request = result.getRequest();
-                if (isIncludedInTest(request)) {
-                    if (!result.isUnverifiable() && !result.isPassed()) {
-                        fout.printf(
-                                "FAILURE: %b positive %s test case request %s%n",
-                                request.isVulnerability(),
-                                request.getCategory(),
-                                request.getName());
-                        fout.println(request.toString());
-                        fout.println();
-                        fout.printf("Attack response: [%d]:%n", responseInfo.getStatusCode());
-                        fout.println(
-                                responseInfo == null ? "null" : responseInfo.getResponseString());
-                        fout.println();
-                        fout.printf("Safe response: [%d]:%n", responseInfo.getStatusCode());
-                        fout.println(
-                                result.getResponseToSafeValue() == null
-                                        ? "null"
-                                        : result.getResponseToSafeValue().getResponseString());
-                        fout.println();
-                        fout.printf(
-                                "Attack success indicator: -->%s<--%n",
-                                request.getAttackSuccessString());
-                        fout.println();
+            if (truePositiveFailedCount + falsePositiveFailedCount > 0) {
+                for (TestCaseVerificationResults result : results) {
+                    AbstractTestCaseRequest request = result.getRequest();
+                    if (isIncludedInTest(request)) {
+                        if (!result.isUnverifiable() && !result.isPassed()) {
+                            printTestCaseDetails(result, ftcLogger, "FAILURE: ");
+                        }
                     }
                 }
+                System.out.printf("Details of failed test cases written to: %s%n", FILE_FAILEDTC);
             }
-            fout.close();
-            System.out.printf("Details of failed test cases written to: %s%n", FILE_FAILEDTC);
         }
+    }
+
+    private static void printTestCaseDetails(TestCaseVerificationResults result, Logger out) {
+        printTestCaseDetails(result, out, null);
+    }
+
+    private static void printTestCaseDetails(
+            TestCaseVerificationResults result, Logger out, String message) {
+        AbstractTestCaseRequest request = result.getRequest();
+        ResponseInfo attackResponseInfo = result.getResponseToAttackValue();
+        ResponseInfo safeResponseInfo = result.getResponseToSafeValue();
+        if (message != null) out.printf(message);
+        out.printf(
+                "%s positive %s test case request %s%n",
+                request.isVulnerability() ? "True" : "False",
+                request.getCategory(),
+                request.getName());
+        out.println(request.toString());
+        out.println();
+        out.printf("Attack response: [%d]:%n", attackResponseInfo.getStatusCode());
+        out.println(attackResponseInfo == null ? "null" : attackResponseInfo.getResponseString());
+        out.println();
+        out.printf("Safe response: [%d]:%n", attackResponseInfo.getStatusCode());
+        out.println(safeResponseInfo == null ? "null" : safeResponseInfo.getResponseString());
+        out.println();
+        out.printf("Attack success indicator: -->%s<--%n", request.getAttackSuccessString());
+        out.println();
     }
 
     /**
      * Print to the console a summary of the last crawl.
      *
      * @param results
+     * @throws LoggerConfigurationException
+     * @throws FileNotFoundException
      */
-    public static void printCrawlSummary(List<TestCaseVerificationResults> results) {
+    public static void printCrawlSummary(List<TestCaseVerificationResults> results)
+            throws FileNotFoundException, LoggerConfigurationException {
+
+        SimpleFileLogger ndLogger = SimpleFileLogger.getLogger("NONDISCRIMINATORY");
 
         int unverifiedCount = declaredUnverifiable + undeclaredUnverifiable;
         System.out.println("\n - Total number of test cases: " + totalCount);
-        System.out.printf(" -- Total verified: %d%n", verifiedCount);
-        System.out.printf(" -- Total unverifiable: %d%n", unverifiedCount);
-        // System.out.printf("\t Declared unverifiable: %d%n", declaredUnverifiable);
+        // System.out.printf(" -- Total verified: %d%n", verifiedCount);
+        // System.out.printf(" -- Total unverifiable: %d%n", unverifiedCount);
+        if (declaredUnverifiable > 0)
+            System.out.printf(" -- Declared not auto-verifiable: %d%n", declaredUnverifiable);
         // System.out.printf("\t Undeclared unverifiable: %d%n", undeclaredUnverifiable);
         if (unverifiableSinks.size() > 0) {
             System.out.println(
@@ -198,13 +219,29 @@ public class RegressionTesting {
         }
 
         System.out.printf(
-                " -- Total PASSED: %d%n", truePositivePassedCount + falsePositivePassedCount);
+                " -- Test cases PASSED: %d%n", truePositivePassedCount + falsePositivePassedCount);
         System.out.printf("\tTP PASSED: %d%n", truePositivePassedCount);
         System.out.printf("\tFP PASSED: %d%n", falsePositivePassedCount);
+        if (undeclaredUnverifiable > 0)
+            System.out.printf(" -- Total unverifiable: %d%n", undeclaredUnverifiable);
+        System.out.println(" - Problems:");
         System.out.printf(
-                " -- Total FAILED: %d%n", truePositiveFailedCount + falsePositiveFailedCount);
+                " -- Test cases FAILED: %d%n", truePositiveFailedCount + falsePositiveFailedCount);
         System.out.printf("\tTP FAILED: %d%n", truePositiveFailedCount);
         System.out.printf("\tFP FAILED: %d%n", falsePositiveFailedCount);
+        System.out.printf(" -- Failed test cases by sink (total: %d)%n", failSinks.size());
+        for (String sinkFile : ImmutableSortedMultiset.copyOf(failSinks).elementSet()) {
+            System.out.printf("\t%s (count: %d)%n", sinkFile, failSinks.count(sinkFile));
+        }
+
+        System.out.printf(
+                " -- Non-discriminatory test cases by sink (total: %d)%n",
+                nonDiscriminatorySinks.size());
+        for (String sinkFile :
+                ImmutableSortedMultiset.copyOf(nonDiscriminatorySinks).elementSet()) {
+            System.out.printf(
+                    "\t%s (count: %d)%n", sinkFile, nonDiscriminatorySinks.count(sinkFile));
+        }
 
         if (totalCount - verifiedCount != unverifiedCount) {
             System.out.printf(
@@ -246,21 +283,25 @@ public class RegressionTesting {
         result.setDeclaredUnverifiable(false); // Default
         if (result.getRequest().isUnverifiable()) {
             // Count this as "declared unverifiable" and return
-            System.out.printf("WARNING: Unverifiable test %s.%n", result.getRequest().getName());
+            // System.out.printf("WARNING: Unverifiable test %s.%n", result.getRequest().getName());
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(true);
         } else if (result.getRequest().getAttackSuccessString() == null
                 || !containsSafeNameOrValue(result.getRequest())) {
             // Count this as "undeclared unverifiable" and return
-            System.out.printf(
-                    "WARNING: Unverifiable test %s uses sink not declared as unverifiable.%n",
-                    result.getRequest().getName());
+            // System.out.printf(
+            //        "WARNING: Unverifiable test %s uses sink not declared as unverifiable.%n",
+            //        result.getRequest().getName());
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(false);
         }
 
         List<String> reasons = new ArrayList<>();
-        Multiset<String> nonDiscriminatorySinks = HashMultiset.create();
+
+        String sinkMetaDataFilename =
+                (result.getRequest().getSinkFile() != null)
+                        ? new File(result.getRequest().getSinkFile()).getName()
+                        : null;
 
         if (!result.isUnverifiable()) {
             boolean isAttackValueVerified =
@@ -278,54 +319,54 @@ public class RegressionTesting {
             if (result.getRequest().isVulnerability()) {
                 // True positive success?
                 if (isAttackValueVerified) {
+                    result.setPassed(true);
                     if (isSafeValueVerified) {
-                        result.setPassed(false);
-                        System.out.printf(
-                                "WARNING: Non-discriminatory true positive test %s.%n",
-                                result.getRequest().getName());
+                        // result.setPassed(false);
+                        // System.out.printf(
+                        //        "WARNING: Non-discriminatory true positive test %s.%n",
+                        //        result.getRequest().getName());
                         ndLogger.printf(
                                 "Non-discriminatory true positive test %s: The attack-success-string: \"%s\" was found in the response to both the safe and attack requests.%n"
                                         + "\tTo verify that a test case is a true positive, the attack-success-string should be in the attack response, and not%n\tthe safe response. Please change the attack-success-string and/or the test case sink itself to ensure that the%n\tattack-success-string response is present only in a response to a successful attack.%n",
                                 result.getRequest().getName(),
                                 result.getRequest().getAttackSuccessString());
+                        printTestCaseDetails(result, ndLogger);
                         nonDiscriminatorySinks.add(result.getRequest().getSinkFile());
                     } else {
-                        result.setPassed(true);
+                        // result.setPassed(true);
                     }
                 } else {
                     result.setPassed(false);
+                    failSinks.add(sinkMetaDataFilename);
                 }
             } else {
                 // False positive success?
                 if (isAttackValueVerified) {
                     result.setPassed(false);
+                    failSinks.add(sinkMetaDataFilename);
                 } else {
+                    result.setPassed(true);
                     if (isSafeValueVerified) {
-                        result.setPassed(false);
-                        System.out.printf(
-                                "WARNING: Non-discriminatory false positive test %s.%n",
-                                result.getRequest().getName());
+                        // result.setPassed(false);
+                        // System.out.printf(
+                        //        "WARNING: Non-discriminatory false positive test %s.%n",
+                        //        result.getRequest().getName());
                         ndLogger.printf(
                                 "Non-discriminatory false positive test %s: The attack-success-string: \"%s\" was found in the response to the safe request.%n"
                                         + "\tTo verify that a test case is a false positive, the attack-success-string should not be in any response to this test%n\tcase. Please change the attack-success-string and/or the test case sink itself to ensure that the%n\tattack-success-string response is present only in a response to a successful attack.%n",
                                 result.getRequest().getName(),
                                 result.getRequest().getAttackSuccessString());
+                        printTestCaseDetails(result, ndLogger);
                         nonDiscriminatorySinks.add(result.getRequest().getSinkFile());
                     } else {
-                        result.setPassed(true);
+                        // result.setPassed(true);
                     }
                 }
             }
         }
-        ndLogger.printf("%nNon discriminatory sinks%n");
-        for (String sinkFile : nonDiscriminatorySinks.elementSet()) {
-            System.out.printf(
-                    "\t%s (count: %d)%n", sinkFile, nonDiscriminatorySinks.count(sinkFile));
-        }
 
         reasons = findErrors(result);
         boolean hasErrors = reasons.size() > 0;
-        ;
 
         String compositeReason = "\t- " + String.join(", ", reasons);
 

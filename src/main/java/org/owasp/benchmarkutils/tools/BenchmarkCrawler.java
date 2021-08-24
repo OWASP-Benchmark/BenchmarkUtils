@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -100,21 +98,13 @@ public class BenchmarkCrawler extends AbstractMojo {
 
         // Log the elapsed time for all test cases
         long stop = System.currentTimeMillis();
-        double seconds = (int) (stop - start) / 1000.0;
+        int seconds = (int) (stop - start) / 1000;
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date now = new Date();
 
-        System.out.println(
-                "Crawl ran on "
-                        + dateFormat.format(now)
-                        + " for "
-                        + BenchmarkScore.TESTSUITE
-                        + " v"
-                        + BenchmarkScore.TESTSUITEVERSION
-                        + " took "
-                        + seconds
-                        + " seconds");
+        System.out.printf(
+                "Crawl ran on %tF %<tT for %s v%s took %d seconds%n",
+                now, BenchmarkScore.TESTSUITE, BenchmarkScore.TESTSUITEVERSION, seconds);
     }
 
     // This method taken directly from:
@@ -172,9 +162,9 @@ public class BenchmarkCrawler extends AbstractMojo {
             HttpEntity entity = response.getEntity();
             int statusCode = response.getStatusLine().getStatusCode();
             responseInfo.setStatusCode(statusCode);
-            double seconds = (int) watch.getTime() / 1000.0;
+            int seconds = (int) watch.getTime() / 1000;
             responseInfo.setTimeInSeconds(seconds);
-            System.out.printf("--> (%d : %f sec)%n", statusCode, seconds);
+            System.out.printf("--> (%d : %d sec)%n", statusCode, seconds);
 
             try {
                 responseInfo.setResponseString(EntityUtils.toString(entity));

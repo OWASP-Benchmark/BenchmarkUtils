@@ -9,7 +9,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class SimpleFileLogger implements Closeable {
+public class SimpleFileLogger implements Closeable, Logger {
     private static final ConcurrentMap<String, SimpleFileLogger> loggerMap =
             new ConcurrentHashMap<>();
 
