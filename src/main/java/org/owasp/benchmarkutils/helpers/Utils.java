@@ -45,15 +45,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.FileUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
 import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest.TestCaseType;
@@ -71,6 +68,9 @@ public class Utils {
     // Properties used by the generated test suite
 
     public static final String USERDIR = System.getProperty("user.dir") + File.separator;
+
+    // A 'test' directory that target test files are created in so test cases can use them
+    public static final String TESTFILES_DIR = USERDIR + "testfiles" + File.separator;
 
     public static final String DATA_DIR = USERDIR + "data" + File.separator;
 
@@ -108,45 +108,46 @@ public class Utils {
      * @param classLoader The classloader to use
      * @return A File object referencing the specified file, if found. Otherwise null.
      */
-    public static File getFileFromClasspath(String fileName, ClassLoader classLoader) {
+    public static File getFileFromClasspath(String filePath, ClassLoader classLoader) {
 
-        URL url = classLoader.getResource(fileName);
+        URL url = classLoader.getResource(filePath);
         if (url != null) {
             try {
-                System.out.println("getFileFromClasspath() url is: " + url);
+                System.out.printf("getFileFromClasspath() url is: %s%n", url);
                 URI resourceURI = url.toURI();
                 String externalFormURI = url.toExternalForm();
-                System.out.println(
-                        "getFileFromClasspath() url.toURI() is: "
-                                + resourceURI
-                                + " and external form is: "
-                                + externalFormURI);
+                System.out.printf(
+                        "getFileFromClasspath() url.toURI() is: %s and external form is: %s%n",
+                        resourceURI, externalFormURI);
                 //                String filePath = resourceURI.getPath();
                 //                System.out.println("getFileFromClasspath() url.toURI().getPath()
                 // is: " + filePath);
                 //                if (resourceURI != null) return new File(resourceURI);
                 if (externalFormURI != null) return new File(externalFormURI);
                 else {
-                    System.out.println(
-                            "The path for the resource: '"
-                                    + fileName
-                                    + "' with URI: "
-                                    + resourceURI
-                                    + " is null for some reason. So can't load that resource as a file.");
+                    System.out.printf(
+                            "The path for the resource: '%s' with URI: %s is null for some reason."
+                                    + " So can't load that resource as a file.%n",
+                            filePath, resourceURI);
+
                     return null;
                 }
             } catch (URISyntaxException e) {
-                System.out.println(
-                        "The path for the resource: '"
-                                + fileName
-                                + "' can't be computed due to the following error:");
+                System.out.printf(
+                        "The path for the resource: '%s' can't be computed due to the following error:%n",
+                        filePath);
                 e.printStackTrace();
             }
-        } else
-            System.out.println("The file '" + fileName + "' from the classpath cannot be loaded.");
+        } else System.out.printf("The file '%s' from the classpath cannot be loaded.%n", filePath);
         return null;
     }
 
+    /**
+     * Read the given text file and return the contents.
+     *
+     * @param file The file to read
+     * @return The file contents
+     */
     public static List<String> getLinesFromFile(File file) {
         if (file == null) {
             System.out.println("ERROR: getLinesFromFile() invoked with null file parameter.");
@@ -183,8 +184,14 @@ public class Utils {
         return sourceLines;
     }
 
-    public static List<String> getLinesFromFile(String filename) {
-        return getLinesFromFile(new File(filename));
+    /**
+     * Read the given text file and return the contents.
+     *
+     * @param filePath The file to read
+     * @return The file contents
+     */
+    public static List<String> getLinesFromFile(String filePath) {
+        return getLinesFromFile(new File(filePath));
     }
 
     /**
@@ -217,6 +224,13 @@ public class Utils {
         }
     }
 
+    /**
+     * Load a list of requests for a generated test suite from the given file.
+     *
+     * @param file The file to parse
+     * @return A list of requests
+     * @throws TestCaseRequestFileParseException
+     */
     public static List<AbstractTestCaseRequest> parseHttpFile(File file)
             throws TestCaseRequestFileParseException {
         List<AbstractTestCaseRequest> requests = new ArrayList<AbstractTestCaseRequest>();
@@ -243,6 +257,13 @@ public class Utils {
         return requests;
     }
 
+    /**
+     * Load a single test case request from the given XML document node.
+     *
+     * @param test The node to parse
+     * @return A test case request
+     * @throws TestCaseRequestFileParseException
+     */
     public static AbstractTestCaseRequest parseHttpTest(Node test)
             throws TestCaseRequestFileParseException {
         AbstractTestCaseRequest request = null;
@@ -258,20 +279,24 @@ public class Utils {
         String dataflowFile = XMLCrawler.getAttributeValue("tcDataflowFile", test);
         String sinkFile = XMLCrawler.getAttributeValue("tcSinkFile", test);
         String attackSuccessString = XMLCrawler.getAttributeValue("tcAttackSuccess", test);
+        String unverifiableReason =
+                XMLCrawler.getAttributeValue(
+                        "tcNotAutoverifiable", test); // TODO: Need to log this message
+        boolean isUnverifiable = (unverifiableReason != null);
         boolean isVulnerability =
                 Boolean.valueOf(XMLCrawler.getAttributeValue("tcVulnerable", test));
 
         List<Node> headerNodes = XMLCrawler.getNamedChildren("header", test);
-        List<NameValuePair> headers = parseNameValuePairs(headerNodes);
+        List<RequestVariable> headers = parseRequestVariables(headerNodes);
 
         List<Node> cookieNodes = XMLCrawler.getNamedChildren("cookie", test);
-        List<NameValuePair> cookies = parseNameValuePairs(cookieNodes);
+        List<RequestVariable> cookies = parseRequestVariables(cookieNodes);
 
         List<Node> getParamNodes = XMLCrawler.getNamedChildren("getparam", test);
-        List<NameValuePair> getParams = parseNameValuePairs(getParamNodes);
+        List<RequestVariable> getParams = parseRequestVariables(getParamNodes);
 
         List<Node> formParamsNodes = XMLCrawler.getNamedChildren("formparam", test);
-        List<NameValuePair> formParams = parseNameValuePairs(formParamsNodes);
+        List<RequestVariable> formParams = parseRequestVariables(formParamsNodes);
 
         switch (tcType) {
             case SERVLET:
@@ -287,6 +312,7 @@ public class Utils {
                                 sourceUIType,
                                 dataflowFile,
                                 sinkFile,
+                                isUnverifiable,
                                 isVulnerability,
                                 attackSuccessString,
                                 headers,
@@ -307,6 +333,7 @@ public class Utils {
                                 sourceUIType,
                                 dataflowFile,
                                 sinkFile,
+                                isUnverifiable,
                                 isVulnerability,
                                 attackSuccessString,
                                 headers,
@@ -327,6 +354,7 @@ public class Utils {
                                 sourceUIType,
                                 dataflowFile,
                                 sinkFile,
+                                isUnverifiable,
                                 isVulnerability,
                                 attackSuccessString,
                                 headers,
@@ -341,17 +369,29 @@ public class Utils {
         return request;
     }
 
-    private static List<NameValuePair> parseNameValuePairs(List<Node> nodes)
+    /**
+     * Load all request variables (get params, post params, headers, and cookies) from the given
+     * list of XML document nodes.
+     *
+     * @param nodes The nodes to parse
+     * @return A list of request variables
+     * @throws TestCaseRequestFileParseException
+     */
+    private static List<RequestVariable> parseRequestVariables(List<Node> nodes)
             throws TestCaseRequestFileParseException {
-        List<NameValuePair> nameValuePairs = new Vector<NameValuePair>();
-
-        for (Node nameValuePairNode : nodes) {
-            String name = XMLCrawler.getAttributeValue("name", nameValuePairNode);
-            String value = XMLCrawler.getAttributeValue("value", nameValuePairNode);
-            nameValuePairs.add(new BasicNameValuePair(name, value));
+        List<RequestVariable> requestVariables = new ArrayList<>();
+        for (Node requestVariableNode : nodes) {
+            String name = XMLCrawler.getAttributeValue("name", requestVariableNode);
+            String value = XMLCrawler.getAttributeValue("value", requestVariableNode);
+            String attackName = name;
+            String attackValue = value;
+            String safeName = XMLCrawler.getAttributeValue("safeName", requestVariableNode);
+            String safeValue = XMLCrawler.getAttributeValue("safeValue", requestVariableNode);
+            requestVariables.add(
+                    new RequestVariable(name, value, attackName, attackValue, safeName, safeValue));
         }
 
-        return nameValuePairs;
+        return requestVariables;
     }
 
     /**
@@ -401,9 +441,9 @@ public class Utils {
         final URL srcURL = CL.getResource(sourceLoc);
 
         if (srcURL == null) {
-            System.out.println(
-                    "ERROR: copyFilesFromDirRecursively() can't find source resource: "
-                            + sourceLoc);
+            System.out.printf(
+                    "ERROR: copyFilesFromDirRecursively() can't find source resource: %s%n",
+                    sourceLoc);
             return;
         }
 
@@ -439,16 +479,16 @@ public class Utils {
                         e.printStackTrace();
                     }
             else
-                System.out.println(
-                        "ERROR: copyFilesFromDirRecursively() can't find source File: "
-                                + sourceLoc);
+                System.out.printf(
+                        "ERROR: copyFilesFromDirRecursively() can't find source File: %s%n",
+                        sourceLoc);
 
             return; // File(s) copied or it failed
         }
 
         if (!srcURL.getProtocol().equals("jar")) {
-            System.out.println(
-                    "ERROR: source resource not a file: or jar: resource. It is: " + srcURL);
+            System.out.printf(
+                    "ERROR: source resource not a file: or jar: resource. It is: %s%n", srcURL);
             return;
         }
 
@@ -459,7 +499,7 @@ public class Utils {
             //            resource = CL.getResource("").toURI();
             resource = CL.getResource(sourceLoc).toURI();
         } catch (URISyntaxException e2) {
-            System.out.println("ERROR: couldn't find resource: " + sourceLoc);
+            System.out.printf("ERROR: couldn't find resource: %s%n", sourceLoc);
             e2.printStackTrace();
             return;
         }
@@ -489,8 +529,7 @@ public class Utils {
             JarFile myJar = new JarFile(new File(jarURL.toURI()));
             JarEntry entry = myJar.getJarEntry(sourceLoc);
             if (entry == null) {
-                System.out.println(
-                        "ERROR: Target resource file: '" + sourceLoc + "' can't be found");
+                System.out.printf("ERROR: Target resource file: '%s' can't be found%n", sourceLoc);
                 return;
             } else if (!entry.isDirectory()) {
                 // IF the source is not a directory, we use the directory containing the file as
@@ -501,8 +540,8 @@ public class Utils {
                 jarSource = sourceLoc.substring(0, slashLoc);
             }
         } catch (IOException | URISyntaxException e) {
-            System.out.println(
-                    "ERROR trying to determine if: '" + sourceLoc + "' is a file or directory.");
+            System.out.printf(
+                    "ERROR trying to determine if: '%s' is a file or directory.%n", sourceLoc);
             e.printStackTrace();
             return;
         }
