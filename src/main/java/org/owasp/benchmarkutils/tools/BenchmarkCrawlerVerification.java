@@ -55,7 +55,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     SimpleFileLogger eLogger;
 
     BenchmarkCrawlerVerification() {
-        // Default constructor required for to support Maven plugin API.
+        // Default constructor required to support Maven plugin API.
         // The BenchmarkCrawlerVerification(File) must eventually be used before run()
         // is invoked on that instance of the Crawler.
     }
@@ -110,8 +110,6 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                     log(safePayloadResponseInfo);
                 }
 
-                // TODO: It is a design weakness to require a null third argument for some test
-                // cases.
                 TestCaseVerificationResults result =
                         new TestCaseVerificationResults(
                                 request, attackPayloadResponseInfo, safePayloadResponseInfo);
@@ -119,9 +117,6 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
                 // Verify the response
                 if (RegressionTesting.isTestingEnabled) {
-                    // handleResponse(
-                    //        request, attackPayloadResponseInfo.getResponseString(),
-                    // attackPayloadResponseInfo.getStatusCode());
                     handleResponse(result);
                 }
             }
@@ -220,15 +215,12 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     }
 
     /**
-     * For the verification crawler, handling the response means verifying whether the test case is
-     * actually vulnerable or not, relative to whether it is supposed to be vulnerable. The
-     * verification technique depends on the CWE being verified. This method has a side-affect of
-     * setting request.setPassed() for the current test case. Passing means it was exploitable for a
-     * True Positive and appears to not be exploitable for a False Positive.
+     * For the verification crawler, processing the result means verifying whether the test case is
+     * actually vulnerable or not, relative to whether it is supposed to be vulnerable. This method
+     * has a side-affect of setting request.setPassed() for the current test case. Passing means it
+     * was exploitable for a True Positive and appears to not be exploitable for a False Positive.
      *
-     * @param request - The TestCaseRequest for this test case.
-     * @param responseString - A copy of the response returned when invoking this test case.
-     * @param statusCode - The status code returned by the response.
+     * @param result - The results required to verify this test case.
      * @throws FileNotFoundException
      * @throws LoggerConfigurationException
      */

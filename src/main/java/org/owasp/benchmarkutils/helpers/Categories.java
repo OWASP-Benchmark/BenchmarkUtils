@@ -81,9 +81,6 @@ public class Categories {
         Document document = db.parse(xmlFileStream);
         document.getDocumentElement().normalize();
 
-        // Here comes the root node
-        Element root = document.getDocumentElement();
-
         // Get all categories
         NodeList nList = document.getElementsByTagName("category");
 

@@ -286,15 +286,11 @@ public class RegressionTesting {
         result.setDeclaredUnverifiable(false); // Default
         if (result.getRequest().isUnverifiable()) {
             // Count this as "declared unverifiable" and return
-            // System.out.printf("WARNING: Unverifiable test %s.%n", result.getRequest().getName());
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(true);
         } else if (result.getRequest().getAttackSuccessString() == null
                 || !containsSafeNameOrValue(result.getRequest())) {
             // Count this as "undeclared unverifiable" and return
-            // System.out.printf(
-            //        "WARNING: Unverifiable test %s uses sink not declared as unverifiable.%n",
-            //        result.getRequest().getName());
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(false);
         }
@@ -326,10 +322,6 @@ public class RegressionTesting {
                 if (isAttackValueVerified) {
                     result.setPassed(true);
                     if (isSafeValueVerified) {
-                        // result.setPassed(false);
-                        // System.out.printf(
-                        //        "WARNING: Non-discriminatory true positive test %s.%n",
-                        //        result.getRequest().getName());
                         ndLogger.printf(
                                 "Non-discriminatory true positive test %s: The attack-success-string: \"%s\" was found in the response to both the safe and attack requests.%n"
                                         + "\tTo verify that a test case is a true positive, the attack-success-string should be in the attack response, and not%n\tthe safe response. Please change the attack-success-string and/or the test case sink itself to ensure that the%n\tattack-success-string response is present only in a response to a successful attack.%n",
@@ -337,8 +329,6 @@ public class RegressionTesting {
                                 result.getRequest().getAttackSuccessString());
                         printTestCaseDetails(result, ndLogger);
                         nonDiscriminatorySinks.add(sink);
-                    } else {
-                        // result.setPassed(true);
                     }
                 } else {
                     result.setPassed(false);
@@ -352,10 +342,6 @@ public class RegressionTesting {
                 } else {
                     result.setPassed(true);
                     if (isSafeValueVerified) {
-                        // result.setPassed(false);
-                        // System.out.printf(
-                        //        "WARNING: Non-discriminatory false positive test %s.%n",
-                        //        result.getRequest().getName());
                         ndLogger.printf(
                                 "Non-discriminatory false positive test %s: The attack-success-string: \"%s\" was found in the response to the safe request.%n"
                                         + "\tTo verify that a test case is a false positive, the attack-success-string should not be in any response to this test%n\tcase. Please change the attack-success-string and/or the test case sink itself to ensure that the%n\tattack-success-string response is present only in a response to a successful attack.%n",
@@ -363,8 +349,6 @@ public class RegressionTesting {
                                 result.getRequest().getAttackSuccessString());
                         printTestCaseDetails(result, ndLogger);
                         nonDiscriminatorySinks.add(sink);
-                    } else {
-                        // result.setPassed(true);
                     }
                 }
             }
@@ -455,6 +439,7 @@ public class RegressionTesting {
      *     <p>Has the following side effects: testCaseRequest.setPassed() - If test is verifiable,
      *     and attackSuccessIndicator not found in response, set to false, otherwise true. Set to
      *     true for all non-verifiable True Positives.
+     * @return true if the response passes the described checks. False otherwise.
      */
     public static boolean verifyResponse(
             AbstractTestCaseRequest testCaseRequest,

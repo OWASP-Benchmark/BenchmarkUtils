@@ -21,9 +21,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.*;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -225,7 +223,6 @@ public class ToolBarChart extends ScatterPlot {
             Tool tool, Map<String, CategoryResults> overallAveToolResults, File scoreCardDir) {
 
         if (BenchmarkScore.includePrecision) {
-            Set<String> precisionChartFilenames = new HashSet<String>();
 
             // Generate Precision Chart
             // First create the Dataset required for the chart

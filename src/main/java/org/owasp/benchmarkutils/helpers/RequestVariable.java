@@ -6,17 +6,11 @@ import org.apache.http.message.BasicNameValuePair;
 public class RequestVariable {
 
     private String name;
-
     private String value;
-
     private String attackName;
-
     private String attackValue;
-
     private String safeName;
-
     private String safeValue;
-
     private boolean isSafe;
 
     public RequestVariable(
@@ -33,6 +27,9 @@ public class RequestVariable {
         this.attackValue = attackValue;
         this.safeName = safeName;
         this.safeValue = safeValue;
+        if (name == null) throw new NullPointerException("name parameter cannot be null");
+        if (value == null) throw new NullPointerException("value parameter cannot be null");
+        isSafe = name.equals(safeName) && value.equals(safeValue);
     }
 
     public String getName() {

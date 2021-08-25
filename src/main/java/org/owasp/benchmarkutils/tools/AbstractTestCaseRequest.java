@@ -57,7 +57,7 @@ public abstract class AbstractTestCaseRequest {
     private boolean isVulnerability;
     private String attackSuccessString;
     private String name;
-    private boolean isSafe = false;
+    private boolean isSafe;
     private String query;
     private String sinkFile;
     private String sourceFile;
@@ -124,6 +124,26 @@ public abstract class AbstractTestCaseRequest {
         this.cookies = cookies;
         this.getParams = getParams;
         this.formParams = formParams;
+
+        // Figure out if ANY of the values in the request include an attack value.
+        this.isSafe = true;
+        // Bitwise AND is done on all parameters isSafe() values. If ANY of them are unsafe, isSafe
+        // set to False.
+        for (RequestVariable header : getHeaders()) {
+            this.isSafe &= header.isSafe();
+        }
+
+        for (RequestVariable cookie : getCookies()) {
+            this.isSafe &= cookie.isSafe();
+        }
+
+        for (RequestVariable getParam : getGetParams()) {
+            this.isSafe &= getParam.isSafe();
+        }
+
+        for (RequestVariable formParam : getFormParams()) {
+            this.isSafe &= formParam.isSafe();
+        }
     }
 
     /** Defines what parameters in the body will be sent. */
@@ -305,24 +325,18 @@ public abstract class AbstractTestCaseRequest {
     public void setSafe(boolean isSafe) {
         this.isSafe = isSafe;
         for (RequestVariable header : getHeaders()) {
-            if (isSafe) {
-                header.setSafe(isSafe);
-            }
+            // setSafe() considers whether attack and safe values exist for this parameter before
+            // setting isSafe true or false. So you don't have to check that here.
+            header.setSafe(isSafe);
         }
         for (RequestVariable cookie : getCookies()) {
-            if (isSafe) {
-                cookie.setSafe(isSafe);
-            }
+            cookie.setSafe(isSafe);
         }
         for (RequestVariable getParam : getGetParams()) {
-            if (isSafe) {
-                getParam.setSafe(isSafe);
-            }
+            getParam.setSafe(isSafe);
         }
         for (RequestVariable formParam : getFormParams()) {
-            if (isSafe) {
-                formParam.setSafe(isSafe);
-            }
+            formParam.setSafe(isSafe);
         }
     }
 

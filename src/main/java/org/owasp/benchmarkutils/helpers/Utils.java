@@ -69,19 +69,7 @@ public class Utils {
 
     public static final String USERDIR = System.getProperty("user.dir") + File.separator;
 
-    // A 'test' directory that target test files are created in so test cases can use them
-    public static final String TESTFILES_DIR = USERDIR + "testfiles" + File.separator;
-
     public static final String DATA_DIR = USERDIR + "data" + File.separator;
-
-    public static final String RESOURCES_DIR =
-            USERDIR
-                    + "src"
-                    + File.separator
-                    + "main"
-                    + File.separator
-                    + "resources"
-                    + File.separator;
 
     private static final DocumentBuilderFactory safeDocBuilderFactory =
             DocumentBuilderFactory.newInstance();
@@ -167,6 +155,16 @@ public class Utils {
         }
     }
 
+    /**
+     * Read the given text file and return the contents.
+     *
+     * @param filePath The file to read
+     * @return The file contents
+     */
+    public static List<String> getLinesFromFile(String filePath) {
+        return getLinesFromFile(new File(filePath));
+    }
+
     public static List<String> getLinesFromStream(InputStream fileStream, String sourceFileName) {
 
         List<String> sourceLines = new ArrayList<String>();
@@ -182,16 +180,6 @@ public class Utils {
         }
 
         return sourceLines;
-    }
-
-    /**
-     * Read the given text file and return the contents.
-     *
-     * @param filePath The file to read
-     * @return The file contents
-     */
-    public static List<String> getLinesFromFile(String filePath) {
-        return getLinesFromFile(new File(filePath));
     }
 
     /**
@@ -279,9 +267,7 @@ public class Utils {
         String dataflowFile = XMLCrawler.getAttributeValue("tcDataflowFile", test);
         String sinkFile = XMLCrawler.getAttributeValue("tcSinkFile", test);
         String attackSuccessString = XMLCrawler.getAttributeValue("tcAttackSuccess", test);
-        String unverifiableReason =
-                XMLCrawler.getAttributeValue(
-                        "tcNotAutoverifiable", test); // TODO: Need to log this message
+        String unverifiableReason = XMLCrawler.getAttributeValue("tcNotAutoverifiable", test);
         boolean isUnverifiable = (unverifiableReason != null);
         boolean isVulnerability =
                 Boolean.valueOf(XMLCrawler.getAttributeValue("tcVulnerable", test));
@@ -383,8 +369,10 @@ public class Utils {
         for (Node requestVariableNode : nodes) {
             String name = XMLCrawler.getAttributeValue("name", requestVariableNode);
             String value = XMLCrawler.getAttributeValue("value", requestVariableNode);
-            String attackName = name;
-            String attackValue = value;
+            String attackName = XMLCrawler.getAttributeValue("attackName", requestVariableNode);
+            ;
+            String attackValue = XMLCrawler.getAttributeValue("attackValue", requestVariableNode);
+            ;
             String safeName = XMLCrawler.getAttributeValue("safeName", requestVariableNode);
             String safeValue = XMLCrawler.getAttributeValue("safeValue", requestVariableNode);
             requestVariables.add(

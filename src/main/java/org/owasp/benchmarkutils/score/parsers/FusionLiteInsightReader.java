@@ -58,7 +58,7 @@ public class FusionLiteInsightReader extends Reader {
 
         for (Node target : targetList) {
             try {
-                String targetID = getNamedChild("ID", target).getTextContent();
+                // String targetID = getNamedChild("ID", target).getTextContent();
                 String targetURL = getNamedChild("URL", target).getTextContent();
 
                 List<Node> findingsList = getNamedChildren("Findings", target);
