@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -33,7 +31,7 @@ import org.apache.commons.lang.time.StopWatch;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -88,6 +86,8 @@ public class BenchmarkCrawler extends AbstractMojo {
         long start = System.currentTimeMillis();
 
         for (AbstractTestCaseRequest request : requests) {
+
+            // Send the next test case request
             try {
                 sendRequest(httpclient, request);
             } catch (Exception e) {
@@ -95,22 +95,16 @@ public class BenchmarkCrawler extends AbstractMojo {
                 e.printStackTrace();
             }
         }
+
+        // Log the elapsed time for all test cases
         long stop = System.currentTimeMillis();
-        double seconds = (stop - start) / 1000;
+        int seconds = (int) (stop - start) / 1000;
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Date date = new Date();
+        Date now = new Date();
 
-        System.out.println(
-                "Crawl ran on "
-                        + dateFormat.format(date)
-                        + " for "
-                        + BenchmarkScore.TESTSUITE
-                        + " v"
-                        + BenchmarkScore.TESTSUITEVERSION
-                        + " took "
-                        + seconds
-                        + " seconds");
+        System.out.printf(
+                "Crawl ran on %tF %<tT for %s v%s took %d seconds%n",
+                now, BenchmarkScore.TESTSUITE, BenchmarkScore.TESTSUITEVERSION, seconds);
     }
 
     // This method taken directly from:
@@ -148,7 +142,7 @@ public class BenchmarkCrawler extends AbstractMojo {
     static ResponseInfo sendRequest(
             CloseableHttpClient httpclient, AbstractTestCaseRequest requestTC) {
         ResponseInfo responseInfo = new ResponseInfo();
-        HttpRequestBase request = requestTC.buildRequest();
+        HttpUriRequest request = requestTC.buildRequest();
         responseInfo.setRequestBase(request);
         CloseableHttpResponse response = null;
 
@@ -168,10 +162,9 @@ public class BenchmarkCrawler extends AbstractMojo {
             HttpEntity entity = response.getEntity();
             int statusCode = response.getStatusLine().getStatusCode();
             responseInfo.setStatusCode(statusCode);
-            double time = watch.getTime() / 1000;
-            responseInfo.setTime(time);
-            String outputString = "--> (" + String.valueOf(statusCode) + " : " + time + " sec) ";
-            System.out.println(outputString);
+            int seconds = (int) watch.getTime() / 1000;
+            responseInfo.setTimeInSeconds(seconds);
+            System.out.printf("--> (%d : %d sec)%n", statusCode, seconds);
 
             try {
                 responseInfo.setResponseString(EntityUtils.toString(entity));
@@ -198,7 +191,8 @@ public class BenchmarkCrawler extends AbstractMojo {
      */
     private static File processCommandLineArgs(String[] args) {
 
-        String crawlerFileName = Utils.DATA_DIR + "benchmark-crawler-http.xml"; // default location
+        // Set default location
+        String crawlerFileName = new File(Utils.DATA_DIR, "benchmark-crawler-http.xml").getPath();
         File crawlerFile = new File(crawlerFileName); // default location;
 
         if (args == null || args.length == 0) {

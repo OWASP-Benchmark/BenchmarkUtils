@@ -1,12 +1,12 @@
 package org.owasp.benchmarkutils.tools;
 
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 
 class ResponseInfo {
     private String responseString;
-    private double time;
+    private int seconds;
     private int statusCode;
-    private HttpRequestBase requestBase;
+    private HttpUriRequest requestBase;
 
     public String getResponseString() {
         return responseString;
@@ -16,12 +16,12 @@ class ResponseInfo {
         this.responseString = responseString;
     }
 
-    public double getTime() {
-        return time;
+    public int getTimeInSeconds() {
+        return seconds;
     }
 
-    public void setTime(double time) {
-        this.time = time;
+    public void setTimeInSeconds(int seconds) {
+        this.seconds = seconds;
     }
 
     public int getStatusCode() {
@@ -32,11 +32,11 @@ class ResponseInfo {
         this.statusCode = statusCode;
     }
 
-    public HttpRequestBase getRequestBase() {
+    public HttpUriRequest getRequestBase() {
         return requestBase;
     }
 
-    public void setRequestBase(HttpRequestBase requestBase) {
-        this.requestBase = requestBase;
+    public void setRequestBase(HttpUriRequest request) {
+        this.requestBase = request;
     }
 }

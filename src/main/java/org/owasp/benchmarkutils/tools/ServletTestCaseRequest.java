@@ -19,6 +19,7 @@ package org.owasp.benchmarkutils.tools;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -26,6 +27,7 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.owasp.benchmarkutils.helpers.RequestVariable;
 
 /*
  * This class is used by the crawlers to test the target Benchmark style web application. It tests Servlet style
@@ -46,12 +48,13 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
             String sourceUIType,
             String dataflowFile,
             String sinkFile,
+            boolean isVerifiable,
             boolean isVulnerability,
             String attackSuccessString,
-            List<NameValuePair> headers,
-            List<NameValuePair> cookies,
-            List<NameValuePair> getParams,
-            List<NameValuePair> formParams) {
+            List<RequestVariable> headers,
+            List<RequestVariable> cookies,
+            List<RequestVariable> getParams,
+            List<RequestVariable> formParams) {
         super(
                 fullURL,
                 tcType,
@@ -63,6 +66,7 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
                 sourceUIType,
                 dataflowFile,
                 sinkFile,
+                isVerifiable,
                 isVulnerability,
                 attackSuccessString,
                 headers,
@@ -76,7 +80,7 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
     void buildQueryString() {
         setQuery("");
         boolean first = true;
-        for (NameValuePair field : getGetParams()) {
+        for (RequestVariable field : getGetParams()) {
             if (first) {
                 setQuery("?");
                 first = false;
@@ -102,7 +106,7 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
 
     @Override
     void buildHeaders(HttpRequestBase request) {
-        for (NameValuePair header : getHeaders()) {
+        for (RequestVariable header : getHeaders()) {
             String name = header.getName();
             String value = header.getValue();
             // System.out.println("Header:" + name + "=" + value);
@@ -113,7 +117,7 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
     @SuppressWarnings("deprecation")
     @Override
     void buildCookies(HttpRequestBase request) {
-        for (NameValuePair cookie : getCookies()) {
+        for (RequestVariable cookie : getCookies()) {
             String name = cookie.getName();
             String value = cookie.getValue();
             // Note: URL encoding of a space becomes a +, which is OK for Java, but
@@ -125,7 +129,10 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
 
     @Override
     void buildBodyParameters(HttpRequestBase request) {
-        List<NameValuePair> fields = getFormParams();
+        List<NameValuePair> fields = new ArrayList<>();
+        for (RequestVariable formParam : getFormParams()) {
+            fields.add(formParam.getNameValuePair());
+        }
 
         // Add the body parameters to the request if there were any
         if (fields.size() > 0) {
