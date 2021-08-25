@@ -203,7 +203,11 @@ public class RegressionTesting {
     public static void printCrawlSummary(List<TestCaseVerificationResults> results)
             throws FileNotFoundException, LoggerConfigurationException {
 
-        SimpleFileLogger ndLogger = SimpleFileLogger.getLogger("NONDISCRIMINATORY");
+        int unverifiedCount = declaredUnverifiable + undeclaredUnverifiable;
+        System.out.println("\n - Total number of test cases: " + totalCount);
+        if (declaredUnverifiable > 0) {
+            System.out.printf(" -- Declared not auto-verifiable: %d%n", declaredUnverifiable);
+        }
 
         System.out.printf(
                 " -- Test cases PASSED: %d%n", truePositivePassedCount + falsePositivePassedCount);
@@ -217,33 +221,30 @@ public class RegressionTesting {
                 " -- Test cases FAILED: %d%n", truePositiveFailedCount + falsePositiveFailedCount);
         System.out.printf("\tTP FAILED: %d%n", truePositiveFailedCount);
         System.out.printf("\tFP FAILED: %d%n", falsePositiveFailedCount);
-        System.out.printf(" -- Failed test cases by sink (total: %d)%n", failSinks.size());
-        for (String sinkFile : ImmutableSortedMultiset.copyOf(failSinks).elementSet()) {
-            System.out.printf("\t%s (%d)%n", sinkFile, failSinks.count(sinkFile));
-        }
-
-        int unverifiedCount = declaredUnverifiable + undeclaredUnverifiable;
-        System.out.println("\n - Total number of test cases: " + totalCount);
-        // System.out.printf(" -- Total verified: %d%n", verifiedCount);
-        // System.out.printf(" -- Total unverifiable: %d%n", unverifiedCount);
-        if (declaredUnverifiable > 0) {
-            System.out.printf(" -- Declared not auto-verifiable: %d%n", declaredUnverifiable);
-        }
-        // System.out.printf("\t Undeclared unverifiable: %d%n", undeclaredUnverifiable);
-        if (undeclaredUnverifiableSinks.size() > 0) {
-            System.out.println(
-                    "WARNING: These sink .xml files are missing both the <attack-success-indicator> and <not-autoverifiable> attributes: ");
-            for (String unverifiableSink : undeclaredUnverifiableSinks) {
-                System.out.printf("\t%s%n", unverifiableSink);
+        if (failSinks.size() > 0) {
+            System.out.printf(" -- Failed test cases by sink (total: %d)%n", failSinks.size());
+            for (String sink : ImmutableSortedMultiset.copyOf(failSinks).elementSet()) {
+                System.out.printf("\t%s (%d)%n", sink, failSinks.count(sink));
             }
         }
 
-        System.out.printf(
-                " -- Non-discriminatory test cases by sink (total: %d)%n",
-                nonDiscriminatorySinks.size());
-        for (String sinkFile :
-                ImmutableSortedMultiset.copyOf(nonDiscriminatorySinks).elementSet()) {
-            System.out.printf("\t%s (%d)%n", sinkFile, nonDiscriminatorySinks.count(sinkFile));
+        if (undeclaredUnverifiableSinks.size() > 0) {
+            System.out.println(
+                    "WARNING: These sink .xml files are missing both the <attack-success-indicator> and <not-autoverifiable> attributes: ");
+            for (String sink :
+                    ImmutableSortedMultiset.copyOf(undeclaredUnverifiableSinks).elementSet()) {
+                System.out.printf("\t%s (%d)%n", sink, undeclaredUnverifiableSinks.count(sink));
+            }
+        }
+
+        if (nonDiscriminatorySinks.size() > 0) {
+            System.out.printf(
+                    " -- Non-discriminatory test cases by sink (total: %d)%n",
+                    nonDiscriminatorySinks.size());
+            for (String sink :
+                    ImmutableSortedMultiset.copyOf(nonDiscriminatorySinks).elementSet()) {
+                System.out.printf("\t%s (%d)%n", sink, nonDiscriminatorySinks.count(sink));
+            }
         }
 
         if (totalCount - verifiedCount != unverifiedCount) {
