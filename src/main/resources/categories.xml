@@ -27,10 +27,29 @@
         <shortname>CMDI</shortname>
     </category>
     <category>
+        <id>codeinj</id>
+        <name>Code Injection</name>
+        <cwe>94</cwe>
+        <isInjection>true</isInjection>
+        <shortname>CODE</shortname>
+    </category>
+    <category>
         <id>crypto</id>
         <name>Weak Encryption Algorithm</name>
         <cwe>327</cwe>
         <shortname>ENCR</shortname>
+    </category>
+    <category>
+        <id>deadcode</id>
+        <name>Dead Code</name>
+        <cwe>561</cwe>
+        <shortname>DEAD</shortname>
+    </category>
+    <category>
+        <id>hardcode</id>
+        <name>Hard-coded Credentials</name>
+        <cwe>328</cwe>
+        <shortname>HARD</shortname>
     </category>
     <category>
         <id>hash</id>
@@ -53,6 +72,12 @@
         <shortname>HQLI</shortname>
     </category>
     <category>
+        <id>intoverflow</id>
+        <name>Integer Overflow</name>
+        <cwe>190</cwe>
+        <shortname>INTOVER</shortname>
+    </category>
+    <category>
         <id>ldapi</id>
         <name>LDAP Injection</name>
         <cwe>90</cwe>
@@ -65,6 +90,12 @@
         <cwe>22</cwe>
         <!-- isInjection>Don't set. Not an injection issue.</isInjection -->
         <shortname>PATHT</shortname>
+    </category>
+    <category>
+        <id>privileges</id>
+        <name>Improper Privileges</name>
+        <cwe>269</cwe>
+        <shortname>PRIV</shortname>
     </category>
     <category>
         <id>redirect</id>

@@ -254,6 +254,18 @@ public class ContrastReader extends Reader {
 
     private String calculateTime(String firstLine, String lastLine) {
         try {
+            if (firstLine == null || !firstLine.contains(" ")) {
+                System.out.println(
+                        "WARNING: First line to parse start time from has unexpected format: "
+                                + firstLine);
+                return null;
+            }
+            if (lastLine == null || !lastLine.contains(" ")) {
+                System.out.println(
+                        "WARNING: Last line to parse start time from has unexpected format: "
+                                + lastLine);
+                return null;
+            }
             String start = firstLine.split(" ")[1];
             String stop = lastLine.split(" ")[1];
             SimpleDateFormat sdf;

@@ -19,11 +19,11 @@ package org.owasp.benchmarkutils.tools;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
+import org.owasp.benchmarkutils.helpers.RequestVariable;
 
 public class SpringTestCaseRequest extends AbstractTestCaseRequest {
 
@@ -38,12 +38,13 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
             String sourceUIType,
             String dataflowFile,
             String sinkFile,
+            boolean isVerifiable,
             boolean isVulnerability,
             String attackSuccessString,
-            List<NameValuePair> headers,
-            List<NameValuePair> cookies,
-            List<NameValuePair> getParams,
-            List<NameValuePair> formParams) {
+            List<RequestVariable> headers,
+            List<RequestVariable> cookies,
+            List<RequestVariable> getParams,
+            List<RequestVariable> formParams) {
         super(
                 fullURL,
                 tcType,
@@ -55,6 +56,7 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
                 sourceUIType,
                 dataflowFile,
                 sinkFile,
+                isVerifiable,
                 isVulnerability,
                 attackSuccessString,
                 headers,
@@ -79,7 +81,7 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
     @Override
     void buildHeaders(HttpRequestBase request) {
         request.addHeader("Content-type", "application/json");
-        for (NameValuePair header : getHeaders()) {
+        for (RequestVariable header : getHeaders()) {
             String name = header.getName();
             String value = header.getValue();
             System.out.println("Header:" + name + "=" + value);
@@ -89,7 +91,7 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
 
     @Override
     void buildCookies(HttpRequestBase request) {
-        for (NameValuePair cookie : getCookies()) {
+        for (RequestVariable cookie : getCookies()) {
             String name = cookie.getName();
             String value = cookie.getValue();
             // System.out.println("Cookie:" + name + "=" + value);
@@ -101,7 +103,7 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
     void buildBodyParameters(HttpRequestBase request) {
         boolean first = true;
         String params = "{";
-        for (NameValuePair field : getFormParams()) {
+        for (RequestVariable field : getFormParams()) {
             String name = field.getName();
             String value = field.getValue();
             // System.out.println(name+"="+value);
