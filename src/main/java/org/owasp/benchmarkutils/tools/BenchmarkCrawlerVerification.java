@@ -47,12 +47,14 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     private static final String FILENAME_TIMES = "crawlerSlowTimes.txt";
     private static final String FILENAME_NON_DISCRIMINATORY_LOG = "nonDiscriminatoryTestCases.txt";
     private static final String FILENAME_ERRORS_LOG = "errorTestCases.txt";
+    private static final String FILENAME_UNVERIFIABLE_LOG = "unverifiableTestCases.txt";
     // The following is reconfigurable via parameters to main()
     private static String CRAWLER_DATA_DIR = Utils.DATA_DIR; // default data dir
 
     SimpleFileLogger tLogger;
     SimpleFileLogger ndLogger;
     SimpleFileLogger eLogger;
+    SimpleFileLogger uLogger;
 
     BenchmarkCrawlerVerification() {
         // Default constructor required for to support Maven plugin API.
@@ -77,19 +79,23 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         final File FILE_TIMES_LOG;
         if (isTimingEnabled) FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES);
         else FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES_ALL);
+        final File FILE_UNVERIFIABLE_LOG = new File(CRAWLER_DATA_DIR, FILENAME_UNVERIFIABLE_LOG);
         SimpleFileLogger.setFile("TIMES", FILE_TIMES_LOG);
         SimpleFileLogger.setFile("NONDISCRIMINATORY", FILE_NON_DISCRIMINATORY_LOG);
         SimpleFileLogger.setFile("ERRORS", FILE_ERRORS_LOG);
+        SimpleFileLogger.setFile("UNVERIFIABLE", FILE_UNVERIFIABLE_LOG);
 
         String completionMessage = null;
 
-        try (SimpleFileLogger tl = SimpleFileLogger.getLogger("TIMES");
-                SimpleFileLogger nl = SimpleFileLogger.getLogger("NONDISCRIMINATORY");
-                SimpleFileLogger el = SimpleFileLogger.getLogger("ERRORS")) {
+        try (SimpleFileLogger nl = SimpleFileLogger.getLogger("NONDISCRIMINATORY");
+                SimpleFileLogger el = SimpleFileLogger.getLogger("ERRORS");
+                SimpleFileLogger ul = SimpleFileLogger.getLogger("UNVERIFIABLE");
+                SimpleFileLogger tl = SimpleFileLogger.getLogger("TIMES")) {
 
-            tLogger = tl;
             ndLogger = nl;
             eLogger = el;
+            uLogger = ul;
+            tLogger = tl;
 
             for (AbstractTestCaseRequest request : requests) {
                 // Send the next test case request with its attack payload
@@ -190,10 +196,12 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             }
         }
         System.out.printf(
-                "Details of errors/exceptions in test cases written to: %s%n", FILE_ERRORS_LOG);
-        System.out.printf(
                 "Details of non-discriminatory test cases written to: %s%n",
                 FILE_NON_DISCRIMINATORY_LOG);
+        System.out.printf(
+                "Details of errors/exceptions in test cases written to: %s%n", FILE_ERRORS_LOG);
+        System.out.printf(
+                "Details of unverifiable test cases written to: %s%n", FILE_UNVERIFIABLE_LOG);
         System.out.printf("Test case time measurements written to: %s%n", FILE_TIMES_LOG);
 
         RegressionTesting.printCrawlSummary(results);
