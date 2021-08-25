@@ -28,8 +28,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import org.owasp.benchmarkutils.helpers.RequestVariable;
 
 /**
@@ -56,8 +54,9 @@ public class RegressionTesting {
     static int declaredUnverifiable = 0;
     static int undeclaredUnverifiable = 0;
 
-    static Set<String> unverifiableSinks = new TreeSet<>();
+    // static Set<String> undeclaredUnverifiableSinks = new TreeSet<>();
 
+    static Multiset<String> undeclaredUnverifiableSinks = HashMultiset.create();
     static Multiset<String> nonDiscriminatorySinks = HashMultiset.create();
     static Multiset<String> failSinks = HashMultiset.create();
 
@@ -100,16 +99,19 @@ public class RegressionTesting {
             for (TestCaseVerificationResults result : results) {
                 AbstractTestCaseRequest request = result.getRequest();
 
-                String sinkMetaDataFilename =
-                        (result.getRequest().getSinkFile() != null)
-                                ? new File(result.getRequest().getSinkFile()).getName()
-                                : null;
+                String sink = null;
+                String sinkMetaDataFilePath = result.getRequest().getSinkFile();
+                if (sinkMetaDataFilePath != null) {
+                    String sinkMetaDataFilename = new File(sinkMetaDataFilePath).getName();
+                    sink = sinkMetaDataFilename.substring(0, sinkMetaDataFilename.indexOf('.'));
+                }
+
                 if (result.isUnverifiable()) {
                     if (result.isDeclaredUnverifiable()) {
                         declaredUnverifiable++;
                     } else {
                         undeclaredUnverifiable++;
-                        unverifiableSinks.add(sinkMetaDataFilename);
+                        undeclaredUnverifiableSinks.add(sink);
                     }
                 } else {
                     if (result.isPassed()) {
@@ -203,27 +205,13 @@ public class RegressionTesting {
 
         SimpleFileLogger ndLogger = SimpleFileLogger.getLogger("NONDISCRIMINATORY");
 
-        int unverifiedCount = declaredUnverifiable + undeclaredUnverifiable;
-        System.out.println("\n - Total number of test cases: " + totalCount);
-        // System.out.printf(" -- Total verified: %d%n", verifiedCount);
-        // System.out.printf(" -- Total unverifiable: %d%n", unverifiedCount);
-        if (declaredUnverifiable > 0)
-            System.out.printf(" -- Declared not auto-verifiable: %d%n", declaredUnverifiable);
-        // System.out.printf("\t Undeclared unverifiable: %d%n", undeclaredUnverifiable);
-        if (unverifiableSinks.size() > 0) {
-            System.out.println(
-                    "WARNING: These sink .xml files are missing both the <attack-success-indicator> and <not-autoverifiable> attributes: ");
-            for (String unverifiableSink : unverifiableSinks) {
-                System.out.printf("\t%s%n", unverifiableSink);
-            }
-        }
-
         System.out.printf(
                 " -- Test cases PASSED: %d%n", truePositivePassedCount + falsePositivePassedCount);
         System.out.printf("\tTP PASSED: %d%n", truePositivePassedCount);
         System.out.printf("\tFP PASSED: %d%n", falsePositivePassedCount);
-        if (undeclaredUnverifiable > 0)
+        if (undeclaredUnverifiable > 0) {
             System.out.printf(" -- Total unverifiable: %d%n", undeclaredUnverifiable);
+        }
         System.out.println(" - Problems:");
         System.out.printf(
                 " -- Test cases FAILED: %d%n", truePositiveFailedCount + falsePositiveFailedCount);
@@ -231,7 +219,23 @@ public class RegressionTesting {
         System.out.printf("\tFP FAILED: %d%n", falsePositiveFailedCount);
         System.out.printf(" -- Failed test cases by sink (total: %d)%n", failSinks.size());
         for (String sinkFile : ImmutableSortedMultiset.copyOf(failSinks).elementSet()) {
-            System.out.printf("\t%s (count: %d)%n", sinkFile, failSinks.count(sinkFile));
+            System.out.printf("\t%s (%d)%n", sinkFile, failSinks.count(sinkFile));
+        }
+
+        int unverifiedCount = declaredUnverifiable + undeclaredUnverifiable;
+        System.out.println("\n - Total number of test cases: " + totalCount);
+        // System.out.printf(" -- Total verified: %d%n", verifiedCount);
+        // System.out.printf(" -- Total unverifiable: %d%n", unverifiedCount);
+        if (declaredUnverifiable > 0) {
+            System.out.printf(" -- Declared not auto-verifiable: %d%n", declaredUnverifiable);
+        }
+        // System.out.printf("\t Undeclared unverifiable: %d%n", undeclaredUnverifiable);
+        if (undeclaredUnverifiableSinks.size() > 0) {
+            System.out.println(
+                    "WARNING: These sink .xml files are missing both the <attack-success-indicator> and <not-autoverifiable> attributes: ");
+            for (String unverifiableSink : undeclaredUnverifiableSinks) {
+                System.out.printf("\t%s%n", unverifiableSink);
+            }
         }
 
         System.out.printf(
@@ -239,8 +243,7 @@ public class RegressionTesting {
                 nonDiscriminatorySinks.size());
         for (String sinkFile :
                 ImmutableSortedMultiset.copyOf(nonDiscriminatorySinks).elementSet()) {
-            System.out.printf(
-                    "\t%s (count: %d)%n", sinkFile, nonDiscriminatorySinks.count(sinkFile));
+            System.out.printf("\t%s (%d)%n", sinkFile, nonDiscriminatorySinks.count(sinkFile));
         }
 
         if (totalCount - verifiedCount != unverifiedCount) {
@@ -298,10 +301,12 @@ public class RegressionTesting {
 
         List<String> reasons = new ArrayList<>();
 
-        String sinkMetaDataFilename =
-                (result.getRequest().getSinkFile() != null)
-                        ? new File(result.getRequest().getSinkFile()).getName()
-                        : null;
+        String sink = null;
+        String sinkMetaDataFilePath = result.getRequest().getSinkFile();
+        if (sinkMetaDataFilePath != null) {
+            String sinkMetaDataFilename = new File(sinkMetaDataFilePath).getName();
+            sink = sinkMetaDataFilename.substring(0, sinkMetaDataFilename.indexOf('.'));
+        }
 
         if (!result.isUnverifiable()) {
             boolean isAttackValueVerified =
@@ -331,19 +336,19 @@ public class RegressionTesting {
                                 result.getRequest().getName(),
                                 result.getRequest().getAttackSuccessString());
                         printTestCaseDetails(result, ndLogger);
-                        nonDiscriminatorySinks.add(result.getRequest().getSinkFile());
+                        nonDiscriminatorySinks.add(sink);
                     } else {
                         // result.setPassed(true);
                     }
                 } else {
                     result.setPassed(false);
-                    failSinks.add(sinkMetaDataFilename);
+                    failSinks.add(sink);
                 }
             } else {
                 // False positive success?
                 if (isAttackValueVerified) {
                     result.setPassed(false);
-                    failSinks.add(sinkMetaDataFilename);
+                    failSinks.add(sink);
                 } else {
                     result.setPassed(true);
                     if (isSafeValueVerified) {
@@ -357,7 +362,7 @@ public class RegressionTesting {
                                 result.getRequest().getName(),
                                 result.getRequest().getAttackSuccessString());
                         printTestCaseDetails(result, ndLogger);
-                        nonDiscriminatorySinks.add(result.getRequest().getSinkFile());
+                        nonDiscriminatorySinks.add(sink);
                     } else {
                         // result.setPassed(true);
                     }
