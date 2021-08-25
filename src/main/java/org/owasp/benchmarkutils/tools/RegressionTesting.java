@@ -213,9 +213,6 @@ public class RegressionTesting {
                 " -- Test cases PASSED: %d%n", truePositivePassedCount + falsePositivePassedCount);
         System.out.printf("\tTP PASSED: %d%n", truePositivePassedCount);
         System.out.printf("\tFP PASSED: %d%n", falsePositivePassedCount);
-        if (undeclaredUnverifiable > 0) {
-            System.out.printf(" -- Total unverifiable: %d%n", undeclaredUnverifiable);
-        }
         System.out.println(" - Problems:");
         System.out.printf(
                 " -- Test cases FAILED: %d%n", truePositiveFailedCount + falsePositiveFailedCount);
@@ -229,8 +226,10 @@ public class RegressionTesting {
         }
 
         if (undeclaredUnverifiableSinks.size() > 0) {
+            System.out.printf(
+                    " -- Unverifiable test cases by sink (total: %d)%n", undeclaredUnverifiable);
             System.out.println(
-                    "WARNING: These sink .xml files are missing both the <attack-success-indicator> and <not-autoverifiable> attributes: ");
+                    " (The sink .xml files are missing both the <attack-success-indicator> and <not-autoverifiable> attributes.)");
             for (String sink :
                     ImmutableSortedMultiset.copyOf(undeclaredUnverifiableSinks).elementSet()) {
                 System.out.printf("\t%s (%d)%n", sink, undeclaredUnverifiableSinks.count(sink));
