@@ -229,7 +229,7 @@ public class RegressionTesting {
             System.out.printf(
                     " -- Unverifiable test cases by sink (total: %d)%n", undeclaredUnverifiable);
             System.out.println(
-                    " (The sink .xml files are missing both the <attack-success-indicator> and <not-autoverifiable> attributes.)");
+                    " (These sink .xml files are missing both the <attack-success-indicator> and <not-autoverifiable> attributes.)");
             for (String sink :
                     ImmutableSortedMultiset.copyOf(undeclaredUnverifiableSinks).elementSet()) {
                 System.out.printf("\t%s (%d)%n", sink, undeclaredUnverifiableSinks.count(sink));
@@ -281,6 +281,7 @@ public class RegressionTesting {
             throws FileNotFoundException, LoggerConfigurationException {
 
         SimpleFileLogger ndLogger = SimpleFileLogger.getLogger("NONDISCRIMINATORY");
+        SimpleFileLogger uLogger = SimpleFileLogger.getLogger("UNVERIFIABLE");
 
         result.setUnverifiable(false); // Default
         result.setDeclaredUnverifiable(false); // Default
@@ -288,11 +289,11 @@ public class RegressionTesting {
             // Count this as "declared unverifiable" and return
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(true);
-        } else if (result.getRequest().getAttackSuccessString() == null
-                || !containsSafeNameOrValue(result.getRequest())) {
+        } else if (result.getRequest().getAttackSuccessString() == null) {
             // Count this as "undeclared unverifiable" and return
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(false);
+            printTestCaseDetails(result, uLogger);
         }
 
         List<String> reasons = new ArrayList<>();
