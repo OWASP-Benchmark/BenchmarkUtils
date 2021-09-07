@@ -17,6 +17,7 @@
  */
 package org.owasp.benchmarkutils.tools;
 
+import java.io.File;
 import java.util.Comparator;
 import java.util.List;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -345,52 +346,42 @@ public abstract class AbstractTestCaseRequest {
         return this.getClass().getSimpleName()
                 + " [category="
                 + category
-                + ", cookies="
-                + cookies
                 + ", name="
                 + name
                 + ", uiTemplateFile="
-                + uiTemplateFile
+                + new File(uiTemplateFile).getName()
                 + ", templateFile="
-                + templateFile
+                + new File(templateFile).getName()
                 + ", sourceFile="
                 + sourceFile
                 + ", sourceUIType="
                 + sourceUIType
                 + ", dataflowFile="
                 + dataflowFile
-                + ", formParams="
-                + formParams
+                + ", sinkFile="
+                + sinkFile
                 + ", fullURL="
                 + fullURL
                 + ", getParams="
                 + getParams
                 + ", headers="
                 + headers
+                + ", cookies="
+                + cookies
+                + ", formParams="
+                + formParams
                 + ", isUnverifiable="
                 + isUnverifiable
                 + ", isVulnerability="
                 + isVulnerability
                 + ", attackSuccessString="
                 + attackSuccessString
-                + ", name="
-                + name
                 + ", isSafe="
                 + isSafe
                 + ", query="
                 + query
-                + ", sinkFile="
-                + sinkFile
-                + ", sourceFile="
-                + sourceFile
-                + ", sourceUIType="
-                + sourceUIType
                 + ", tcType="
                 + tcType
-                + ", templateFile="
-                + templateFile
-                + ", uiTemplateFile="
-                + uiTemplateFile
                 + "]";
     }
 }

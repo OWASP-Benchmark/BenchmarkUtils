@@ -161,7 +161,10 @@ public class RegressionTesting {
                         }
                     }
                 }
-                System.out.printf("Details of failed test cases written to: %s%n", FILE_FAILEDTC);
+                if (FILE_FAILEDTC.length() > 0) {
+                    System.out.printf(
+                            "Details of failed test cases written to: %s%n", FILE_FAILEDTC);
+                }
             }
         }
     }
@@ -181,10 +184,15 @@ public class RegressionTesting {
                 request.isVulnerability() ? "True" : "False",
                 request.getCategory(),
                 request.getName());
+        // Print out all the attributes of the request, including the templates used to create it
         out.println(request.toString());
+        out.println();
+        out.println("Attack Query: " + request.getQuery()); // FIXME: This is blank.
         out.println();
         out.printf("Attack response: [%d]:%n", attackResponseInfo.getStatusCode());
         out.println(attackResponseInfo == null ? "null" : attackResponseInfo.getResponseString());
+        out.println();
+        out.println("Safe Query: TBD"); // + request.getQuery());  // FIXME: This doesn't exist yet.
         out.println();
         out.printf("Safe response: [%d]:%n", attackResponseInfo.getStatusCode());
         out.println(safeResponseInfo == null ? "null" : safeResponseInfo.getResponseString());
