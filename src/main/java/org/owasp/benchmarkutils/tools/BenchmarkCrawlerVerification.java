@@ -38,7 +38,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.owasp.benchmarkutils.helpers.TestSuite;
 import org.owasp.benchmarkutils.helpers.Utils;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 
 /**
  * TODO: Refactor this class. There is way too much duplication of code in BenchmarkCrawler here.
@@ -151,10 +150,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             completionMessage =
                     String.format(
                             "Verification crawl ran on %tF %<tT for %s v%s took %d seconds%n",
-                            now,
-                            BenchmarkScore.TESTSUITE,
-                            BenchmarkScore.TESTSUITEVERSION,
-                            seconds);
+                            now, testSuite.getName(), testSuite.getVersion(), seconds);
             tLogger.println(completionMessage);
 
             // Report the verified results

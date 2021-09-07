@@ -150,7 +150,7 @@ public class BenchmarkCrawler extends AbstractMojo {
 
         System.out.printf(
                 "Crawl ran on %tF %<tT for %s v%s took %d seconds%n",
-                now, BenchmarkScore.TESTSUITE, BenchmarkScore.TESTSUITEVERSION, seconds);
+                now, testSuite.getName(), testSuite.getVersion(), seconds);
     }
 
     // This method taken directly from:

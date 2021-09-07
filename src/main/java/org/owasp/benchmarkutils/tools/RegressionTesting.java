@@ -17,6 +17,7 @@
  */
 package org.owasp.benchmarkutils.tools;
 
+import com.google.common.collect.Multiset;
 import com.google.common.collect.SortedMultiset;
 import com.google.common.collect.TreeMultiset;
 import java.io.File;
@@ -206,7 +207,7 @@ public class RegressionTesting {
                 requestTemplate.isVulnerability() ? "True" : "False",
                 requestTemplate.getCategory().toString(),
                 requestTemplate.getName());
-        //out.println(result.getAttackRequest().getRequestLine().toString());
+        // out.println(result.getAttackRequest().getRequestLine().toString());
         out.println();
         out.println("Attack request:");
         printHttpRequest(result.getAttackRequest(), out);
@@ -252,8 +253,8 @@ public class RegressionTesting {
         System.out.printf("\tFP FAILED: %d%n", falsePositiveFailedCount);
         if (failSinks.size() > 0) {
             System.out.printf(" -- Failed test cases by sink (total: %d)%n", failSinks.size());
-            for (String sink : failSinks) {
-                System.out.printf("\t%s (%d)%n", sink, failSinks.count(sink));
+            for (Multiset.Entry<String> sinkEntry : failSinks.entrySet()) {
+                System.out.printf("\t%s (%d)%n", sinkEntry.getElement(), sinkEntry.getCount());
             }
         }
 
@@ -262,8 +263,8 @@ public class RegressionTesting {
                     " -- Unverifiable test cases by sink (total: %d)%n", undeclaredUnverifiable);
             System.out.println(
                     " (These sink .xml files are missing both the <attack-success-indicator> and <not-autoverifiable> attributes.)");
-            for (String sink : undeclaredUnverifiableSinks) {
-                System.out.printf("\t%s (%d)%n", sink, undeclaredUnverifiableSinks.count(sink));
+            for (Multiset.Entry<String> sinkEntry : undeclaredUnverifiableSinks.entrySet()) {
+                System.out.printf("\t%s (%d)%n", sinkEntry.getElement(), sinkEntry.getCount());
             }
         }
 
@@ -271,8 +272,8 @@ public class RegressionTesting {
             System.out.printf(
                     " -- Non-discriminatory test cases by sink (total: %d)%n",
                     nonDiscriminatorySinks.size());
-            for (String sink : nonDiscriminatorySinks) {
-                System.out.printf("\t%s (%d)%n", sink, nonDiscriminatorySinks.count(sink));
+            for (Multiset.Entry<String> sinkEntry : nonDiscriminatorySinks.entrySet()) {
+                System.out.printf("\t%s (%d)%n", sinkEntry.getElement(), sinkEntry.getCount());
             }
         }
 

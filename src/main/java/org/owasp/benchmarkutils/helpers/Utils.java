@@ -17,9 +17,6 @@
  */
 package org.owasp.benchmarkutils.helpers;
 
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,7 +25,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -53,8 +49,6 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.FileUtils;
-import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
-import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest.TestCaseType;
 import org.owasp.benchmarkutils.tools.XMLCrawler;
 import org.w3c.dom.Node;
 
@@ -177,35 +171,40 @@ public class Utils {
         return sourceLines;
     }
 
-    /**
-     * Write a single String to the specified file.
-     *
-     * @param file - The path to the target file.
-     * @param content - The content to write.
-     * @param append - True to append to an existing file. False to create or overwrite the file.
-     * @throws IOException
-     */
-    public static void writeToFile(Path file, String content, boolean append) throws IOException {
-        PrintStream os = new PrintStream(Files.newOutputStream(file, append ? APPEND : CREATE));
-        os.println(content);
-    }
-
-    /**
-     * Write a list of Strings to the specified file.
-     *
-     * @param file - The path to the target file.
-     * @param content - The list of Strings to write out.
-     * @param append - True to append to an existing file. False to create or overwrite the file.
-     * @throws IOException
-     */
-    public static void writeToFile(Path file, List<String> contentLines, boolean append)
-            throws IOException {
-        PrintStream os = new PrintStream(Files.newOutputStream(file, append ? APPEND : CREATE));
-
-        for (String line : contentLines) {
-            os.println(line);
-        }
-    }
+    //    /**
+    //     * Write a single String to the specified file.
+    //     *
+    //     * @param file - The path to the target file.
+    //     * @param content - The content to write.
+    //     * @param append - True to append to an existing file. False to create or overwrite the
+    // file.
+    //     * @throws IOException
+    //     */
+    //    public static void writeToFile(Path file, String content, boolean append) throws
+    // IOException {
+    //        PrintStream os = new PrintStream(Files.newOutputStream(file, append ? APPEND :
+    // CREATE));
+    //        os.println(content);
+    //    }
+    //
+    //    /**
+    //     * Write a list of Strings to the specified file.
+    //     *
+    //     * @param file - The path to the target file.
+    //     * @param content - The list of Strings to write out.
+    //     * @param append - True to append to an existing file. False to create or overwrite the
+    // file.
+    //     * @throws IOException
+    //     */
+    //    public static void writeToFile(Path file, List<String> contentLines, boolean append)
+    //            throws IOException {
+    //        PrintStream os = new PrintStream(Files.newOutputStream(file, append ? APPEND :
+    // CREATE));
+    //
+    //        for (String line : contentLines) {
+    //            os.println(line);
+    //        }
+    //    }
 
     /**
      * Load a list of requests for a generated test suite from the given file.
@@ -270,116 +269,118 @@ public class Utils {
         //        return requests;
     }
 
-    /**
-     * Load a single test case request from the given XML document node.
-     *
-     * @param test The node to parse
-     * @return A test case request
-     * @throws TestCaseRequestFileParseException
-     */
-    public static AbstractTestCaseRequest parseHttpTest(Node test)
-            throws TestCaseRequestFileParseException {
-        AbstractTestCaseRequest request = null;
-
-        String url = XMLCrawler.getAttributeValue("URL", test);
-        TestCaseType tcType = TestCaseType.valueOf(XMLCrawler.getAttributeValue("tcType", test));
-        String category = XMLCrawler.getAttributeValue("tcCategory", test);
-        String name = XMLCrawler.getAttributeValue("tcName", test);
-        String uiTemplateFile = XMLCrawler.getAttributeValue("tcUITemplateFile", test);
-        String templateFile = XMLCrawler.getAttributeValue("tcTemplateFile", test);
-        String sourceFile = XMLCrawler.getAttributeValue("tcSourceFile", test);
-        String sourceUIType = XMLCrawler.getAttributeValue("tcSourceUIType", test);
-        String dataflowFile = XMLCrawler.getAttributeValue("tcDataflowFile", test);
-        String sinkFile = XMLCrawler.getAttributeValue("tcSinkFile", test);
-        String attackSuccessString = XMLCrawler.getAttributeValue("tcAttackSuccess", test);
-        String unverifiableReason = XMLCrawler.getAttributeValue("tcNotAutoverifiable", test);
-        boolean isUnverifiable = (unverifiableReason != null);
-        boolean isVulnerability =
-                Boolean.valueOf(XMLCrawler.getAttributeValue("tcVulnerable", test));
-
-        List<Node> headerNodes = XMLCrawler.getNamedChildren("header", test);
-        List<RequestVariable> headers = parseRequestVariables(headerNodes);
-
-        List<Node> cookieNodes = XMLCrawler.getNamedChildren("cookie", test);
-        List<RequestVariable> cookies = parseRequestVariables(cookieNodes);
-
-        List<Node> getParamNodes = XMLCrawler.getNamedChildren("getparam", test);
-        List<RequestVariable> getParams = parseRequestVariables(getParamNodes);
-
-        List<Node> formParamsNodes = XMLCrawler.getNamedChildren("formparam", test);
-        List<RequestVariable> formParams = parseRequestVariables(formParamsNodes);
-
-        //        switch (tcType) {
-        //            case SERVLET:
-        //                request =
-        //                        new ServletTestCaseRequest(
-        //                                url,
-        //                                tcType,
-        //                                category,
-        //                                name,
-        //                                uiTemplateFile,
-        //                                templateFile,
-        //                                sourceFile,
-        //                                sourceUIType,
-        //                                dataflowFile,
-        //                                sinkFile,
-        //                                isUnverifiable,
-        //                                isVulnerability,
-        //                                attackSuccessString,
-        //                                headers,
-        //                                cookies,
-        //                                getParams,
-        //                                formParams);
-        //                break;
-        //            case SPRINGWS:
-        //                request =
-        //                        new SpringTestCaseRequest(
-        //                                url,
-        //                                tcType,
-        //                                category,
-        //                                name,
-        //                                uiTemplateFile,
-        //                                templateFile,
-        //                                sourceFile,
-        //                                sourceUIType,
-        //                                dataflowFile,
-        //                                sinkFile,
-        //                                isUnverifiable,
-        //                                isVulnerability,
-        //                                attackSuccessString,
-        //                                headers,
-        //                                cookies,
-        //                                getParams,
-        //                                formParams);
-        //                break;
-        //            case JERSEYWS:
-        //                request =
-        //                        new JerseyTestCaseRequest(
-        //                                url,
-        //                                tcType,
-        //                                category,
-        //                                name,
-        //                                uiTemplateFile,
-        //                                templateFile,
-        //                                sourceFile,
-        //                                sourceUIType,
-        //                                dataflowFile,
-        //                                sinkFile,
-        //                                isUnverifiable,
-        //                                isVulnerability,
-        //                                attackSuccessString,
-        //                                headers,
-        //                                cookies,
-        //                                getParams,
-        //                                formParams);
-        //                break;
-        //            default:
-        //                throw new TestCaseRequestFileParseException("Unrecognized tcType: " +
-        // tcType);
-        //        }
-
-        return request;
-    }
+    //    /**
+    //     * Load a single test case request from the given XML document node.
+    //     *
+    //     * @param test The node to parse
+    //     * @return A test case request
+    //     * @throws TestCaseRequestFileParseException
+    //     */
+    //    public static AbstractTestCaseRequest parseHttpTest(Node test)
+    //            throws TestCaseRequestFileParseException {
+    //        AbstractTestCaseRequest request = null;
+    //
+    //        String url = XMLCrawler.getAttributeValue("URL", test);
+    //        TestCaseType tcType = TestCaseType.valueOf(XMLCrawler.getAttributeValue("tcType",
+    // test));
+    //        String category = XMLCrawler.getAttributeValue("tcCategory", test);
+    //        String name = XMLCrawler.getAttributeValue("tcName", test);
+    //        String uiTemplateFile = XMLCrawler.getAttributeValue("tcUITemplateFile", test);
+    //        String templateFile = XMLCrawler.getAttributeValue("tcTemplateFile", test);
+    //        String sourceFile = XMLCrawler.getAttributeValue("tcSourceFile", test);
+    //        String sourceUIType = XMLCrawler.getAttributeValue("tcSourceUIType", test);
+    //        String dataflowFile = XMLCrawler.getAttributeValue("tcDataflowFile", test);
+    //        String sinkFile = XMLCrawler.getAttributeValue("tcSinkFile", test);
+    //        String attackSuccessString = XMLCrawler.getAttributeValue("tcAttackSuccess", test);
+    //        String unverifiableReason = XMLCrawler.getAttributeValue("tcNotAutoverifiable", test);
+    //        boolean isUnverifiable = (unverifiableReason != null);
+    //        boolean isVulnerability =
+    //                Boolean.valueOf(XMLCrawler.getAttributeValue("tcVulnerable", test));
+    //
+    //        List<Node> headerNodes = XMLCrawler.getNamedChildren("header", test);
+    //        List<RequestVariable> headers = parseRequestVariables(headerNodes);
+    //
+    //        List<Node> cookieNodes = XMLCrawler.getNamedChildren("cookie", test);
+    //        List<RequestVariable> cookies = parseRequestVariables(cookieNodes);
+    //
+    //        List<Node> getParamNodes = XMLCrawler.getNamedChildren("getparam", test);
+    //        List<RequestVariable> getParams = parseRequestVariables(getParamNodes);
+    //
+    //        List<Node> formParamsNodes = XMLCrawler.getNamedChildren("formparam", test);
+    //        List<RequestVariable> formParams = parseRequestVariables(formParamsNodes);
+    //
+    //        //        switch (tcType) {
+    //        //            case SERVLET:
+    //        //                request =
+    //        //                        new ServletTestCaseRequest(
+    //        //                                url,
+    //        //                                tcType,
+    //        //                                category,
+    //        //                                name,
+    //        //                                uiTemplateFile,
+    //        //                                templateFile,
+    //        //                                sourceFile,
+    //        //                                sourceUIType,
+    //        //                                dataflowFile,
+    //        //                                sinkFile,
+    //        //                                isUnverifiable,
+    //        //                                isVulnerability,
+    //        //                                attackSuccessString,
+    //        //                                headers,
+    //        //                                cookies,
+    //        //                                getParams,
+    //        //                                formParams);
+    //        //                break;
+    //        //            case SPRINGWS:
+    //        //                request =
+    //        //                        new SpringTestCaseRequest(
+    //        //                                url,
+    //        //                                tcType,
+    //        //                                category,
+    //        //                                name,
+    //        //                                uiTemplateFile,
+    //        //                                templateFile,
+    //        //                                sourceFile,
+    //        //                                sourceUIType,
+    //        //                                dataflowFile,
+    //        //                                sinkFile,
+    //        //                                isUnverifiable,
+    //        //                                isVulnerability,
+    //        //                                attackSuccessString,
+    //        //                                headers,
+    //        //                                cookies,
+    //        //                                getParams,
+    //        //                                formParams);
+    //        //                break;
+    //        //            case JERSEYWS:
+    //        //                request =
+    //        //                        new JerseyTestCaseRequest(
+    //        //                                url,
+    //        //                                tcType,
+    //        //                                category,
+    //        //                                name,
+    //        //                                uiTemplateFile,
+    //        //                                templateFile,
+    //        //                                sourceFile,
+    //        //                                sourceUIType,
+    //        //                                dataflowFile,
+    //        //                                sinkFile,
+    //        //                                isUnverifiable,
+    //        //                                isVulnerability,
+    //        //                                attackSuccessString,
+    //        //                                headers,
+    //        //                                cookies,
+    //        //                                getParams,
+    //        //                                formParams);
+    //        //                break;
+    //        //            default:
+    //        //                throw new TestCaseRequestFileParseException("Unrecognized tcType: "
+    // +
+    //        // tcType);
+    //        //        }
+    //
+    //        return request;
+    //    }
 
     /**
      * Load all request variables (get params, post params, headers, and cookies) from the given
