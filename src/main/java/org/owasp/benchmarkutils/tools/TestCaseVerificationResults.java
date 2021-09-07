@@ -1,8 +1,9 @@
 package org.owasp.benchmarkutils.tools;
 
+import org.apache.http.client.methods.HttpUriRequest;
+
 /** Not a great class name. */
 public class TestCaseVerificationResults {
-    private AbstractTestCaseRequest request;
 
     private ResponseInfo responseToAttackValue;
 
@@ -14,35 +15,47 @@ public class TestCaseVerificationResults {
 
     private boolean isPassed;
 
+    private HttpUriRequest attackRequest;
+
+    private HttpUriRequest safeRequest;
+
+    private AbstractTestCaseRequest requestTemplate;
+
     public TestCaseVerificationResults(
-            AbstractTestCaseRequest request,
+            HttpUriRequest attackRequest,
+            HttpUriRequest safeRequest,
+            AbstractTestCaseRequest requestTemplate,
             ResponseInfo responseToAttackValue,
             ResponseInfo responseToSafeValue) {
-        this(request, responseToAttackValue, responseToSafeValue, true, false, false);
+        this(
+                attackRequest,
+                safeRequest,
+                requestTemplate,
+                responseToAttackValue,
+                responseToSafeValue,
+                true,
+                false,
+                false);
     }
 
     public TestCaseVerificationResults(
-            AbstractTestCaseRequest request,
+            HttpUriRequest attackRequest,
+            HttpUriRequest safeRequest,
+            AbstractTestCaseRequest requestTemplate,
             ResponseInfo responseToAttackValue,
             ResponseInfo responseToSafeValue,
             boolean isUnverifiable,
             boolean isDeclaredVerifiable,
             boolean isPassed) {
         super();
-        this.request = request;
+        this.attackRequest = attackRequest;
+        this.safeRequest = safeRequest;
+        this.requestTemplate = requestTemplate;
         this.responseToAttackValue = responseToAttackValue;
         this.responseToSafeValue = responseToSafeValue;
         this.isUnverifiable = isUnverifiable;
         this.isDeclaredUnverifiable = isDeclaredVerifiable;
         this.isPassed = isPassed;
-    }
-
-    public AbstractTestCaseRequest getRequest() {
-        return request;
-    }
-
-    public void setRequest(AbstractTestCaseRequest request) {
-        this.request = request;
     }
 
     public ResponseInfo getResponseToAttackValue() {
@@ -83,5 +96,29 @@ public class TestCaseVerificationResults {
 
     public boolean isPassed() {
         return isPassed;
+    }
+
+    public HttpUriRequest getAttackRequest() {
+        return attackRequest;
+    }
+
+    public void setAttackRequest(HttpUriRequest attackRequest) {
+        this.attackRequest = attackRequest;
+    }
+
+    public HttpUriRequest getSafeRequest() {
+        return safeRequest;
+    }
+
+    public void setSafeRequest(HttpUriRequest safeRequest) {
+        this.safeRequest = safeRequest;
+    }
+
+    public AbstractTestCaseRequest getRequestTemplate() {
+        return requestTemplate;
+    }
+
+    public void setRequestTemplate(AbstractTestCaseRequest requestTemplate) {
+        this.requestTemplate = requestTemplate;
     }
 }

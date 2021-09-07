@@ -2,6 +2,8 @@ package org.owasp.benchmarkutils.tools;
 
 public interface Logger {
 
+    void print(String message);
+
     void println(String message);
 
     void println();

@@ -154,7 +154,7 @@ public class BenchmarkScore extends AbstractMojo {
     private static String commercialAveScorecardFilename = null;
 
     // The values stored in this is pulled from the categories.xml config file
-    public static Categories CATEGORIES;
+    //    public static Categories CATEGORIES;
 
     // The values of these scorecard generation variables can be changed via scorecardconfig.yaml
     // files. These affect overall scorecard generation. These were the original command line params
@@ -389,7 +389,7 @@ public class BenchmarkScore extends AbstractMojo {
         try {
             InputStream categoriesFileStream =
                     BenchmarkScore.class.getClassLoader().getResourceAsStream(Categories.FILENAME);
-            CATEGORIES = new Categories(categoriesFileStream);
+            Categories.getInstance().initialize(categoriesFileStream);
         } catch (ParserConfigurationException | SAXException | IOException e1) {
             System.out.println("ERROR: couldn't load categories from categories config file.");
             e1.printStackTrace();
@@ -872,7 +872,7 @@ public class BenchmarkScore extends AbstractMojo {
     public static int translateNameToCWE(String categoryName) {
         int cwe;
 
-        Category category = CATEGORIES.getByName(categoryName);
+        Category category = Categories.getInstance().getByName(categoryName);
         if (category == null) {
             System.out.println("Error: Category: " + categoryName + " not supported.");
             cwe = -1;
@@ -896,7 +896,7 @@ public class BenchmarkScore extends AbstractMojo {
 
         for (Integer tn : actualResults.keySet()) {
             TestCaseResult tcr = actualResults.get(tn).get(0); // only one
-            String cat = CATEGORIES.getById(tcr.getCategory()).getName();
+            String cat = Categories.getInstance().getById(tcr.getCategory()).getName();
 
             TP_FN_TN_FP_Counts c = map.get(cat);
             if (c == null) {

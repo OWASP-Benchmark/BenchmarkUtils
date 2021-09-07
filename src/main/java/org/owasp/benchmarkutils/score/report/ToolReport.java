@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
+import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CategoryResults;
@@ -142,7 +143,7 @@ public class ToolReport {
         ToolResults overallToolResults = tool.getOverallResults();
         for (String categoryName : scoresPerCategory.keySet()) {
 
-            Category category = BenchmarkScore.CATEGORIES.getByName(categoryName);
+            Category category = Categories.getInstance().getByName(categoryName);
 
             TP_FN_TN_FP_Counts c = scoresPerCategory.get(categoryName);
             CategoryResults r = overallToolResults.getCategoryResults(categoryName);

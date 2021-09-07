@@ -19,14 +19,23 @@ package org.owasp.benchmarkutils.tools;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -45,6 +54,8 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.owasp.benchmarkutils.helpers.Categories;
+import org.owasp.benchmarkutils.helpers.TestSuite;
 import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 
@@ -52,9 +63,15 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 public class BenchmarkCrawler extends AbstractMojo {
 
     @Parameter(property = "crawlerFile")
-    String crawlerFileName;
 
-    private File crawlerFile = null;
+    // TODO: Utils.DATA_DIR is not actually a constant!
+    String crawlerFileName = new File(Utils.DATA_DIR, "benchmark-crawler-http.xml").getPath();
+
+    File crawlerFile = new File(crawlerFileName); // default location;
+
+    String selectedTestCaseName = null;
+
+    TestSuite testSuite;
 
     BenchmarkCrawler() {
         // Default constructor required for to support Maven plugin API.
@@ -69,11 +86,34 @@ public class BenchmarkCrawler extends AbstractMojo {
     /** Crawl the target test suite. */
     protected void run() {
         try {
-            List<AbstractTestCaseRequest> requests = Utils.parseHttpFile(crawlerFile);
+            crawl(testSuite);
+        } catch (Exception e) {
+            System.out.println("ERROR: Problem crawling");
+            e.printStackTrace();
+        }
+    }
+
+    void load() {
+        try {
+            InputStream categoriesFileStream =
+                    BenchmarkScore.class.getClassLoader().getResourceAsStream(Categories.FILENAME);
+            Categories.getInstance().initialize(categoriesFileStream);
+
+            testSuite = Utils.parseHttpFile(crawlerFile);
             Collections.sort(
-                    requests,
+                    testSuite.getTestCases(),
                     AbstractTestCaseRequest.getNameComparator()); // Probably not necessary
-            crawl(requests);
+            if (selectedTestCaseName != null) {
+                for (AbstractTestCaseRequest request : testSuite.getTestCases()) {
+                    if (request.getName().equals(selectedTestCaseName)) {
+                        List<AbstractTestCaseRequest> requests = new ArrayList<>();
+                        requests.add(request);
+                        testSuite = new TestSuite();
+                        testSuite.setTestCases(requests);
+                        break;
+                    }
+                }
+            }
         } catch (Exception e) {
             System.out.println("ERROR: Problem with specified crawler file: " + crawlerFile);
             e.printStackTrace();
@@ -81,11 +121,17 @@ public class BenchmarkCrawler extends AbstractMojo {
         }
     }
 
-    protected void crawl(List<AbstractTestCaseRequest> requests) throws Exception {
+    public void setCrawlerFile(File crawlerFile) {
+        this.crawlerFile = crawlerFile;
+    }
+
+    protected void crawl(TestSuite testSuite) throws Exception {
         CloseableHttpClient httpclient = createAcceptSelfSignedCertificateClient();
         long start = System.currentTimeMillis();
 
-        for (AbstractTestCaseRequest request : requests) {
+        for (AbstractTestCaseRequest requestTemplate : testSuite.getTestCases()) {
+
+            HttpUriRequest request = requestTemplate.buildAttackRequest();
 
             // Send the next test case request
             try {
@@ -139,10 +185,8 @@ public class BenchmarkCrawler extends AbstractMojo {
      * @param request - THe HTTP request to issue
      * @throws IOException
      */
-    static ResponseInfo sendRequest(
-            CloseableHttpClient httpclient, AbstractTestCaseRequest requestTC) {
+    static ResponseInfo sendRequest(CloseableHttpClient httpclient, HttpUriRequest request) {
         ResponseInfo responseInfo = new ResponseInfo();
-        HttpUriRequest request = requestTC.buildRequest();
         responseInfo.setRequestBase(request);
         CloseableHttpResponse response = null;
 
@@ -189,37 +233,53 @@ public class BenchmarkCrawler extends AbstractMojo {
      * @param args - args passed to main().
      * @return specified crawler file if valid command line arguments provided. Null otherwise.
      */
-    private static File processCommandLineArgs(String[] args) {
+    private void processCommandLineArgs(String[] args) {
 
-        // Set default location
-        String crawlerFileName = new File(Utils.DATA_DIR, "benchmark-crawler-http.xml").getPath();
-        File crawlerFile = new File(crawlerFileName); // default location;
+        // Create the command line parser
+        CommandLineParser parser = new DefaultParser();
 
-        if (args == null || args.length == 0) {
-            // No arguments is OK
-        } else if (args.length != 0 && args.length != 2) {
-            System.out.println("Usage: no arguments or -f /PATH/TO/TESTSUITE-crawler-http.xml");
-            return null;
-        } else if (args.length == 2) {
-            if ("-f".equalsIgnoreCase(args[0])) {
-                // -f indicates use the specified crawler file
-                crawlerFileName = args[1];
+        HelpFormatter formatter = new HelpFormatter();
+
+        // Create the Options
+        Options options = new Options();
+        options.addOption(
+                Option.builder("f")
+                        .longOpt("file")
+                        .desc("a TESTSUITE-crawler-http.xml file")
+                        .hasArg()
+                        .build());
+        options.addOption(
+                Option.builder("n")
+                        .longOpt("name")
+                        .desc("tescase name (e.g. BenchmarkTestCase00025)")
+                        .hasArg()
+                        .build());
+
+        try {
+            // Parse the command line arguments
+            CommandLine line = parser.parse(options, args);
+
+            if (line.hasOption("f")) {
+                crawlerFileName = line.getOptionValue("f");
                 crawlerFile = new File(crawlerFileName);
-            } else if (!(args[0] == null
-                    && args[1] == null)) { // pom settings for crawler forces creation of 2 args,
-                System.out.println("Supported options: -f /PATH/TO/TESTSUITE-crawler-http.xml");
-                return null;
             }
-        }
-        if (!crawlerFile.exists()) {
-            System.out.println(
-                    "ERROR: Crawler Configuration file: '"
-                            + crawlerFile.getAbsolutePath()
-                            + "' not found!");
-            crawlerFile = null;
+            if (line.hasOption("h")) {
+                formatter.printHelp("BenchmarkCrawlerVerification", options, true);
+            }
+            if (line.hasOption("n")) {
+                selectedTestCaseName = line.getOptionValue("n");
+            }
+        } catch (ParseException e) {
+            formatter.printHelp("BenchmarkCrawler", options);
+            throw new RuntimeException("Error parsing arguments: ", e);
         }
 
-        return crawlerFile;
+        if (crawlerFile.exists()) {
+            setCrawlerFile(new File(crawlerFileName));
+        } else {
+            throw new RuntimeException(
+                    "Could not find crawler configuration file '" + crawlerFileName + "'");
+        }
     }
 
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -233,11 +293,9 @@ public class BenchmarkCrawler extends AbstractMojo {
 
     public static void main(String[] args) {
 
-        File crawlerFile = processCommandLineArgs(args);
-        if (crawlerFile == null) {
-            return;
-        }
-        BenchmarkCrawler crawler = new BenchmarkCrawler(crawlerFile);
+        BenchmarkCrawler crawler = new BenchmarkCrawler();
+        crawler.processCommandLineArgs(args);
+        crawler.load();
         crawler.run();
     }
 }

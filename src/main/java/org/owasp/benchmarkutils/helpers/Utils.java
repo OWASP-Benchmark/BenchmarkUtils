@@ -47,21 +47,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import javax.xml.parsers.DocumentBuilder;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.FileUtils;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
 import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest.TestCaseType;
-import org.owasp.benchmarkutils.tools.JerseyTestCaseRequest;
-import org.owasp.benchmarkutils.tools.ServletTestCaseRequest;
-import org.owasp.benchmarkutils.tools.SpringTestCaseRequest;
 import org.owasp.benchmarkutils.tools.XMLCrawler;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 public class Utils {
 
@@ -219,30 +214,60 @@ public class Utils {
      * @return A list of requests
      * @throws TestCaseRequestFileParseException
      */
-    public static List<AbstractTestCaseRequest> parseHttpFile(File file)
-            throws TestCaseRequestFileParseException {
-        List<AbstractTestCaseRequest> requests = new ArrayList<AbstractTestCaseRequest>();
+    public static TestSuite parseHttpFile(File file) throws TestCaseRequestFileParseException {
+        //        List<AbstractTestCaseRequest> requests = new ArrayList<AbstractTestCaseRequest>();
 
+        // DEBUG: Testing XML parsing using JAXB
+        // TODO: Transition from TestCase to AbstractTestCaseRequest
+        // TODO: Does this help?  Try without jaxb.properties.
+        System.setProperty(
+                "javax.xml.bind.JAXBContextFactory",
+                "org.eclipse.persistence.jaxb.JAXBContextFactory");
+        //            System.setProperty(
+        //                    "jakarta.xml.bind.context.factory",
+        //                    "org.eclipse.persistence.jaxb.JAXBContextFactory");
+
+        JAXBContext context;
+        TestSuite testSuite = null;
         try {
-            FileInputStream inputStream = new FileInputStream(file);
-            DocumentBuilder docBuilder = safeDocBuilderFactory.newDocumentBuilder();
-            InputSource is = new InputSource(inputStream);
-            Document doc = docBuilder.parse(is);
-            Node root = doc.getDocumentElement();
-
-            // Side effect: Set the test suite name and version # for global use
-            BenchmarkScore.TESTSUITE = XMLCrawler.getAttributeValue("testsuite", root);
-            BenchmarkScore.TESTSUITEVERSION = XMLCrawler.getAttributeValue("version", root);
-
-            List<Node> tests = XMLCrawler.getNamedChildren("benchmarkTest", root);
-            for (Node test : tests) {
-                AbstractTestCaseRequest request = parseHttpTest(test);
-                requests.add(request);
-            }
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            throw new TestCaseRequestFileParseException("Error during parsing", e);
+            context = JAXBContext.newInstance(TestSuite.class);
+            //                System.out.println("JAXB implementation: " +
+            // context.getClass().getName()); // DEBUG
+            String crawlerFileName =
+                    new File(Utils.DATA_DIR, "benchmark-attack-http.xml").getPath();
+            Unmarshaller unmarshaller = context.createUnmarshaller();
+            unmarshaller.setEventHandler(
+                    new javax.xml.bind.helpers.DefaultValidationEventHandler());
+            testSuite = (TestSuite) unmarshaller.unmarshal(new FileReader(crawlerFileName));
+        } catch (JAXBException | FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        return requests;
+        //            System.out.println("Parsed test case: " + testSuite.getTestCases().get(0));
+        //            System.exit(0);
+        return testSuite;
+
+        //        try {
+        //            FileInputStream inputStream = new FileInputStream(file);
+        //            DocumentBuilder docBuilder = safeDocBuilderFactory.newDocumentBuilder();
+        //            InputSource is = new InputSource(inputStream);
+        //            Document doc = docBuilder.parse(is);
+        //            Node root = doc.getDocumentElement();
+        //
+        //            // Side effect: Set the test suite name and version # for global use
+        //            BenchmarkScore.TESTSUITE = XMLCrawler.getAttributeValue("testsuite", root);
+        //            BenchmarkScore.TESTSUITEVERSION = XMLCrawler.getAttributeValue("version",
+        // root);
+        //
+        //            List<Node> tests = XMLCrawler.getNamedChildren("benchmarkTest", root);
+        //            for (Node test : tests) {
+        //                AbstractTestCaseRequest request = parseHttpTest(test);
+        //                requests.add(request);
+        //            }
+        //        } catch (ParserConfigurationException | SAXException | IOException e) {
+        //            throw new TestCaseRequestFileParseException("Error during parsing", e);
+        //        }
+        //        return requests;
     }
 
     /**
@@ -263,7 +288,7 @@ public class Utils {
         String uiTemplateFile = XMLCrawler.getAttributeValue("tcUITemplateFile", test);
         String templateFile = XMLCrawler.getAttributeValue("tcTemplateFile", test);
         String sourceFile = XMLCrawler.getAttributeValue("tcSourceFile", test);
-        String sourceUIType = XMLCrawler.getAttributeValue("tsSourceUIType", test);
+        String sourceUIType = XMLCrawler.getAttributeValue("tcSourceUIType", test);
         String dataflowFile = XMLCrawler.getAttributeValue("tcDataflowFile", test);
         String sinkFile = XMLCrawler.getAttributeValue("tcSinkFile", test);
         String attackSuccessString = XMLCrawler.getAttributeValue("tcAttackSuccess", test);
@@ -284,73 +309,74 @@ public class Utils {
         List<Node> formParamsNodes = XMLCrawler.getNamedChildren("formparam", test);
         List<RequestVariable> formParams = parseRequestVariables(formParamsNodes);
 
-        switch (tcType) {
-            case SERVLET:
-                request =
-                        new ServletTestCaseRequest(
-                                url,
-                                tcType,
-                                category,
-                                name,
-                                uiTemplateFile,
-                                templateFile,
-                                sourceFile,
-                                sourceUIType,
-                                dataflowFile,
-                                sinkFile,
-                                isUnverifiable,
-                                isVulnerability,
-                                attackSuccessString,
-                                headers,
-                                cookies,
-                                getParams,
-                                formParams);
-                break;
-            case SPRINGWS:
-                request =
-                        new SpringTestCaseRequest(
-                                url,
-                                tcType,
-                                category,
-                                name,
-                                uiTemplateFile,
-                                templateFile,
-                                sourceFile,
-                                sourceUIType,
-                                dataflowFile,
-                                sinkFile,
-                                isUnverifiable,
-                                isVulnerability,
-                                attackSuccessString,
-                                headers,
-                                cookies,
-                                getParams,
-                                formParams);
-                break;
-            case JERSEYWS:
-                request =
-                        new JerseyTestCaseRequest(
-                                url,
-                                tcType,
-                                category,
-                                name,
-                                uiTemplateFile,
-                                templateFile,
-                                sourceFile,
-                                sourceUIType,
-                                dataflowFile,
-                                sinkFile,
-                                isUnverifiable,
-                                isVulnerability,
-                                attackSuccessString,
-                                headers,
-                                cookies,
-                                getParams,
-                                formParams);
-                break;
-            default:
-                throw new TestCaseRequestFileParseException("Unrecognized tcType: " + tcType);
-        }
+        //        switch (tcType) {
+        //            case SERVLET:
+        //                request =
+        //                        new ServletTestCaseRequest(
+        //                                url,
+        //                                tcType,
+        //                                category,
+        //                                name,
+        //                                uiTemplateFile,
+        //                                templateFile,
+        //                                sourceFile,
+        //                                sourceUIType,
+        //                                dataflowFile,
+        //                                sinkFile,
+        //                                isUnverifiable,
+        //                                isVulnerability,
+        //                                attackSuccessString,
+        //                                headers,
+        //                                cookies,
+        //                                getParams,
+        //                                formParams);
+        //                break;
+        //            case SPRINGWS:
+        //                request =
+        //                        new SpringTestCaseRequest(
+        //                                url,
+        //                                tcType,
+        //                                category,
+        //                                name,
+        //                                uiTemplateFile,
+        //                                templateFile,
+        //                                sourceFile,
+        //                                sourceUIType,
+        //                                dataflowFile,
+        //                                sinkFile,
+        //                                isUnverifiable,
+        //                                isVulnerability,
+        //                                attackSuccessString,
+        //                                headers,
+        //                                cookies,
+        //                                getParams,
+        //                                formParams);
+        //                break;
+        //            case JERSEYWS:
+        //                request =
+        //                        new JerseyTestCaseRequest(
+        //                                url,
+        //                                tcType,
+        //                                category,
+        //                                name,
+        //                                uiTemplateFile,
+        //                                templateFile,
+        //                                sourceFile,
+        //                                sourceUIType,
+        //                                dataflowFile,
+        //                                sinkFile,
+        //                                isUnverifiable,
+        //                                isVulnerability,
+        //                                attackSuccessString,
+        //                                headers,
+        //                                cookies,
+        //                                getParams,
+        //                                formParams);
+        //                break;
+        //            default:
+        //                throw new TestCaseRequestFileParseException("Unrecognized tcType: " +
+        // tcType);
+        //        }
 
         return request;
     }

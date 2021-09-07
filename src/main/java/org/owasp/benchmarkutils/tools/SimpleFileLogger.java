@@ -48,6 +48,10 @@ public class SimpleFileLogger implements Closeable, Logger {
         return properties.getProperty(key);
     }
 
+    public void print(String message) {
+        out.print(message);
+    }
+
     public void println(String message) {
         out.println(message);
     }

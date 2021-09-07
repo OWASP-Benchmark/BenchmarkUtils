@@ -27,6 +27,8 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
+import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.RequestVariable;
 
 /*
@@ -35,12 +37,15 @@ import org.owasp.benchmarkutils.helpers.RequestVariable;
  * etc. Nothing fancy, specific to particular frameworks, like parameters embedded in the URL path, etc.
  */
 
+@XmlDiscriminatorValue("SERVLET")
 public class ServletTestCaseRequest extends AbstractTestCaseRequest {
+
+    public ServletTestCaseRequest() {}
 
     public ServletTestCaseRequest(
             String fullURL,
             TestCaseType tcType,
-            String category,
+            Category category,
             String name,
             String uiTemplateFile,
             String templateFile,
@@ -140,7 +145,7 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
                 ((HttpEntityEnclosingRequestBase) request)
                         .setEntity(new UrlEncodedFormEntity(fields));
             } catch (UnsupportedEncodingException e) {
-                System.out.println("Error encoding URL." + e.getMessage());
+                System.out.println("Error encoding URL: " + e.getMessage());
             }
         }
     }

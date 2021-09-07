@@ -23,14 +23,19 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
+import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
+import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.RequestVariable;
 
+@XmlDiscriminatorValue("JERSEYWS")
 public class JerseyTestCaseRequest extends AbstractTestCaseRequest {
+
+    public JerseyTestCaseRequest() {}
 
     public JerseyTestCaseRequest(
             String fullURL,
             TestCaseType tcType,
-            String category,
+            Category category,
             String name,
             String uiTemplateFile,
             String templateFile,
@@ -112,7 +117,7 @@ public class JerseyTestCaseRequest extends AbstractTestCaseRequest {
             StringEntity paramsEnt = new StringEntity(params);
             ((HttpEntityEnclosingRequestBase) request).setEntity(paramsEnt);
         } catch (UnsupportedEncodingException e) {
-            System.out.println("Error encoding URL." + e.getMessage());
+            System.out.println("Error encoding URL: " + e.getMessage());
         }
     }
 

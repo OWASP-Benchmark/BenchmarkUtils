@@ -17,12 +17,28 @@
  */
 package org.owasp.benchmarkutils.tools;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;
+import org.owasp.benchmarkutils.helpers.Category;
+import org.owasp.benchmarkutils.helpers.CategoryAdapter;
 import org.owasp.benchmarkutils.helpers.RequestVariable;
 
+@XmlSeeAlso({
+    ServletTestCaseRequest.class,
+    JerseyTestCaseRequest.class,
+    SpringTestCaseRequest.class
+})
+@XmlDiscriminatorNode("@tcType")
 public abstract class AbstractTestCaseRequest {
 
     /*
@@ -46,13 +62,14 @@ public abstract class AbstractTestCaseRequest {
         };
     }
 
-    private String category;
-    private List<RequestVariable> cookies;
+    private Category category;
+    private List<RequestVariable> cookies = new ArrayList<RequestVariable>();
     private String dataflowFile;
-    private List<RequestVariable> formParams;
+    private List<RequestVariable> formParams = new ArrayList<RequestVariable>();
     private String fullURL;
-    private List<RequestVariable> getParams;
-    private List<RequestVariable> headers;
+    private List<RequestVariable> getParams = new ArrayList<RequestVariable>();
+    private List<RequestVariable> headers = new ArrayList<RequestVariable>();
+    private String notAutoverifiableReason;
     private boolean isUnverifiable;
     private boolean isVulnerability;
     private String attackSuccessString;
@@ -65,6 +82,8 @@ public abstract class AbstractTestCaseRequest {
     private TestCaseType tcType;
     private String templateFile;
     private String uiTemplateFile;
+
+    public AbstractTestCaseRequest() {}
 
     /**
      * This class contains enough information to generate an HttpUriRequest for a generated test
@@ -91,7 +110,7 @@ public abstract class AbstractTestCaseRequest {
     public AbstractTestCaseRequest(
             String fullURL,
             TestCaseType tcType,
-            String category,
+            Category category,
             String name,
             String uiTemplateFile,
             String templateFile,
@@ -158,6 +177,12 @@ public abstract class AbstractTestCaseRequest {
     /** Defines how to construct URL query string. */
     abstract void buildQueryString();
 
+    /**
+     * TODO: Make this class a POJO TestCase and pass it as an arg to another class TestCaseRequest
+     * that can build an actual HttpUriRequest.
+     *
+     * @return
+     */
     public HttpUriRequest buildRequest() {
         buildQueryString();
         HttpRequestBase request = createRequestInstance(fullURL + query);
@@ -165,6 +190,16 @@ public abstract class AbstractTestCaseRequest {
         buildCookies(request);
         buildBodyParameters(request);
         return request;
+    }
+
+    public HttpUriRequest buildAttackRequest() {
+        setSafe(false);
+        return buildRequest();
+    }
+
+    public HttpUriRequest buildSafeRequest() {
+        setSafe(true);
+        return buildRequest();
     }
 
     /**
@@ -178,70 +213,107 @@ public abstract class AbstractTestCaseRequest {
         return this.attackSuccessString;
     }
 
-    public String getCategory() {
+    @XmlAttribute(name = "tcCategory", required = true)
+    @XmlJavaTypeAdapter(CategoryAdapter.class)
+    @NotNull
+    public Category getCategory() {
         return this.category;
     }
 
+    @XmlElement(name = "cookie")
+    @NotNull
     public List<RequestVariable> getCookies() {
         return this.cookies;
     }
 
+    @XmlAttribute(name = "tcDataflowFile", required = true)
+    @NotNull
     public String getDataflowFile() {
         return this.dataflowFile;
     }
 
+    @XmlElement(name = "formparam")
+    @NotNull
     public List<RequestVariable> getFormParams() {
         return this.formParams;
     }
 
+    @XmlAttribute(name = "URL", required = true)
+    @NotNull
     public String getFullURL() {
         return this.fullURL;
     }
 
+    @XmlElement(name = "getparam")
+    @NotNull
     public List<RequestVariable> getGetParams() {
         return this.getParams;
     }
 
+    @XmlElement(name = "header")
+    @NotNull
     public List<RequestVariable> getHeaders() {
         return this.headers;
     }
 
+    @XmlAttribute(name = "tcName", required = true)
+    @NotNull
     public String getName() {
         return this.name;
     }
 
+    @XmlTransient
     public String getQuery() {
         return this.query;
     }
 
+    @XmlAttribute(name = "tcSinkFile", required = true)
+    @NotNull
     public String getSinkFile() {
         return this.sinkFile;
     }
 
+    @XmlAttribute(name = "tcSourceFile", required = true)
+    @NotNull
     public String getSourceFile() {
         return this.sourceFile;
     }
 
+    @XmlAttribute(name = "tcSourceUIType", required = true)
+    @NotNull
     public String getSourceUIType() {
         return this.sourceUIType;
     }
 
+    @XmlAttribute(name = "tcTemplateFile", required = true)
+    @NotNull
     public String getTemplateFile() {
         return this.templateFile;
     }
 
+    //    @XmlAttribute(name = "tcType", required = true)
+    //    @XmlReadOnly
+    //    @NotNull
     public TestCaseType getType() {
         return this.tcType;
     }
 
+    @XmlAttribute(name = "tcUITemplateFile", required = true)
+    @NotNull
     public String getUiTemplateFile() {
         return this.uiTemplateFile;
     }
 
     public boolean isUnverifiable() {
-        return this.isUnverifiable;
+        return getNotAutoverifiableReason() != null;
     }
 
+    @XmlAttribute(name = "tcNotAutoverifiable")
+    public String getNotAutoverifiableReason() {
+        return this.notAutoverifiableReason;
+    }
+
+    @XmlAttribute(name = "tcVulnerable", required = true)
     public boolean isVulnerability() {
         return this.isVulnerability;
     }
@@ -254,7 +326,7 @@ public abstract class AbstractTestCaseRequest {
         return this.attackSuccessString = attackSuccessString;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(Category category) {
         this.category = category;
     }
 

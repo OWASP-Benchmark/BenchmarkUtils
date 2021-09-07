@@ -23,14 +23,19 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
+import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
+import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.RequestVariable;
 
+@XmlDiscriminatorValue("SPRINGWS")
 public class SpringTestCaseRequest extends AbstractTestCaseRequest {
+
+    public SpringTestCaseRequest() {}
 
     public SpringTestCaseRequest(
             String fullURL,
             TestCaseType tcType,
-            String category,
+            Category category,
             String name,
             String uiTemplateFile,
             String templateFile,
@@ -108,18 +113,18 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
             String value = field.getValue();
             // System.out.println(name+"="+value);
             if (first) {
-                params = params + "\"" + name + "\":" + "\"" + value.replace("\"", "\\\"") + "\"";
                 first = false;
             } else {
-                params = params + ",\"" + name + "\":" + "\"" + value.replace("\"", "\\\"") + "\"";
+                params = params + ",";
             }
+            params = params + String.format("\"%s\":\"%s\"", name, value.replace("\"", "\\\""));
         }
         params += "}";
         try {
             StringEntity paramsEnt = new StringEntity(params);
             ((HttpEntityEnclosingRequestBase) request).setEntity(paramsEnt);
         } catch (UnsupportedEncodingException e) {
-            System.out.println("Error encoding URL." + e.getMessage());
+            System.out.println("Error encoding URL: " + e.getMessage());
         }
     }
 }

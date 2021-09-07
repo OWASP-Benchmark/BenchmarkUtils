@@ -37,12 +37,17 @@ public class Categories {
     private Map<String, Category> idToCategoryMap;
     private Map<String, Category> nameToCategoryMap;
 
+    //    private static InputStream xmlFileStream;
+
+    private static Categories _instance;
+
     public Categories() {
-        System.out.println(
-                "ERROR: Categories cannot be constructed without supplying it a configuration file.");
-        Exception e = new Exception();
-        e.printStackTrace();
-        System.exit(-1);
+        //        System.out.println(
+        //                "ERROR: Categories cannot be constructed without supplying it a
+        // configuration file.");
+        //        Exception e = new Exception();
+        //        e.printStackTrace();
+        //        System.exit(-1);
     }
 
     /**
@@ -53,8 +58,18 @@ public class Categories {
      * @throws SAXException
      * @throws IOException
      */
-    public Categories(InputStream xmlFileStream)
+    public Categories(InputStream xmlFileStream) {}
+
+    public static Categories getInstance() {
+        if (_instance == null) {
+            _instance = new Categories();
+        }
+        return _instance;
+    }
+
+    public void initialize(InputStream xmlFileStream)
             throws ParserConfigurationException, SAXException, IOException {
+        //    	Categories.xmlFileStream = xmlFileStream;
         load(xmlFileStream);
     }
 
@@ -117,10 +132,16 @@ public class Categories {
     }
 
     public Category getById(String id) {
+        if (idToCategoryMap == null) {
+            throw new NullPointerException("ERROR: Categories singleton not initialized");
+        }
         return idToCategoryMap.get(id);
     }
 
     public Category getByName(String name) {
+        if (nameToCategoryMap == null) {
+            throw new NullPointerException("ERROR: Categories singleton not initialized");
+        }
         return nameToCategoryMap.get(name);
     }
 }
