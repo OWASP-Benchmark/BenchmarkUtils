@@ -116,7 +116,7 @@ public class Utils {
                         filePath);
                 e.printStackTrace();
             }
-        } else System.out.printf("The file '%s' from the classpath cannot be loaded.%n", filePath);
+        } else System.out.printf("The file '%s' cannot be found on the classpath.%n", filePath);
         return null;
     }
 
