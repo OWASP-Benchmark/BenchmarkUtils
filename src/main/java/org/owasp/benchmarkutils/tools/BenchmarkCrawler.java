@@ -97,7 +97,7 @@ public class BenchmarkCrawler extends AbstractMojo {
         try {
             InputStream categoriesFileStream =
                     BenchmarkScore.class.getClassLoader().getResourceAsStream(Categories.FILENAME);
-            Categories.getInstance().initialize(categoriesFileStream);
+            new Categories(categoriesFileStream);
 
             testSuite = Utils.parseHttpFile(crawlerFile);
             Collections.sort(

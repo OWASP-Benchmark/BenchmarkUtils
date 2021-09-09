@@ -17,6 +17,7 @@
  */
 package org.owasp.benchmarkutils.tools;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -74,7 +75,6 @@ public abstract class AbstractTestCaseRequest {
     private boolean isVulnerability;
     private String attackSuccessString;
     private String name;
-    //    private boolean isSafe;
     private String query;
     private String sinkFile;
     private String sourceFile;
@@ -440,52 +440,42 @@ public abstract class AbstractTestCaseRequest {
         return this.getClass().getSimpleName()
                 + " [category="
                 + category
-                + ", cookies="
-                + cookies
                 + ", name="
                 + name
                 + ", uiTemplateFile="
-                + uiTemplateFile
+                + new File(uiTemplateFile).getName()
                 + ", templateFile="
-                + templateFile
+                + new File(templateFile).getName()
                 + ", sourceFile="
                 + sourceFile
                 + ", sourceUIType="
                 + sourceUIType
                 + ", dataflowFile="
                 + dataflowFile
-                + ", formParams="
-                + formParams
+                + ", sinkFile="
+                + sinkFile
                 + ", fullURL="
                 + fullURL
                 + ", getParams="
                 + getParams
                 + ", headers="
                 + headers
+                + ", cookies="
+                + cookies
+                + ", formParams="
+                + formParams
                 + ", isUnverifiable="
                 + isUnverifiable
                 + ", isVulnerability="
                 + isVulnerability
                 + ", attackSuccessString="
                 + attackSuccessString
-                + ", name="
-                + name
-                + ", isSafe()="
+                + ", isSafe="
                 + isSafe()
                 + ", query="
                 + query
-                + ", sinkFile="
-                + sinkFile
-                + ", sourceFile="
-                + sourceFile
-                + ", sourceUIType="
-                + sourceUIType
                 + ", tcType="
                 + tcType
-                + ", templateFile="
-                + templateFile
-                + ", uiTemplateFile="
-                + uiTemplateFile
                 + "]";
     }
 }

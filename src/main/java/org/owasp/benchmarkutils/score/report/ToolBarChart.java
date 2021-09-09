@@ -186,9 +186,7 @@ public class ToolBarChart extends ScatterPlot {
                     break;
             }
             dataset.addValue(
-                    data * 100,
-                    TOOLNAME,
-                    Categories.getInstance().getByName(catResults.category).getShortName());
+                    data * 100, TOOLNAME, Categories.getByName(catResults.category).getShortName());
         }
 
         Collection<CategoryResults> aveCatResults = aveToolResults.values();
@@ -206,7 +204,7 @@ public class ToolBarChart extends ScatterPlot {
             dataset.addValue(
                     data * 100,
                     "Average",
-                    Categories.getInstance().getByName(catResults.category).getShortName());
+                    Categories.getByName(catResults.category).getShortName());
         }
 
         return dataset;

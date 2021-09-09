@@ -143,7 +143,7 @@ public class ToolReport {
         ToolResults overallToolResults = tool.getOverallResults();
         for (String categoryName : scoresPerCategory.keySet()) {
 
-            Category category = Categories.getInstance().getByName(categoryName);
+            Category category = Categories.getByName(categoryName);
 
             TP_FN_TN_FP_Counts c = scoresPerCategory.get(categoryName);
             CategoryResults r = overallToolResults.getCategoryResults(categoryName);

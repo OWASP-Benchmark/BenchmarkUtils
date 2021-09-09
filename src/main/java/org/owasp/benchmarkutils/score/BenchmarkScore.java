@@ -389,7 +389,7 @@ public class BenchmarkScore extends AbstractMojo {
         try {
             InputStream categoriesFileStream =
                     BenchmarkScore.class.getClassLoader().getResourceAsStream(Categories.FILENAME);
-            Categories.getInstance().initialize(categoriesFileStream);
+            new Categories(categoriesFileStream);
         } catch (ParserConfigurationException | SAXException | IOException e1) {
             System.out.println("ERROR: couldn't load categories from categories config file.");
             e1.printStackTrace();
@@ -872,7 +872,7 @@ public class BenchmarkScore extends AbstractMojo {
     public static int translateNameToCWE(String categoryName) {
         int cwe;
 
-        Category category = Categories.getInstance().getByName(categoryName);
+        Category category = Categories.getByName(categoryName);
         if (category == null) {
             System.out.println("Error: Category: " + categoryName + " not supported.");
             cwe = -1;
@@ -896,7 +896,7 @@ public class BenchmarkScore extends AbstractMojo {
 
         for (Integer tn : actualResults.keySet()) {
             TestCaseResult tcr = actualResults.get(tn).get(0); // only one
-            String cat = Categories.getInstance().getById(tcr.getCategory()).getName();
+            String cat = Categories.getById(tcr.getCategory()).getName();
 
             TP_FN_TN_FP_Counts c = map.get(cat);
             if (c == null) {

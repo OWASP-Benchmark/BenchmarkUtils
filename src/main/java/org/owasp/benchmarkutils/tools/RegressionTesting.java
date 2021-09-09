@@ -208,6 +208,7 @@ public class RegressionTesting {
                 requestTemplate.getCategory().toString(),
                 requestTemplate.getName());
         // out.println(result.getAttackRequest().getRequestLine().toString());
+        out.println(requestTemplate.toString());
         out.println();
         out.println("Attack request:");
         printHttpRequest(result.getAttackRequest(), out);
@@ -223,7 +224,7 @@ public class RegressionTesting {
         out.println();
         out.printf(
                 "Attack success indicator: -->%s<--%n", requestTemplate.getAttackSuccessString());
-        out.println();
+        out.printf("-----------------------------------------------------------%n%n");
     }
 
     /**

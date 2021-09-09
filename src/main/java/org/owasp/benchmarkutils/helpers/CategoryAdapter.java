@@ -9,6 +9,6 @@ public class CategoryAdapter extends XmlAdapter<String, Category> {
     }
 
     public Category unmarshal(String value) {
-        return Categories.getInstance().getById(value);
+        return Categories.getById(value);
     }
 }
