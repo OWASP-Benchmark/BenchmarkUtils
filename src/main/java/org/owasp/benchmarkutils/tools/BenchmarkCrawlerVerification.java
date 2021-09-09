@@ -84,8 +84,11 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                 new File(CRAWLER_DATA_DIR, FILENAME_NON_DISCRIMINATORY_LOG);
         final File FILE_ERRORS_LOG = new File(CRAWLER_DATA_DIR, FILENAME_ERRORS_LOG);
         final File FILE_TIMES_LOG;
-        if (isTimingEnabled) FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES);
-        else FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES_ALL);
+        if (isTimingEnabled) {
+            FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES);
+        } else {
+            FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES_ALL);
+        }
         final File FILE_UNVERIFIABLE_LOG = new File(CRAWLER_DATA_DIR, FILENAME_UNVERIFIABLE_LOG);
         SimpleFileLogger.setFile("TIMES", FILE_TIMES_LOG);
         SimpleFileLogger.setFile("NONDISCRIMINATORY", FILE_NON_DISCRIMINATORY_LOG);
@@ -267,60 +270,6 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
         RegressionTesting.isTestingEnabled = true;
 
-        //        if (args != null) {
-        //            int time_val_index = -1;
-        //
-        //            for (int i = 0; i < args.length; i++) {
-        //                if ("-time".equals(args[i])) {
-        //                    isTimingEnabled = true;
-        //                    time_val_index = ++i; // Advance to index of time value
-        //                } else if ("-f".equalsIgnoreCase(args[i])) {
-        //                    // -f indicates use the specified crawler file
-        //                    crawlerFileName = args[++i];
-        //                    crawlerFile = new File(crawlerFileName);
-        //                } else if (!(args[0] == null
-        //                        && args[1]
-        //                                == null)) { // pom settings for crawler forces creation of
-        // 2 args,
-        //                    System.out.println(
-        //                            "ERROR: Unrecognized parameter to verification crawler: " +
-        // args[i]);
-        //                    System.out.println(
-        //                            "Supported options: -f /PATH/TO/TESTSUITE-attack-http.xml
-        // -time MAXTIMESECONDS");
-        //                    return null;
-        //                }
-        //            }
-        //
-        //            if (time_val_index > -1) {
-        //                try {
-        //                    maxTimeInSeconds = Integer.parseInt(args[time_val_index]);
-        //                    System.out.println("Setting timeout for test case to: " +
-        // maxTimeInSeconds);
-        //                } catch (NumberFormatException e) {
-        //                    System.out.println(
-        //                            "ERROR: -time value must be an integer (in seconds), not: "
-        //                                    + args[time_val_index]);
-        //                    return null;
-        //                }
-        //            }
-        //        }
-        //
-        //        if (crawlerFile != null) {
-        //            if (!crawlerFile.exists()) {
-        //                System.out.println(
-        //                        "ERROR: Crawler Configuration file: '" + crawlerFileName + "' not
-        // found!");
-        //                crawlerFile = null;
-        //            } else {
-        //                // Crawler output files go into the same dir where the crawler config
-        // files are
-        //                CRAWLER_DATA_DIR = crawlerFile.getParent() + File.separator;
-        //            }
-        //        }
-        //
-        //        return crawlerFile;
-
         // Create the command line parser
         CommandLineParser parser = new DefaultParser();
 
@@ -374,6 +323,8 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
         if (crawlerFile.exists()) {
             setCrawlerFile(new File(crawlerFileName));
+            // Crawler output files go into the same directory as the crawler config file
+            CRAWLER_DATA_DIR = crawlerFile.getParent() + File.separator;
         } else {
             throw new RuntimeException(
                     "Could not find crawler configuration file '" + crawlerFileName + "'");

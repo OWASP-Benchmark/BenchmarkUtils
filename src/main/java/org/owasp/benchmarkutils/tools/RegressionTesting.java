@@ -60,8 +60,6 @@ public class RegressionTesting {
     static int declaredUnverifiable = 0;
     static int undeclaredUnverifiable = 0;
 
-    // static Set<String> undeclaredUnverifiableSinks = new TreeSet<>();
-
     static SortedMultiset<String> undeclaredUnverifiableSinks = TreeMultiset.create();
     static SortedMultiset<String> nonDiscriminatorySinks = TreeMultiset.create();
     static SortedMultiset<String> failSinks = TreeMultiset.create();

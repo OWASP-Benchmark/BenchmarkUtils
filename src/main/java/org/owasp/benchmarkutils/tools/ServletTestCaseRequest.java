@@ -41,44 +41,6 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
 
     public ServletTestCaseRequest() {}
 
-    //    public ServletTestCaseRequest(
-    //            String fullURL,
-    //            TestCaseType tcType,
-    //            Category category,
-    //            String name,
-    //            String uiTemplateFile,
-    //            String templateFile,
-    //            String sourceFile,
-    //            String sourceUIType,
-    //            String dataflowFile,
-    //            String sinkFile,
-    //            boolean isVerifiable,
-    //            boolean isVulnerability,
-    //            String attackSuccessString,
-    //            List<RequestVariable> headers,
-    //            List<RequestVariable> cookies,
-    //            List<RequestVariable> getParams,
-    //            List<RequestVariable> formParams) {
-    //        super(
-    //                fullURL,
-    //                tcType,
-    //                category,
-    //                name,
-    //                uiTemplateFile,
-    //                templateFile,
-    //                sourceFile,
-    //                sourceUIType,
-    //                dataflowFile,
-    //                sinkFile,
-    //                isVerifiable,
-    //                isVulnerability,
-    //                attackSuccessString,
-    //                headers,
-    //                cookies,
-    //                getParams,
-    //                formParams);
-    //    }
-
     @SuppressWarnings("deprecation")
     @Override
     void buildQueryString() {

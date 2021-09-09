@@ -63,7 +63,6 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 public class BenchmarkCrawler extends AbstractMojo {
 
     @Parameter(property = "crawlerFile")
-
     // TODO: Utils.DATA_DIR is not actually a constant!
     String crawlerFileName = new File(Utils.DATA_DIR, "benchmark-crawler-http.xml").getPath();
 
