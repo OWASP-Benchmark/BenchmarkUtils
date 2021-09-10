@@ -64,7 +64,8 @@ public abstract class AbstractTestCaseRequest {
     }
 
     private Category category;
-    private List<RequestVariable> cookies = new ArrayList<RequestVariable>();
+    private List<RequestVariable> cookies = new 
+      <RequestVariable>();
     private String dataflowFile;
     private List<RequestVariable> formParams = new ArrayList<RequestVariable>();
     private String fullURL;

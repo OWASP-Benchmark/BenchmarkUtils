@@ -171,7 +171,10 @@ public class RegressionTesting {
                         }
                     }
                 }
-                System.out.printf("Details of failed test cases written to: %s%n", FILE_FAILEDTC);
+                if (FILE_FAILEDTC.length() > 0) {
+                    System.out.printf(
+                            "Details of failed test cases written to: %s%n", FILE_FAILEDTC);
+                }
             }
         }
     }
@@ -205,7 +208,7 @@ public class RegressionTesting {
                 requestTemplate.isVulnerability() ? "True" : "False",
                 requestTemplate.getCategory().toString(),
                 requestTemplate.getName());
-        // out.println(result.getAttackRequest().getRequestLine().toString());
+        // Print out all the attributes of the request, including the templates used to create it
         out.println(requestTemplate.toString());
         out.println();
         out.println("Attack request:");

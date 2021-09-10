@@ -204,13 +204,21 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                 }
             }
         }
-        System.out.printf(
-                "Details of non-discriminatory test cases written to: %s%n",
-                FILE_NON_DISCRIMINATORY_LOG);
-        System.out.printf(
-                "Details of errors/exceptions in test cases written to: %s%n", FILE_ERRORS_LOG);
-        System.out.printf(
-                "Details of unverifiable test cases written to: %s%n", FILE_UNVERIFIABLE_LOG);
+
+        if (FILE_NON_DISCRIMINATORY_LOG.length() > 0) {
+            System.out.printf(
+                    "Details of non-discriminatory test cases written to: %s%n",
+                    FILE_NON_DISCRIMINATORY_LOG);
+        }
+        if (FILE_ERRORS_LOG.length() > 0) {
+            System.out.printf(
+                    "Details of errors/exceptions in test cases written to: %s%n", FILE_ERRORS_LOG);
+        }
+        if (FILE_UNVERIFIABLE_LOG.length() > 0) {
+            System.out.printf(
+                    "Details of unverifiable test cases written to: %s%n", FILE_UNVERIFIABLE_LOG);
+        }
+
         System.out.printf("Test case time measurements written to: %s%n", FILE_TIMES_LOG);
 
         RegressionTesting.printCrawlSummary(results);
