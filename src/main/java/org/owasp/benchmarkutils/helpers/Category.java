@@ -62,6 +62,10 @@ public class Category {
         return this.shortName;
     }
 
+    public String toString() {
+        return getId();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;

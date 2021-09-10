@@ -23,14 +23,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.owasp.benchmarkutils.helpers.TestSuite;
 import org.owasp.benchmarkutils.helpers.Utils;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 
 /**
  * TODO: Refactor this class. There is way too much duplication of code in BenchmarkCrawler here.
@@ -67,7 +74,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     }
 
     @Override
-    protected void crawl(List<AbstractTestCaseRequest> requests) throws Exception {
+    protected void crawl(TestSuite testSuite) throws Exception {
         CloseableHttpClient httpclient = createAcceptSelfSignedCertificateClient();
         long start = System.currentTimeMillis();
         List<ResponseInfo> responseInfoList = new ArrayList<ResponseInfo>();
@@ -77,8 +84,11 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                 new File(CRAWLER_DATA_DIR, FILENAME_NON_DISCRIMINATORY_LOG);
         final File FILE_ERRORS_LOG = new File(CRAWLER_DATA_DIR, FILENAME_ERRORS_LOG);
         final File FILE_TIMES_LOG;
-        if (isTimingEnabled) FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES);
-        else FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES_ALL);
+        if (isTimingEnabled) {
+            FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES);
+        } else {
+            FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES_ALL);
+        }
         final File FILE_UNVERIFIABLE_LOG = new File(CRAWLER_DATA_DIR, FILENAME_UNVERIFIABLE_LOG);
         SimpleFileLogger.setFile("TIMES", FILE_TIMES_LOG);
         SimpleFileLogger.setFile("NONDISCRIMINATORY", FILE_NON_DISCRIMINATORY_LOG);
@@ -97,19 +107,22 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             uLogger = ul;
             tLogger = tl;
 
-            for (AbstractTestCaseRequest request : requests) {
+            for (AbstractTestCaseRequest requestTemplate : testSuite.getTestCases()) {
+
+                HttpUriRequest attackRequest = requestTemplate.buildAttackRequest();
+                HttpUriRequest safeRequest = requestTemplate.buildSafeRequest();
+
                 // Send the next test case request with its attack payload
-                ResponseInfo attackPayloadResponseInfo = sendRequest(httpclient, request);
+                ResponseInfo attackPayloadResponseInfo = sendRequest(httpclient, attackRequest);
                 responseInfoList.add(attackPayloadResponseInfo);
 
                 // Log the response
                 log(attackPayloadResponseInfo);
 
                 ResponseInfo safePayloadResponseInfo = null;
-                if (!request.isUnverifiable()) {
+                if (!requestTemplate.isUnverifiable()) {
                     // Send the next test case request with its safe payload
-                    request.setSafe(true);
-                    safePayloadResponseInfo = sendRequest(httpclient, request);
+                    safePayloadResponseInfo = sendRequest(httpclient, safeRequest);
                     responseInfoList.add(safePayloadResponseInfo);
 
                     // Log the response
@@ -118,7 +131,11 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
                 TestCaseVerificationResults result =
                         new TestCaseVerificationResults(
-                                request, attackPayloadResponseInfo, safePayloadResponseInfo);
+                                attackRequest,
+                                safeRequest,
+                                requestTemplate,
+                                attackPayloadResponseInfo,
+                                safePayloadResponseInfo);
                 results.add(result);
 
                 // Verify the response
@@ -136,10 +153,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             completionMessage =
                     String.format(
                             "Verification crawl ran on %tF %<tT for %s v%s took %d seconds%n",
-                            now,
-                            BenchmarkScore.TESTSUITE,
-                            BenchmarkScore.TESTSUITEVERSION,
-                            seconds);
+                            now, testSuite.getName(), testSuite.getVersion(), seconds);
             tLogger.println(completionMessage);
 
             // Report the verified results
@@ -256,7 +270,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
      * @param args - args passed to main().
      * @return specified crawler file if valid command line arguments provided. Null otherwise.
      */
-    private static File processCommandLineArgs(String[] args) {
+    private void processCommandLineArgs(String[] args) {
 
         // Set default location
         String crawlerFileName = new File(Utils.DATA_DIR, "benchmark-attack-http.xml").getPath();
@@ -264,53 +278,65 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
         RegressionTesting.isTestingEnabled = true;
 
-        if (args != null) {
-            int time_val_index = -1;
+        // Create the command line parser
+        CommandLineParser parser = new DefaultParser();
 
-            for (int i = 0; i < args.length; i++) {
-                if ("-time".equals(args[i])) {
-                    isTimingEnabled = true;
-                    time_val_index = ++i; // Advance to index of time value
-                } else if ("-f".equalsIgnoreCase(args[i])) {
-                    // -f indicates use the specified crawler file
-                    crawlerFileName = args[++i];
-                    crawlerFile = new File(crawlerFileName);
-                } else if (!(args[0] == null
-                        && args[1]
-                                == null)) { // pom settings for crawler forces creation of 2 args,
-                    System.out.println(
-                            "ERROR: Unrecognized parameter to verification crawler: " + args[i]);
-                    System.out.println(
-                            "Supported options: -f /PATH/TO/TESTSUITE-attack-http.xml -time MAXTIMESECONDS");
-                    return null;
-                }
-            }
+        HelpFormatter formatter = new HelpFormatter();
 
-            if (time_val_index > -1) {
-                try {
-                    maxTimeInSeconds = Integer.parseInt(args[time_val_index]);
-                    System.out.println("Setting timeout for test case to: " + maxTimeInSeconds);
-                } catch (NumberFormatException e) {
-                    System.out.println(
-                            "ERROR: -time value must be an integer (in seconds), not: "
-                                    + args[time_val_index]);
-                    return null;
-                }
+        // Create the Options
+        Options options = new Options();
+        options.addOption(
+                Option.builder("f")
+                        .longOpt("file")
+                        .desc("a TESTSUITE-crawler-http.xml file")
+                        .hasArg()
+                        .required()
+                        .build());
+        options.addOption(Option.builder("h").longOpt("help").desc("Usage").build());
+        options.addOption(
+                Option.builder("n")
+                        .longOpt("name")
+                        .desc("tescase name (e.g. BenchmarkTestCase00025)")
+                        .hasArg()
+                        .build());
+        options.addOption(
+                Option.builder("t")
+                        .longOpt("time")
+                        .desc("testcase timeout (in seconds)")
+                        .hasArg()
+                        .type(Integer.class)
+                        .build());
+
+        try {
+            // Parse the command line arguments
+            CommandLine line = parser.parse(options, args);
+
+            if (line.hasOption("f")) {
+                crawlerFileName = line.getOptionValue("f");
+                crawlerFile = new File(crawlerFileName);
             }
+            if (line.hasOption("h")) {
+                formatter.printHelp("BenchmarkCrawlerVerification", options, true);
+            }
+            if (line.hasOption("n")) {
+                selectedTestCaseName = line.getOptionValue("n");
+            }
+            if (line.hasOption("t")) {
+                maxTimeInSeconds = (Integer) line.getParsedOptionValue("t");
+            }
+        } catch (ParseException e) {
+            formatter.printHelp("BenchmarkCrawlerVerification", options);
+            throw new RuntimeException("Error parsing arguments: ", e);
         }
 
-        if (crawlerFile != null) {
-            if (!crawlerFile.exists()) {
-                System.out.println(
-                        "ERROR: Crawler Configuration file: '" + crawlerFileName + "' not found!");
-                crawlerFile = null;
-            } else {
-                // Crawler output files go into the same dir where the crawler config files are
-                CRAWLER_DATA_DIR = crawlerFile.getParent() + File.separator;
-            }
+        if (crawlerFile.exists()) {
+            setCrawlerFile(new File(crawlerFileName));
+            // Crawler output files go into the same directory as the crawler config file
+            CRAWLER_DATA_DIR = crawlerFile.getParent() + File.separator;
+        } else {
+            throw new RuntimeException(
+                    "Could not find crawler configuration file '" + crawlerFileName + "'");
         }
-
-        return crawlerFile;
     }
 
     @Override
@@ -325,12 +351,9 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
     public static void main(String[] args) {
 
-        File crawlerFile = processCommandLineArgs(args);
-        if (crawlerFile == null) {
-            return;
-        }
-
-        BenchmarkCrawlerVerification crawler = new BenchmarkCrawlerVerification(crawlerFile);
+        BenchmarkCrawlerVerification crawler = new BenchmarkCrawlerVerification();
+        crawler.processCommandLineArgs(args);
+        crawler.load();
         crawler.run();
     }
 }

@@ -18,12 +18,28 @@
 package org.owasp.benchmarkutils.tools;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;
+import org.owasp.benchmarkutils.helpers.Category;
+import org.owasp.benchmarkutils.helpers.CategoryAdapter;
 import org.owasp.benchmarkutils.helpers.RequestVariable;
 
+@XmlSeeAlso({
+    ServletTestCaseRequest.class,
+    JerseyTestCaseRequest.class,
+    SpringTestCaseRequest.class
+})
+@XmlDiscriminatorNode("@tcType")
 public abstract class AbstractTestCaseRequest {
 
     /*
@@ -47,18 +63,19 @@ public abstract class AbstractTestCaseRequest {
         };
     }
 
-    private String category;
-    private List<RequestVariable> cookies;
+    private Category category;
+    private List<RequestVariable> cookies = new 
+      <RequestVariable>();
     private String dataflowFile;
-    private List<RequestVariable> formParams;
+    private List<RequestVariable> formParams = new ArrayList<RequestVariable>();
     private String fullURL;
-    private List<RequestVariable> getParams;
-    private List<RequestVariable> headers;
+    private List<RequestVariable> getParams = new ArrayList<RequestVariable>();
+    private List<RequestVariable> headers = new ArrayList<RequestVariable>();
+    private String notAutoverifiableReason;
     private boolean isUnverifiable;
     private boolean isVulnerability;
     private String attackSuccessString;
     private String name;
-    private boolean isSafe;
     private String query;
     private String sinkFile;
     private String sourceFile;
@@ -67,85 +84,89 @@ public abstract class AbstractTestCaseRequest {
     private String templateFile;
     private String uiTemplateFile;
 
-    /**
-     * This class contains enough information to generate an HttpUriRequest for a generated test
-     * case.
-     *
-     * @param fullURL
-     * @param tcType
-     * @param category
-     * @param name
-     * @param uiTemplateFile
-     * @param templateFile
-     * @param sourceFile
-     * @param sourceUIType
-     * @param dataflowFile
-     * @param sinkFile
-     * @param isUnverifiable
-     * @param isVulnerability
-     * @param attackSuccessString
-     * @param headers
-     * @param cookies
-     * @param getParams
-     * @param formParams
-     */
-    public AbstractTestCaseRequest(
-            String fullURL,
-            TestCaseType tcType,
-            String category,
-            String name,
-            String uiTemplateFile,
-            String templateFile,
-            String sourceFile,
-            String sourceUIType,
-            String dataflowFile,
-            String sinkFile,
-            boolean isUnverifiable,
-            boolean isVulnerability,
-            String attackSuccessString,
-            List<RequestVariable> headers,
-            List<RequestVariable> cookies,
-            List<RequestVariable> getParams,
-            List<RequestVariable> formParams) {
-        super();
-        this.fullURL = fullURL;
-        this.tcType = tcType;
-        this.category = category;
-        this.name = name;
-        this.uiTemplateFile = uiTemplateFile;
-        this.templateFile = templateFile;
-        this.sourceFile = sourceFile;
-        this.sourceUIType = sourceUIType;
-        this.dataflowFile = dataflowFile;
-        this.sinkFile = sinkFile;
-        this.isUnverifiable = isUnverifiable;
-        this.isVulnerability = isVulnerability;
-        this.attackSuccessString = attackSuccessString;
-        this.headers = headers;
-        this.cookies = cookies;
-        this.getParams = getParams;
-        this.formParams = formParams;
+    public AbstractTestCaseRequest() {}
 
-        // Figure out if ANY of the values in the request include an attack value.
-        this.isSafe = true;
-        // Bitwise AND is done on all parameters isSafe() values. If ANY of them are unsafe, isSafe
-        // set to False.
-        for (RequestVariable header : getHeaders()) {
-            this.isSafe &= header.isSafe();
-        }
-
-        for (RequestVariable cookie : getCookies()) {
-            this.isSafe &= cookie.isSafe();
-        }
-
-        for (RequestVariable getParam : getGetParams()) {
-            this.isSafe &= getParam.isSafe();
-        }
-
-        for (RequestVariable formParam : getFormParams()) {
-            this.isSafe &= formParam.isSafe();
-        }
-    }
+    //    /**
+    //     * This class contains enough information to generate an HttpUriRequest for a generated
+    // test
+    //     * case.
+    //     *
+    //     * @param fullURL
+    //     * @param tcType
+    //     * @param category
+    //     * @param name
+    //     * @param uiTemplateFile
+    //     * @param templateFile
+    //     * @param sourceFile
+    //     * @param sourceUIType
+    //     * @param dataflowFile
+    //     * @param sinkFile
+    //     * @param isUnverifiable
+    //     * @param isVulnerability
+    //     * @param attackSuccessString
+    //     * @param headers
+    //     * @param cookies
+    //     * @param getParams
+    //     * @param formParams
+    //     */
+    //    public AbstractTestCaseRequest(
+    //            String fullURL,
+    //            TestCaseType tcType,
+    //            Category category,
+    //            String name,
+    //            String uiTemplateFile,
+    //            String templateFile,
+    //            String sourceFile,
+    //            String sourceUIType,
+    //            String dataflowFile,
+    //            String sinkFile,
+    //            boolean isUnverifiable,
+    //            boolean isVulnerability,
+    //            String attackSuccessString,
+    //            List<RequestVariable> headers,
+    //            List<RequestVariable> cookies,
+    //            List<RequestVariable> getParams,
+    //            List<RequestVariable> formParams) {
+    //        super();
+    //        this.fullURL = fullURL;
+    //        this.tcType = tcType;
+    //        this.category = category;
+    //        this.name = name;
+    //        this.uiTemplateFile = uiTemplateFile;
+    //        this.templateFile = templateFile;
+    //        this.sourceFile = sourceFile;
+    //        this.sourceUIType = sourceUIType;
+    //        this.dataflowFile = dataflowFile;
+    //        this.sinkFile = sinkFile;
+    //        this.isUnverifiable = isUnverifiable;
+    //        this.isVulnerability = isVulnerability;
+    //        this.attackSuccessString = attackSuccessString;
+    //        this.headers = headers;
+    //        this.cookies = cookies;
+    //        this.getParams = getParams;
+    //        this.formParams = formParams;
+    //
+    //        //        // Figure out if ANY of the values in the request include an attack value.
+    //        //        this.isSafe = true;
+    //        //        // Bitwise AND is done on all parameters isSafe() values. If ANY of them are
+    //        // unsafe, isSafe
+    //        //        // set to False.
+    //        //        for (RequestVariable header : getHeaders()) {
+    //        //            this.isSafe &= header.isSafe();
+    //        //        }
+    //        //
+    //        //        for (RequestVariable cookie : getCookies()) {
+    //        //            this.isSafe &= cookie.isSafe();
+    //        //        }
+    //        //
+    //        //        for (RequestVariable getParam : getGetParams()) {
+    //        //            this.isSafe &= getParam.isSafe();
+    //        //        }
+    //        //
+    //        //        for (RequestVariable formParam : getFormParams()) {
+    //        //            this.isSafe &= formParam.isSafe();
+    //        //        }
+    //    }
 
     /** Defines what parameters in the body will be sent. */
     abstract void buildBodyParameters(HttpRequestBase request);
@@ -159,6 +180,12 @@ public abstract class AbstractTestCaseRequest {
     /** Defines how to construct URL query string. */
     abstract void buildQueryString();
 
+    /**
+     * TODO: Make this class a POJO TestCase and pass it as an arg to another class TestCaseRequest
+     * that can build an actual HttpUriRequest.
+     *
+     * @return
+     */
     public HttpUriRequest buildRequest() {
         buildQueryString();
         HttpRequestBase request = createRequestInstance(fullURL + query);
@@ -168,6 +195,16 @@ public abstract class AbstractTestCaseRequest {
         return request;
     }
 
+    public HttpUriRequest buildAttackRequest() {
+        setSafe(false);
+        return buildRequest();
+    }
+
+    public HttpUriRequest buildSafeRequest() {
+        setSafe(true);
+        return buildRequest();
+    }
+
     /**
      * Method to create a POST, GET, DELETE, HEAD, OPTIONS, TRACE request object.
      *
@@ -175,87 +212,145 @@ public abstract class AbstractTestCaseRequest {
      */
     abstract HttpRequestBase createRequestInstance(String URL);
 
+    @XmlAttribute(name = "tcAttackSuccess")
     public String getAttackSuccessString() {
         return this.attackSuccessString;
     }
 
-    public String getCategory() {
+    @XmlAttribute(name = "tcCategory", required = true)
+    @XmlJavaTypeAdapter(CategoryAdapter.class)
+    @NotNull
+    public Category getCategory() {
         return this.category;
     }
 
+    @XmlElement(name = "cookie")
+    @NotNull
     public List<RequestVariable> getCookies() {
         return this.cookies;
     }
 
+    @XmlAttribute(name = "tcDataflowFile", required = true)
+    @NotNull
     public String getDataflowFile() {
         return this.dataflowFile;
     }
 
+    @XmlElement(name = "formparam")
+    @NotNull
     public List<RequestVariable> getFormParams() {
         return this.formParams;
     }
 
+    @XmlAttribute(name = "URL", required = true)
+    @NotNull
     public String getFullURL() {
         return this.fullURL;
     }
 
+    @XmlElement(name = "getparam")
+    @NotNull
     public List<RequestVariable> getGetParams() {
         return this.getParams;
     }
 
+    @XmlElement(name = "header")
+    @NotNull
     public List<RequestVariable> getHeaders() {
         return this.headers;
     }
 
+    @XmlAttribute(name = "tcName", required = true)
+    @NotNull
     public String getName() {
         return this.name;
     }
 
+    @XmlTransient
     public String getQuery() {
         return this.query;
     }
 
+    @XmlAttribute(name = "tcSinkFile", required = true)
+    @NotNull
     public String getSinkFile() {
         return this.sinkFile;
     }
 
+    @XmlAttribute(name = "tcSourceFile", required = true)
+    @NotNull
     public String getSourceFile() {
         return this.sourceFile;
     }
 
+    @XmlAttribute(name = "tcSourceUIType", required = true)
+    @NotNull
     public String getSourceUIType() {
         return this.sourceUIType;
     }
 
+    @XmlAttribute(name = "tcTemplateFile", required = true)
+    @NotNull
     public String getTemplateFile() {
         return this.templateFile;
     }
 
+    //    @XmlAttribute(name = "tcType", required = true)
+    //    @XmlReadOnly
+    //    @NotNull
     public TestCaseType getType() {
         return this.tcType;
     }
 
+    @XmlAttribute(name = "tcUITemplateFile", required = true)
+    @NotNull
     public String getUiTemplateFile() {
         return this.uiTemplateFile;
     }
 
     public boolean isUnverifiable() {
-        return this.isUnverifiable;
+        return getNotAutoverifiableReason() != null;
     }
 
+    @XmlAttribute(name = "tcNotAutoverifiable")
+    public String getNotAutoverifiableReason() {
+        return this.notAutoverifiableReason;
+    }
+
+    @XmlAttribute(name = "tcVulnerable", required = true)
     public boolean isVulnerability() {
         return this.isVulnerability;
     }
 
     public boolean isSafe() {
-        return this.isSafe;
+
+        boolean isSafe = true;
+        // Bitwise AND is done on all parameters isSafe() values. If ANY of them are unsafe, isSafe
+        // set to False.
+        for (RequestVariable header : getHeaders()) {
+            isSafe &= header.isSafe();
+        }
+
+        for (RequestVariable cookie : getCookies()) {
+            isSafe &= cookie.isSafe();
+        }
+
+        for (RequestVariable getParam : getGetParams()) {
+            isSafe &= getParam.isSafe();
+        }
+
+        for (RequestVariable formParam : getFormParams()) {
+            isSafe &= formParam.isSafe();
+        }
+
+        return isSafe;
     }
 
     public String setAttackSuccessString(String attackSuccessString) {
         return this.attackSuccessString = attackSuccessString;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(Category category) {
         this.category = category;
     }
 
@@ -315,8 +410,8 @@ public abstract class AbstractTestCaseRequest {
         this.uiTemplateFile = uiTemplateFile;
     }
 
-    public void setUnverifiable(boolean isUnverifiable) {
-        this.isUnverifiable = isUnverifiable;
+    public void setNotAutoverifiableReason(String notAutoverifiableReason) {
+        this.notAutoverifiableReason = notAutoverifiableReason;
     }
 
     public void setVulnerability(boolean isVulnerability) {
@@ -324,7 +419,7 @@ public abstract class AbstractTestCaseRequest {
     }
 
     public void setSafe(boolean isSafe) {
-        this.isSafe = isSafe;
+        //        this.isSafe = isSafe;
         for (RequestVariable header : getHeaders()) {
             // setSafe() considers whether attack and safe values exist for this parameter before
             // setting isSafe true or false. So you don't have to check that here.
@@ -377,7 +472,7 @@ public abstract class AbstractTestCaseRequest {
                 + ", attackSuccessString="
                 + attackSuccessString
                 + ", isSafe="
-                + isSafe
+                + isSafe()
                 + ", query="
                 + query
                 + ", tcType="

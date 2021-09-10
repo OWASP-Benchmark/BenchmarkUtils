@@ -32,6 +32,7 @@ import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.category.DefaultCategoryDataset;
+import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CategoryResults;
 import org.owasp.benchmarkutils.score.Tool;
@@ -185,9 +186,7 @@ public class ToolBarChart extends ScatterPlot {
                     break;
             }
             dataset.addValue(
-                    data * 100,
-                    TOOLNAME,
-                    BenchmarkScore.CATEGORIES.getByName(catResults.category).getShortName());
+                    data * 100, TOOLNAME, Categories.getByName(catResults.category).getShortName());
         }
 
         Collection<CategoryResults> aveCatResults = aveToolResults.values();
@@ -205,7 +204,7 @@ public class ToolBarChart extends ScatterPlot {
             dataset.addValue(
                     data * 100,
                     "Average",
-                    BenchmarkScore.CATEGORIES.getByName(catResults.category).getShortName());
+                    Categories.getByName(catResults.category).getShortName());
         }
 
         return dataset;

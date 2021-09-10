@@ -17,18 +17,24 @@
  */
 package org.owasp.benchmarkutils.tools;
 
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.ImmutableSortedMultiset;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.SortedMultiset;
+import com.google.common.collect.TreeMultiset;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.owasp.benchmarkutils.helpers.RequestVariable;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpMessage;
+import org.apache.http.ParseException;
+import org.apache.http.client.methods.HttpPost;
 
 /**
  * Test all supported test cases to verify that the results are as expected and write the report to
@@ -54,11 +60,9 @@ public class RegressionTesting {
     static int declaredUnverifiable = 0;
     static int undeclaredUnverifiable = 0;
 
-    // static Set<String> undeclaredUnverifiableSinks = new TreeSet<>();
-
-    static Multiset<String> undeclaredUnverifiableSinks = HashMultiset.create();
-    static Multiset<String> nonDiscriminatorySinks = HashMultiset.create();
-    static Multiset<String> failSinks = HashMultiset.create();
+    static SortedMultiset<String> undeclaredUnverifiableSinks = TreeMultiset.create();
+    static SortedMultiset<String> nonDiscriminatorySinks = TreeMultiset.create();
+    static SortedMultiset<String> failSinks = TreeMultiset.create();
 
     static Map<AbstractTestCaseRequest, String> failedTruePositivesList =
             new LinkedHashMap<AbstractTestCaseRequest, String>();
@@ -97,10 +101,10 @@ public class RegressionTesting {
             totalCount = results.size();
 
             for (TestCaseVerificationResults result : results) {
-                AbstractTestCaseRequest request = result.getRequest();
+                AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
 
                 String sink = null;
-                String sinkMetaDataFilePath = result.getRequest().getSinkFile();
+                String sinkMetaDataFilePath = requestTemplate.getSinkFile();
                 if (sinkMetaDataFilePath != null) {
                     String sinkMetaDataFilename = new File(sinkMetaDataFilePath).getName();
                     sink = sinkMetaDataFilename.substring(0, sinkMetaDataFilename.indexOf('.'));
@@ -111,14 +115,19 @@ public class RegressionTesting {
                         declaredUnverifiable++;
                     } else {
                         undeclaredUnverifiable++;
-                        undeclaredUnverifiableSinks.add(sink);
+                        if (sink == null) {
+                            System.out.printf(
+                                    "ERROR: No sink for request %s%n", requestTemplate.getName());
+                        } else {
+                            undeclaredUnverifiableSinks.add(sink);
+                        }
                     }
                 } else {
                     if (result.isPassed()) {
-                        if (request.isVulnerability()) truePositivePassedCount++;
+                        if (requestTemplate.isVulnerability()) truePositivePassedCount++;
                         else falsePositivePassedCount++;
                     } else {
-                        if (request.isVulnerability()) truePositiveFailedCount++;
+                        if (requestTemplate.isVulnerability()) truePositiveFailedCount++;
                         else falsePositiveFailedCount++;
                     }
                     verifiedCount++;
@@ -127,26 +136,26 @@ public class RegressionTesting {
 
             if (truePositiveFailedCount + falsePositiveFailedCount > 0) {
                 for (TestCaseVerificationResults result : results) {
-                    AbstractTestCaseRequest request = result.getRequest();
-                    if (isIncludedInTest(request)) {
+                    AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
+                    if (isIncludedInTest(requestTemplate)) {
                         if (isVerbosityOn) {
                             System.out.println();
                             System.out.printf(
                                     "Test case request %s (category: %s, isVulnerability: %b, isNonverifiable: %b, isPassed: %b)%n",
-                                    request.getName(),
-                                    request.getCategory(),
-                                    request.isVulnerability(),
+                                    requestTemplate.getName(),
+                                    requestTemplate.getCategory().toString(),
+                                    requestTemplate.isVulnerability(),
                                     result.isUnverifiable(),
                                     result.isPassed());
-                            System.out.println(request.getFullURL());
+                            System.out.println(requestTemplate.getFullURL());
                         }
 
                         if (!result.isUnverifiable() && !result.isPassed()) {
                             System.out.printf(
                                     "FAILURE: %s positive %s test case request %s%n",
-                                    request.isVulnerability() ? "True" : "False",
-                                    request.getCategory(),
-                                    request.getName());
+                                    requestTemplate.isVulnerability() ? "True" : "False",
+                                    requestTemplate.getCategory().toString(),
+                                    requestTemplate.getName());
                         }
                     }
                 }
@@ -154,10 +163,11 @@ public class RegressionTesting {
 
             if (truePositiveFailedCount + falsePositiveFailedCount > 0) {
                 for (TestCaseVerificationResults result : results) {
-                    AbstractTestCaseRequest request = result.getRequest();
-                    if (isIncludedInTest(request)) {
+                    AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
+                    if (isIncludedInTest(requestTemplate)) {
                         if (!result.isUnverifiable() && !result.isPassed()) {
-                            printTestCaseDetails(result, ftcLogger, "FAILURE: ");
+                            ftcLogger.print("FAILURE: ");
+                            printTestCaseDetails(result, ftcLogger);
                         }
                     }
                 }
@@ -169,36 +179,53 @@ public class RegressionTesting {
         }
     }
 
-    private static void printTestCaseDetails(TestCaseVerificationResults result, Logger out) {
-        printTestCaseDetails(result, out, null);
+    private static void printHttpRequest(HttpMessage request, Logger out) {
+        out.println(request.toString());
+        for (Header header : request.getAllHeaders()) {
+            out.printf("%s:%s%n", header.getName(), header.getValue());
+        }
+        if (request instanceof HttpPost) {
+            HttpPost postHttpRequest = (HttpPost) request;
+            out.println();
+            try {
+                HttpEntity entity = postHttpRequest.getEntity();
+                if (entity != null) {
+                    out.println(IOUtils.toString(entity.getContent(), StandardCharsets.UTF_8));
+                }
+            } catch (ParseException | IOException e) {
+                System.out.println("ERROR: Could not parse HttpPost entities");
+                e.printStackTrace();
+            }
+        }
     }
 
-    private static void printTestCaseDetails(
-            TestCaseVerificationResults result, Logger out, String message) {
-        AbstractTestCaseRequest request = result.getRequest();
+    private static void printTestCaseDetails(TestCaseVerificationResults result, Logger out) {
+        AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
         ResponseInfo attackResponseInfo = result.getResponseToAttackValue();
         ResponseInfo safeResponseInfo = result.getResponseToSafeValue();
-        if (message != null) out.printf(message);
         out.printf(
                 "%s positive %s test case request %s%n",
-                request.isVulnerability() ? "True" : "False",
-                request.getCategory(),
-                request.getName());
+                requestTemplate.isVulnerability() ? "True" : "False",
+                requestTemplate.getCategory().toString(),
+                requestTemplate.getName());
         // Print out all the attributes of the request, including the templates used to create it
-        out.println(request.toString());
+        out.println(requestTemplate.toString());
         out.println();
-        out.println("Attack Query: " + request.getQuery()); // FIXME: This is blank.
+        out.println("Attack request:");
+        printHttpRequest(result.getAttackRequest(), out);
         out.println();
         out.printf("Attack response: [%d]:%n", attackResponseInfo.getStatusCode());
         out.println(attackResponseInfo == null ? "null" : attackResponseInfo.getResponseString());
         out.println();
-        out.println("Safe Query: TBD"); // + request.getQuery());  // FIXME: This doesn't exist yet.
+        out.println("Safe request:");
+        printHttpRequest(result.getSafeRequest(), out);
         out.println();
         out.printf("Safe response: [%d]:%n", attackResponseInfo.getStatusCode());
         out.println(safeResponseInfo == null ? "null" : safeResponseInfo.getResponseString());
         out.println();
-        out.printf("Attack success indicator: -->%s<--%n", request.getAttackSuccessString());
-        out.println();
+        out.printf(
+                "Attack success indicator: -->%s<--%n", requestTemplate.getAttackSuccessString());
+        out.printf("-----------------------------------------------------------%n%n");
     }
 
     /**
@@ -228,8 +255,8 @@ public class RegressionTesting {
         System.out.printf("\tFP FAILED: %d%n", falsePositiveFailedCount);
         if (failSinks.size() > 0) {
             System.out.printf(" -- Failed test cases by sink (total: %d)%n", failSinks.size());
-            for (String sink : ImmutableSortedMultiset.copyOf(failSinks).elementSet()) {
-                System.out.printf("\t%s (%d)%n", sink, failSinks.count(sink));
+            for (Multiset.Entry<String> sinkEntry : failSinks.entrySet()) {
+                System.out.printf("\t%s (%d)%n", sinkEntry.getElement(), sinkEntry.getCount());
             }
         }
 
@@ -238,9 +265,8 @@ public class RegressionTesting {
                     " -- Unverifiable test cases by sink (total: %d)%n", undeclaredUnverifiable);
             System.out.println(
                     " (These sink .xml files are missing both the <attack-success-indicator> and <not-autoverifiable> attributes.)");
-            for (String sink :
-                    ImmutableSortedMultiset.copyOf(undeclaredUnverifiableSinks).elementSet()) {
-                System.out.printf("\t%s (%d)%n", sink, undeclaredUnverifiableSinks.count(sink));
+            for (Multiset.Entry<String> sinkEntry : undeclaredUnverifiableSinks.entrySet()) {
+                System.out.printf("\t%s (%d)%n", sinkEntry.getElement(), sinkEntry.getCount());
             }
         }
 
@@ -248,9 +274,8 @@ public class RegressionTesting {
             System.out.printf(
                     " -- Non-discriminatory test cases by sink (total: %d)%n",
                     nonDiscriminatorySinks.size());
-            for (String sink :
-                    ImmutableSortedMultiset.copyOf(nonDiscriminatorySinks).elementSet()) {
-                System.out.printf("\t%s (%d)%n", sink, nonDiscriminatorySinks.count(sink));
+            for (Multiset.Entry<String> sinkEntry : nonDiscriminatorySinks.entrySet()) {
+                System.out.printf("\t%s (%d)%n", sinkEntry.getElement(), sinkEntry.getCount());
             }
         }
 
@@ -293,21 +318,22 @@ public class RegressionTesting {
 
         result.setUnverifiable(false); // Default
         result.setDeclaredUnverifiable(false); // Default
-        if (result.getRequest().isUnverifiable()) {
+        if (result.getRequestTemplate().isUnverifiable()) {
             // Count this as "declared unverifiable" and return
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(true);
-        } else if (result.getRequest().getAttackSuccessString() == null) {
+        } else if (result.getRequestTemplate().getAttackSuccessString() == null) {
             // Count this as "undeclared unverifiable" and return
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(false);
+            uLogger.print("UNVERIFIABLE: ");
             printTestCaseDetails(result, uLogger);
         }
 
         List<String> reasons = new ArrayList<>();
 
         String sink = null;
-        String sinkMetaDataFilePath = result.getRequest().getSinkFile();
+        String sinkMetaDataFilePath = result.getRequestTemplate().getSinkFile();
         if (sinkMetaDataFilePath != null) {
             String sinkMetaDataFilename = new File(sinkMetaDataFilePath).getName();
             sink = sinkMetaDataFilename.substring(0, sinkMetaDataFilename.indexOf('.'));
@@ -316,17 +342,13 @@ public class RegressionTesting {
         if (!result.isUnverifiable()) {
             boolean isAttackValueVerified =
                     verifyResponse(
-                            result.getRequest(),
                             result.getResponseToAttackValue().getResponseString(),
-                            result.getRequest().getAttackSuccessString(),
-                            result.getResponseToAttackValue().getStatusCode());
+                            result.getRequestTemplate().getAttackSuccessString());
             boolean isSafeValueVerified =
                     verifyResponse(
-                            result.getRequest(),
                             result.getResponseToSafeValue().getResponseString(),
-                            result.getRequest().getAttackSuccessString(),
-                            result.getResponseToSafeValue().getStatusCode());
-            if (result.getRequest().isVulnerability()) {
+                            result.getRequestTemplate().getAttackSuccessString());
+            if (result.getRequestTemplate().isVulnerability()) {
                 // True positive success?
                 if (isAttackValueVerified) {
                     result.setPassed(true);
@@ -334,8 +356,8 @@ public class RegressionTesting {
                         ndLogger.printf(
                                 "Non-discriminatory true positive test %s: The attack-success-string: \"%s\" was found in the response to both the safe and attack requests.%n"
                                         + "\tTo verify that a test case is a true positive, the attack-success-string should be in the attack response, and not%n\tthe safe response. Please change the attack-success-string and/or the test case sink itself to ensure that the%n\tattack-success-string response is present only in a response to a successful attack.%n",
-                                result.getRequest().getName(),
-                                result.getRequest().getAttackSuccessString());
+                                result.getRequestTemplate().getName(),
+                                result.getRequestTemplate().getAttackSuccessString());
                         printTestCaseDetails(result, ndLogger);
                         nonDiscriminatorySinks.add(sink);
                     }
@@ -354,8 +376,8 @@ public class RegressionTesting {
                         ndLogger.printf(
                                 "Non-discriminatory false positive test %s: The attack-success-string: \"%s\" was found in the response to the safe request.%n"
                                         + "\tTo verify that a test case is a false positive, the attack-success-string should not be in any response to this test%n\tcase. Please change the attack-success-string and/or the test case sink itself to ensure that the%n\tattack-success-string response is present only in a response to a successful attack.%n",
-                                result.getRequest().getName(),
-                                result.getRequest().getAttackSuccessString());
+                                result.getRequestTemplate().getName(),
+                                result.getRequestTemplate().getAttackSuccessString());
                         printTestCaseDetails(result, ndLogger);
                         nonDiscriminatorySinks.add(sink);
                     }
@@ -368,45 +390,19 @@ public class RegressionTesting {
 
         String compositeReason = "\t- " + String.join(", ", reasons);
 
-        if (result.getRequest().isVulnerability()) {
+        if (result.getRequestTemplate().isVulnerability()) {
             truePositives++;
             if (hasErrors) {
                 failedTruePositives++;
-                failedTruePositivesList.put(result.getRequest(), compositeReason);
+                failedTruePositivesList.put(result.getRequestTemplate(), compositeReason);
             }
         } else {
             falsePositives++;
             if (hasErrors) {
                 failedFalsePositives++;
-                failedFalsePositivesList.put(result.getRequest(), compositeReason);
+                failedFalsePositivesList.put(result.getRequestTemplate(), compositeReason);
             }
         }
-    }
-
-    private static boolean containsSafeNameOrValue(AbstractTestCaseRequest request) {
-
-        for (RequestVariable header : request.getHeaders()) {
-            if (header.getSafeName() != null || header.getSafeValue() != null) {
-                return true;
-            }
-        }
-        for (RequestVariable cookie : request.getCookies()) {
-            if (cookie.getSafeName() != null || cookie.getSafeValue() != null) {
-                return true;
-            }
-        }
-        for (RequestVariable getParam : request.getGetParams()) {
-            if (getParam.getSafeName() != null || getParam.getSafeValue() != null) {
-                return true;
-            }
-        }
-        for (RequestVariable formParam : request.getFormParams()) {
-            if (formParam.getSafeName() != null || formParam.getSafeValue() != null) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private static List<String> findErrors(TestCaseVerificationResults result) {
@@ -436,25 +432,14 @@ public class RegressionTesting {
     }
 
     /**
-     * Method to verify if the provided payload was included in the response, or the status code
-     * wasn't a 200.
+     * Method to verify if the provided payload was included in the response.
      *
-     * @param testCaseRequest - The TestCaseRequest for this test case.
      * @param response - The response from this test case.
      * @param attackSuccessIndicator - The value to look for in the response to determine if the
      *     attack was successful.
-     * @param statusCode - The status code from the response. Anything but 200 is considered a test
-     *     case failure.
-     *     <p>Has the following side effects: testCaseRequest.setPassed() - If test is verifiable,
-     *     and attackSuccessIndicator not found in response, set to false, otherwise true. Set to
-     *     true for all non-verifiable True Positives.
      * @return true if the response passes the described checks. False otherwise.
      */
-    public static boolean verifyResponse(
-            AbstractTestCaseRequest testCaseRequest,
-            String response,
-            String attackSuccessIndicator,
-            int statusCode) {
+    public static boolean verifyResponse(String response, String attackSuccessIndicator) {
 
         // Rip out any REFERER values
         attackSuccessIndicator = attackSuccessIndicator.replace("REFERER", "");
@@ -462,8 +447,8 @@ public class RegressionTesting {
         return response.contains(attackSuccessIndicator);
     }
 
-    private static boolean isIncludedInTest(AbstractTestCaseRequest testCaseRequest) {
-        return CATEGORIES_INCLUDED_IN_TEST.contains(testCaseRequest.getCategory())
-                || (testCaseRequest.getAttackSuccessString() != null);
+    private static boolean isIncludedInTest(AbstractTestCaseRequest testCaseRequestTemplate) {
+        return CATEGORIES_INCLUDED_IN_TEST.contains(testCaseRequestTemplate.getCategory().getId())
+                || (testCaseRequestTemplate.getAttackSuccessString() != null);
     }
 }

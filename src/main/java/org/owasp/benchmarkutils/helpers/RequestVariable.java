@@ -1,17 +1,31 @@
 package org.owasp.benchmarkutils.helpers;
 
+import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
+@XmlRootElement
 public class RequestVariable {
 
     private String name;
+
     private String value;
+
     private String attackName;
+
     private String attackValue;
+
     private String safeName;
+
     private String safeValue;
+
     private boolean isSafe;
+
+    public RequestVariable() {
+        super();
+    }
 
     public RequestVariable(
             String name,
@@ -32,6 +46,8 @@ public class RequestVariable {
         isSafe = name.equals(safeName) && value.equals(safeValue);
     }
 
+    @XmlAttribute
+    @NotNull
     public String getName() {
         return name;
     }
@@ -40,6 +56,8 @@ public class RequestVariable {
         this.name = name;
     }
 
+    @XmlAttribute
+    @NotNull
     public String getValue() {
         return value;
     }
@@ -48,6 +66,7 @@ public class RequestVariable {
         this.value = value;
     }
 
+    @XmlAttribute
     public String getAttackName() {
         return attackName;
     }
@@ -56,6 +75,7 @@ public class RequestVariable {
         this.attackName = attackName;
     }
 
+    @XmlAttribute
     public String getAttackValue() {
         return attackValue;
     }
@@ -64,6 +84,7 @@ public class RequestVariable {
         this.attackValue = attackValue;
     }
 
+    @XmlAttribute
     public String getSafeName() {
         return safeName;
     }
@@ -72,6 +93,7 @@ public class RequestVariable {
         this.safeName = safeName;
     }
 
+    @XmlAttribute
     public String getSafeValue() {
         return safeValue;
     }

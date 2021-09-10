@@ -30,20 +30,17 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-/** This class contains all the vulnerability categories currently defined. */
+/**
+ * This class contains all the vulnerability categories currently defined. It is implemented as a
+ * Singleton,.
+ */
 public class Categories {
     public static final String FILENAME = "categories.xml";
 
     private Map<String, Category> idToCategoryMap;
     private Map<String, Category> nameToCategoryMap;
 
-    public Categories() {
-        System.out.println(
-                "ERROR: Categories cannot be constructed without supplying it a configuration file.");
-        Exception e = new Exception();
-        e.printStackTrace();
-        System.exit(-1);
-    }
+    private static Categories _instance; // The Singleton instance of this class
 
     /**
      * Initialize all the categories from the InputStream connected to the target XML file.
@@ -55,7 +52,10 @@ public class Categories {
      */
     public Categories(InputStream xmlFileStream)
             throws ParserConfigurationException, SAXException, IOException {
-        load(xmlFileStream);
+        if (_instance == null) {
+            load(xmlFileStream);
+            _instance = this;
+        } else System.out.println("WARNING: Categories being initialized again by something.");
     }
 
     /**
@@ -107,8 +107,10 @@ public class Categories {
                 String shortname =
                         eElement.getElementsByTagName("shortname").item(0).getTextContent();
                 Category category = new Category(id, name, cwe, isInjection, shortname);
-                idToCategoryMap.put(id, category);
-                nameToCategoryMap.put(name, category);
+                // Lowercase both the ID and name, and getByID() and getByName() do the same to
+                // facilitate matches
+                idToCategoryMap.put(id.toLowerCase(), category);
+                nameToCategoryMap.put(name.toLowerCase(), category);
             }
         }
 
@@ -116,11 +118,17 @@ public class Categories {
         this.nameToCategoryMap = nameToCategoryMap;
     }
 
-    public Category getById(String id) {
-        return idToCategoryMap.get(id);
+    public static Category getById(String id) {
+        if (_instance == null) {
+            throw new NullPointerException("ERROR: Categories singleton not initialized");
+        }
+        return _instance.idToCategoryMap.get(id.toLowerCase());
     }
 
-    public Category getByName(String name) {
-        return nameToCategoryMap.get(name);
+    public static Category getByName(String name) {
+        if (_instance == null) {
+            throw new NullPointerException("ERROR: Categories singleton not initialized");
+        }
+        return _instance.nameToCategoryMap.get(name.toLowerCase());
     }
 }

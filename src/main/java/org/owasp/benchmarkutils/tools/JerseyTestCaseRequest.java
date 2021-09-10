@@ -18,52 +18,17 @@
 package org.owasp.benchmarkutils.tools;
 
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
+import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 import org.owasp.benchmarkutils.helpers.RequestVariable;
 
+@XmlDiscriminatorValue("JERSEYWS")
 public class JerseyTestCaseRequest extends AbstractTestCaseRequest {
 
-    public JerseyTestCaseRequest(
-            String fullURL,
-            TestCaseType tcType,
-            String category,
-            String name,
-            String uiTemplateFile,
-            String templateFile,
-            String sourceFile,
-            String sourceUIType,
-            String dataflowFile,
-            String sinkFile,
-            boolean isVerifiable,
-            boolean isVulnerability,
-            String attackSuccessString,
-            List<RequestVariable> headers,
-            List<RequestVariable> cookies,
-            List<RequestVariable> getParams,
-            List<RequestVariable> formParams) {
-        super(
-                fullURL,
-                tcType,
-                category,
-                name,
-                uiTemplateFile,
-                templateFile,
-                sourceFile,
-                sourceUIType,
-                dataflowFile,
-                sinkFile,
-                isVerifiable,
-                isVulnerability,
-                attackSuccessString,
-                headers,
-                cookies,
-                getParams,
-                formParams);
-    }
+    public JerseyTestCaseRequest() {}
 
     @Override
     void buildQueryString() {
@@ -112,7 +77,7 @@ public class JerseyTestCaseRequest extends AbstractTestCaseRequest {
             StringEntity paramsEnt = new StringEntity(params);
             ((HttpEntityEnclosingRequestBase) request).setEntity(paramsEnt);
         } catch (UnsupportedEncodingException e) {
-            System.out.println("Error encoding URL." + e.getMessage());
+            System.out.println("Error encoding URL: " + e.getMessage());
         }
     }
 
