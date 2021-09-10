@@ -179,7 +179,6 @@ public class Utils {
      * @return A list of requests
      * @throws JAXBException
      * @throws FileNotFoundException
-     * @throws TestCaseRequestFileParseException
      */
     public static TestSuite parseHttpFile(File file) throws JAXBException, FileNotFoundException {
 

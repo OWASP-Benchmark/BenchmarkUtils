@@ -23,9 +23,7 @@ public class RequestVariable {
 
     private boolean isSafe;
 
-    public RequestVariable() {
-        super();
-    }
+    public RequestVariable() {}
 
     public RequestVariable(
             String name,
