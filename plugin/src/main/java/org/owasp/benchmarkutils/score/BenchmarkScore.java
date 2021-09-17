@@ -273,16 +273,13 @@ public class BenchmarkScore extends AbstractMojo {
 
         // Find Default Scoring Config File
         final String DEFAULTCONFIGFILE = "defaultscoringconfig.yaml";
-        InputStream defYamlFileStream = null;
-        try {
-            defYamlFileStream =
-                    BenchmarkScore.class.getClassLoader().getResourceAsStream(DEFAULTCONFIGFILE);
-        } catch (Exception e) {
+        InputStream defYamlFileStream =
+                BenchmarkScore.class.getClassLoader().getResourceAsStream(DEFAULTCONFIGFILE);
+        if (defYamlFileStream == null) {
             System.out.println(
                     "ERROR: default YAML scoring configuration file: '"
                             + DEFAULTCONFIGFILE
                             + "' not found on classpath!");
-            e.printStackTrace();
             return false;
         }
 
