@@ -298,6 +298,9 @@ public class FortifyReader extends Reader {
             case "XPath Injection":
                 return 643;
 
+            case "XQuery Injection":
+                return 652;
+
             case "XML Entity Expansion Injection":
                 return 776;
 
