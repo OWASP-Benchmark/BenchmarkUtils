@@ -61,8 +61,17 @@ public class TestSuiteResults {
     private boolean anonymous = false;
 
     public TestSuiteResults(String toolname, boolean isCommercial, ToolType toolType) {
+        if (toolname == null) {
+            System.out.println("ERROR: TestSuiteResults being created without toolname.");
+        }
         this.setTool(toolname);
         this.isCommercial = isCommercial;
+        if (toolType == null && !"Expected".equals(toolname)) {
+            System.out.println(
+                    "ERROR: TestSuiteResults being created for tool: "
+                            + toolname
+                            + " with toolType = null");
+        }
         this.toolType = toolType;
     }
 

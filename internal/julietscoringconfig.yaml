@@ -1,0 +1,12 @@
+# The configuration for Juliet like scorecards for Benchmark
+
+# Command line parameters to scorecard generation
+
+# None
+
+## Configuration parameters for scorecard generation:
+
+# The general name of a CWE or set of CWEs.
+tprlabel: Recall (TPR) 
+includeprecision: true # Include precision calculation in generated results tables.
+

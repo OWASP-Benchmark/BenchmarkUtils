@@ -1,0 +1,28 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.owasp</groupId>
+    <artifactId>benchmark.utils</artifactId>
+    <packaging>jar</packaging>
+
+    <name>OWASP Benchmark Utilities Library</name>
+    <description>OWASP Benchmark is one or more test suites designed to evaluate the accuracy, coverage, and speed of automated software vulnerability detection tools. This library provides classes used by other Benchmark projects, such as the benchmarkutils-maven-plugin, and Benchmark for Java.</description>
+
+    <parent>
+        <groupId>org.owasp</groupId>
+        <artifactId>benchmarkutils-parent</artifactId>
+        <version>1.3</version>
+    </parent>
+
+    <build>
+        <finalName>benchmarkutils</finalName>
+
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+            </resource>
+        </resources>
+
+    </build>
+
+</project>
+

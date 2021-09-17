@@ -1,6 +1,7 @@
 *.class
 .project
 .java-version
+.keystore
 
 # Package Files #
 *.jar
@@ -9,9 +10,6 @@
 *.classpath
 .settings/
 *.DS_Store
-data/
-internalscripts/
-src/main/resources/benchmark.properties
-src/main/resources/testNumber.properties
+plugin/src/main/resources/benchmark.properties
 target/
 

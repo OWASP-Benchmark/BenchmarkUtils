@@ -556,12 +556,12 @@ public class ScatterVulns extends ScatterPlot {
                     if (ch == 'Z') ch = 'a';
                     else ch++;
                 }
-                commercialTotalScore += or.getCategoryResults(category).score;
-                commercialTotalPrecision += or.getCategoryResults(category).precision;
-                commercialTotalTPR += or.getCategoryResults(category).truePositiveRate;
-                commercialTotalFPR += or.getCategoryResults(category).falsePositiveRate;
+                commercialTotalScore += score;
+                commercialTotalPrecision += or.getCategoryResults(category).precision * 100;
+                commercialTotalTPR += tpr;
+                commercialTotalFPR += fpr;
 
-                if (score < commercialLow) {
+                if (score <= commercialLow) {
                     this.commercialLow = score;
                     this.commercialLowToolType = tool.getToolType();
                 }
