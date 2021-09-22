@@ -105,7 +105,7 @@ public class CASTAIPReader extends Reader {
         if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
             String testNumber =
                     filename.substring(
-                            BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.'));
+                            BenchmarkScore.TESTCASENAME.length() + 1, filename.lastIndexOf('.'));
             try {
                 tcr.setNumber(Integer.parseInt(testNumber));
                 return tcr;

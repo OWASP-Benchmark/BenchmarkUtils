@@ -467,9 +467,13 @@ public class SonarQubeReader extends Reader {
             case "SwitchLastCaseIsDefaultCheck":
                 return 0000; // Don't care. Not sure why these are being returned instead of an
                 // S#### value
+            default:
+                System.out.println(
+                        "SonarQubeReader: Unknown squid number: "
+                                + squidNumber
+                                + " has no CWE mapping.");
         }
 
-        System.out.println("Failed to translate " + squidNumber);
         return -1;
     }
 }

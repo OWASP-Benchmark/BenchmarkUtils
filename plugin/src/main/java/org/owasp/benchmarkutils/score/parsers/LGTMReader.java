@@ -137,7 +137,8 @@ public class LGTMReader extends Reader {
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
                 String testNumber =
                         filename.substring(
-                                BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.'));
+                                BenchmarkScore.TESTCASENAME.length() + 1,
+                                filename.lastIndexOf('.'));
                 tcr.setNumber(Integer.parseInt(testNumber));
                 String ruleId = finding.getString("ruleId");
                 Integer cweForRule = rulesUsed.get(ruleId);

@@ -21,7 +21,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -39,42 +38,41 @@ public class SonarQubeJsonReader extends Reader {
         tr.setTime(f);
 
         String content = new String(Files.readAllBytes(Paths.get(f.getPath())));
-
         JSONObject obj = new JSONObject(content);
-        // int version = obj.getInt( "formatVersion" );
-        JSONArray arr;
 
-        boolean hotSpotIssue = true;
+        parseIssues(tr, obj);
+        parseHotspots(tr, obj);
 
-        // Figure out if there are quality issues or security hotspots in the JSON file
-        // Each has a different JSON format.
-        try {
-            arr = obj.getJSONArray("issues");
-            hotSpotIssue = false;
-        } catch (JSONException e) {
-            try {
-                arr = obj.getJSONArray("hotspots");
-            } catch (JSONException e2) {
-                System.out.println(
-                        "ERROR: Couldn't find 'issues' or 'hotspots' element in SonarQube JSON results."
-                                + " Maybe not SonarQube results file?");
-                return null;
-            }
+        return tr;
+    }
+
+    private void parseHotspots(TestSuiteResults tr, JSONObject obj) {
+        parseResults(tr, obj, true);
+    }
+
+    private void parseIssues(TestSuiteResults tr, JSONObject obj) {
+        parseResults(tr, obj, false);
+    }
+
+    private void parseResults(TestSuiteResults tr, JSONObject obj, boolean isHotspots) {
+        String key = isHotspots ? "hotspots" : "issues";
+
+        if (!obj.has(key)) {
+            return;
         }
 
+        JSONArray arr = obj.getJSONArray(key);
         int numIssues = arr.length();
-        for (int i = 0; i < numIssues; i++) {
 
+        for (int i = 0; i < numIssues; i++) {
             TestCaseResult tcr =
-                    (hotSpotIssue
+                    (isHotspots
                             ? parseSonarQubeHotSpotIssue(arr.getJSONObject(i))
                             : parseSonarQubeQualityIssue(arr.getJSONObject(i)));
             if (tcr != null) {
                 tr.put(tcr);
             }
         }
-
-        return tr;
     }
 
     /**
@@ -107,7 +105,8 @@ public class SonarQubeJsonReader extends Reader {
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
                 String testNumber =
                         filename.substring(
-                                BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.'));
+                                BenchmarkScore.TESTCASENAME.length() + 1,
+                                filename.lastIndexOf('.'));
                 tcr.setNumber(Integer.parseInt(testNumber));
                 String rule = finding.getString("rule");
                 String squid = rule.substring(rule.indexOf(":") + 1);
@@ -155,7 +154,8 @@ public class SonarQubeJsonReader extends Reader {
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
                 String testNumber =
                         filename.substring(
-                                BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.'));
+                                BenchmarkScore.TESTCASENAME.length() + 1,
+                                filename.lastIndexOf('.'));
                 tcr.setNumber(Integer.parseInt(testNumber));
                 String secCat = finding.getString("securityCategory");
                 if (secCat == null || secCat.equals("none")) {
@@ -187,19 +187,20 @@ public class SonarQubeJsonReader extends Reader {
      */
     public static int securityCategoryCWELookup(String secCat, String message) {
         // Not sure where to look up all the possible security categories in SonarQube, but the
-        // mappings
-        // seem obvious enough.
+        // mappings seem obvious enough.
 
-        // Given their horrible mapping scheme, we check each message to detect whether their might
-        // be a new
-        // 'message' mapped to an existing CWE (that might be wrong).
+        // Given their horrible mapping scheme, we check each message to detect whether there might
+        // be a new 'message' mapped to an existing CWE (that might be wrong).
         if (!("Make sure that using this pseudorandom number generator is safe here."
                         .equals(message)
                 || "Ensure that string concatenation is required and safe for this SQL query."
                         .equals(message)
+                || "Make sure using a dynamically formatted SQL query is safe here.".equals(message)
                 || "Make sure creating this cookie without the \"secure\" flag is safe here."
                         .equals(message)
                 || "Make sure that hashing data is safe here.".equals(message)
+                || "Make sure this weak hash algorithm is not used in a sensitive context here."
+                        .equals(message)
                 || "Make sure creating this cookie without the \"HttpOnly\" flag is safe."
                         .equals(message))) {
             System.out.println(
@@ -212,19 +213,21 @@ public class SonarQubeJsonReader extends Reader {
 
         switch (secCat) {
             case "sql-injection":
-                return 89; // "Ensure that string concatenation is required and safe for this SQL
-                // query."
+                // "Ensure that string concatenation is required and safe for this SQL query."
+                return 89;
             case "insecure-conf":
-                return 614; // "Make sure creating this cookie without the \"secure\" flag is safe
-                // here."
-            case "xss": // "Make sure creating this cookie without the \"HttpOnly\" flag is safe."
+                // "Make sure creating this cookie without the \"secure\" flag is safe here."
+                return 614;
+            case "xss":
                 {
+                    // "Make sure creating this cookie without the \"HttpOnly\" flag is safe."
                     if (message != null && message.contains("HttpOnly")) return 1004;
                     else return 79; // Actual XSS CWE
                 }
-            case "weak-cryptography": // "Make sure that using this pseudorandom number generator is
-                // safe here."
-                { // or "Make sure that hashing data is safe here."
+            case "weak-cryptography":
+                {
+                    // "Make sure that using this pseudorandom number generator is safe here."
+                    // or "Make sure that hashing data is safe here."
                     if (message != null) {
                         if (message.contains("pseudorandom")) return 330;
                         if (message.contains("hashing")) return 328;
@@ -233,7 +236,11 @@ public class SonarQubeJsonReader extends Reader {
                 }
             default:
                 System.out.println(
-                        "WARN: Failed to translate SonarQube security category: " + secCat);
+                        "WARN: Failed to translate SonarQube security category: '"
+                                + secCat
+                                + "' with message: '"
+                                + message
+                                + "'");
         }
 
         return -1;

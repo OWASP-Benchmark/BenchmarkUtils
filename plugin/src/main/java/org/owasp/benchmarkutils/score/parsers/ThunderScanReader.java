@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -40,8 +40,7 @@ public class ThunderScanReader extends Reader {
 
     public TestSuiteResults parse(File f) throws Exception {
 
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        DocumentBuilder dBuilder = Utils.safeDocBuilderFactory.newDocumentBuilder();
         InputSource fileInput = new InputSource(new FileInputStream(f));
         Document doc = dBuilder.parse(fileInput);
 

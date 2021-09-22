@@ -50,14 +50,14 @@ public class FindbugsReader extends Reader {
         // compute time on the scorecard.
         tr.setTime(f);
 
-        //		<BugCollection timestamp='1434663265000' analysisTimestamp='1434663273732' sequence='0'
+        // <BugCollection timestamp='1434663265000' analysisTimestamp='1434663273732' sequence='0'
         // release='' version='3.0.1>
         Node root = doc.getDocumentElement();
         String version = getAttributeValue("version", root);
         tr.setToolVersion(version);
 
         // If the findbugs version is greater than v3.0.x, it is actually SpotBugs
-        if (!(version.startsWith("2") | version.startsWith("3.0"))) {
+        if (!(version.startsWith("2") || version.startsWith("3.0"))) {
             tr.setTool("SpotBugs");
         }
 

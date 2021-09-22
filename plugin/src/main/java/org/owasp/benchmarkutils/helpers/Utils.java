@@ -61,7 +61,7 @@ public class Utils {
 
     public static final String CRAWLER_CONFIG_FILE = "benchmark-attack-http.xml";
 
-    private static final DocumentBuilderFactory safeDocBuilderFactory =
+    public static final DocumentBuilderFactory safeDocBuilderFactory =
             DocumentBuilderFactory.newInstance();
 
     static {

@@ -246,6 +246,7 @@ public class FortifyReader extends Reader {
                             return 330;
                         }
                     }
+                    return 00; // If neither of these, then don't care
                 }
 
             case "Password Management":

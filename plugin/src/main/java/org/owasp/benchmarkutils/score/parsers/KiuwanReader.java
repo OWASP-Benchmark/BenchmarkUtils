@@ -88,7 +88,8 @@ public class KiuwanReader extends Reader {
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
                 String testNumber =
                         filename.substring(
-                                BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.'));
+                                BenchmarkScore.TESTCASENAME.length() + 1,
+                                filename.lastIndexOf('.'));
                 tcr.setNumber(Integer.parseInt(testNumber));
 
                 int cwe = -1;
