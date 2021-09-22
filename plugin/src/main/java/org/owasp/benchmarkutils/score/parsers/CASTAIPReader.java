@@ -101,11 +101,11 @@ public class CASTAIPReader extends Reader {
         // Get Benchmark test case #. If it's not in a Benchmark test case, return null
         String filename = getAttributeValue("name", flaw);
         filename = filename.replaceAll("\\\\", "/");
-        filename = filename.substring(filename.lastIndexOf('/'));
+        filename = filename.substring(filename.lastIndexOf('/') + 1);
         if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
             String testNumber =
                     filename.substring(
-                            BenchmarkScore.TESTCASENAME.length() + 1, filename.lastIndexOf('.'));
+                            BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.'));
             try {
                 tcr.setNumber(Integer.parseInt(testNumber));
                 return tcr;

@@ -138,7 +138,8 @@ public class CheckmarxESReader extends Reader {
             if (testcaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
                 String testNo =
                         testcaseName.substring(
-                                BenchmarkScore.TESTCASENAME.length(), testcaseName.length() - 5);
+                                BenchmarkScore.TESTCASENAME.length(),
+                                testcaseName.lastIndexOf('.'));
                 try {
                     tcr.setNumber(Integer.parseInt(testNo));
                 } catch (NumberFormatException e) {
@@ -153,7 +154,7 @@ public class CheckmarxESReader extends Reader {
                     String testNo =
                             testcaseName.substring(
                                     BenchmarkScore.TESTCASENAME.length(),
-                                    testcaseName.length() - 5);
+                                    testcaseName.lastIndexOf('.'));
                     try {
                         tcr.setNumber(Integer.parseInt(testNo));
                     } catch (NumberFormatException e) {

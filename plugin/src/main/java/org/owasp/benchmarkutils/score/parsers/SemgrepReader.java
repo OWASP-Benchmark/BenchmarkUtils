@@ -173,7 +173,7 @@ public class SemgrepReader {
                     ]
                 },
                 "severity": "WARNING",
-                "lines": "\t\tString sql = \"SELECT * from USERS where USERNAME='foo' and PASSWORD='\"+ bar +\"'\";\n\t\t\t\t\n\t\ttry {\n\t\t\tjava.sql.Statement statement =  org.owasp.benchmark.helpers.DatabaseHelper.getSqlStatement();\n\t\t\tstatement.execute( sql );\n            org.owasp.benchmarkutils.helpers.DatabaseHelper.printResults(statement, sql, response);\n\t\t} catch (java.sql.SQLException e) {\n\t\t\tif (org.owasp.benchmarkutils.helpers.DatabaseHelper.hideSQLErrors) {\n        \t\tresponse.getWriter().println(\n\"Error processing request.\"\n);\n        \t\treturn;\n        \t}\n\t\t\telse throw new ServletException(e);\n\t\t}"
+                "lines": "\t\tString sql = \"SELECT * from USERS where USERNAME='foo' and PASSWORD='\"+ bar +\"'\";\n\t\t\t\t\n\t\ttry {\n\t\t\tjava.sql.Statement statement =  org.owasp.benchmark.helpers.DatabaseHelper.getSqlStatement();\n\t\t\tstatement.execute( sql );\n            org.owasp.benchmark.helpers.DatabaseHelper.printResults(statement, sql, response);\n\t\t} catch (java.sql.SQLException e) {\n\t\t\tif (org.owasp.benchmark.helpers.DatabaseHelper.hideSQLErrors) {\n        \t\tresponse.getWriter().println(\n\"Error processing request.\"\n);\n        \t\treturn;\n        \t}\n\t\t\telse throw new ServletException(e);\n\t\t}"
             }
         }
          */

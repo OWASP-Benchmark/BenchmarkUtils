@@ -6,7 +6,7 @@ then
   echo ""
   echo "!!!WARNING: Required plugin: org.owasp:benchmarkutils-maven-plugin not available."
   echo "To get and install it, do the following:"
-  echo "  git clone https://github.com/OWASP/Benchmark/BenchmarkUtils.git"
+  echo "  git clone https://github.com/OWASP-Benchmark/BenchmarkUtils.git"
   echo "  cd BenchmarkUtils"
   echo "  mvn install"
   echo ""

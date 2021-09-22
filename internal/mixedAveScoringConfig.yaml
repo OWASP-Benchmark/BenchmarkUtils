@@ -1,7 +1,0 @@
-# This configuration simply enables mixed and average scoring mode
-
-# Specific for mixed results
-resultsfileordir: mixedresults
-
-averageonlymode: true # If true, show averages by tool category (SAST, DAST, IAST), but don't show individual tool results
-mixedmode: true # If true, create scorecard that uses results from two versions of the same test suite

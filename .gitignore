@@ -11,5 +11,6 @@
 .settings/
 *.DS_Store
 plugin/src/main/resources/benchmark.properties
+internalonly/
 target/
 

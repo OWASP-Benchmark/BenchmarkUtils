@@ -65,8 +65,8 @@ public class CoverityReader extends Reader {
             if (version == 3) {
                 filename = finding.getString("mainEventFilePathname");
                 filename = filename.replaceAll("\\\\", "/");
-                filename = filename.substring(filename.lastIndexOf('/'));
-                if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+                filename = filename.substring(filename.lastIndexOf('/') + 1);
+                if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
                     String testNumber =
                             filename.substring(
                                     BenchmarkScore.TESTCASENAME.length(),
@@ -95,8 +95,8 @@ public class CoverityReader extends Reader {
                                 .getJSONObject(0)
                                 .getString("mainEventFilePathname");
                 filename = filename.replaceAll("\\\\", "/");
-                filename = filename.substring(filename.lastIndexOf('/'));
-                if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+                filename = filename.substring(filename.lastIndexOf('/') + 1);
+                if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
                     String testNumber =
                             filename.substring(
                                     BenchmarkScore.TESTCASENAME.length(),
@@ -139,12 +139,11 @@ public class CoverityReader extends Reader {
 
             filename = finding.getString("mainEventFilePathname");
             filename = filename.replaceAll("\\\\", "/");
-            filename = filename.substring(filename.lastIndexOf('/'));
-            if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+            filename = filename.substring(filename.lastIndexOf('/') + 1);
+            if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
                 String testNumber =
                         filename.substring(
-                                BenchmarkScore.TESTCASENAME.length() + 1,
-                                filename.lastIndexOf('.'));
+                                BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.'));
                 tcr.setNumber(Integer.parseInt(testNumber));
                 //
                 // *** Warning: serious foefeling and cutting of corners ahead. ***
@@ -160,10 +159,8 @@ public class CoverityReader extends Reader {
                 // there is "SQL_INJECTION".
                 //
                 // The easiest implementation (that does not require an additional parameter
-                // pointing
-                // to 'issueTypes.json') seems to use a couple of hardcoded checks instead of
-                // implementing
-                // an elaborate lookup algorithm.
+                // pointing to 'issueTypes.json') seems to use a couple of hardcoded checks instead
+                // of implementing an elaborate lookup algorithm.
                 //
                 String checker_name = finding.getString("checkerName").toLowerCase();
                 String subcategory = finding.getString("subcategory").toLowerCase();

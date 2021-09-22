@@ -1,7 +1,0 @@
-# This configuration simply enables anonymous and mixed scoring mode
-
-# Specific for mixed results
-resultsfileordir: mixedresults
-
-anonymousmode: true # If true, anonymize names of commercial tools
-mixedmode: true # If true, create scorecard that uses results from two versions of the same test suite
