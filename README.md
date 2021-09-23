@@ -30,3 +30,5 @@ Note that the TESTSUITENAME-crawler-http.xml is generated as part of the generat
 
 source "scripts/verifyBenchmarkPluginAvailable.sh"
 
+EXAMPLES: Some example invocation scripts and scoring configuration .yaml files are provided in examplescripts_configfiles/
+
