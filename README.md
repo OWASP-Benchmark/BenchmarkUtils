@@ -30,5 +30,9 @@ Note that the TESTSUITENAME-crawler-http.xml is generated as part of the generat
 
 source "scripts/verifyBenchmarkPluginAvailable.sh"
 
+USAGE:
+
+All use of these utilities should be through scripts already rovided with each Benchmark style test suite. To use this, simply clone this project, cd to BenchmarkUtils, and then run: mvn install.  Periodically, you should run: git pull, then: mvn install, to download any updates and build/install the latest version.
+
 EXAMPLES: Some example invocation scripts and scoring configuration .yaml files are provided in examplescripts_configfiles/
 
