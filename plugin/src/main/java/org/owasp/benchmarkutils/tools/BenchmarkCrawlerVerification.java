@@ -64,13 +64,8 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     SimpleFileLogger uLogger;
 
     BenchmarkCrawlerVerification() {
-        // Default constructor required to support Maven plugin API.
-        // The BenchmarkCrawlerVerification(File) must eventually be used before run()
-        // is invoked on that instance of the Crawler.
-    }
-
-    BenchmarkCrawlerVerification(File file) {
-        super(file);
+        // A default constructor required to support Maven plugin API.
+        // The theCrawlerFile has to be instantiated before a crawl can be done.
     }
 
     @Override
@@ -272,9 +267,9 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
      */
     private void processCommandLineArgs(String[] args) {
 
-        // Set default location
+        // Set default attack crawler file
         String crawlerFileName = new File(Utils.DATA_DIR, "benchmark-attack-http.xml").getPath();
-        File crawlerFile = new File(crawlerFileName);
+        this.theCrawlerFile = new File(crawlerFileName);
 
         RegressionTesting.isTestingEnabled = true;
 
@@ -312,8 +307,16 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             CommandLine line = parser.parse(options, args);
 
             if (line.hasOption("f")) {
-                crawlerFileName = line.getOptionValue("f");
-                crawlerFile = new File(crawlerFileName);
+                this.crawlerFile = line.getOptionValue("f");
+                File targetFile = new File(this.crawlerFile);
+                if (targetFile.exists()) {
+                    setCrawlerFile(targetFile);
+                    // Crawler output files go into the same directory as the crawler config file
+                    CRAWLER_DATA_DIR = targetFile.getParent() + File.separator;
+                } else {
+                    throw new RuntimeException(
+                            "Could not find crawler configuration file '" + this.crawlerFile + "'");
+                }
             }
             if (line.hasOption("h")) {
                 formatter.printHelp("BenchmarkCrawlerVerification", options, true);
@@ -328,23 +331,14 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             formatter.printHelp("BenchmarkCrawlerVerification", options);
             throw new RuntimeException("Error parsing arguments: ", e);
         }
-
-        if (crawlerFile.exists()) {
-            setCrawlerFile(new File(crawlerFileName));
-            // Crawler output files go into the same directory as the crawler config file
-            CRAWLER_DATA_DIR = crawlerFile.getParent() + File.separator;
-        } else {
-            throw new RuntimeException(
-                    "Could not find crawler configuration file '" + crawlerFileName + "'");
-        }
     }
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (null == crawlerFileName) {
-            System.out.println("ERROR: A verification crawler file must be specified.");
+        if (null == this.pluginFilenameParam) {
+            System.out.println("ERROR: A crawlerFile parameter must be specified.");
         } else {
-            String[] mainArgs = {"-f", crawlerFileName};
+            String[] mainArgs = {"-f", this.pluginFilenameParam};
             main(mainArgs);
         }
     }

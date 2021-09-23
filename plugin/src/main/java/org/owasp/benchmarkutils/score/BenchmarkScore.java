@@ -357,6 +357,7 @@ public class BenchmarkScore extends AbstractMojo {
         return allParamsOK;
     }
 
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         // The Maven plugin invocation of this can have configFile be null, so we check for that
         // specifically

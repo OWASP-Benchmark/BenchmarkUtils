@@ -59,8 +59,6 @@ public class Utils {
 
     public static final String DATA_DIR = USERDIR + "data" + File.separator;
 
-    public static final String CRAWLER_CONFIG_FILE = "benchmark-attack-http.xml";
-
     public static final DocumentBuilderFactory safeDocBuilderFactory =
             DocumentBuilderFactory.newInstance();
 
@@ -97,10 +95,7 @@ public class Utils {
                 System.out.printf(
                         "getFileFromClasspath() url.toURI() is: %s and external form is: %s%n",
                         resourceURI, externalFormURI);
-                //                String filePath = resourceURI.getPath();
-                //                System.out.println("getFileFromClasspath() url.toURI().getPath()
-                // is: " + filePath);
-                //                if (resourceURI != null) return new File(resourceURI);
+
                 if (externalFormURI != null) return new File(externalFormURI);
                 else {
                     System.out.printf(
@@ -184,10 +179,9 @@ public class Utils {
 
         TestSuite testSuite = null;
         JAXBContext context = JAXBContextFactory.createContext(new Class[] {TestSuite.class}, null);
-        String crawlerFileName = new File(Utils.DATA_DIR, CRAWLER_CONFIG_FILE).getPath();
         Unmarshaller unmarshaller = context.createUnmarshaller();
         unmarshaller.setEventHandler(new javax.xml.bind.helpers.DefaultValidationEventHandler());
-        testSuite = (TestSuite) unmarshaller.unmarshal(new FileReader(crawlerFileName));
+        testSuite = (TestSuite) unmarshaller.unmarshal(new FileReader(file));
 
         return testSuite;
     }
