@@ -24,18 +24,14 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYLineAnnotation;
-import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -46,7 +42,7 @@ import org.owasp.benchmarkutils.score.Tool;
 import org.owasp.benchmarkutils.score.ToolResults;
 
 public class ScatterVulns extends ScatterPlot {
-    private char averageLabel;
+
     private double aveFalsePosRates = 0;
     private double aveTruePosRates = 0;
     private final String focus; // Tool to focus on, if any.
@@ -89,9 +85,8 @@ public class ScatterVulns extends ScatterPlot {
     private double overallAveTPR = 0;
     private double overallAveFPR = 0;
 
-    public final String
-            CATEGORY; // The category the above statistics across all the tools has been calculated
-    // for.
+    // The category the above statistics across all the tools has been calculated for.
+    public final String CATEGORY;
 
     /**
      * This calculates how all the tools did against the Benchmark in this vulnerability category
@@ -195,9 +190,9 @@ public class ScatterVulns extends ScatterPlot {
                         true,
                         false);
         ScatterVulns.theme.apply(this.chart);
-        initializePlot(chart);
+        initializePlot(this.chart);
 
-        XYPlot xyplot = chart.getXYPlot();
+        XYPlot xyplot = this.chart.getXYPlot();
 
         makeDataLabels(category, toolResults, xyplot);
         makeLegend(category, toolResults, 103, 100.5, dataset, xyplot);
@@ -210,39 +205,19 @@ public class ScatterVulns extends ScatterPlot {
             xyplot.addAnnotation(score);
         }
 
-        return chart;
+        return this.chart;
     }
 
+    /**
+     * Add the letter, from the key on the right, next to the plot point on the chart for for each
+     * tool to the supplied xyplot.
+     *
+     * @param tools - THe set of tool results.
+     * @param xyplot - The chart to make the Data labels on.
+     */
     private void makeDataLabels(String category, Set<Tool> toolResults, XYPlot xyplot) {
         HashMap<Point2D, String> map = makePointList(category, toolResults);
-        for (Entry<Point2D, String> e : map.entrySet()) {
-            if (e.getValue() != null) {
-                Point2D p = e.getKey();
-                String label = sort(e.getValue());
-                XYTextAnnotation annotation = new XYTextAnnotation(label, p.getX(), p.getY());
-                annotation.setTextAnchor(
-                        p.getX() < 3 ? TextAnchor.TOP_LEFT : TextAnchor.TOP_CENTER);
-                annotation.setBackgroundPaint(Color.white);
-                if (label.toCharArray()[0] == averageLabel) {
-                    annotation.setPaint(Color.magenta);
-                } else {
-                    annotation.setPaint(Color.blue);
-                }
-                annotation.setFont(theme.getRegularFont());
-                xyplot.addAnnotation(annotation);
-            }
-        }
-    }
-
-    private String sort(String value) {
-        String[] parts = value.split(",");
-        Arrays.sort(parts);
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < parts.length; i++) {
-            sb.append(parts[i]);
-            if (i < parts.length - 1) sb.append(",");
-        }
-        return sb.toString();
+        addLabelsToPlotPoints(map, xyplot);
     }
 
     private SecureRandom sr = new SecureRandom();
@@ -281,8 +256,7 @@ public class ScatterVulns extends ScatterPlot {
                     Point2D p = new Point2D.Double(x, y);
                     String label = "" + ch;
                     map.put(p, label);
-                    // Weak hack if there are more than 26 tools scored. This will only get us to
-                    // 52.
+                    // Weak hack if more than 26 tools scored. This will only get us to 52
                     if (ch == 'Z') ch = 'a';
                     else ch++;
                 }
@@ -295,39 +269,11 @@ public class ScatterVulns extends ScatterPlot {
                     new Point2D.Double(
                             aveFalsePosRates * 100 + sr.nextDouble() * .000001,
                             aveTruePosRates * 100 + sr.nextDouble() * .000001 - 1);
-            averageLabel = ch;
+            this.averageLabel = ch;
             map.put(ap, "" + ch);
         }
-        dedupify(map);
+        dedupifyPlotPoints(map);
         return map;
-    }
-
-    private void dedupify(HashMap<Point2D, String> map) {
-        for (Entry<Point2D, String> e1 : map.entrySet()) {
-            Entry<Point2D, String> e2 = getMatch(map, e1);
-            while (e2 != null) {
-                StringBuilder label = new StringBuilder();
-                if (e1.getValue() != null) label.append(e1.getValue());
-                if (e1.getValue() != null && e2.getValue() != null) label.append(",");
-                if (e2.getValue() != null) label.append(e2.getValue());
-                e1.setValue(label.toString());
-                e2.setValue(null);
-                e2 = getMatch(map, e1);
-            }
-        }
-    }
-
-    private Entry<Point2D, String> getMatch(
-            HashMap<Point2D, String> map, Entry<Point2D, String> e1) {
-        for (Entry<Point2D, String> e2 : map.entrySet()) {
-            Double xd = Math.abs(e1.getKey().getX() - e2.getKey().getX());
-            Double yd = Math.abs(e1.getKey().getY() - e2.getKey().getY());
-            boolean close = xd < 1 && yd < 3;
-            if (e1 != e2 && e1.getValue() != null && e2.getValue() != null && close) {
-                return e2;
-            }
-        }
-        return null;
     }
 
     /**
@@ -364,13 +310,7 @@ public class ScatterVulns extends ScatterPlot {
                 // print non commercial label if there is at least one
                 // non-commercial tool
                 if (!printedNonCommercialLabel) {
-                    XYTextAnnotation stroketext1 =
-                            new XYTextAnnotation("Non-Commercial", x, y + i * -3.3);
-                    stroketext1.setTextAnchor(TextAnchor.CENTER_LEFT);
-                    stroketext1.setBackgroundPaint(Color.white);
-                    stroketext1.setPaint(Color.black);
-                    stroketext1.setFont(theme.getRegularFont());
-                    xyplot.addAnnotation(stroketext1);
+                    addLabelToKey(xyplot, x, y, i, "Non-Commercial");
                     i++;
                     printedNonCommercialLabel = true;
                 }
@@ -383,57 +323,29 @@ public class ScatterVulns extends ScatterPlot {
 
                 this.noncommercialToolCount++;
                 this.overallToolCount++;
-                double score = or.getCategoryResults(category).score * 100;
-                final DecimalFormat DF = new DecimalFormat("#0.0");
-                double tpr = or.getCategoryResults(category).truePositiveRate * 100;
-                String TPR = DF.format(tpr);
-                if (TPR.endsWith("0"))
-                    TPR = TPR.substring(0, TPR.length() - 2); // trim off .0 if it ends that way.
-                double fpr = or.getCategoryResults(category).falsePositiveRate * 100;
-                String FPR = DF.format(fpr);
-                if (FPR.endsWith("0")) FPR = FPR.substring(0, FPR.length() - 2);
 
-                final String TOOL = "\u25A0 " + label + tool.getToolNameAndVersion();
-                XYTextAnnotation toolLabel = new XYTextAnnotation(TOOL, x, y + i * -3.3);
-                toolLabel.setTextAnchor(TextAnchor.CENTER_LEFT);
-                toolLabel.setBackgroundPaint(Color.white);
-                toolLabel.setPaint(
-                        tool.getToolName().replace(' ', '_').equalsIgnoreCase(this.focus)
-                                ? Color.green
-                                : Color.blue);
-                toolLabel.setFont(theme.getRegularFont());
-                xyplot.addAnnotation(toolLabel);
-
-                final String SCORE = Math.round(score) + "%";
-                XYTextAnnotation scoreLabel =
-                        new XYTextAnnotation(SCORE, x + COLUMN_1_OFFSET, y + i * -3.3);
-                scoreLabel.setTextAnchor(TextAnchor.CENTER_RIGHT);
-                scoreLabel.setBackgroundPaint(Color.white);
-                scoreLabel.setPaint(
-                        tool.getToolName().replace(' ', '_').equalsIgnoreCase(this.focus)
-                                ? Color.green
-                                : Color.blue);
-                scoreLabel.setFont(theme.getRegularFont());
-                xyplot.addAnnotation(scoreLabel);
-
-                final String CALC = "(" + TPR + "-" + FPR + ")";
-                XYTextAnnotation calcLabel =
-                        new XYTextAnnotation(CALC, x + COLUMN_2_OFFSET, y + i * -3.3);
-                calcLabel.setTextAnchor(TextAnchor.CENTER);
-                calcLabel.setBackgroundPaint(Color.white);
-                calcLabel.setPaint(Color.gray);
-                calcLabel.setFont(theme.getSmallFont());
-                xyplot.addAnnotation(calcLabel);
+                addEntryToKey(
+                        xyplot,
+                        Color.blue,
+                        x,
+                        y,
+                        i,
+                        label,
+                        tool.getToolNameAndVersion(),
+                        or.getTruePositiveRate(),
+                        or.getFalsePositiveRate());
 
                 i++;
                 // Weak hack if there are more than 26 tools scored. This will only get us to 52.
                 if (ch == 'Z') ch = 'a';
                 else ch++;
+
                 noncommercialTotalScore += or.getCategoryResults(category).score;
                 noncommercialTotalPrecision += or.getCategoryResults(category).precision;
                 noncommercialTotalTPR += or.getCategoryResults(category).truePositiveRate;
                 noncommercialTotalFPR += or.getCategoryResults(category).falsePositiveRate;
 
+                double score = or.getCategoryResults(category).score * 100;
                 if (score < noncommercialLow) {
                     this.noncommercialLow = score;
                     this.noncommercialLowToolType = tool.getToolType();
@@ -479,6 +391,7 @@ public class ScatterVulns extends ScatterPlot {
         double commercialTotalPrecision = 0;
         double commercialTotalTPR = 0;
         double commercialTotalFPR = 0;
+        final DecimalFormat DF = new DecimalFormat("#0.0");
 
         for (Tool tool : toolResults) {
             ToolResults or = tool.getOverallResults();
@@ -486,13 +399,7 @@ public class ScatterVulns extends ScatterPlot {
 
                 // print commercial label if there is at least one commercial tool
                 if (!printedCommercialLabel) {
-                    XYTextAnnotation stroketext4 =
-                            new XYTextAnnotation("Commercial", x, y + i * -3.3);
-                    stroketext4.setTextAnchor(TextAnchor.CENTER_LEFT);
-                    stroketext4.setBackgroundPaint(Color.white);
-                    stroketext4.setPaint(Color.black);
-                    stroketext4.setFont(theme.getRegularFont());
-                    xyplot.addAnnotation(stroketext4);
+                    addLabelToKey(xyplot, x, y, i, "Commercial");
                     i++;
                     printedCommercialLabel = true;
                 }
@@ -509,50 +416,19 @@ public class ScatterVulns extends ScatterPlot {
                     // Another hack to make it line up better if the letter is a 'J' or 'j'
                     label = (ch == 'J' || ch == 'j' ? ch + ":  " : label);
 
-                    final DecimalFormat DF = new DecimalFormat("#0.0");
-                    String TPR = DF.format(tpr);
-                    if (TPR.endsWith("0"))
-                        TPR =
-                                TPR.substring(
-                                        0, TPR.length() - 2); // trim off .0 if it ends that way.
-                    String FPR = DF.format(fpr);
-                    if (FPR.endsWith("0")) FPR = FPR.substring(0, FPR.length() - 2);
-
-                    final String TOOL = "\u25A0 " + label + tool.getToolNameAndVersion();
-                    XYTextAnnotation toolLabel = new XYTextAnnotation(TOOL, x, y + i * -3.3);
-                    toolLabel.setTextAnchor(TextAnchor.CENTER_LEFT);
-                    toolLabel.setBackgroundPaint(Color.white);
-                    toolLabel.setPaint(
-                            tool.getToolName().replace(' ', '_').equalsIgnoreCase(this.focus)
-                                    ? Color.green
-                                    : Color.blue);
-                    toolLabel.setFont(theme.getRegularFont());
-                    xyplot.addAnnotation(toolLabel);
-
-                    final String SCORE = Math.round(score) + "%";
-                    XYTextAnnotation scoreLabel =
-                            new XYTextAnnotation(SCORE, x + COLUMN_1_OFFSET, y + i * -3.3);
-                    scoreLabel.setTextAnchor(TextAnchor.CENTER_RIGHT);
-                    scoreLabel.setBackgroundPaint(Color.white);
-                    scoreLabel.setPaint(
-                            tool.getToolName().replace(' ', '_').equalsIgnoreCase(this.focus)
-                                    ? Color.green
-                                    : Color.blue);
-                    scoreLabel.setFont(theme.getRegularFont());
-                    xyplot.addAnnotation(scoreLabel);
-
-                    final String CALC = "(" + TPR + "-" + FPR + ")";
-                    XYTextAnnotation calcLabel =
-                            new XYTextAnnotation(CALC, x + COLUMN_2_OFFSET, y + i * -3.3);
-                    calcLabel.setTextAnchor(TextAnchor.CENTER);
-                    calcLabel.setBackgroundPaint(Color.white);
-                    calcLabel.setPaint(Color.gray);
-                    calcLabel.setFont(theme.getSmallFont());
-                    xyplot.addAnnotation(calcLabel);
+                    addEntryToKey(
+                            xyplot,
+                            Color.blue,
+                            x,
+                            y,
+                            i,
+                            label,
+                            tool.getToolNameAndVersion(),
+                            or.getTruePositiveRate(),
+                            or.getFalsePositiveRate());
 
                     i++; // increment the location of the label
-                    // Weak hack if there are more than 26 tools scored. This will only get us to
-                    // 52.
+                    // Weak hack if more than 26 tools scored. This will only get us to 52
                     if (ch == 'Z') ch = 'a';
                     else ch++;
                 }
@@ -610,26 +486,22 @@ public class ScatterVulns extends ScatterPlot {
 
         if (this.commercialToolCount > 1
                 || (BenchmarkScore.showAveOnlyMode && this.commercialToolCount == 1)) {
-            XYTextAnnotation stroketext2 =
-                    new XYTextAnnotation(
-                            "\u25A0 "
-                                    + ch
-                                    + ": Commercial Average"
-                                    + " ("
-                                    + Math.round(this.commercialAveScore)
-                                    + "%)",
-                            x,
-                            y + i * -3.3);
-            stroketext2.setTextAnchor(TextAnchor.CENTER_LEFT);
-            stroketext2.setBackgroundPaint(Color.white);
-            stroketext2.setPaint(Color.magenta);
-            stroketext2.setFont(theme.getRegularFont());
-            xyplot.addAnnotation(stroketext2);
+
+            // The last two params need to be from 0 - 1, not 0 - 100, so we divide each by 100
+            addEntryToKey(
+                    xyplot,
+                    Color.magenta,
+                    x,
+                    y,
+                    i,
+                    ch + ": ",
+                    "Commercial Average",
+                    commercialAveTPR / 100,
+                    commercialAveFPR / 100);
 
             Point2D averagePoint =
                     new Point2D.Double(aveFalsePosRates * 100, aveTruePosRates * 100);
-            Color red = new Color(1, 0, 0, 0.5f);
-            makePoint(xyplot, averagePoint, 3, red);
+            makePoint(xyplot, averagePoint, 3, Color.magenta);
         }
 
         // overall stats
