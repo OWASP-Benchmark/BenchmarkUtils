@@ -1,29 +1,22 @@
-/**
- * OWASP Benchmark Project
- *
- * <p>This file is part of the Open Web Application Security Project (OWASP) Benchmark Project For
- * details, please see <a
- * href="https://owasp.org/www-project-benchmark/">https://owasp.org/www-project-benchmark/</a>.
- *
- * <p>The OWASP Benchmark is free software: you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation, version 2.
- *
- * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU General Public License for more details
- *
- * @author Dave Wichers
- * @created 2015
- */
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.owasp.benchmarkutils.score.ResultFile;
+import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class Reader {
+public abstract class Reader {
+
+    public boolean canRead(ResultFile resultFile) {
+        return false;
+    }
+
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
+        return null;
+    }
 
     public static Node getNamedNode(String name, NodeList list) {
         for (int i = 0; i < list.getLength(); i++) {
@@ -34,9 +27,9 @@ public class Reader {
         }
         return null;
     }
-
     // Returns the node inside this nodelist whose name matches 'name', that also has an attribute
     // called 'key' whose value matches 'keyvalue'
+
     public static Node getNamedNode(String name, String keyValue, NodeList list) {
         if ((name == null) || (keyValue == null) || (list == null)) return null;
         for (int i = 0; i < list.getLength(); i++) {
@@ -62,7 +55,6 @@ public class Reader {
             for (int i = 0; i < children.getLength(); i++) {
                 Node child = children.item(i);
                 if (child.getNodeName().equals(name)) {
-                    // System.out.println("> " + child.getNodeName() + "::" + child.getNodeValue());
                     results.add(child);
                 }
             }
@@ -93,8 +85,7 @@ public class Reader {
         if (nnm != null) {
             Node attrnode = nnm.getNamedItem(name);
             if (attrnode != null) {
-                String value = attrnode.getNodeValue();
-                return value;
+                return attrnode.getNodeValue();
             }
         }
         return null;

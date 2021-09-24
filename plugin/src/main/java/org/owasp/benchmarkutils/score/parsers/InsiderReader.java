@@ -23,18 +23,21 @@ package org.owasp.benchmarkutils.score.parsers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class InsiderReader {
+public class InsiderReader extends Reader {
 
     private static final String[] expectedVulnerabilityKeys = {
         "cvss", "cwe", "line", "class", "vul_id", "method", "column", "description"
     };
 
-    public static boolean isInsiderReport(final JSONObject json) {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
         try {
-            return hasExpectedKeys(json.getJSONArray("vulnerabilities").getJSONObject(0));
+            return hasExpectedKeys(
+                    resultFile.json().getJSONArray("vulnerabilities").getJSONObject(0));
         } catch (Exception e) {
             return false;
         }
@@ -50,11 +53,12 @@ public class InsiderReader {
         return true;
     }
 
-    public TestSuiteResults parse(JSONObject json) throws Exception {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("Insider", false, TestSuiteResults.ToolType.SAST);
 
-        JSONArray arr = json.getJSONArray("vulnerabilities");
+        JSONArray arr = resultFile.json().getJSONArray("vulnerabilities");
 
         for (int i = 0; i < arr.length(); i++) {
             TestCaseResult tcr = parseTestCaseResult(arr.getJSONObject(i));

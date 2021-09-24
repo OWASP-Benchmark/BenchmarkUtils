@@ -25,17 +25,20 @@ import java.io.File;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class ShiftLeftScanReader {
+public class ShiftLeftScanReader extends Reader {
 
-    public static boolean isShiftLeftScanReport(final String content) {
-        return content.contains("@ShiftLeft/sast-scan");
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.content().contains("@ShiftLeft/sast-scan");
     }
 
-    public TestSuiteResults parse(final String content) throws Exception {
-        String[] lines = content.split("\n");
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
+        String[] lines = resultFile.content().split("\n");
 
         JSONObject javaSourceAnalyzer = new JSONObject(lines[0]);
         JSONObject classFileAnalyzer = new JSONObject(lines[1]);

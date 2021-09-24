@@ -2,6 +2,7 @@
 .project
 .java-version
 .keystore
+.idea/
 
 # Package Files #
 *.jar

@@ -26,25 +26,33 @@ import java.text.SimpleDateFormat;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class HorusecReader extends Reader {
 
-    public static boolean isHorusecReport(final JSONObject json) {
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+
+    @Override
+    public boolean canRead(ResultFile resultFile) {
         try {
-            return json.getJSONArray("analysisVulnerabilities")
-                    .getJSONObject(0)
-                    .getJSONObject("vulnerabilities")
-                    .has("securityTool");
+            return resultFile.isJson()
+                    && resultFile
+                            .json()
+                            .getJSONArray("analysisVulnerabilities")
+                            .getJSONObject(0)
+                            .getJSONObject("vulnerabilities")
+                            .has("securityTool");
         } catch (Exception e) {
             return false;
         }
     }
 
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
+        JSONObject json = resultFile.json();
 
-    public TestSuiteResults parse(JSONObject json) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("Horusec", false, TestSuiteResults.ToolType.SAST);
 

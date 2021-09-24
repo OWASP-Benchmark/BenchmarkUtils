@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -377,6 +378,14 @@ public class BenchmarkScore extends AbstractMojo {
      * @param args - The command line arguments.
      */
     public static void main(String[] args) {
+        try {
+            System.out.println(
+                    readActualResults(
+                            new File(
+                                    "/Users/sschmidt/Develop/BenchmarkJava/results/Benchmark_1.2-horusec-v2.5.0.json")));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if (!processCommandLineArgs(args)) {
             System.out.println("Error processing configuration for Scoring. Aborting.");
@@ -913,47 +922,75 @@ public class BenchmarkScore extends AbstractMojo {
     }
 
     private static TestSuiteResults readActualResults(File fileToParse) throws Exception {
-        String filename = fileToParse.getName();
+        ResultFile resultFile = new ResultFile(fileToParse);
         TestSuiteResults tr = null;
 
-        if (filename.endsWith(".csv")) {
-            String line1 = getLine(fileToParse, 0);
-            if (line1.contains("CheckerKey") && line1.contains("LastDetectionURL")) {
-                tr = new SeekerReader().parse(fileToParse);
-            } else if (line1.contains("CWE") && line1.contains("URL")) {
-                tr = new CheckmarxIASTReader().parse(fileToParse);
-            } else System.out.println("Error: No matching parser found for CSV file: " + filename);
-        } else if (filename.endsWith(".ozasmt")) {
-            tr = new AppScanSourceReader().parse(fileToParse);
-        } else if (filename.endsWith(".faast")) {
-            tr = new FaastReader().parse(fileToParse);
-        } else if (filename.endsWith(".json")) {
+        List<Reader> readers = new ArrayList<>();
+        readers.add(new HorusecReader());
+        readers.add(new InsiderReader());
+        readers.add(new ShiftLeftScanReader());
+        readers.add(new WapitiJsonReader());
+        readers.add(new ZapJsonReader());
 
-            String line2 = getLine(fileToParse, 1);
+        Optional<Reader> reader = readers.stream().filter(r -> r.canRead(resultFile)).findAny();
+
+        if (reader.isPresent()) {
+            tr = reader.get().parse(resultFile);
+        }
+
+        if (tr == null) {
+            tr = parse(resultFile);
+        }
+
+        // If we have results, see if the version # is in the results file name.
+        if (tr != null) {
+            // If version # specified in the results file name, extract it, and set it.
+            // For example: Benchmark-1.1-Coverity-results-v1.3.2661-6720.json  (the version # is
+            // 1.3.2661 in this example).
+            // This code should also handle: Benchmark-1.1-Coverity-results-v1.3.2661.xml (where the
+            // compute time '-6720' isn't specified)
+            int indexOfVersionMarker = resultFile.filename().lastIndexOf("-v");
+            if (indexOfVersionMarker != -1) {
+                String restOfFileName = resultFile.filename().substring(indexOfVersionMarker + 2);
+                int endIndex = restOfFileName.lastIndexOf('-');
+                if (endIndex == -1) endIndex = restOfFileName.lastIndexOf('.');
+                String version = restOfFileName.substring(0, endIndex);
+                tr.setToolVersion(version);
+            }
+        }
+
+        return tr;
+    }
+
+    private static TestSuiteResults parse(ResultFile resultFile) throws Exception {
+        TestSuiteResults tr = null;
+
+        if (resultFile.filename().endsWith(".csv")) {
+            String line1 = resultFile.getLine(0);
+            if (line1.contains("CheckerKey") && line1.contains("LastDetectionURL")) {
+                tr = new SeekerReader().parse(resultFile.file());
+            } else if (line1.contains("CWE") && line1.contains("URL")) {
+                tr = new CheckmarxIASTReader().parse(resultFile.file());
+            } else
+                System.out.println(
+                        "Error: No matching parser found for CSV file: " + resultFile.filename());
+        } else if (resultFile.filename().endsWith(".ozasmt")) {
+            tr = new AppScanSourceReader().parse(resultFile.file());
+        } else if (resultFile.filename().endsWith(".faast")) {
+            tr = new FaastReader().parse(resultFile.file());
+        } else if (resultFile.filename().endsWith(".json")) {
+
+            String line2 = resultFile.getLine(1);
             if (line2 != null && (line2.contains("Coverity") || line2.contains("formatVersion"))) {
-                tr = new CoverityReader().parse(fileToParse);
+                tr = new CoverityReader().parse(resultFile.file());
             } else if (line2 != null && line2.contains("Vendor") && line2.contains("Checkmarx")) {
-                tr = new CheckmarxESReader().parse(fileToParse);
+                tr = new CheckmarxESReader().parse(resultFile.file());
             } else { // Handle JSON where we have to look for a specific node to identify the tool
                 // type
 
-                String content = new String(Files.readAllBytes(Paths.get(fileToParse.getPath())));
-                JSONObject jsonObj = new JSONObject(content);
+                JSONObject jsonObj = new JSONObject(resultFile.content());
 
-                if (HorusecReader.isHorusecReport(jsonObj)) {
-                    tr = new HorusecReader().parse(jsonObj);
-                } else if (InsiderReader.isInsiderReport(jsonObj)) {
-                    tr = new InsiderReader().parse(jsonObj);
-
-                    // ShiftLeft Scan puts two JSON files into one, so we need to pass the raw file
-                    // content
-                } else if (ShiftLeftScanReader.isShiftLeftScanReport(content)) {
-                    tr = new ShiftLeftScanReader().parse(content);
-                } else if (WapitiJsonReader.isWapitiReport(jsonObj)) {
-                    tr = WapitiJsonReader.parse(jsonObj);
-                } else if (ZapJsonReader.isZapReport(jsonObj)) {
-                    tr = new ZapJsonReader().parse(jsonObj);
-                } else if (NJSScanReader.isNJSScanReport(jsonObj)) {
+                if (NJSScanReader.isNJSScanReport(jsonObj)) {
                     tr = NJSScanReader.parse(jsonObj);
 
                 } else {
@@ -970,31 +1007,31 @@ public class BenchmarkScore extends AbstractMojo {
                             // another for 'hotspots' which are security issues. Both are handled by
                             // the same parser for SonarQube.
                             jsonObj.getJSONArray("issues");
-                            tr = new SonarQubeJsonReader().parse(fileToParse);
+                            tr = new SonarQubeJsonReader().parse(resultFile.file());
                         } catch (JSONException e2) {
 
                             try {
                                 jsonObj.getJSONArray("hotspots");
-                                tr = new SonarQubeJsonReader().parse(fileToParse);
+                                tr = new SonarQubeJsonReader().parse(resultFile.file());
                             } catch (JSONException e3) {
 
                                 try {
                                     jsonObj.getJSONArray("issue_events");
-                                    tr = new BurpJsonReader().parse(fileToParse);
+                                    tr = new BurpJsonReader().parse(resultFile.file());
 
                                     // This is the final catch that says we couldn't find a matching
                                     // parser
                                 } catch (JSONException e4) {
                                     System.out.println(
                                             "Error: No matching parser found for JSON file: "
-                                                    + filename);
+                                                    + resultFile.filename());
                                 }
                             } // end catch SonarQubeJsonReader - hotspots
                         } // end catch SonarQubeJsonReader - issues
                     } // end catch SemgrepReader
                 } // end else
             }
-        } else if (filename.endsWith(".sarif")) {
+        } else if (resultFile.filename().endsWith(".sarif")) {
             // CodeQL results and LGTM results both have the same extension .sarif
             // But only the LGTM results have "semmle.sourceLanguage" as a key in ["run.properties"]
 
@@ -1002,47 +1039,50 @@ public class BenchmarkScore extends AbstractMojo {
                 // So we simply try the LGTMReader first, and if that fails, we try CodeQL.
                 tr =
                         new LGTMReader()
-                                .parse(fileToParse); // If "semmle.sourceLanguage" is available set
+                                .parse(
+                                        resultFile
+                                                .file()); // If "semmle.sourceLanguage" is available
+                // set
                 // the LGTMReader
             } catch (JSONException e) {
                 tr =
                         new CodeQLReader()
-                                .parse(fileToParse); // If "semmle.sourceLanguage" is not available
+                                .parse(resultFile.file()); // If "semmle.sourceLanguage" is not
+                // available
                 // set the CodeQLReader
             }
-        } else if (filename.endsWith(".threadfix")) {
-            tr = new KiuwanReader().parse(fileToParse);
-        } else if (filename.endsWith(".txt")) {
-            String line1 = getLine(fileToParse, 0);
+        } else if (resultFile.filename().endsWith(".threadfix")) {
+            tr = new KiuwanReader().parse(resultFile.file());
+        } else if (resultFile.filename().endsWith(".txt")) {
+            String line1 = resultFile.getLine(0);
             if (line1.startsWith("Possible ")) {
-                tr = new SourceMeterReader().parse(fileToParse);
+                tr = new SourceMeterReader().parse(resultFile.file());
             }
-        } else if (filename.endsWith(".xml")) {
+        } else if (resultFile.filename().endsWith(".xml")) {
 
             // Handle XML results files where the 1st or 2nd line indicates the tool type
 
-            String line1 =
-                    getLine(fileToParse, 0); // line1 is frequently like: <?xml version="1.0"?>
-            String line2 = getLine(fileToParse, 1);
+            String line1 = resultFile.getLine(0); // line1 is frequently like: <?xml version="1.0"?>
+            String line2 = resultFile.getLine(1);
             String line4;
 
             if (line2 != null && line2.startsWith("  <ProjectName>")) {
-                tr = new ThunderScanReader().parse(fileToParse);
+                tr = new ThunderScanReader().parse(resultFile.file());
             } else if (line2 != null && line2.startsWith("<pmd")) {
-                tr = new PMDReader().parse(fileToParse);
+                tr = new PMDReader().parse(resultFile.file());
             } else if (line2 != null && line2.toLowerCase().startsWith("<castaip")) {
-                tr = new CASTAIPReader().parse(fileToParse);
+                tr = new CASTAIPReader().parse(resultFile.file());
             } else if (line2 != null && line2.startsWith("<w3af-run")) {
-                tr = new W3AFReader().parse(fileToParse);
+                tr = new W3AFReader().parse(resultFile.file());
             } else if (line2 != null && line2.startsWith("<FusionLiteInsight")) {
-                tr = new FusionLiteInsightReader().parse(fileToParse);
+                tr = new FusionLiteInsightReader().parse(resultFile.file());
             } else if (line2 != null && line2.startsWith("<XanitizerFindingsList")) {
-                tr = new XanitizerReader().parse(fileToParse);
+                tr = new XanitizerReader().parse(resultFile.file());
             } else if (line2 != null && line2.startsWith("<BugCollection")) {
-                tr = new FindbugsReader().parse(fileToParse);
+                tr = new FindbugsReader().parse(resultFile.file());
 
                 // change the name of the tool if the filename contains findsecbugs
-                if (fileToParse.getName().contains("findsecbugs")) {
+                if (resultFile.file().getName().contains("findsecbugs")) {
                     if (tr.getToolName().startsWith("Find")) {
                         tr.setTool("FBwFindSecBugs");
                     } else {
@@ -1050,32 +1090,32 @@ public class BenchmarkScore extends AbstractMojo {
                     }
                 }
             } else if (line2 != null && line2.startsWith("<ResultsSession")) {
-                tr = new ParasoftReader().parse(fileToParse);
+                tr = new ParasoftReader().parse(resultFile.file());
             } else if (line2 != null && line2.startsWith("<detailedreport")) {
-                tr = new VeracodeReader().parse(fileToParse);
+                tr = new VeracodeReader().parse(resultFile.file());
             } else if (line1.startsWith("<testsuites name=\"")) {
-                tr = new CrashtestReader().parse(fileToParse);
+                tr = new CrashtestReader().parse(resultFile.file());
             } else if (line1.startsWith("<total") || line1.startsWith("<p>")) {
-                tr = new SonarQubeReader().parse(fileToParse);
+                tr = new SonarQubeReader().parse(resultFile.file());
             } else if (line1.contains("<OWASPZAPReport")
                     || (line2 != null && line2.contains("<OWASPZAPReport"))) {
-                tr = new ZapReader().parse(fileToParse);
+                tr = new ZapReader().parse(resultFile.file());
             } else if (line2 != null && line2.startsWith("<CxXMLResults")) {
-                tr = new CheckmarxReader().parse(fileToParse);
+                tr = new CheckmarxReader().parse(resultFile.file());
             } else if (line2 != null && line2.contains("Arachni")) {
-                tr = new ArachniReader().parse(fileToParse);
+                tr = new ArachniReader().parse(resultFile.file());
             } else if (line2 != null
                     && (line2.startsWith("<analysisResult")
                             || line2.startsWith("<analysisReportResult"))) {
-                tr = new JuliaReader().parse(fileToParse);
+                tr = new JuliaReader().parse(resultFile.file());
             } else if (line2 != null && line2.startsWith("<CodeIssueCollection")) {
-                tr = new VisualCodeGrepperReader().parse(fileToParse);
-            } else if ((line4 = getLine(fileToParse, 4)) != null && line4.contains("Wapiti")) {
-                tr = new WapitiReader().parse(fileToParse);
+                tr = new VisualCodeGrepperReader().parse(resultFile.file());
+            } else if ((line4 = resultFile.getLine(4)) != null && line4.contains("Wapiti")) {
+                tr = new WapitiReader().parse(resultFile.file());
             } else { // Handle XML where we have to look for a specific node to identify the tool
                 // type
 
-                Document doc = getXMLDocument(fileToParse);
+                Document doc = getXMLDocument(resultFile.file());
                 Node root = doc.getDocumentElement();
                 String nodeName = root.getNodeName();
 
@@ -1090,9 +1130,9 @@ public class BenchmarkScore extends AbstractMojo {
                     if ("AppScan Report".equals(name)) {
                         String tech = Reader.getAttributeValue("technology", root);
                         if ("SAST".equals(tech)) {
-                            tr = new AppScanSourceReader2().parse(fileToParse);
+                            tr = new AppScanSourceReader2().parse(resultFile.file());
                         } else if ("DAST".equals(tech)) {
-                            tr = new AppScanDynamicReader2().parse(fileToParse);
+                            tr = new AppScanDynamicReader2().parse(resultFile.file());
                         } else
                             System.out.println(
                                     "Found AppScan Report with unfamiliar technology type: "
@@ -1103,7 +1143,7 @@ public class BenchmarkScore extends AbstractMojo {
                                         + " but had name: "
                                         + name);
                 } else if (nodeName.equals("issues")) {
-                    tr = new BurpReader().parse(fileToParse, root);
+                    tr = new BurpReader().parse(resultFile.file(), root);
                 } else if (nodeName.equals("netsparker")) {
                     tr = new NetsparkerReader().parse(root);
                 } else if (nodeName.equals("noisycricket")) {
@@ -1115,18 +1155,20 @@ public class BenchmarkScore extends AbstractMojo {
                 } else if (nodeName.equals("Scan")) {
                     tr = new WebInspectReader().parse(root);
                 } else if (nodeName.equals("WAS_SCAN_REPORT")) {
-                    tr = new QualysWASReader().parse(fileToParse, root);
+                    tr = new QualysWASReader().parse(resultFile.file(), root);
                 } else
-                    System.out.println("Error: No matching parser found for XML file: " + filename);
+                    System.out.println(
+                            "Error: No matching parser found for XML file: "
+                                    + resultFile.filename());
             } // end else
         } // end if endsWith ".xml"
-        else if (filename.endsWith(".fpr")) {
+        else if (resultFile.filename().endsWith(".fpr")) {
 
             // .fpr files are really .zip files. So we have to extract the .fvdl file out of it to
             // process it
-            Path path = Paths.get(fileToParse.getPath());
+            Path path = Paths.get(resultFile.file().getPath());
             FileSystem fileSystem = FileSystems.newFileSystem(path, (ClassLoader) null);
-            File outputFile = File.createTempFile(filename, ".fvdl");
+            File outputFile = File.createTempFile(resultFile.filename(), ".fvdl");
             Path source = fileSystem.getPath("audit.fvdl");
             Files.copy(source, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             tr = FortifyReader.parse(outputFile);
@@ -1135,7 +1177,7 @@ public class BenchmarkScore extends AbstractMojo {
             // Check to see if the results are regular Fortify or Fortify OnDemand results
             // To check, you have to look at the filtertemplate.xml file inside the .fpr archive
             // and see if that file contains: "Fortify-FOD-Template"
-            outputFile = File.createTempFile(filename + "-filtertemplate", ".xml");
+            outputFile = File.createTempFile(resultFile.filename() + "-filtertemplate", ".xml");
             source = fileSystem.getPath("filtertemplate.xml");
 
             // In older versions of Fortify, like 4.1, the filtertemplate.xml file doesn't exist
@@ -1165,87 +1207,27 @@ public class BenchmarkScore extends AbstractMojo {
             } finally {
                 outputFile.delete();
             }
-        } else if (filename.endsWith(".log")) {
+        } else if (resultFile.filename().endsWith(".log")) {
 
-            String line1 = getLine(fileToParse, 0);
+            String line1 = resultFile.getLine(0);
             // line1 contains: Starting Contrast (for Java) or contrast:contrastAgent (for Node)
             if (line1 != null && line1.toLowerCase().contains(" contrast")) {
-                tr = new ContrastReader().parse(fileToParse);
-            } else System.out.println("Error: No matching parser found for .log file: " + filename);
-        } else if (filename.endsWith(".hcl")) {
-            tr = new HCLReader().parse(fileToParse);
-        } else if (filename.endsWith(".hlg")) {
-            tr = new HdivReader().parse(fileToParse);
-        } else if (filename.endsWith(".sl")) {
-            tr = new ShiftLeftReader().parse(fileToParse);
-        } else System.out.println("Error: No matching parser found for file: " + filename);
-
-        // If we have results, see if the version # is in the results file name.
-        if (tr != null) {
-            // If version # specified in the results file name, extract it, and set it.
-            // For example: Benchmark-1.1-Coverity-results-v1.3.2661-6720.json  (the version # is
-            // 1.3.2661 in this example).
-            // This code should also handle: Benchmark-1.1-Coverity-results-v1.3.2661.xml (where the
-            // compute time '-6720' isn't specified)
-            int indexOfVersionMarker = filename.lastIndexOf("-v");
-            if (indexOfVersionMarker != -1) {
-                String restOfFileName = filename.substring(indexOfVersionMarker + 2);
-                int endIndex = restOfFileName.lastIndexOf('-');
-                if (endIndex == -1) endIndex = restOfFileName.lastIndexOf('.');
-                String version = restOfFileName.substring(0, endIndex);
-                tr.setToolVersion(version);
-            }
-        }
+                tr = new ContrastReader().parse(resultFile.file());
+            } else
+                System.out.println(
+                        "Error: No matching parser found for .log file: " + resultFile.filename());
+        } else if (resultFile.filename().endsWith(".hcl")) {
+            tr = new HCLReader().parse(resultFile.file());
+        } else if (resultFile.filename().endsWith(".hlg")) {
+            tr = new HdivReader().parse(resultFile.file());
+        } else if (resultFile.filename().endsWith(".sl")) {
+            tr = new ShiftLeftReader().parse(resultFile.file());
+        } else
+            System.out.println(
+                    "Error: No matching parser found for file: " + resultFile.filename());
 
         return tr;
     }
-
-    /**
-     * Read the specified line of the provided file. If its blank, skip all blank lines until a
-     * non-blank line is found and return that. Return "" if no non-blank line is found from the
-     * specified line on.
-     *
-     * @return The first non-blank line in the file starting with the specified line. null if there
-     *     aren't that many lines in the file.
-     */
-    private static String getLine(File actual, int lineNum) {
-
-        try (BufferedReader br = new BufferedReader(new FileReader(actual))) {
-            // Skip all the lines before the line # requested
-            String line = null;
-            for (int i = 0; i <= lineNum; i++) {
-                line = br.readLine();
-            }
-            while (line.length() == 0) { // Skip empty lines
-                line = br.readLine();
-            }
-            return line;
-        } catch (IOException e) {
-            return "";
-        }
-    }
-
-    /**
-     * Read through the provided file and return true if it contains the specified string.
-     *
-     * @return True if string found. False otherwise
-     */
-    /*  UNUSED - so commented out.
-        private static boolean fileContains(File actual, String value) {
-
-            try (BufferedReader br = new BufferedReader(new FileReader(actual))) {
-                String line;
-                do {
-                    line = br.readLine();
-                    if (line == null) return false;
-                    if (line.contains(value)) return true;
-                } while (line != null);
-            } catch (IOException e) {
-                // Do nothing
-            }
-            return false;
-        }
-    */
 
     /**
      * Go through each expected result, and figure out if this tool actually passed or not. This
