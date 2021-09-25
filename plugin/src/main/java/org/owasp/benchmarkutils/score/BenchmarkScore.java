@@ -378,15 +378,6 @@ public class BenchmarkScore extends AbstractMojo {
      * @param args - The command line arguments.
      */
     public static void main(String[] args) {
-        try {
-            System.out.println(
-                    readActualResults(
-                            new File(
-                                    "/Users/sschmidt/Develop/BenchmarkJava/results/Benchmark_1.2-horusec-v2.5.0.json")));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         if (!processCommandLineArgs(args)) {
             System.out.println("Error processing configuration for Scoring. Aborting.");
             System.exit(-1);
@@ -966,7 +957,7 @@ public class BenchmarkScore extends AbstractMojo {
         TestSuiteResults tr = null;
 
         if (resultFile.filename().endsWith(".csv")) {
-            String line1 = resultFile.getLine(0);
+            String line1 = resultFile.line(0);
             if (line1.contains("CheckerKey") && line1.contains("LastDetectionURL")) {
                 tr = new SeekerReader().parse(resultFile.file());
             } else if (line1.contains("CWE") && line1.contains("URL")) {
@@ -980,7 +971,7 @@ public class BenchmarkScore extends AbstractMojo {
             tr = new FaastReader().parse(resultFile.file());
         } else if (resultFile.filename().endsWith(".json")) {
 
-            String line2 = resultFile.getLine(1);
+            String line2 = resultFile.line(1);
             if (line2 != null && (line2.contains("Coverity") || line2.contains("formatVersion"))) {
                 tr = new CoverityReader().parse(resultFile.file());
             } else if (line2 != null && line2.contains("Vendor") && line2.contains("Checkmarx")) {
@@ -1000,7 +991,8 @@ public class BenchmarkScore extends AbstractMojo {
                         tr = new SemgrepReader().parse(jsonObj);
                     } catch (JSONException e) {
 
-                        // Note: Each of the remaining try blocks is nested under the one above, but
+                        // Note: Each of the reenchmarkScore.TESTCASENAMEing try blocks is nested
+                        // under the one above, but
                         // we shown them inline as they would get too deep otherwise
                         try {
                             // SonarQube has two different JSON formats, one for standard issues and
@@ -1054,7 +1046,7 @@ public class BenchmarkScore extends AbstractMojo {
         } else if (resultFile.filename().endsWith(".threadfix")) {
             tr = new KiuwanReader().parse(resultFile.file());
         } else if (resultFile.filename().endsWith(".txt")) {
-            String line1 = resultFile.getLine(0);
+            String line1 = resultFile.line(0);
             if (line1.startsWith("Possible ")) {
                 tr = new SourceMeterReader().parse(resultFile.file());
             }
@@ -1062,8 +1054,8 @@ public class BenchmarkScore extends AbstractMojo {
 
             // Handle XML results files where the 1st or 2nd line indicates the tool type
 
-            String line1 = resultFile.getLine(0); // line1 is frequently like: <?xml version="1.0"?>
-            String line2 = resultFile.getLine(1);
+            String line1 = resultFile.line(0); // line1 is frequently like: <?xml version="1.0"?>
+            String line2 = resultFile.line(1);
             String line4;
 
             if (line2 != null && line2.startsWith("  <ProjectName>")) {
@@ -1110,7 +1102,7 @@ public class BenchmarkScore extends AbstractMojo {
                 tr = new JuliaReader().parse(resultFile.file());
             } else if (line2 != null && line2.startsWith("<CodeIssueCollection")) {
                 tr = new VisualCodeGrepperReader().parse(resultFile.file());
-            } else if ((line4 = resultFile.getLine(4)) != null && line4.contains("Wapiti")) {
+            } else if ((line4 = resultFile.line(4)) != null && line4.contains("Wapiti")) {
                 tr = new WapitiReader().parse(resultFile.file());
             } else { // Handle XML where we have to look for a specific node to identify the tool
                 // type
@@ -1209,7 +1201,7 @@ public class BenchmarkScore extends AbstractMojo {
             }
         } else if (resultFile.filename().endsWith(".log")) {
 
-            String line1 = resultFile.getLine(0);
+            String line1 = resultFile.line(0);
             // line1 contains: Starting Contrast (for Java) or contrast:contrastAgent (for Node)
             if (line1 != null && line1.toLowerCase().contains(" contrast")) {
                 tr = new ContrastReader().parse(resultFile.file());

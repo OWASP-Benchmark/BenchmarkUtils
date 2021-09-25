@@ -69,7 +69,7 @@ public class ResultFile {
      * @return The first non-blank line in the file starting with the specified line. null if there
      *     aren't that many lines in the file.
      */
-    public String getLine(int lineNum) {
+    public String line(int lineNum) {
         if (lineNum >= linesContent.size()) {
             return "";
         }

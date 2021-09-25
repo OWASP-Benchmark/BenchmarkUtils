@@ -38,10 +38,8 @@ public class ShiftLeftScanReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        String[] lines = resultFile.content().split("\n");
-
-        JSONObject javaSourceAnalyzer = new JSONObject(lines[0]);
-        JSONObject classFileAnalyzer = new JSONObject(lines[1]);
+        JSONObject javaSourceAnalyzer = new JSONObject(resultFile.line(0));
+        JSONObject classFileAnalyzer = new JSONObject(resultFile.line(1));
 
         // false indicates this is an open source/free tool.
         TestSuiteResults tr =
