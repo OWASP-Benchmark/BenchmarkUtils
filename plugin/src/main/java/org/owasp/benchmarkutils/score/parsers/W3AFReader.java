@@ -17,12 +17,12 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -31,12 +31,18 @@ import org.xml.sax.InputSource;
 
 public class W3AFReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml") && resultFile.line(1).startsWith("<w3af-run");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr = new TestSuiteResults("W3AF", true, TestSuiteResults.ToolType.DAST);
@@ -131,7 +137,7 @@ public class W3AFReader extends Reader {
         return null;
     }
 
-    private static int cweLookup(String name) {
+    private int cweLookup(String name) {
         if (name == null || name.isEmpty()) {
             return 0000;
         }

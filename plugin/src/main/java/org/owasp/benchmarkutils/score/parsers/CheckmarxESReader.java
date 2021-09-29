@@ -17,22 +17,28 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class CheckmarxESReader extends Reader {
-    public TestSuiteResults parse(File f) throws Exception {
+
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".json")
+                && resultFile.line(1).contains("Vendor")
+                && resultFile.line(1).contains("Checkmarx");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("Checkmarx SAST", true, TestSuiteResults.ToolType.SAST);
 
-        String content = new String(Files.readAllBytes(Paths.get(f.getPath())));
-        JSONObject obj = new JSONObject(content);
+        JSONObject obj = new JSONObject(resultFile.json());
 
         // engine version
         String version = obj.getString("EngineVersion");

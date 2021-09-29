@@ -20,15 +20,23 @@ package org.owasp.benchmarkutils.score.parsers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class SemgrepReader {
-    public TestSuiteResults parse(JSONObject jsonResults) {
+public class SemgrepReader extends Reader {
+
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.isJson() && resultFile.json().has("results");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("Semgrep", false, TestSuiteResults.ToolType.SAST);
 
-        JSONArray results = jsonResults.getJSONArray("results");
+        JSONArray results = resultFile.json().getJSONArray("results");
 
         // engine version
         // duration time

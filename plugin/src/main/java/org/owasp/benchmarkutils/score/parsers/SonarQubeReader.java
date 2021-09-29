@@ -18,12 +18,13 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -33,12 +34,20 @@ import org.xml.sax.InputSource;
 
 public class SonarQubeReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && (resultFile.line(0).startsWith("<total")
+                        || resultFile.line(0).startsWith("<p>"));
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        byte[] bytes = Files.readAllBytes(f.toPath());
+        byte[] bytes = Files.readAllBytes(resultFile.file().toPath());
 
         // Because the Sonar results file is not well formed, i.e., it has multiple root elements,
         // not
@@ -48,7 +57,7 @@ public class SonarQubeReader extends Reader {
         // org.xml.sax.SAXParseException;
         // lineNumber: X; columnNumber: YY; The markup in the document following the root element
         // must be well-formed.
-        String fixed = "<sonar>" + new String(bytes, "UTF-8") + "</sonar>";
+        String fixed = "<sonar>" + new String(bytes, StandardCharsets.UTF_8) + "</sonar>";
         InputSource is = new InputSource(new ByteArrayInputStream(fixed.getBytes()));
         Document doc = docBuilder.parse(is);
 
@@ -91,7 +100,7 @@ public class SonarQubeReader extends Reader {
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml),
         // set the compute time on the score card. TODO: Move this to BenchmarkScore for ALL tools?
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
 
         return tr;
     }

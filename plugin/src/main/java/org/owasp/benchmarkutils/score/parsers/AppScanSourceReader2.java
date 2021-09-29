@@ -17,29 +17,38 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
+// This is the new AppScan Source reader, where they generate ".xml" files.
 public class AppScanSourceReader2 extends Reader {
 
-    // This is the new AppScan Source reader, where they generate ".xml" files.
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.xmlRootNodeName().equals("xml-report")
+                && "AppScan Report"
+                        .equals(Reader.getAttributeValue("name", resultFile.xmlRootNode()))
+                && "SAST".equals(Reader.getAttributeValue("technology", resultFile.xmlRootNode()));
+    }
 
-    public TestSuiteResults parse(File f) throws Exception {
-
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
         Document doc = docBuilder.parse(is);
 
         Node root = doc.getDocumentElement();
@@ -53,7 +62,7 @@ public class AppScanSourceReader2 extends Reader {
 
         // If the fliename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml) set the
         // compute time on the scorecard.
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
 
         Node allIssues = getNamedChild("issue-group", root);
         List<Node> vulnerabilities = getNamedChildren("item", allIssues);
@@ -144,17 +153,18 @@ public class AppScanSourceReader2 extends Reader {
     	    return hours + ":" + mins + ":" + secs;
         }
     */
-    private static int cweLookup(String vtype) {
+    private int cweLookup(String vtype) {
         switch (vtype) {
                 //			case "AppDOS" : return 00;
                 //			case "Authentication.Entity" : return 00;
 
             case "CrossSiteScripting":
-                return 79;
+            case "Validation.EncodingRequired":
+                return CweNumber.XSS;
             case "Cryptography.InsecureAlgorithm":
-                return 327;
+                return CweNumber.BROKEN_CRYPTO;
             case "Cryptography.PoorEntropy":
-                return 330;
+                return CweNumber.WEAK_RANDOM;
                 //			case "Cryptography.????WeakHash" : return 328;  // They don't have a weak
                 // hashing rule
 
@@ -163,30 +173,26 @@ public class AppScanSourceReader2 extends Reader {
             case "Injection.HttpResponseSplitting":
                 return 113;
             case "Injection.LDAP":
-                return 90;
+                return CweNumber.LDAP_INJECTION;
             case "Injection.OS":
-                return 78;
+                return CweNumber.COMMAND_INJECTION;
             case "Injection.SQL":
-                return 89;
+                return CweNumber.SQL_INJECTION;
             case "Injection.XPath":
-                return 643;
+                return CweNumber.XPATH_INJECTION;
                 //			case "Malicious.DynamicCode" : return 00;
                 //			case "Malicious.DynamicCode.Execution" : return 00;
             case "OpenSource":
                 return 00; // Known vuln in open source lib.
             case "PathTraversal":
-                return 22;
+                return CweNumber.PATH_TRAVERSAL;
                 //			case "Quality.TestCode" : return 00;
                 //			case "Quality.Unsupported" : return 00;
             case "SessionManagement.Cookies":
-                return 614;
-
-            case "Validation.EncodingRequired":
-                return 79; // XSS
+                return CweNumber.INSECURE_COOKIE;
             case "Validation.Required":
-                return 502;
             case "Validation.Required.WriteToStream":
-                return 502;
+                return CweNumber.INSECURE_DESERIALIZATION;
 
             default:
                 System.out.println("Identified unknown type of: " + vtype);

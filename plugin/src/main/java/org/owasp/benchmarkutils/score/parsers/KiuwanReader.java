@@ -17,27 +17,29 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class KiuwanReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
-        String content = new String(Files.readAllBytes(Paths.get(f.getPath())));
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".threadfix");
+    }
 
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         /*
          * This parser was written against the .threadfix schema as defined here:
          * https://denimgroup.atlassian.net/wiki/spaces/TDOC/pages/496009270/ThreadFix+File+Format
          *
          * To make any JSON file more readable: python -m json.tool file.json > prettyjson.txt
          */
-        JSONObject obj = new JSONObject(content);
+        JSONObject obj = resultFile.json();
         //		String resultsFormatVersion = obj.getString( "version" ); // Note: no threadfix version
         // info included in format.
 

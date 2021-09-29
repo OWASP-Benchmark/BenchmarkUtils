@@ -48,8 +48,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -59,70 +57,14 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.Utils;
-import org.owasp.benchmarkutils.score.parsers.AcunetixReader;
-import org.owasp.benchmarkutils.score.parsers.AppScanDynamicReader;
-import org.owasp.benchmarkutils.score.parsers.AppScanDynamicReader2;
-import org.owasp.benchmarkutils.score.parsers.AppScanSourceReader;
-import org.owasp.benchmarkutils.score.parsers.AppScanSourceReader2;
-import org.owasp.benchmarkutils.score.parsers.ArachniReader;
-import org.owasp.benchmarkutils.score.parsers.BurpJsonReader;
-import org.owasp.benchmarkutils.score.parsers.BurpReader;
-import org.owasp.benchmarkutils.score.parsers.CASTAIPReader;
-import org.owasp.benchmarkutils.score.parsers.CheckmarxESReader;
-import org.owasp.benchmarkutils.score.parsers.CheckmarxIASTReader;
-import org.owasp.benchmarkutils.score.parsers.CheckmarxReader;
-import org.owasp.benchmarkutils.score.parsers.CodeQLReader;
-import org.owasp.benchmarkutils.score.parsers.ContrastReader;
-import org.owasp.benchmarkutils.score.parsers.CoverityReader;
-import org.owasp.benchmarkutils.score.parsers.CrashtestReader;
-import org.owasp.benchmarkutils.score.parsers.FaastReader;
-import org.owasp.benchmarkutils.score.parsers.FindbugsReader;
 import org.owasp.benchmarkutils.score.parsers.FortifyReader;
-import org.owasp.benchmarkutils.score.parsers.FusionLiteInsightReader;
-import org.owasp.benchmarkutils.score.parsers.HCLReader;
-import org.owasp.benchmarkutils.score.parsers.HdivReader;
-import org.owasp.benchmarkutils.score.parsers.HorusecReader;
-import org.owasp.benchmarkutils.score.parsers.InsiderReader;
-import org.owasp.benchmarkutils.score.parsers.JuliaReader;
-import org.owasp.benchmarkutils.score.parsers.KiuwanReader;
-import org.owasp.benchmarkutils.score.parsers.LGTMReader;
-import org.owasp.benchmarkutils.score.parsers.NJSScanReader;
-import org.owasp.benchmarkutils.score.parsers.NetsparkerReader;
-import org.owasp.benchmarkutils.score.parsers.NoisyCricketReader;
-import org.owasp.benchmarkutils.score.parsers.PMDReader;
-import org.owasp.benchmarkutils.score.parsers.ParasoftReader;
-import org.owasp.benchmarkutils.score.parsers.QualysWASReader;
-import org.owasp.benchmarkutils.score.parsers.Rapid7Reader;
 import org.owasp.benchmarkutils.score.parsers.Reader;
-import org.owasp.benchmarkutils.score.parsers.SeekerReader;
-import org.owasp.benchmarkutils.score.parsers.SemgrepReader;
-import org.owasp.benchmarkutils.score.parsers.ShiftLeftReader;
-import org.owasp.benchmarkutils.score.parsers.ShiftLeftScanReader;
-import org.owasp.benchmarkutils.score.parsers.SnappyTickReader;
-import org.owasp.benchmarkutils.score.parsers.SonarQubeJsonReader;
-import org.owasp.benchmarkutils.score.parsers.SonarQubeReader;
-import org.owasp.benchmarkutils.score.parsers.SourceMeterReader;
-import org.owasp.benchmarkutils.score.parsers.ThunderScanReader;
-import org.owasp.benchmarkutils.score.parsers.VeracodeReader;
-import org.owasp.benchmarkutils.score.parsers.VisualCodeGrepperReader;
-import org.owasp.benchmarkutils.score.parsers.W3AFReader;
-import org.owasp.benchmarkutils.score.parsers.WapitiJsonReader;
-import org.owasp.benchmarkutils.score.parsers.WapitiReader;
-import org.owasp.benchmarkutils.score.parsers.WebInspectReader;
-import org.owasp.benchmarkutils.score.parsers.XanitizerReader;
-import org.owasp.benchmarkutils.score.parsers.ZapJsonReader;
-import org.owasp.benchmarkutils.score.parsers.ZapReader;
 import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.yaml.snakeyaml.Yaml;
 
@@ -916,21 +858,17 @@ public class BenchmarkScore extends AbstractMojo {
         ResultFile resultFile = new ResultFile(fileToParse);
         TestSuiteResults tr = null;
 
-        List<Reader> readers = new ArrayList<>();
-        readers.add(new HorusecReader());
-        readers.add(new InsiderReader());
-        readers.add(new ShiftLeftScanReader());
-        readers.add(new WapitiJsonReader());
-        readers.add(new ZapJsonReader());
-
-        Optional<Reader> reader = readers.stream().filter(r -> r.canRead(resultFile)).findAny();
+        Optional<Reader> reader =
+                Reader.allReaders().stream().filter(r -> r.canRead(resultFile)).findAny();
 
         if (reader.isPresent()) {
             tr = reader.get().parse(resultFile);
         }
 
         if (tr == null) {
-            tr = parse(resultFile);
+            if (resultFile.filename().endsWith(".fpr")) {
+                tr = fortifyReader(resultFile);
+            }
         }
 
         // If we have results, see if the version # is in the results file name.
@@ -953,271 +891,53 @@ public class BenchmarkScore extends AbstractMojo {
         return tr;
     }
 
-    private static TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr = null;
+    private static TestSuiteResults fortifyReader(ResultFile resultFile) throws Exception {
+        // resultFile.filename().endsWith(".fpr")
 
-        if (resultFile.filename().endsWith(".csv")) {
-            String line1 = resultFile.line(0);
-            if (line1.contains("CheckerKey") && line1.contains("LastDetectionURL")) {
-                tr = new SeekerReader().parse(resultFile.file());
-            } else if (line1.contains("CWE") && line1.contains("URL")) {
-                tr = new CheckmarxIASTReader().parse(resultFile.file());
-            } else
-                System.out.println(
-                        "Error: No matching parser found for CSV file: " + resultFile.filename());
-        } else if (resultFile.filename().endsWith(".ozasmt")) {
-            tr = new AppScanSourceReader().parse(resultFile.file());
-        } else if (resultFile.filename().endsWith(".faast")) {
-            tr = new FaastReader().parse(resultFile.file());
-        } else if (resultFile.filename().endsWith(".json")) {
+        TestSuiteResults tr;
+        // .fpr files are really .zip files. So we have to extract the .fvdl file out of it to
+        // process it
+        Path path = Paths.get(resultFile.file().getPath());
+        FileSystem fileSystem = FileSystems.newFileSystem(path, (ClassLoader) null);
+        File outputFile = File.createTempFile(resultFile.filename(), ".fvdl");
+        Path source = fileSystem.getPath("audit.fvdl");
+        Files.copy(source, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        tr = new FortifyReader().parse(new ResultFile(outputFile));
+        outputFile.delete();
 
-            String line2 = resultFile.line(1);
-            if (line2 != null && (line2.contains("Coverity") || line2.contains("formatVersion"))) {
-                tr = new CoverityReader().parse(resultFile.file());
-            } else if (line2 != null && line2.contains("Vendor") && line2.contains("Checkmarx")) {
-                tr = new CheckmarxESReader().parse(resultFile.file());
-            } else { // Handle JSON where we have to look for a specific node to identify the tool
-                // type
+        // Check to see if the results are regular Fortify or Fortify OnDemand results
+        // To check, you have to look at the filtertemplate.xml file inside the .fpr archive
+        // and see if that file contains: "Fortify-FOD-Template"
+        outputFile = File.createTempFile(resultFile.filename() + "-filtertemplate", ".xml");
+        source = fileSystem.getPath("filtertemplate.xml");
 
-                JSONObject jsonObj = new JSONObject(resultFile.content());
-
-                if (NJSScanReader.isNJSScanReport(jsonObj)) {
-                    tr = NJSScanReader.parse(jsonObj);
-
-                } else {
-                    try {
-                        jsonObj.getJSONArray(
-                                "results"); // Throws JSONException if this Node not found.
-                        tr = new SemgrepReader().parse(jsonObj);
-                    } catch (JSONException e) {
-
-                        // Note: Each of the reenchmarkScore.TESTCASENAMEing try blocks is nested
-                        // under the one above, but
-                        // we shown them inline as they would get too deep otherwise
-                        try {
-                            // SonarQube has two different JSON formats, one for standard issues and
-                            // another for 'hotspots' which are security issues. Both are handled by
-                            // the same parser for SonarQube.
-                            jsonObj.getJSONArray("issues");
-                            tr = new SonarQubeJsonReader().parse(resultFile.file());
-                        } catch (JSONException e2) {
-
-                            try {
-                                jsonObj.getJSONArray("hotspots");
-                                tr = new SonarQubeJsonReader().parse(resultFile.file());
-                            } catch (JSONException e3) {
-
-                                try {
-                                    jsonObj.getJSONArray("issue_events");
-                                    tr = new BurpJsonReader().parse(resultFile.file());
-
-                                    // This is the final catch that says we couldn't find a matching
-                                    // parser
-                                } catch (JSONException e4) {
-                                    System.out.println(
-                                            "Error: No matching parser found for JSON file: "
-                                                    + resultFile.filename());
-                                }
-                            } // end catch SonarQubeJsonReader - hotspots
-                        } // end catch SonarQubeJsonReader - issues
-                    } // end catch SemgrepReader
-                } // end else
-            }
-        } else if (resultFile.filename().endsWith(".sarif")) {
-            // CodeQL results and LGTM results both have the same extension .sarif
-            // But only the LGTM results have "semmle.sourceLanguage" as a key in ["run.properties"]
-
-            try {
-                // So we simply try the LGTMReader first, and if that fails, we try CodeQL.
-                tr =
-                        new LGTMReader()
-                                .parse(
-                                        resultFile
-                                                .file()); // If "semmle.sourceLanguage" is available
-                // set
-                // the LGTMReader
-            } catch (JSONException e) {
-                tr =
-                        new CodeQLReader()
-                                .parse(resultFile.file()); // If "semmle.sourceLanguage" is not
-                // available
-                // set the CodeQLReader
-            }
-        } else if (resultFile.filename().endsWith(".threadfix")) {
-            tr = new KiuwanReader().parse(resultFile.file());
-        } else if (resultFile.filename().endsWith(".txt")) {
-            String line1 = resultFile.line(0);
-            if (line1.startsWith("Possible ")) {
-                tr = new SourceMeterReader().parse(resultFile.file());
-            }
-        } else if (resultFile.filename().endsWith(".xml")) {
-
-            // Handle XML results files where the 1st or 2nd line indicates the tool type
-
-            String line1 = resultFile.line(0); // line1 is frequently like: <?xml version="1.0"?>
-            String line2 = resultFile.line(1);
-            String line4;
-
-            if (line2 != null && line2.startsWith("  <ProjectName>")) {
-                tr = new ThunderScanReader().parse(resultFile.file());
-            } else if (line2 != null && line2.startsWith("<pmd")) {
-                tr = new PMDReader().parse(resultFile.file());
-            } else if (line2 != null && line2.toLowerCase().startsWith("<castaip")) {
-                tr = new CASTAIPReader().parse(resultFile.file());
-            } else if (line2 != null && line2.startsWith("<w3af-run")) {
-                tr = new W3AFReader().parse(resultFile.file());
-            } else if (line2 != null && line2.startsWith("<FusionLiteInsight")) {
-                tr = new FusionLiteInsightReader().parse(resultFile.file());
-            } else if (line2 != null && line2.startsWith("<XanitizerFindingsList")) {
-                tr = new XanitizerReader().parse(resultFile.file());
-            } else if (line2 != null && line2.startsWith("<BugCollection")) {
-                tr = new FindbugsReader().parse(resultFile.file());
-
-                // change the name of the tool if the filename contains findsecbugs
-                if (resultFile.file().getName().contains("findsecbugs")) {
-                    if (tr.getToolName().startsWith("Find")) {
-                        tr.setTool("FBwFindSecBugs");
-                    } else {
-                        tr.setTool("SBwFindSecBugs");
-                    }
-                }
-            } else if (line2 != null && line2.startsWith("<ResultsSession")) {
-                tr = new ParasoftReader().parse(resultFile.file());
-            } else if (line2 != null && line2.startsWith("<detailedreport")) {
-                tr = new VeracodeReader().parse(resultFile.file());
-            } else if (line1.startsWith("<testsuites name=\"")) {
-                tr = new CrashtestReader().parse(resultFile.file());
-            } else if (line1.startsWith("<total") || line1.startsWith("<p>")) {
-                tr = new SonarQubeReader().parse(resultFile.file());
-            } else if (line1.contains("<OWASPZAPReport")
-                    || (line2 != null && line2.contains("<OWASPZAPReport"))) {
-                tr = new ZapReader().parse(resultFile.file());
-            } else if (line2 != null && line2.startsWith("<CxXMLResults")) {
-                tr = new CheckmarxReader().parse(resultFile.file());
-            } else if (line2 != null && line2.contains("Arachni")) {
-                tr = new ArachniReader().parse(resultFile.file());
-            } else if (line2 != null
-                    && (line2.startsWith("<analysisResult")
-                            || line2.startsWith("<analysisReportResult"))) {
-                tr = new JuliaReader().parse(resultFile.file());
-            } else if (line2 != null && line2.startsWith("<CodeIssueCollection")) {
-                tr = new VisualCodeGrepperReader().parse(resultFile.file());
-            } else if ((line4 = resultFile.line(4)) != null && line4.contains("Wapiti")) {
-                tr = new WapitiReader().parse(resultFile.file());
-            } else { // Handle XML where we have to look for a specific node to identify the tool
-                // type
-
-                Document doc = getXMLDocument(resultFile.file());
-                Node root = doc.getDocumentElement();
-                String nodeName = root.getNodeName();
-
-                if (nodeName.equals("ScanGroup") || nodeName.equals("acunetix-360")) {
-                    tr = new AcunetixReader().parse(root);
-                } else if (nodeName.equals("XmlReport")) {
-                    tr = new AppScanDynamicReader().parse(root);
-                } else if (nodeName.equals("xml-report")) {
-                    // For Appscan, this node has name="AppScan Report" and technology="SAST" or
-                    // "DAST"
-                    String name = Reader.getAttributeValue("name", root);
-                    if ("AppScan Report".equals(name)) {
-                        String tech = Reader.getAttributeValue("technology", root);
-                        if ("SAST".equals(tech)) {
-                            tr = new AppScanSourceReader2().parse(resultFile.file());
-                        } else if ("DAST".equals(tech)) {
-                            tr = new AppScanDynamicReader2().parse(resultFile.file());
-                        } else
-                            System.out.println(
-                                    "Found AppScan Report with unfamiliar technology type: "
-                                            + tech);
-                    } else
-                        System.out.println(
-                                "Found xml-report that was expected to have a name 'AppScan Report "
-                                        + " but had name: "
-                                        + name);
-                } else if (nodeName.equals("issues")) {
-                    tr = new BurpReader().parse(resultFile.file(), root);
-                } else if (nodeName.equals("netsparker")) {
-                    tr = new NetsparkerReader().parse(root);
-                } else if (nodeName.equals("noisycricket")) {
-                    tr = new NoisyCricketReader().parse(root);
-                } else if (nodeName.equals("VulnSummary")) {
-                    tr = new Rapid7Reader().parse(root);
-                } else if (nodeName.equals("Report")) {
-                    tr = new SnappyTickReader().parse(root);
-                } else if (nodeName.equals("Scan")) {
-                    tr = new WebInspectReader().parse(root);
-                } else if (nodeName.equals("WAS_SCAN_REPORT")) {
-                    tr = new QualysWASReader().parse(resultFile.file(), root);
-                } else
-                    System.out.println(
-                            "Error: No matching parser found for XML file: "
-                                    + resultFile.filename());
-            } // end else
-        } // end if endsWith ".xml"
-        else if (resultFile.filename().endsWith(".fpr")) {
-
-            // .fpr files are really .zip files. So we have to extract the .fvdl file out of it to
-            // process it
-            Path path = Paths.get(resultFile.file().getPath());
-            FileSystem fileSystem = FileSystems.newFileSystem(path, (ClassLoader) null);
-            File outputFile = File.createTempFile(resultFile.filename(), ".fvdl");
-            Path source = fileSystem.getPath("audit.fvdl");
+        // In older versions of Fortify, like 4.1, the filtertemplate.xml file doesn't exist
+        // So only check it if it exists
+        try {
             Files.copy(source, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            tr = FortifyReader.parse(outputFile);
-            outputFile.delete();
 
-            // Check to see if the results are regular Fortify or Fortify OnDemand results
-            // To check, you have to look at the filtertemplate.xml file inside the .fpr archive
-            // and see if that file contains: "Fortify-FOD-Template"
-            outputFile = File.createTempFile(resultFile.filename() + "-filtertemplate", ".xml");
-            source = fileSystem.getPath("filtertemplate.xml");
-
-            // In older versions of Fortify, like 4.1, the filtertemplate.xml file doesn't exist
-            // So only check it if it exists
+            BufferedReader br = new BufferedReader(new FileReader(outputFile));
             try {
-                Files.copy(source, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                StringBuilder sb = new StringBuilder();
+                String line = br.readLine();
 
-                BufferedReader br = new BufferedReader(new FileReader(outputFile));
-                try {
-                    StringBuilder sb = new StringBuilder();
-                    String line = br.readLine();
-
-                    // Only read the first 3 lines and the answer is near the top of the file.
-                    int i = 1;
-                    while (line != null && i++ <= 3) {
-                        sb.append(line);
-                        line = br.readLine();
-                    }
-                    if (sb.indexOf("Fortify-FOD-") > -1) {
-                        tr.setTool(tr.getToolName() + "-OnDemand");
-                    }
-                } finally {
-                    br.close();
+                // Only read the first 3 lines and the answer is near the top of the file.
+                int i = 1;
+                while (line != null && i++ <= 3) {
+                    sb.append(line);
+                    line = br.readLine();
                 }
-            } catch (NoSuchFileException e) {
-                // Do nothing if the filtertemplate.xml file doesn't exist in the .fpr archive
+                if (sb.indexOf("Fortify-FOD-") > -1) {
+                    tr.setTool(tr.getToolName() + "-OnDemand");
+                }
             } finally {
-                outputFile.delete();
+                br.close();
             }
-        } else if (resultFile.filename().endsWith(".log")) {
-
-            String line1 = resultFile.line(0);
-            // line1 contains: Starting Contrast (for Java) or contrast:contrastAgent (for Node)
-            if (line1 != null && line1.toLowerCase().contains(" contrast")) {
-                tr = new ContrastReader().parse(resultFile.file());
-            } else
-                System.out.println(
-                        "Error: No matching parser found for .log file: " + resultFile.filename());
-        } else if (resultFile.filename().endsWith(".hcl")) {
-            tr = new HCLReader().parse(resultFile.file());
-        } else if (resultFile.filename().endsWith(".hlg")) {
-            tr = new HdivReader().parse(resultFile.file());
-        } else if (resultFile.filename().endsWith(".sl")) {
-            tr = new ShiftLeftReader().parse(resultFile.file());
-        } else
-            System.out.println(
-                    "Error: No matching parser found for file: " + resultFile.filename());
-
+        } catch (NoSuchFileException e) {
+            // Do nothing if the filtertemplate.xml file doesn't exist in the .fpr archive
+        } finally {
+            outputFile.delete();
+        }
         return tr;
     }
 
@@ -1907,20 +1627,5 @@ public class BenchmarkScore extends AbstractMojo {
     // test suite name.
     public static String fullTestSuiteName(String suite) {
         return ("Benchmark".equals(suite) ? "OWASP Benchmark" : suite);
-    }
-
-    private static Document getXMLDocument(File f) throws Exception {
-        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-        // Prevent XXE = Note, disabling DTDs entirely breaks the parsing of some XML files, like a
-        // Burp results file, so have to use the alternate defense.
-        // dbFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-        docBuilderFactory.setFeature(
-                "http://xml.org/sax/features/external-general-entities", false);
-        docBuilderFactory.setFeature(
-                "http://xml.org/sax/features/external-parameter-entities", false);
-        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
-        Document doc = docBuilder.parse(is);
-        return doc;
     }
 }

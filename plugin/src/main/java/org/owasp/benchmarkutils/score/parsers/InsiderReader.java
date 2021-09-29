@@ -23,6 +23,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -95,14 +96,14 @@ public class InsiderReader extends Reader {
 
         switch (cwe) {
             case "78":
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
             case "326":
             case "327":
-                return 327; // weak encryption DES
+                return CweNumber.BROKEN_CRYPTO;
             case "330":
-                return 330; // weak random
+                return CweNumber.WEAK_RANDOM;
             case "532":
-                return 532; // sensitive log
+                return CweNumber.SENSITIVE_LOGFILE;
 
             default:
                 System.out.println(

@@ -19,13 +19,21 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Node;
 
 public class WebInspectReader extends Reader {
 
-    public TestSuiteResults parse(Node root) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.xmlRootNodeName().equals("Scan");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("HP WebInspect", true, TestSuiteResults.ToolType.DAST);
 
@@ -34,11 +42,11 @@ public class WebInspectReader extends Reader {
         // <StartTime>9/11/2015 1:56:13
         // PM</StartTime><Duration>02:59:39.0365257</Duration><Issues><Issue>
 
-        String duration = getNamedChild("Duration", root).getTextContent();
+        String duration = getNamedChild("Duration", resultFile.xmlRootNode()).getTextContent();
         duration = duration.substring(0, duration.indexOf('.'));
         tr.setTime(duration);
 
-        Node issues = getNamedChild("Issues", root);
+        Node issues = getNamedChild("Issues", resultFile.xmlRootNode());
         List<Node> issueList = getNamedChildren("Issue", issues);
 
         for (Node issue : issueList) {
@@ -104,7 +112,7 @@ public class WebInspectReader extends Reader {
         return null;
     }
 
-    private static int cweLookup(String rule) {
+    private int cweLookup(String rule) {
         switch (rule) {
             case "810":
                 return 0000; // Poor Error Handling: Unhandled Exception

@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -81,7 +82,6 @@ public class HorusecReader extends Reader {
 
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
                 tcr.setNumber(testNumber(filename));
-
                 tcr.setCWE(figureCwe(vuln));
             }
 
@@ -89,6 +89,7 @@ public class HorusecReader extends Reader {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return null;
     }
 
@@ -103,32 +104,32 @@ public class HorusecReader extends Reader {
 
         switch (cwe) {
             case "79":
-                return 79; // xss
+                return CweNumber.XSS;
             case "89":
-                return 89; // sql injection
+                return CweNumber.SQL_INJECTION;
             case "326":
             case "327":
-                return 327; // Broken or Risky Cryptographic Algorithm
+                return CweNumber.BROKEN_CRYPTO;
             case "328":
-                return 328; // weak hash
+                return CweNumber.REVERSIBLE_HASH;
             case "329":
-                return 329; // static initialization vector for crypto
+                return CweNumber.STATIC_CRYPTO_INIT;
             case "330":
-                return 330; // weak random
+                return CweNumber.WEAK_RANDOM;
             case "502":
                 if (category(details).equals("LDAP deserialization should be disabled")) {
-                    return 90; // LDAP injection
+                    return CweNumber.LDAP_INJECTION;
                 }
 
-                return 502; // insecure deserialization
+                return CweNumber.INSECURE_DESERIALIZATION;
             case "611":
-                return 611; // xml entity
+                return CweNumber.XML_ENTITIES;
             case "614":
-                return 614; // insecure cookie use
+                return CweNumber.INSECURE_COOKIE;
             case "643":
-                return 643; // xpath injection
+                return CweNumber.XPATH_INJECTION;
             case "649":
-                return 649; // obfuscation
+                return CweNumber.OBFUSCATION;
             default:
                 System.out.println(
                         "INFO: Found following CWE which we haven't seen before: " + cwe);

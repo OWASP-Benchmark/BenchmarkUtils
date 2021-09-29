@@ -17,24 +17,30 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class FaastReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
-        String content = new String(Files.readAllBytes(Paths.get(f.getPath())));
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".faast");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
+        String content = new String(Files.readAllBytes(Paths.get(resultFile.file().getPath())));
         JSONArray obj = new JSONArray(content);
         TestSuiteResults tr =
                 new TestSuiteResults(
                         "Faast - Telefonica Cyber Security", true, TestSuiteResults.ToolType.DAST);
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
         for (int i = 0; i < obj.length(); i++) {
             TestCaseResult tcr = parseFaastFinding(obj.getJSONObject(i));
             tr.put(tcr);

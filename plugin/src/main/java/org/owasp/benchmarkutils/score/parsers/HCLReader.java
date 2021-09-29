@@ -25,6 +25,7 @@ import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
@@ -32,15 +33,22 @@ public class HCLReader extends Reader {
 
     public static void main(String[] args) throws Exception {
         File f = new File("results/HCL-IAST.hcl");
+        ResultFile resultFile = new ResultFile(f);
         HCLReader cr = new HCLReader();
-        cr.parse(f);
+        cr.parse(resultFile);
     }
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".hcl");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("HCL IAST", true, TestSuiteResults.ToolType.IAST);
 
-        BufferedReader reader = new BufferedReader(new FileReader(f));
+        BufferedReader reader = new BufferedReader(new FileReader(resultFile.file()));
         String FIRSTLINEINDICATOR =
                 BenchmarkScore.TESTCASENAME
                         + StringUtils.repeat("0", BenchmarkScore.TESTIDLENGTH - 1)
@@ -107,7 +115,7 @@ public class HCLReader extends Reader {
         }
     }
 
-    private static int cweLookup(String rule) {
+    private int cweLookup(String rule) {
         switch (rule) {
             case "SessionManagement.Cookies":
                 return 614; // insecure cookie use

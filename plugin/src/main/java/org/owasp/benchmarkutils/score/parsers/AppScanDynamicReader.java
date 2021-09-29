@@ -21,14 +21,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Node;
 
 public class AppScanDynamicReader extends Reader {
 
-    public TestSuiteResults parse(Node root) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.xmlRootNodeName().equals("XmlReport");
+    }
 
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("IBM AppScan", true, TestSuiteResults.ToolType.DAST);
 
@@ -37,14 +44,14 @@ public class AppScanDynamicReader extends Reader {
         //        <ServicePack />
         //      </AppScanInfo>
 
-        Node info = getNamedChild("AppScanInfo", root);
+        Node info = getNamedChild("AppScanInfo", resultFile.xmlRootNode());
         Node version = getNamedChild("Version", info);
         tr.setToolVersion(version.getTextContent());
 
         //        <Summary>
         //        <TotalScanDuration>14:48:40.9394530</TotalScanDuration>
 
-        Node summary = getNamedChild("Summary", root);
+        Node summary = getNamedChild("Summary", resultFile.xmlRootNode());
         Node elapsed = getNamedChild("TotalScanDuration", summary);
         tr.setTime(calculateTime(elapsed.getTextContent()));
 
@@ -88,7 +95,7 @@ public class AppScanDynamicReader extends Reader {
 
         // parse issue types list into cweMap
         Map<String, Integer> cweMap = new HashMap<String, Integer>();
-        Node results = getNamedChild("Results", root);
+        Node results = getNamedChild("Results", resultFile.xmlRootNode());
         Node issueTypes = getNamedChild("IssueTypes", results);
         List<Node> issueTypeList = getNamedChildren("IssueType", issueTypes);
         for (Node issueType : issueTypeList) {
@@ -119,7 +126,7 @@ public class AppScanDynamicReader extends Reader {
     }
 
     //  <TotalScanDuration>14:48:40.9394530</TotalScanDuration>
-    private static String calculateTime(String elapsed) {
+    private String calculateTime(String elapsed) {
         try {
             String[] splits = elapsed.split("[\\.:]");
             int hours = Integer.parseInt(splits[0]);

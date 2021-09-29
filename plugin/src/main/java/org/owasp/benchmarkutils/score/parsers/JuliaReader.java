@@ -17,11 +17,11 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.io.FileInputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -31,12 +31,25 @@ import org.xml.sax.InputSource;
 
 public class JuliaReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
+    // refactoring resilient
+    // TODO: Update to handle package paths from other test suites
+    private final String prefixOfTest =
+            "org.owasp.benchmark.testcode." + BenchmarkScore.TESTCASENAME;
+
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && (resultFile.line(1).startsWith("<analysisResult")
+                        || resultFile.line(1).startsWith("<analysisReportResult"));
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         docBuilderFactory.setFeature(
                 "http://apache.org/xml/features/disallow-doctype-decl", true); // Prevent XXE
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr = new TestSuiteResults("Julia", true, TestSuiteResults.ToolType.SAST);
@@ -60,11 +73,6 @@ public class JuliaReader extends Reader {
 
         return tr;
     }
-
-    // refactoring resilient
-    // TODO: Update to handle package paths from other test suites
-    private static final String prefixOfTest =
-            "org.owasp.benchmark.testcode." + BenchmarkScore.TESTCASENAME;
 
     private TestCaseResult parseJuliaBug(Node n) {
         TestCaseResult tcr = new TestCaseResult();

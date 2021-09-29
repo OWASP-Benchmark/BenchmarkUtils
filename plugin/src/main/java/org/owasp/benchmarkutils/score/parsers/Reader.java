@@ -1,6 +1,7 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -10,13 +11,65 @@ import org.w3c.dom.NodeList;
 
 public abstract class Reader {
 
-    public boolean canRead(ResultFile resultFile) {
-        return false;
+    public static List<Reader> allReaders() {
+        return Arrays.asList(
+                new AcunetixReader(),
+                new AppScanDynamicReader(),
+                new AppScanDynamicReader2(),
+                new AppScanSourceReader(),
+                new AppScanSourceReader2(),
+                new ArachniReader(),
+                new BurpJsonReader(),
+                new BurpReader(),
+                new CASTAIPReader(),
+                new CheckmarxESReader(),
+                new CheckmarxIASTReader(),
+                new CheckmarxReader(),
+                new CodeQLReader(),
+                new ContrastReader(),
+                new CoverityReader(),
+                new CrashtestReader(),
+                new FaastReader(),
+                new FindbugsReader(),
+                //            new FortifyReader(),
+                new FusionLiteInsightReader(),
+                new HCLReader(),
+                new HdivReader(),
+                new HorusecReader(),
+                new InsiderReader(),
+                new JuliaReader(),
+                new KiuwanReader(),
+                new LGTMReader(),
+                new NetsparkerReader(),
+                new NJSScanReader(),
+                new NoisyCricketReader(),
+                new ParasoftReader(),
+                new PMDReader(),
+                new QualysWASReader(),
+                new Rapid7Reader(),
+                new SeekerReader(),
+                new SemgrepReader(),
+                new ShiftLeftReader(),
+                new ShiftLeftScanReader(),
+                new SnappyTickReader(),
+                new SonarQubeJsonReader(),
+                new SonarQubeReader(),
+                new SourceMeterReader(),
+                new ThunderScanReader(),
+                new VeracodeReader(),
+                new VisualCodeGrepperReader(),
+                new W3AFReader(),
+                new WapitiJsonReader(),
+                new WapitiReader(),
+                new WebInspectReader(),
+                new XanitizerReader(),
+                new ZapJsonReader(),
+                new ZapReader());
     }
 
-    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        return null;
-    }
+    public abstract boolean canRead(ResultFile resultFile);
+
+    public abstract TestSuiteResults parse(ResultFile resultFile) throws Exception;
 
     public static Node getNamedNode(String name, NodeList list) {
         for (int i = 0; i < list.getLength(); i++) {

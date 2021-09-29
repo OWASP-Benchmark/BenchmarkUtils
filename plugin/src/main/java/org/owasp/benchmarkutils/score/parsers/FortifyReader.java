@@ -17,12 +17,12 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -32,19 +32,25 @@ import org.xml.sax.InputSource;
 
 public class FortifyReader extends Reader {
 
-    public static TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return false;
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr = new TestSuiteResults("Fortify", true, TestSuiteResults.ToolType.SAST);
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.fpr),
         // set the compute time on the score card.
-        tr.setFortifyTime(f);
+        tr.setFortifyTime(resultFile.file());
 
         // FIXME: Is there any way to get the time from Fortify itself?
 
@@ -84,7 +90,7 @@ public class FortifyReader extends Reader {
         return tr;
     }
 
-    private static TestCaseResult parseFortifyVulnerability(Node vuln) {
+    private TestCaseResult parseFortifyVulnerability(Node vuln) {
         TestCaseResult tcr = new TestCaseResult();
 
         Node ci = getNamedNode("ClassInfo", vuln.getChildNodes());
@@ -159,7 +165,7 @@ public class FortifyReader extends Reader {
         return null;
     }
 
-    private static int cweLookup(String vtype, String subtype, Node unifiedNode) {
+    private int cweLookup(String vtype, String subtype, Node unifiedNode) {
 
         switch (vtype) {
             case "Access Control":
