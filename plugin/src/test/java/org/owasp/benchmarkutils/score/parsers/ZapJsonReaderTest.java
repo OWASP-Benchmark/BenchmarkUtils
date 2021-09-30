@@ -28,33 +28,33 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class FindbugsReaderTest extends ReaderTestBase {
+public class ZapJsonReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-findsecbugs-v1.11.0-105.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-zap-v2.10.0.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyFindbugsReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, FindbugsReader.class);
+    public void onlyZapJsonReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, ZapJsonReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        FindbugsReader reader = new FindbugsReader();
+        ZapJsonReader reader = new ZapJsonReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
         assertFalse(result.isCommercial());
-        assertEquals("SBwFindSecBugs", result.getToolName());
+        assertEquals("OWASP ZAP", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
     }
 }

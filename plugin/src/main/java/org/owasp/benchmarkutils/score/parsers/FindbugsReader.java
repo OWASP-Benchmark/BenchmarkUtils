@@ -17,6 +17,9 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import java.io.StringReader;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -27,17 +30,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-
 // This reader supports both FindBugs and FindSecBugs, since the later is simply a FindBugs plugin.
 public class FindbugsReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".xml")
-            && resultFile.line(1).startsWith("<BugCollection");
+                && resultFile.line(1).startsWith("<BugCollection");
     }
 
     @Override
@@ -50,7 +49,7 @@ public class FindbugsReader extends Reader {
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr =
-            new TestSuiteResults("FindBugs", false, TestSuiteResults.ToolType.SAST);
+                new TestSuiteResults("FindBugs", false, TestSuiteResults.ToolType.SAST);
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml), set the
         // compute time on the scorecard.
@@ -150,16 +149,16 @@ public class FindbugsReader extends Reader {
         // as defined in: findsecbugs-plugin/src/main/resources/metadata/findbugs.xml
         // All important bug patterns have their CWE ID associated in later versions (1.4.3+).
         switch (cat) {
-            // Cookies
+                // Cookies
             case "SECIC":
                 return 614; // insecure cookie use
             case "SECCU":
                 return 00; // servlet cookie
             case "SECHOC":
                 return 00; // HTTP Only not set on cookie - Information Leak / Disclosure
-            // (CWE-200)??
+                // (CWE-200)??
 
-            // Injections
+                // Injections
             case "SECSQLIHIB":
                 return 564; // Hibernate Injection, child of SQL Injection
             case "SECSQLIJDO":
@@ -171,23 +170,23 @@ public class FindbugsReader extends Reader {
             case "SECSQLIJDBC":
                 return 89;
 
-            // LDAP injection
+                // LDAP injection
             case "SECLDAPI":
                 return 90; // LDAP injection
 
-            // XPath injection
+                // XPath injection
             case "SECXPI":
                 return 643; // XPATH injection
 
-            // Command injection
+                // Command injection
             case "SECCI":
                 return 78; // command injection
 
-            // Weak random
+                // Weak random
             case "SECPR":
                 return 330; // weak random
 
-            // Weak encryption
+                // Weak encryption
             case "SECDU":
                 return 327; // weak encryption DES
             case "CIPINT":
@@ -197,17 +196,17 @@ public class FindbugsReader extends Reader {
             case "STAIV":
                 return 329; // static initialization vector for crypto
 
-            // Weak hash
+                // Weak hash
             case "SECWMD":
                 return 328; // weak hash
 
-            // Path traversal
+                // Path traversal
             case "SECPTO":
                 return 22; // path traversal
             case "SECPTI":
                 return 22; // path traversal
 
-            // XSS
+                // XSS
             case "SECXRW":
                 return 79; // XSS
             case "SECXSS1":
@@ -215,7 +214,7 @@ public class FindbugsReader extends Reader {
             case "SECXSS2":
                 return 79; // XSS
 
-            // XXE
+                // XXE
             case "SECXXEDOC":
                 return 611; // XXE
             case "SECXXEREAD":
@@ -223,7 +222,7 @@ public class FindbugsReader extends Reader {
             case "SECXXESAX":
                 return 611; // XXE
 
-            // Input sources
+                // Input sources
             case "SECSP":
                 return 00; // servlet parameter - not a vuln
             case "SECSH":
@@ -233,17 +232,17 @@ public class FindbugsReader extends Reader {
             case "SECSSQ":
                 return 00; // servlet query - not a vuln
 
-            // Technology detection
+                // Technology detection
             case "SECSC":
                 return 00; // found Spring endpoint - not a vuln
             case "SECJRS":
                 return 00; // JAX-RS Endpoint
 
-            // Configuration
+                // Configuration
             case "SECOPFP":
                 return 00; // Overly Permissive File Permissions
 
-            // Other
+                // Other
             case "SECHPP":
                 return 235; // HTTP Parameter Polution
             case "SECUNI":

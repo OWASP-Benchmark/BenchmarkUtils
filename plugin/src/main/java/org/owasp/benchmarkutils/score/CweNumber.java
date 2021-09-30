@@ -84,4 +84,7 @@ public class CweNumber {
      * Checking
      */
     public static int OBFUSCATION = 649;
+
+    /** CWE-1004: Sensitive Cookie Without 'HttpOnly' Flag */
+    public static int COOKIE_WITHOUT_HTTPONLY = 1004;
 }

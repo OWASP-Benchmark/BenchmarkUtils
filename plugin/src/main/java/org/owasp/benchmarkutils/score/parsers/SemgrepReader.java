@@ -28,7 +28,9 @@ public class SemgrepReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
-        return resultFile.isJson() && resultFile.json().has("results");
+        return resultFile.isJson()
+                && resultFile.json().has("results")
+                && resultFile.json().has("errors");
     }
 
     @Override
