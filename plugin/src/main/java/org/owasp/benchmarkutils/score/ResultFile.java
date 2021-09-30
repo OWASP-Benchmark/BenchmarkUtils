@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
+import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -72,6 +73,7 @@ public class ResultFile {
             docBuilderFactory.setFeature(
                 "http://xml.org/sax/features/external-parameter-entities", false);
             DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+            docBuilder.setErrorHandler(new DefaultHandler());
             InputSource is = new InputSource(new StringReader(this.content()));
             this.contentAsXml = docBuilder.parse(is);
         } catch (Exception ignored) {
