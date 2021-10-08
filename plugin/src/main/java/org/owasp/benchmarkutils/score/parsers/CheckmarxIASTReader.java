@@ -39,7 +39,7 @@ public class CheckmarxIASTReader extends Reader {
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr = new TestSuiteResults("CxIAST", true, TestSuiteResults.ToolType.IAST);
 
-        java.io.Reader inReader = new java.io.FileReader(resultFile.file());
+        java.io.Reader inReader = new java.io.StringReader(resultFile.content());
         Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(inReader);
         for (CSVRecord record : records) {
             String checkerKey = record.get("Vulnerability Type");
