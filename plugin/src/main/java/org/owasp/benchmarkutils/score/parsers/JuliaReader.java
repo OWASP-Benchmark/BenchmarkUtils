@@ -18,6 +18,7 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.io.FileInputStream;
+import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
@@ -49,7 +50,7 @@ public class JuliaReader extends Reader {
         docBuilderFactory.setFeature(
                 "http://apache.org/xml/features/disallow-doctype-decl", true); // Prevent XXE
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr = new TestSuiteResults("Julia", true, TestSuiteResults.ToolType.SAST);
