@@ -17,10 +17,6 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
@@ -29,33 +25,38 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class CheckmarxReaderTest extends ReaderTestBase {
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class HCLReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Checkmarx-v8.2.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2_HCL-IAST.hcl");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyCheckmarxReaderTestReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, CheckmarxReader.class);
+    public void onlyHCLReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, HCLReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        CheckmarxReader reader = new CheckmarxReader();
+        HCLReader reader = new HCLReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertEquals(TestSuiteResults.ToolType.IAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("Checkmarx CxSAST", result.getToolName());
+        assertEquals("HCL IAST", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
     }
 }

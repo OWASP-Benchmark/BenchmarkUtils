@@ -20,11 +20,13 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.StringReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -48,7 +50,7 @@ public class HCLReader extends Reader {
         TestSuiteResults tr =
                 new TestSuiteResults("HCL IAST", true, TestSuiteResults.ToolType.IAST);
 
-        BufferedReader reader = new BufferedReader(new FileReader(resultFile.file()));
+        BufferedReader reader = new BufferedReader(new StringReader(resultFile.content()));
         String FIRSTLINEINDICATOR =
                 BenchmarkScore.TESTCASENAME
                         + StringUtils.repeat("0", BenchmarkScore.TESTIDLENGTH - 1)
@@ -118,27 +120,27 @@ public class HCLReader extends Reader {
     private int cweLookup(String rule) {
         switch (rule) {
             case "SessionManagement.Cookies":
-                return 614; // insecure cookie use
+                return CweNumber.INSECURE_COOKIE;
             case "Injection.SQL":
-                return 89; // sql injection
+                return CweNumber.SQL_INJECTION;
             case "Injection.OS":
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
             case "Injection.LDAP":
-                return 90; // ldap injection
+                return CweNumber.LDAP_INJECTION;
             case "CrossSiteScripting.Reflected":
-                return 79; // xss
+                return CweNumber.XSS;
             case "Injection.XPath":
-                return 643; // xpath injection
+                return CweNumber.XPATH_INJECTION;
             case "PathTraversal":
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
             case "Cryptography.Mac":
-                return 328; // weak hash
+                return CweNumber.REVERSIBLE_HASH;
             case "Cryptography.PoorEntropy":
-                return 330; // weak random
+                return CweNumber.WEAK_RANDOM;
             case "Cryptography.Ciphers":
-                return 327; // weak encryption
+                return CweNumber.BROKEN_CRYPTO;
             case "Validation.Required":
-                return 501; // trust boundary
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
         }
         return 0;
     }
