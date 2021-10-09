@@ -20,6 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -118,12 +119,12 @@ public class CheckmarxESReader extends Reader {
     private int translate(int cwe) {
         switch (cwe) {
             case 77:
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
             case 36:
             case 23:
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
             case 338:
-                return 330; // weak random
+                return CweNumber.WEAK_RANDOM;
         }
         return cwe;
     }

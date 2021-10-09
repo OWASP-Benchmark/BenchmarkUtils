@@ -171,7 +171,7 @@ public class AppScanSourceReader2 extends Reader {
                 //			case "ErrorHandling.RevealDetails.Message" : return 00;
                 //			case "ErrorHandling.RevealDetails.StackTrace" : return 00;
             case "Injection.HttpResponseSplitting":
-                return 113;
+                return CweNumber.HTTP_RESPONSE_SPLITTING;
             case "Injection.LDAP":
                 return CweNumber.LDAP_INJECTION;
             case "Injection.OS":

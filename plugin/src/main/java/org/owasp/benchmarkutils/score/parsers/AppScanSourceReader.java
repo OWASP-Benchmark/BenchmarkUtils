@@ -152,11 +152,11 @@ public class AppScanSourceReader extends Reader {
             case "Vulnerability.Cryptography.PoorEntropy":
                 return CweNumber.WEAK_RANDOM;
             case "Vulnerability.Cryptography.????WeakHash":
-                return 328; // They don't have a weak hashing rule
+                return CweNumber.REVERSIBLE_HASH; // They don't have a weak hashing rule
                 //		case "Vulnerability.ErrorHandling.RevealDetails.Message" : return 00;
                 //		case "Vulnerability.ErrorHandling.RevealDetails.StackTrace" : return 00;
             case "Vulnerability.Injection.HttpResponseSplitting":
-                return 113;
+                return CweNumber.HTTP_RESPONSE_SPLITTING;
             case "Vulnerability.Injection.LDAP":
                 return CweNumber.LDAP_INJECTION;
             case "Vulnerability.Injection.OS":

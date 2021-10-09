@@ -46,6 +46,15 @@ public class CweNumber {
      */
     public static int LDAP_INJECTION = 90;
 
+    /**
+     * CWE-113: Improper Neutralization of CRLF Sequences in HTTP Headers ('HTTP Response
+     * Splitting')
+     */
+    public static int HTTP_RESPONSE_SPLITTING = 113;
+
+    /** CWE-134: Use of Externally-Controlled Format String */
+    public static int EXTERNALLY_CONTROLLED_STRING = 134;
+
     /** CWE-327: Use of a Broken or Risky Cryptographic Algorithm */
     public static int BROKEN_CRYPTO = 327;
 
@@ -57,6 +66,9 @@ public class CweNumber {
 
     /** CWE-330: Use of Insufficiently Random Values */
     public static int WEAK_RANDOM = 330;
+
+    /** CWE-352: Cross-Site Request Forgery (CSRF) */
+    public static int CSRF = 352;
 
     /** CWE-501: Trust Boundary Violation */
     public static int TRUST_BOUNDARY_VIOLATION = 501;

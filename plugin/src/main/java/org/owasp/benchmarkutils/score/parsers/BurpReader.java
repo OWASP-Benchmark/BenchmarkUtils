@@ -130,7 +130,7 @@ public class BurpReader extends Reader {
             case "2097936": // DOM-Based XSS (Probably want separate ID for this in the future)
                 return CweNumber.XSS;
             case "2098944":
-                return 352; // CSRF Vulnerability
+                return CweNumber.CSRF;
             case "3146240":
                 return 918; // External service interaction (DNS)
             case "4194560":

@@ -17,7 +17,6 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.FileInputStream;
 import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
