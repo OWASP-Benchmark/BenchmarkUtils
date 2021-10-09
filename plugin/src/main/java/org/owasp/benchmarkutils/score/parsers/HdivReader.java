@@ -20,6 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class HdivReader extends Reader {
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr = new TestSuiteResults("Hdiv", true, TestSuiteResults.ToolType.IAST);
 
-        BufferedReader reader = new BufferedReader(new FileReader(resultFile.file()));
+        BufferedReader reader = new BufferedReader(new StringReader(resultFile.content()));
         String firstLine = reader.readLine();
         String lastLine = "";
         String line = "";
