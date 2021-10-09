@@ -17,10 +17,11 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.FileInputStream;
+import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -43,7 +44,7 @@ public class VisualCodeGrepperReader extends Reader {
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr =
@@ -120,7 +121,7 @@ public class VisualCodeGrepperReader extends Reader {
         }
         if (cat.startsWith("Cipher.getInstance(")) {
             // Weak encryption
-            return 327;
+            return CweNumber.BROKEN_CRYPTO;
         } else if (cat.startsWith("Class Contains Public Variable: ")) {
             // Potential SQL Injection
             // return 89;
@@ -129,50 +130,43 @@ public class VisualCodeGrepperReader extends Reader {
         switch (cat) {
                 // Cookies
             case "Poor Input Validation":
-                return 614;
+                return CweNumber.INSECURE_COOKIE;
 
                 // Injections
             case "Potential SQL Injection":
-                return 89;
+                return CweNumber.SQL_INJECTION;
                 // case "Operation on Primitive Data Type" : return 89;
 
                 // Command injection
             case "java.lang.Runtime.exec Gets Path from Variable":
-                return 78;
+                return CweNumber.COMMAND_INJECTION;
 
                 // XPath Injection
             case "FileInputStream":
-                return 643;
             case "java.io.FileWriter":
-                return 643;
             case "java.io.FileReader":
-                return 643;
             case "FileStream Opened Without Exception Handling":
-                return 643;
+                return CweNumber.XPATH_INJECTION;
 
-                // Weak random
+            // Weak random
             case "java.util.Random":
-                return 330;
+                return CweNumber.WEAK_RANDOM;
 
                 // Path traversal
             case "java.io.File":
-                return 22;
             case "java.io.FileOutputStream":
-                return 22;
             case "getResourceAsStream":
-                return 22;
+                return CweNumber.PATH_TRAVERSAL;
 
-                // XSS
+            // XSS
             case "Potential XSS":
-                return 79;
+                return CweNumber.XSS;
 
                 // Trust Boundary Violation
             case "getParameterValues":
-                return 501;
             case "getParameterNames":
-                return 501;
             case "getParameter":
-                return 501;
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
 
             default:
                 return 00; // System.out.println( "Unknown vuln category for VisualCodeGrepper: " +
