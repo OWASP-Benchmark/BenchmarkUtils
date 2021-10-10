@@ -19,7 +19,6 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

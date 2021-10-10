@@ -148,7 +148,7 @@ public class VisualCodeGrepperReader extends Reader {
             case "FileStream Opened Without Exception Handling":
                 return CweNumber.XPATH_INJECTION;
 
-            // Weak random
+                // Weak random
             case "java.util.Random":
                 return CweNumber.WEAK_RANDOM;
 
@@ -158,7 +158,7 @@ public class VisualCodeGrepperReader extends Reader {
             case "getResourceAsStream":
                 return CweNumber.PATH_TRAVERSAL;
 
-            // XSS
+                // XSS
             case "Potential XSS":
                 return CweNumber.XSS;
 

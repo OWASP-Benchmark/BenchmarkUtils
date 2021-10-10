@@ -32,7 +32,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -898,46 +897,13 @@ public class BenchmarkScore extends AbstractMojo {
         // .fpr files are really .zip files. So we have to extract the .fvdl file out of it to
         // process it
         Path path = Paths.get(resultFile.file().getPath());
-        FileSystem fileSystem = FileSystems.newFileSystem(path, (ClassLoader) null);
+        FileSystem fileSystem = FileSystems.newFileSystem(path, null);
         File outputFile = File.createTempFile(resultFile.filename(), ".fvdl");
         Path source = fileSystem.getPath("audit.fvdl");
         Files.copy(source, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         tr = new FortifyReader().parse(new ResultFile(outputFile));
         outputFile.delete();
 
-        // Check to see if the results are regular Fortify or Fortify OnDemand results
-        // To check, you have to look at the filtertemplate.xml file inside the .fpr archive
-        // and see if that file contains: "Fortify-FOD-Template"
-        outputFile = File.createTempFile(resultFile.filename() + "-filtertemplate", ".xml");
-        source = fileSystem.getPath("filtertemplate.xml");
-
-        // In older versions of Fortify, like 4.1, the filtertemplate.xml file doesn't exist
-        // So only check it if it exists
-        try {
-            Files.copy(source, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-            BufferedReader br = new BufferedReader(new FileReader(outputFile));
-            try {
-                StringBuilder sb = new StringBuilder();
-                String line = br.readLine();
-
-                // Only read the first 3 lines and the answer is near the top of the file.
-                int i = 1;
-                while (line != null && i++ <= 3) {
-                    sb.append(line);
-                    line = br.readLine();
-                }
-                if (sb.indexOf("Fortify-FOD-") > -1) {
-                    tr.setTool(tr.getToolName() + "-OnDemand");
-                }
-            } finally {
-                br.close();
-            }
-        } catch (NoSuchFileException e) {
-            // Do nothing if the filtertemplate.xml file doesn't exist in the .fpr archive
-        } finally {
-            outputFile.delete();
-        }
         return tr;
     }
 

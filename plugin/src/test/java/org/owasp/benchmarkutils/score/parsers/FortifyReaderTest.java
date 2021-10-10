@@ -28,35 +28,35 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class KiuwanReaderTest extends ReaderTestBase {
+public class FortifyReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Kiuwan-20191012.threadfix");
+        resultFile =
+                TestHelper.resultFileOf("testfiles/Benchmark_1.2-Fortify20.20_2020Q1-1234.fpr");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyKiuwanReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, KiuwanReader.class);
+    public void onlyFortifyReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, FortifyReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        KiuwanReader reader = new KiuwanReader();
+        FortifyReader reader = new FortifyReader();
         TestSuiteResults result = reader.parse(resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("Kiuwan", result.getToolName());
-        assertEquals("some.version", result.getToolVersion());
-        assertEquals("01:23:45", result.getTime());
+        assertEquals("Fortify", result.getToolName());
+        assertEquals("0:20:34", result.getTime());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
     }
 }

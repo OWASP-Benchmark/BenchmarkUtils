@@ -17,6 +17,9 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
@@ -25,16 +28,14 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
 public class VisualCodeGrepperReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-visualcodegrepper-v2.2.0.xml");
+        resultFile =
+                TestHelper.resultFileOf("testfiles/Benchmark_1.2-visualcodegrepper-v2.2.0.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

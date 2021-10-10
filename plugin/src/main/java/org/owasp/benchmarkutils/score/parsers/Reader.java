@@ -48,7 +48,7 @@ public abstract class Reader {
                 new CrashtestReader(),
                 new FaastReader(),
                 new FindbugsReader(),
-                //            new FortifyReader(),
+                new FortifyReader(),
                 new FusionLiteInsightReader(),
                 new HCLReader(),
                 new HdivReader(),

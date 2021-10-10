@@ -55,6 +55,9 @@ public class CweNumber {
     /** CWE-134: Use of Externally-Controlled Format String */
     public static int EXTERNALLY_CONTROLLED_STRING = 134;
 
+    /** CWE-284: Improper Access Control */
+    public static int IMPROPER_ACCESS_CONTROL = 284;
+
     /** CWE-327: Use of a Broken or Risky Cryptographic Algorithm */
     public static int BROKEN_CRYPTO = 327;
 

@@ -1,13 +1,18 @@
 package org.owasp.benchmarkutils.score;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.json.JSONObject;
@@ -19,42 +24,42 @@ import org.xml.sax.helpers.DefaultHandler;
 public class ResultFile {
 
     private final List<String> linesContent = new ArrayList<>();
-    private final String rawContent;
+    private final byte[] rawContent;
+    private final String content;
     private final String filename;
     private final File originalFile;
     private JSONObject contentAsJson;
     private Document contentAsXml;
 
     public ResultFile(File fileToParse) throws IOException {
-        readFileContent(fileToParse);
-        originalFile = fileToParse;
-        rawContent = String.join("", linesContent);
-        filename = fileToParse.getName();
-        parseJson();
-        parseXml();
+        this(fileToParse, readFileContent(fileToParse));
     }
 
-    public ResultFile(String fileToParse, String content) throws IOException {
-        rawContent = content;
+    public ResultFile(String filename, String content) throws IOException {
+        this(filename, content.getBytes());
+    }
+
+    public ResultFile(String filename, byte[] rawContent) throws IOException {
+        this(new File(filename), rawContent);
+    }
+
+    public ResultFile(File fileToParse, byte[] rawContent) throws IOException {
+        this.content = new String(rawContent, StandardCharsets.UTF_8);
+        this.rawContent = rawContent;
         linesContent.addAll(Arrays.asList(content.split("\n")));
-        originalFile = new File(fileToParse);
+        originalFile = fileToParse;
         filename = originalFile.getName();
         parseJson();
         parseXml();
     }
 
-    private void readFileContent(File fileToParse) throws IOException {
-        try (BufferedReader br = new BufferedReader(new FileReader(fileToParse))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                linesContent.add(line);
-            }
-        }
+    private static byte[] readFileContent(File fileToParse) throws IOException {
+        return Files.readAllBytes(Paths.get(fileToParse.getPath()));
     }
 
     private void parseJson() {
         try {
-            contentAsJson = new JSONObject(rawContent);
+            contentAsJson = new JSONObject(content);
         } catch (Exception ignored) {
             // No JSON
         }
@@ -64,8 +69,7 @@ public class ResultFile {
         try {
             DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
             // Prevent XXE = Note, disabling DTDs entirely breaks the parsing of some XML files,
-            // like a
-            // Burp results file, so have to use the alternate defense.
+            // like a Burp results file, so have to use the alternate defense.
             // dbFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             docBuilderFactory.setFeature(
                     "http://xml.org/sax/features/external-general-entities", false);
@@ -77,6 +81,7 @@ public class ResultFile {
             this.contentAsXml = docBuilder.parse(is);
         } catch (Exception ignored) {
             // No XML
+            ignored.printStackTrace();
         }
     }
 
@@ -93,7 +98,7 @@ public class ResultFile {
     }
 
     public String content() {
-        return rawContent;
+        return content;
     }
 
     public File file() {
@@ -126,5 +131,38 @@ public class ResultFile {
 
     public String xmlRootNodeName() {
         return xmlRootNode().getNodeName();
+    }
+
+    /**
+     * Extracts a file from a packed ResultFile.
+     *
+     * @return
+     */
+    public ResultFile extract(String zipPath) {
+        try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(rawContent))) {
+            ZipEntry entry = zipIn.getNextEntry();
+            while (entry != null) {
+                if (entry.getName().equals(zipPath)) {
+                    return readFileFromZip(zipPath, zipIn);
+                }
+                zipIn.closeEntry();
+                entry = zipIn.getNextEntry();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        throw new RuntimeException("ZipFile does not contain " + zipPath);
+    }
+
+    private ResultFile readFileFromZip(String zipPath, ZipInputStream zipIn) throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            final byte[] buf = new byte[1024];
+            int length;
+            while ((length = zipIn.read(buf, 0, buf.length)) >= 0) {
+                bos.write(buf, 0, length);
+            }
+            return new ResultFile(zipPath, bos.toByteArray());
+        }
     }
 }
