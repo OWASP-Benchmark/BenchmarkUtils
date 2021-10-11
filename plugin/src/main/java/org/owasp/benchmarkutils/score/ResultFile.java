@@ -22,7 +22,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class ResultFile {
-
     private final List<String> linesContent = new ArrayList<>();
     private final byte[] rawContent;
     private final String content;
@@ -44,13 +43,23 @@ public class ResultFile {
     }
 
     public ResultFile(File fileToParse, byte[] rawContent) throws IOException {
-        this.content = new String(rawContent, StandardCharsets.UTF_8);
         this.rawContent = rawContent;
+        this.content = removeBom(rawContent);
         linesContent.addAll(Arrays.asList(content.split("\n")));
         originalFile = fileToParse;
         filename = originalFile.getName();
         parseJson();
         parseXml();
+    }
+
+    private String removeBom(byte[] rawContent) {
+        String s = new String(rawContent, StandardCharsets.UTF_8);
+
+        if (s.startsWith("\uFEFF")) {
+            return s.substring(1);
+        }
+
+        return s;
     }
 
     private static byte[] readFileContent(File fileToParse) throws IOException {
@@ -81,7 +90,6 @@ public class ResultFile {
             this.contentAsXml = docBuilder.parse(is);
         } catch (Exception ignored) {
             // No XML
-            ignored.printStackTrace();
         }
     }
 
