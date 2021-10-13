@@ -39,7 +39,11 @@ public class ArachniReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
-        return resultFile.filename().endsWith(".xml") && resultFile.line(1).contains("Arachni");
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.line(1).contains("Arachni")
+                && !resultFile
+                        .xmlRootNodeName()
+                        .equals("BugCollection"); // Ignore Find(Sec)Bugs files
     }
 
     //    <report xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
