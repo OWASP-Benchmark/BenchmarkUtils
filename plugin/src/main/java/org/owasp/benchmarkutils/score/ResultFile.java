@@ -22,9 +22,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class ResultFile {
-    private final List<String> linesContent = new ArrayList<>();
     private final byte[] rawContent;
-    private final String content;
     private final String filename;
     private final File originalFile;
     private JSONObject contentAsJson;
@@ -44,8 +42,6 @@ public class ResultFile {
 
     public ResultFile(File fileToParse, byte[] rawContent) throws IOException {
         this.rawContent = rawContent;
-        this.content = removeBom(rawContent);
-        linesContent.addAll(Arrays.asList(content.split("\n")));
         originalFile = fileToParse;
         filename = originalFile.getName();
         parseJson();
@@ -68,7 +64,7 @@ public class ResultFile {
 
     private void parseJson() {
         try {
-            contentAsJson = new JSONObject(content);
+            contentAsJson = new JSONObject(removeBom(rawContent));
         } catch (Exception ignored) {
             // No JSON
         }
@@ -101,12 +97,16 @@ public class ResultFile {
         return contentAsJson != null;
     }
 
+    public boolean isXml() {
+        return contentAsXml != null;
+    }
+
     public JSONObject json() {
         return contentAsJson;
     }
 
     public String content() {
-        return content;
+        return removeBom(rawContent);
     }
 
     public File file() {
@@ -118,15 +118,17 @@ public class ResultFile {
      * have as many lines.
      */
     public String line(int lineNum) {
-        if (lineNum >= linesContent.size()) {
+        List<String> lines = Arrays.asList(removeBom(rawContent).split("\n"));
+
+        if (lineNum >= lines.size()) {
             return "";
         }
 
-        return linesContent.get(lineNum);
+        return lines.get(lineNum);
     }
 
     public List<String> lines() {
-        return linesContent;
+        return new ArrayList<>();
     }
 
     public Document xml() {
@@ -138,7 +140,7 @@ public class ResultFile {
     }
 
     public String xmlRootNodeName() {
-        return xmlRootNode().getNodeName();
+        return isXml() ? xmlRootNode().getNodeName() : "";
     }
 
     /**
