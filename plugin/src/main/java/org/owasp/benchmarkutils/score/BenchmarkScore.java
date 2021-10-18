@@ -1216,7 +1216,7 @@ public class BenchmarkScore extends AbstractMojo {
             for (int i = 0; i <= lineNum; i++) {
                 line = br.readLine();
             }
-            while (line.length() == 0) { // Skip empty lines
+            while (line != null && line.length() == 0) { // Skip empty lines
                 line = br.readLine();
             }
             return line;
