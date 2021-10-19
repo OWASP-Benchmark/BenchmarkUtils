@@ -38,6 +38,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -61,6 +62,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 
 @Mojo(name = "run-crawler", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
 public class BenchmarkCrawler extends AbstractMojo {
+
+    public static String proxyHost, proxyPort;
 
     @Parameter(property = "crawlerFile")
     String pluginFilenameParam;
@@ -191,9 +194,22 @@ public class BenchmarkCrawler extends AbstractMojo {
         SSLConnectionSocketFactory connectionFactory =
                 new SSLConnectionSocketFactory(sslContext, allowAllHosts);
 
-        // finally create the HttpClient using HttpClient factory methods and assign the SSL Socket
-        // Factory
-        return HttpClients.custom().setSSLSocketFactory(connectionFactory).build();
+        // Set Proxy settings
+        HttpHost httpHost = null;
+        if ((proxyHost = System.getProperty("proxyHost")) != null
+                && (proxyPort = System.getProperty("proxyPort")) != null) {
+            httpHost = new HttpHost(proxyHost, Integer.parseInt(proxyPort));
+            // finally create the HttpClient using HttpClient factory methods and assign the SSL
+            // Socket Factory and assign the setProxy
+            return HttpClients.custom()
+                    .setSSLSocketFactory(connectionFactory)
+                    .setProxy(httpHost)
+                    .build();
+        } else {
+            // finally create the HttpClient using HttpClient factory methods and assign the SSL
+            // Socket Factory
+            return HttpClients.custom().setSSLSocketFactory(connectionFactory).build();
+        }
     }
 
     /**
