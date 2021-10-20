@@ -32,7 +32,8 @@ public class SonarQubeJsonReader extends Reader {
         // another for 'hotspots' which are security issues. Both are handled by
         // the same parser for SonarQube.
         return resultFile.isJson()
-                && (resultFile.json().has("hotspots") || resultFile.json().has("issues"));
+                && (resultFile.json().has("hotspots") || resultFile.json().has("issues"))
+                && !resultFile.json().has("type"); // Ignore Coverty results
     }
 
     @Override
