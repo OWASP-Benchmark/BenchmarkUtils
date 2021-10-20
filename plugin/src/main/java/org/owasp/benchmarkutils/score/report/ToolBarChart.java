@@ -58,7 +58,7 @@ public class ToolBarChart extends ScatterPlot {
         NumberAxis rangeAxis = (NumberAxis) xyplot.getRangeAxis();
 
         rangeAxis.setRange(0, 100);
-        rangeAxis.setNumberFormatOverride(pctFormat);
+        rangeAxis.setNumberFormatOverride(TABLE_PCT_FORMAT);
         rangeAxis.setTickLabelPaint(Color.decode("#666666"));
         rangeAxis.setMinorTickCount(5);
         rangeAxis.setTickUnit(new NumberTickUnit(10));

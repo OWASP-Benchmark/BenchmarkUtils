@@ -890,23 +890,6 @@ public class BenchmarkScore extends AbstractMojo {
         return tr;
     }
 
-    private static TestSuiteResults fortifyReader(ResultFile resultFile) throws Exception {
-        // resultFile.filename().endsWith(".fpr")
-
-        TestSuiteResults tr;
-        // .fpr files are really .zip files. So we have to extract the .fvdl file out of it to
-        // process it
-        Path path = Paths.get(resultFile.file().getPath());
-        FileSystem fileSystem = FileSystems.newFileSystem(path, null);
-        File outputFile = File.createTempFile(resultFile.filename(), ".fvdl");
-        Path source = fileSystem.getPath("audit.fvdl");
-        Files.copy(source, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        tr = new FortifyReader().parse(new ResultFile(outputFile));
-        outputFile.delete();
-
-        return tr;
-    }
-
     /**
      * Go through each expected result, and figure out if this tool actually passed or not. This
      * updates the expected results to reflect what passed/failed.

@@ -33,7 +33,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
@@ -48,17 +51,32 @@ import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.chart.ui.TextAnchor;
 
+/**
+ * This is the base plotting class used to create a scorecard page with a scorecard chart on it.
+ * Various classes extend this to create the Home page, tool specific pages, and vuln specific
+ * pages.
+ */
 public class ScatterPlot {
+
+    // Used for % format in Bar Charts
+    static final DecimalFormat TABLE_PCT_FORMAT = new DecimalFormat("0'%'");
+
+    // Used for decimal format for scores in the Key (on the right)
+    static final DecimalFormat KEY_DECIMAL_FORMAT = new DecimalFormat("#0.0");
 
     // This variable is directly accessed by ScatterHome.java
     JFreeChart chart = null;
     static final StandardChartTheme theme = initializeTheme();
-    static final DecimalFormat pctFormat = new DecimalFormat("0'%'");
+
+    // These two are used in the far right of the generated charts
     static final int COLUMN_1_OFFSET = 60; // Used to line up the overall score per tool/category
     static final int COLUMN_2_OFFSET = 66; // Used to line up the (TPR - FPR) column
     static final Stroke dashed =
             new BasicStroke(
                     1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {6, 3}, 0);
+
+    // Instance vars
+    char averageLabel;
 
     public static StandardChartTheme initializeTheme() {
         String fontName = "Arial";
@@ -84,7 +102,7 @@ public class ScatterPlot {
         NumberAxis domainAxis = (NumberAxis) xyplot.getDomainAxis();
 
         rangeAxis.setRange(-9.99, 109.99);
-        rangeAxis.setNumberFormatOverride(pctFormat);
+        rangeAxis.setNumberFormatOverride(TABLE_PCT_FORMAT);
         rangeAxis.setTickLabelPaint(Color.decode("#666666"));
         rangeAxis.setMinorTickCount(5);
         rangeAxis.setTickUnit(new NumberTickUnit(10));
@@ -95,7 +113,7 @@ public class ScatterPlot {
         rangeAxis.setUpperMargin(10);
 
         domainAxis.setRange(-5, 175);
-        domainAxis.setNumberFormatOverride(pctFormat);
+        domainAxis.setNumberFormatOverride(TABLE_PCT_FORMAT);
         domainAxis.setTickLabelPaint(Color.decode("#666666"));
         domainAxis.setMinorTickCount(5);
         domainAxis.setTickUnit(new NumberTickUnit(10));
@@ -129,6 +147,160 @@ public class ScatterPlot {
         makeTriangle(xyplot, triangleLocation, grey);
 
         makeGuessingLine(xyplot);
+    }
+
+    /**
+     * Sort the comma separated elements of the supplied string.
+     *
+     * @param value - The string to sort.
+     * @return A new comma separated string with the items in it in alphabetical order.
+     */
+    static String sort(String value) {
+        String[] parts = value.split(",");
+        Arrays.sort(parts);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            sb.append(parts[i]);
+            if (i < parts.length - 1) sb.append(",");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Add the letter, from the key on the right, next to the plot point on the chart for for each
+     * tool to the supplied xyplot.
+     *
+     * @param map - A HashMap<Point2D, String> of plot points and the label to plot next to them.
+     * @param xyplot - The chart to make the Data labels on.
+     */
+    void addLabelsToPlotPoints(HashMap<Point2D, String> map, XYPlot xyplot) {
+        for (Entry<Point2D, String> e : map.entrySet()) {
+            if (e.getValue() != null) {
+                Point2D p = e.getKey();
+                String label = sort(e.getValue());
+                XYTextAnnotation annotation = new XYTextAnnotation(label, p.getX(), p.getY());
+                annotation.setTextAnchor(
+                        p.getX() < 3 ? TextAnchor.TOP_LEFT : TextAnchor.TOP_CENTER);
+                annotation.setBackgroundPaint(Color.white);
+                // set color of average plot point label to magenta(pink) and everything else to
+                // blue
+                if (label.toCharArray()[0] == averageLabel) {
+                    annotation.setPaint(Color.magenta);
+                } else {
+                    annotation.setPaint(Color.blue);
+                }
+                annotation.setFont(theme.getRegularFont());
+                xyplot.addAnnotation(annotation);
+            }
+        }
+    }
+
+    static void addLabelToKey(
+            final XYPlot xyplot, final double x, final double y, final int i, final String label) {
+
+        XYTextAnnotation stroketext1 = new XYTextAnnotation(label, x, y + i * -3.3);
+        stroketext1.setTextAnchor(TextAnchor.CENTER_LEFT);
+        stroketext1.setBackgroundPaint(Color.white);
+        stroketext1.setPaint(Color.black);
+        stroketext1.setFont(theme.getRegularFont());
+        xyplot.addAnnotation(stroketext1);
+    }
+
+    /**
+     * This method create an entry in the Key for a ScatterPlot.
+     *
+     * @param xyplot - The plot to add the entry to.
+     * @param color - The desired color for this entry in the key
+     * @param x - The x coordinate of the top left of the key
+     * @param y - The y coordinate of the top left of the key
+     * @param i - The row within the key for this entry (starting at 0)
+     * @param key - The key for this entry (e.g., A, B, C)
+     * @param entryName - The name of the entry to be added
+     * @param tpr - The true positive rate for this entry (range 0 - 1)
+     * @param fpr - The false positive rate for this entry (range 0 - 1)
+     */
+    static void addEntryToKey(
+            final XYPlot xyplot,
+            final Color color,
+            final double x,
+            final double y,
+            final int i,
+            final String key,
+            final String entryName,
+            final double tpr,
+            final double fpr) {
+        String TPRLabel = KEY_DECIMAL_FORMAT.format(tpr * 100);
+        if (TPRLabel.endsWith("0"))
+            TPRLabel =
+                    TPRLabel.substring(
+                            0, TPRLabel.length() - 2); // trim off .0 if it ends that way.
+        String FPRLabel = KEY_DECIMAL_FORMAT.format(fpr * 100);
+        if (FPRLabel.endsWith("0")) FPRLabel = FPRLabel.substring(0, FPRLabel.length() - 2);
+
+        //        final String TOOL = "\u25A0 " + label + r.getToolNameAndVersion();
+        final String LABEL = "\u25A0 " + key + entryName;
+        XYTextAnnotation toolLabel = new XYTextAnnotation(LABEL, x, y + i * -3.3);
+        toolLabel.setTextAnchor(TextAnchor.CENTER_LEFT);
+        toolLabel.setBackgroundPaint(Color.white);
+        toolLabel.setPaint(color);
+        toolLabel.setFont(theme.getRegularFont());
+        xyplot.addAnnotation(toolLabel);
+        final String SCORE = Math.round((tpr - fpr) * 100) + "%";
+        XYTextAnnotation scoreLabel =
+                new XYTextAnnotation(SCORE, x + COLUMN_1_OFFSET, y + i * -3.3);
+        scoreLabel.setTextAnchor(TextAnchor.CENTER_RIGHT);
+        scoreLabel.setBackgroundPaint(Color.white);
+        scoreLabel.setPaint(color);
+        scoreLabel.setFont(theme.getRegularFont());
+        xyplot.addAnnotation(scoreLabel);
+        final String CALC = "(" + TPRLabel + "-" + FPRLabel + ")";
+        XYTextAnnotation calcLabel = new XYTextAnnotation(CALC, x + COLUMN_2_OFFSET, y + i * -3.3);
+        calcLabel.setTextAnchor(TextAnchor.CENTER);
+        calcLabel.setBackgroundPaint(Color.white);
+        calcLabel.setPaint(Color.gray);
+        calcLabel.setFont(theme.getSmallFont());
+        xyplot.addAnnotation(calcLabel);
+    }
+
+    /**
+     * This method looks for multiple values that map to the same plot point. For any that do, it
+     * creates a comma separated list for the label, and removes the individual entries.
+     *
+     * @param map - A HashMap<Point2D, String> of plot points and the label to plot next to them.
+     */
+    static void dedupifyPlotPoints(HashMap<Point2D, String> map) {
+        for (Entry<Point2D, String> e1 : map.entrySet()) {
+            Entry<Point2D, String> e2 = getMatchingPlotPoints(map, e1);
+            while (e2 != null) {
+                StringBuilder label = new StringBuilder();
+                if (e1.getValue() != null) label.append(e1.getValue());
+                if (e1.getValue() != null && e2.getValue() != null) label.append(",");
+                if (e2.getValue() != null) label.append(e2.getValue());
+                e1.setValue(label.toString());
+                e2.setValue(null);
+                e2 = getMatchingPlotPoints(map, e1);
+            }
+        }
+    }
+
+    /**
+     * Returns a set of points, if any, that match the location of the provided point.
+     *
+     * @param map - The set of points to look through.
+     * @param e1 - The one to match against.
+     * @return A set of matching entry points, if any. Null otherwise.
+     */
+    static Entry<Point2D, String> getMatchingPlotPoints(
+            HashMap<Point2D, String> map, Entry<Point2D, String> e1) {
+        for (Entry<Point2D, String> e2 : map.entrySet()) {
+            Double xd = Math.abs(e1.getKey().getX() - e2.getKey().getX());
+            Double yd = Math.abs(e1.getKey().getY() - e2.getKey().getY());
+            boolean close = xd < 1 && yd < 3;
+            if (e1 != e2 && e1.getValue() != null && e2.getValue() != null && close) {
+                return e2;
+            }
+        }
+        return null;
     }
 
     public static void writeChartToFile(File f, JFreeChart chart, int height) throws IOException {
