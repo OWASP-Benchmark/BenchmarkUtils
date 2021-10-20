@@ -29,12 +29,9 @@ import java.io.PrintStream;
 import java.io.SequenceInputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -59,7 +56,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.Utils;
-import org.owasp.benchmarkutils.score.parsers.FortifyReader;
 import org.owasp.benchmarkutils.score.parsers.Reader;
 import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
@@ -862,12 +858,6 @@ public class BenchmarkScore extends AbstractMojo {
 
         if (reader.isPresent()) {
             tr = reader.get().parse(resultFile);
-        }
-
-        if (tr == null) {
-            if (resultFile.filename().endsWith(".fpr")) {
-                tr = fortifyReader(resultFile);
-            }
         }
 
         // If we have results, see if the version # is in the results file name.
