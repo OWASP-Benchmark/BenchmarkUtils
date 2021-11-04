@@ -17,8 +17,11 @@
  */
 package org.owasp.benchmarkutils.helpers;
 
-/** This class contains a single vulnerability category. */
-public class Category {
+/*
+ * This class contains a single vulnerability category. And is Comparable to other Category instances
+ * via its 'name' attribute (i.e., the long nname).
+ */
+public class Category implements Comparable<Category> {
 
     private final String id; // e.g., pathtraver
     private final String name; // e.g., Path Traversal
@@ -64,6 +67,12 @@ public class Category {
 
     public String toString() {
         return getId();
+    }
+
+    @Override
+    public int compareTo(Category cat) {
+        if (this.id.equals(cat)) return 0;
+        return this.name.compareTo(cat.name);
     }
 
     @Override
