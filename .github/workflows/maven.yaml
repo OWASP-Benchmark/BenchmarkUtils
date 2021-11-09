@@ -15,10 +15,10 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+        cache: maven
     - name: Build and Install shared library
       run: mvn install
     - name: Run Spotless check
       run: mvn spotless:check
     - name: Run unit tests
       run: mvn test
-
