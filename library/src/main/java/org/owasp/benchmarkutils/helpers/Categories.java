@@ -19,7 +19,10 @@ package org.owasp.benchmarkutils.helpers;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -39,6 +42,7 @@ public class Categories {
 
     private Map<String, Category> idToCategoryMap;
     private Map<String, Category> nameToCategoryMap;
+    private List<Category> allCategories; // Alpha Sorted by shortname, longname, CWE?
 
     private static Categories _instance; // The Singleton instance of this class
 
@@ -70,6 +74,7 @@ public class Categories {
             throws ParserConfigurationException, SAXException, IOException {
         Map<String, Category> idToCategoryMap = new HashMap<String, Category>();
         Map<String, Category> nameToCategoryMap = new HashMap<String, Category>();
+        List<Category> allCategories = new ArrayList<Category>();
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
@@ -111,11 +116,25 @@ public class Categories {
                 // facilitate matches
                 idToCategoryMap.put(id.toLowerCase(), category);
                 nameToCategoryMap.put(name.toLowerCase(), category);
+                allCategories.add(category);
             }
         }
 
         this.idToCategoryMap = idToCategoryMap;
         this.nameToCategoryMap = nameToCategoryMap;
+        Collections.sort(allCategories);
+        this.allCategories = allCategories;
+    }
+
+    // NOTE: All these methods return the actual internal objects so COULD be modified by the caller
+    // causing unexpected side affects.
+
+    /** Get all the categories defined. They are returned in order by LONG name. */
+    public static List<Category> getAllCategories() {
+        if (_instance == null) {
+            throw new NullPointerException("ERROR: Categories singleton not initialized");
+        }
+        return _instance.allCategories;
     }
 
     public static Category getById(String id) {
