@@ -51,7 +51,7 @@ public class AppScanDynamicReader2 extends Reader {
         String startingUrl = getNamedChild("starting-url", scanConfiguration).getTextContent();
 
         TestSuiteResults tr =
-                new TestSuiteResults("IBM AppScan Dynamic", true, TestSuiteResults.ToolType.DAST);
+                new TestSuiteResults("HCL AppScan Dynamic", true, TestSuiteResults.ToolType.DAST);
 
         // version is usually like 9.3.0 but sometimes like 9.3.0 iFix005. We trim off the part
         // after the space char.

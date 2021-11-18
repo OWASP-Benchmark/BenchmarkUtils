@@ -30,7 +30,7 @@ public class AppScanDynamicReader extends Reader {
     public TestSuiteResults parse(Node root) throws Exception {
 
         TestSuiteResults tr =
-                new TestSuiteResults("IBM AppScan", true, TestSuiteResults.ToolType.DAST);
+                new TestSuiteResults("HCL AppScan", true, TestSuiteResults.ToolType.DAST);
 
         //      <AppScanInfo>
         //        <Version>9.0.1.1</Version>
