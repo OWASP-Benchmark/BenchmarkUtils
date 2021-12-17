@@ -98,6 +98,7 @@ import org.owasp.benchmarkutils.score.parsers.ParasoftReader;
 import org.owasp.benchmarkutils.score.parsers.QualysWASReader;
 import org.owasp.benchmarkutils.score.parsers.Rapid7Reader;
 import org.owasp.benchmarkutils.score.parsers.Reader;
+import org.owasp.benchmarkutils.score.parsers.ReshiftReader;
 import org.owasp.benchmarkutils.score.parsers.SeekerReader;
 import org.owasp.benchmarkutils.score.parsers.SemgrepReader;
 import org.owasp.benchmarkutils.score.parsers.ShiftLeftReader;
@@ -922,6 +923,8 @@ public class BenchmarkScore extends AbstractMojo {
                 tr = new SeekerReader().parse(fileToParse);
             } else if (line1.contains("CWE") && line1.contains("URL")) {
                 tr = new CheckmarxIASTReader().parse(fileToParse);
+            } else if (line1.contains("Reshift Report")) {
+                tr = new ReshiftReader().parse(fileToParse);
             } else System.out.println("Error: No matching parser found for CSV file: " + filename);
         } else if (filename.endsWith(".ozasmt")) {
             tr = new AppScanSourceReader().parse(fileToParse);

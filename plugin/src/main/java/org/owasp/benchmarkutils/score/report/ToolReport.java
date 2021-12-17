@@ -166,14 +166,15 @@ public class ToolReport {
             String recallBonus = "";
             if (BenchmarkScore.includePrecision) {
                 CategoryResults currentCategoryResults = overallAveToolResults.get(categoryName);
-                String precisionBonus =
-                        "&nbsp;&nbsp;&nbsp;&nbsp;"; // default value hard spaces equal to
-                // triangle width
-                double precisionDiff = r.precision - currentCategoryResults.precision;
-                if (precisionDiff >= .05)
+                // default value hard spaces equal to triangle width
+                String precisionBonus = "&nbsp;&nbsp;&nbsp;&nbsp;";
+                // r.precision has range 0-1, but currentCategoryResults.precision is 1 to 100.
+                // FIXME: Fix precision calculations so they are the same units
+                double precisionDiff = 100 * r.precision - currentCategoryResults.precision;
+                if (precisionDiff >= 5)
                     precisionBonus =
                             "<span style=\"color: green\">&#9650;</span>"; // Green up triangle
-                else if (precisionDiff <= -.05) {
+                else if (precisionDiff <= -5) {
                     precisionBonus =
                             "<span style=\"color: red\">&#9660;</span>"; // Red down triangle
                 }
@@ -183,12 +184,12 @@ public class ToolReport {
                                 + new DecimalFormat("#0.00%").format(r.precision)
                                 + "</td>");
 
-                String fscoreBonus =
-                        "&nbsp;&nbsp;&nbsp;&nbsp;"; // default value hard spaces equal to
-                // triangle width
-                double fscoreDiff = r.fscore - currentCategoryResults.fscore;
-                if (fscoreDiff >= .05) fscoreBonus = "<span style=\"color: green\">&#9650;</span>";
-                else if (fscoreDiff <= -.05) {
+                // default value hard spaces equal to triangle width
+                String fscoreBonus = "&nbsp;&nbsp;&nbsp;&nbsp;";
+                // FIXME: Fix fscore calculations so they are the same units
+                double fscoreDiff = 100 * r.fscore - currentCategoryResults.fscore;
+                if (fscoreDiff >= 5) fscoreBonus = "<span style=\"color: green\">&#9650;</span>";
+                else if (fscoreDiff <= -5) {
                     fscoreBonus = "<span style=\"color: red\">&#9660;</span>";
                 }
                 sb.append(
@@ -197,11 +198,13 @@ public class ToolReport {
                                 + new DecimalFormat("#0.0000").format(r.fscore)
                                 + "</td>");
 
-                recallBonus = "&nbsp;&nbsp;&nbsp;&nbsp;"; // default value hard spaces equal to
-                // triangle width
-                double recallDiff = r.truePositiveRate - currentCategoryResults.truePositiveRate;
-                if (recallDiff >= .05) recallBonus = "<span style=\"color: green\">&#9650;</span>";
-                else if (recallDiff <= -.05) {
+                // default value hard spaces equal to triangle width
+                recallBonus = "&nbsp;&nbsp;&nbsp;&nbsp;";
+                // FIXME: Fix truePositiveRate calculations so they are the same units
+                double recallDiff =
+                        100 * r.truePositiveRate - currentCategoryResults.truePositiveRate;
+                if (recallDiff >= 5) recallBonus = "<span style=\"color: green\">&#9650;</span>";
+                else if (recallDiff <= -5) {
                     recallBonus = "<span style=\"color: red\">&#9660;</span>";
                 }
             }
