@@ -64,6 +64,7 @@ public abstract class Reader {
                 new PMDReader(),
                 new QualysWASReader(),
                 new Rapid7Reader(),
+                new ReshiftReader(),
                 new SeekerReader(),
                 new SemgrepReader(),
                 new ShiftLeftReader(),
