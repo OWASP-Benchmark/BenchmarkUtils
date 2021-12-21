@@ -18,10 +18,12 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.io.FileInputStream;
+import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -42,32 +44,13 @@ public class W3AFReader extends Reader {
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr = new TestSuiteResults("W3AF", true, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("W3AF", false, TestSuiteResults.ToolType.DAST);
         Node root = doc.getDocumentElement();
 
-        //        <w3af-run start="1497433673" start-long="Wed Jun 14 11:47:53 2017" version="2.1">
-        //           <w3af-version>w3af - Web Application Attack and Audit Framework
-        //              Version: 1.7.6
-        //              Revision: 27b1516a3f - 04 Apr 2017 20:45
-        //           </w3af-version>
-
-        //      Only start time available in XML. No stop time
-        //        String duration = getNamedChild("scantime", root ).getTextContent();
-        //        try {
-        //            long millis = Long.parseLong(duration);
-        //            tr.setTime( TestResults.formatTime( millis ) );
-        //        } catch( Exception e ) {
-        //            tr.setTime( duration );
-        //        }
-
-        Node versionNode = getNamedChild("w3af-version", root);
-        String version = versionNode.getTextContent();
-        version = version.substring(version.indexOf("Version: ") + "Version: ".length());
-        version = version.substring(0, version.indexOf('\n'));
-        tr.setToolVersion(version);
+        tr.setToolVersion(parseVersion(root));
 
         List<Node> issueList = getNamedChildren("vulnerability", root);
 
@@ -86,20 +69,14 @@ public class W3AFReader extends Reader {
         return tr;
     }
 
-    //        <vulnerability id="[483744]" method="GET" name="Cross site scripting vulnerability"
-    // plugin="xss" severity="Medium"
-    // url="https://localhost:8443/benchmark/xss-03/BenchmarkTest01657" var="BenchmarkTest01657">
-    //            <fix-effort>10</fix-effort>
-    //            <references>
-    //                <reference title="WASC"
-    // url="http://projects.webappsec.org/w/page/13246920/Cross%20Site%20Scripting"/>
-    //                <reference title="Secunia" url="http://secunia.com/advisories/9716/"/>
-    //                <reference title="OWASP"
-    // url="https://owasp.org/XSS_%28Cross_Site_Scripting%29_Prevention_Cheat_Sheet"/>
-    //            </references>
-    //        </vulnerability>
+    private String parseVersion(Node root) {
+        Node versionNode = getNamedChild("w3af-version", root);
+        String version = versionNode.getTextContent();
+        version = version.substring(version.indexOf("Version: ") + "Version: ".length());
+        return version.substring(0, version.indexOf('\n'));
+    }
 
-    private TestCaseResult parseW3AFIssue(Node flaw) throws Exception {
+    private TestCaseResult parseW3AFIssue(Node flaw) {
         TestCaseResult tcr = new TestCaseResult();
 
         String type = getAttributeValue("plugin", flaw);
@@ -143,7 +120,7 @@ public class W3AFReader extends Reader {
         }
         switch (name) {
             case "Cross site scripting vulnerability":
-                return 79; // xss
+                return CweNumber.XSS;
                 //        case "insecure-cookie"           :  return 614;  // insecure cookie use
                 //        case "sql-injection"             :  return 89;   // sql injection
                 //        case "cmd-injection"             :  return 78;   // command injection
