@@ -17,7 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.FileInputStream;
+import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -42,7 +42,7 @@ public class WapitiReader extends Reader {
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr = new TestSuiteResults("Wapiti", false, TestSuiteResults.ToolType.DAST);
@@ -51,6 +51,7 @@ public class WapitiReader extends Reader {
         Node root = doc.getDocumentElement();
         Node reportInfo = getNamedChild("report_infos", root);
         List<Node> infoList = getNamedChildren("info", reportInfo);
+
         for (Node info : infoList) {
             String name = getAttributeValue("name", info);
             if ("generatorVersion".equals(name)) {
