@@ -6,7 +6,7 @@
     <issues>
         <issue>
             <name>DOM-based Cross-Site Scripting (XSS) via input fields</name>
-            <remedy_code/>
+            <remedy_code />
             <severity>high</severity>
             <check>
                 <name>DOM XSS via input field</name>
@@ -17,10 +17,9 @@
             <cwe>79</cwe>
             <digest>0000000000</digest>
             <references>
-                <reference title="WASC" url="http://projects.webappsec.org/w/page/13246920/Cross%20Site%20Scripting"/>
-                <reference title="OWASP" url="https://www.owasp.org/index.php/DOM_Based_XSS"/>
-                <reference title="OWASP - Prevention"
-                           url="https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet"/>
+                <reference title="WASC" url="http://projects.webappsec.org/w/page/13246920/Cross%20Site%20Scripting" />
+                <reference title="OWASP" url="https://www.owasp.org/index.php/DOM_Based_XSS" />
+                <reference title="OWASP - Prevention" url="https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet" />
             </references>
             <vector>
                 <class>Arachni::Element::GenericDOM</class>
@@ -34,7 +33,7 @@
         </issue>
         <issue>
             <name>DOM-based Cross-Site Scripting (XSS) via input fields</name>
-            <remedy_code/>
+            <remedy_code />
             <severity>high</severity>
             <check>
                 <name>DOM XSS via input field</name>
@@ -45,10 +44,9 @@
             <cwe>79</cwe>
             <digest>0000000000</digest>
             <references>
-                <reference title="WASC" url="http://projects.webappsec.org/w/page/13246920/Cross%20Site%20Scripting"/>
-                <reference title="OWASP" url="https://www.owasp.org/index.php/DOM_Based_XSS"/>
-                <reference title="OWASP - Prevention"
-                           url="https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet"/>
+                <reference title="WASC" url="http://projects.webappsec.org/w/page/13246920/Cross%20Site%20Scripting" />
+                <reference title="OWASP" url="https://www.owasp.org/index.php/DOM_Based_XSS" />
+                <reference title="OWASP - Prevention" url="https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet" />
             </references>
             <vector>
                 <class>Arachni::Element::GenericDOM</class>

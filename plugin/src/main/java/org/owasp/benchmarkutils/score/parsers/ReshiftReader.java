@@ -17,6 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import java.io.StringReader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
@@ -24,14 +25,12 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-import java.io.StringReader;
-
 public class ReshiftReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".csv")
-            && resultFile.line(0).contains("Reshift Report");
+                && resultFile.line(0).contains("Reshift Report");
     }
 
     private static int cweLookup(String checkerKey) {
@@ -71,7 +70,7 @@ public class ReshiftReader extends Reader {
 
             default:
                 System.out.println(
-                    "WARNING: Unmapped Vulnerability category detected: " + checkerKey);
+                        "WARNING: Unmapped Vulnerability category detected: " + checkerKey);
         }
         return 0;
     }
@@ -93,13 +92,14 @@ public class ReshiftReader extends Reader {
         N: The rest of the results lines from here to end ...
 
         */
-        java.io.BufferedReader inReader = new java.io.BufferedReader(new StringReader(resultFile.content()));
+        java.io.BufferedReader inReader =
+                new java.io.BufferedReader(new StringReader(resultFile.content()));
         for (int i = 1; i <= 6; i++) { // Read 6 lines so we can skip over the preamble
             inReader.readLine();
         }
 
         String header =
-            "None" + inReader.readLine(); // Have append this to the front as the 1st column is
+                "None" + inReader.readLine(); // Have append this to the front as the 1st column is
         // not named.
         CSVFormat.Builder CSVBuilder = CSVFormat.Builder.create(CSVFormat.RFC4180);
         CSVBuilder.setHeader(header.split(","));
@@ -115,13 +115,13 @@ public class ReshiftReader extends Reader {
             try {
                 if (url.contains(BenchmarkScore.TESTCASENAME)) {
                     int testCaseNumStart =
-                        url.indexOf(BenchmarkScore.TESTCASENAME)
-                            + BenchmarkScore.TESTCASENAME.length();
+                            url.indexOf(BenchmarkScore.TESTCASENAME)
+                                    + BenchmarkScore.TESTCASENAME.length();
                     tcr.setNumber(
-                        Integer.parseInt(
-                            url.substring(
-                                testCaseNumStart,
-                                testCaseNumStart + BenchmarkScore.TESTIDLENGTH)));
+                            Integer.parseInt(
+                                    url.substring(
+                                            testCaseNumStart,
+                                            testCaseNumStart + BenchmarkScore.TESTIDLENGTH)));
                 }
             } catch (NumberFormatException e) {
                 System.out.println("> Parse error: " + record.toString());

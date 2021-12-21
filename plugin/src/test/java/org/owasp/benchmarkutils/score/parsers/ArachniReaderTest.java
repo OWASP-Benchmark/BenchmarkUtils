@@ -17,20 +17,16 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
-
-import java.io.File;
-import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ArachniReaderTest extends ReaderTestBase {
 
