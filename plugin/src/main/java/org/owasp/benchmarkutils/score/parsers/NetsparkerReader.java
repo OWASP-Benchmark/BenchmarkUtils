@@ -19,6 +19,7 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -39,11 +40,6 @@ public class NetsparkerReader extends Reader {
 
         Node target = getNamedChild("target", resultFile.xmlRootNode());
 
-        //        <target>
-        //            <url>https://localhost:8443/benchmark/</url>
-        //            <scantime>211116</scantime>
-        //        </target>
-
         String duration = getNamedChild("scantime", target).getTextContent();
         try {
             long millis = Long.parseLong(duration);
@@ -51,10 +47,6 @@ public class NetsparkerReader extends Reader {
         } catch (Exception e) {
             tr.setTime(duration);
         }
-
-        //      No version information in XML
-        //        String version = getNamedChild("TBD", root ).getTextContent();
-        //        tr.setToolVersion( version );
 
         List<Node> issueList = getNamedChildren("vulnerability", resultFile.xmlRootNode());
 
@@ -71,31 +63,7 @@ public class NetsparkerReader extends Reader {
         return tr;
     }
 
-    //    <vulnerability confirmed="True">
-    //
-    // <url>https://localhost:8443/benchmark/securecookie-00/BenchmarkTest00087?BenchmarkTest00087=whatever</url>
-    //    <type>CookieNotMarkedAsSecure</type>
-    //    <severity>Important</severity>
-    //    <certainty>100</certainty>
-    //
-    //    <extrainformation>
-    //        <info name="Identified Cookie"><![CDATA[SomeCookie]]></info>
-    //    </extrainformation>
-    //
-    //    <classification>
-    //        <OWASP2010>A9</OWASP2010>
-    //        <OWASP2013>A6</OWASP2013>
-    //        <WASC>15</WASC>
-    //        <CWE>614</CWE>
-    //        <CAPEC>102</CAPEC>
-    //        <PCI2>6.5.4</PCI2>
-    //        <PCI3>6.5.10</PCI3>
-    //        <PCI31>6.5.10</PCI31>
-    //    </classification>
-    //
-    // </vulnerability>
-
-    private TestCaseResult parseNetsparkerIssue(Node flaw) throws Exception {
+    private TestCaseResult parseNetsparkerIssue(Node flaw) {
         TestCaseResult tcr = new TestCaseResult();
 
         String type = getNamedChild("type", flaw).getTextContent();
@@ -111,10 +79,8 @@ public class NetsparkerReader extends Reader {
         String evidence = getAttributeValue("name", info);
         tcr.setEvidence(severity + "::" + evidence);
 
-        //        <severity>Low</severity>
-        //        <certainty>90</certainty>
-
         Node classification = getNamedChild("classification", flaw);
+
         // Note: not all vulnerabilities have CWEs in Netsparker
         if (classification != null) {
             Node vulnId = getNamedChild("CWE", classification);
@@ -153,7 +119,7 @@ public class NetsparkerReader extends Reader {
         int cwe = Integer.parseInt(cweNum);
         switch (cwe) {
             case 80:
-                return 614; // insecure cookie use
+                return CweNumber.INSECURE_COOKIE; // insecure cookie use
                 //        case "insecure-cookie"           :  return 614;  // insecure cookie use
                 //        case "sql-injection"             :  return 89;   // sql injection
                 //        case "cmd-injection"             :  return 78;   // command injection
