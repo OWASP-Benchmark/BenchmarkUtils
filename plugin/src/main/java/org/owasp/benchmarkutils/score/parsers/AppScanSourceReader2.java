@@ -17,6 +17,8 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import static org.owasp.benchmarkutils.score.parsers.Reader.getAttributeValue;
+
 import java.io.FileInputStream;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
@@ -37,9 +39,8 @@ public class AppScanSourceReader2 extends Reader {
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".xml")
                 && resultFile.xmlRootNodeName().equals("xml-report")
-                && "AppScan Report"
-                        .equals(Reader.getAttributeValue("name", resultFile.xmlRootNode()))
-                && "SAST".equals(Reader.getAttributeValue("technology", resultFile.xmlRootNode()));
+                && "AppScan Report".equals(getAttributeValue("name", resultFile.xmlRootNode()))
+                && "SAST".equals(getAttributeValue("technology", resultFile.xmlRootNode()));
     }
 
     @Override

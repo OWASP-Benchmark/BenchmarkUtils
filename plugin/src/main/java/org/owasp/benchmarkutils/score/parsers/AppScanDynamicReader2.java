@@ -17,7 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.FileInputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
@@ -39,9 +39,8 @@ public class AppScanDynamicReader2 extends Reader {
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".xml")
                 && resultFile.xmlRootNodeName().equals("xml-report")
-                && "AppScan Report"
-                        .equals(Reader.getAttributeValue("name", resultFile.xmlRootNode()))
-                && "DAST".equals(Reader.getAttributeValue("technology", resultFile.xmlRootNode()));
+                && "AppScan Report".equals(getAttributeValue("name", resultFile.xmlRootNode()))
+                && "DAST".equals(getAttributeValue("technology", resultFile.xmlRootNode()));
     }
 
     @Override
@@ -50,7 +49,7 @@ public class AppScanDynamicReader2 extends Reader {
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         Node root = doc.getDocumentElement();
@@ -112,7 +111,7 @@ public class AppScanDynamicReader2 extends Reader {
     /// Issues which are not variants
     private TestCaseResult TestCaseLookup(String issueType, String url) {
         TestCaseResult tcr = new TestCaseResult();
-        String urlElements[] = url.split("/");
+        String[] urlElements = url.split("/");
         String testArea =
                 urlElements[urlElements.length - 2].split("-")[0]; // .split strips off the -##
 
@@ -150,7 +149,7 @@ public class AppScanDynamicReader2 extends Reader {
     // Fetch Issues listed as variants, to cater to post 10.x release xml format
     private List<String> variantLookup(
             String issueType, String itemID, String startingUrl, List<Node> variants) {
-        List<String> testCaseElementsFromVariants = new ArrayList<String>();
+        List<String> testCaseElementsFromVariants = new ArrayList<>();
 
         // System.out.println("Variant Lookup Item ID: " + itemID);
 
@@ -171,7 +170,7 @@ public class AppScanDynamicReader2 extends Reader {
                     String benchMarkTestCase = variantUrl[1].trim();
 
                     if (benchMarkTestCase.contains("BenchmarkTest")) {
-                        String urlElements[] = benchMarkTestCase.split("/");
+                        String[] urlElements = benchMarkTestCase.split("/");
 
                         String testAreaUrl =
                                 startingUrl
