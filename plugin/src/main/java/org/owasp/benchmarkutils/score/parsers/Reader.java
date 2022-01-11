@@ -120,7 +120,7 @@ public abstract class Reader {
     }
 
     public static List<Node> getNamedChildren(String name, List<Node> list) {
-        List<Node> results = new ArrayList<Node>();
+        List<Node> results = new ArrayList<>();
         for (Node n : list) {
             NodeList children = n.getChildNodes();
             for (int i = 0; i < children.getLength(); i++) {

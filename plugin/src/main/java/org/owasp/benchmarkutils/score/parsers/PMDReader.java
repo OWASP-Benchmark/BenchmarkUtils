@@ -35,7 +35,7 @@ public class PMDReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
-        return resultFile.filename().endsWith(".xml") && resultFile.line(1).startsWith("<pmd");
+        return resultFile.filename().endsWith(".xml") && resultFile.line(1).startsWith("<pmd ");
     }
 
     @Override

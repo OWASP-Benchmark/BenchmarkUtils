@@ -17,6 +17,10 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import java.io.StringReader;
+import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -26,17 +30,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-import java.util.List;
-
 public class CASTAIPReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".xml")
-            && resultFile.line(1).toLowerCase().startsWith("<castaip");
+                && resultFile.line(1).toLowerCase().startsWith("<castaip");
     }
 
     @Override
@@ -49,7 +48,7 @@ public class CASTAIPReader extends Reader {
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr =
-            new TestSuiteResults("CAST AIP", true, TestSuiteResults.ToolType.SAST);
+                new TestSuiteResults("CAST AIP", true, TestSuiteResults.ToolType.SAST);
         Node root = doc.getDocumentElement();
 
         String version = getAttributeValue("version", root);
@@ -92,8 +91,8 @@ public class CASTAIPReader extends Reader {
         filename = filename.substring(filename.lastIndexOf('/') + 1);
         if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
             String testNumber =
-                filename.substring(
-                    BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.'));
+                    filename.substring(
+                            BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.'));
             try {
                 tcr.setNumber(Integer.parseInt(testNumber));
                 return tcr;
@@ -119,31 +118,31 @@ public class CASTAIPReader extends Reader {
                 return CweNumber.SQL_INJECTION;
             case "90":
                 return CweNumber.LDAP_INJECTION;
-            //        case "header-injection"          :  return 113;  // header injection
-            //        case "hql-injection"             :  return 0000; // hql injection
-            //        case "unsafe-readline"           :  return 0000; // unsafe readline
-            //        case "reflection-injection"      :  return 0000; // reflection injection
-            //        case "reflected-xss"             :  return 79;   // xss
+                //        case "header-injection"          :  return 113;  // header injection
+                //        case "hql-injection"             :  return 0000; // hql injection
+                //        case "unsafe-readline"           :  return 0000; // unsafe readline
+                //        case "reflection-injection"      :  return 0000; // reflection injection
+                //        case "reflected-xss"             :  return 79;   // xss
             case "91":
             case "643":
                 return CweNumber.XPATH_INJECTION;
             case "73": // This tool calls this CWE-73 "External Control of File"
             case "22":
                 return CweNumber.PATH_TRAVERSAL;
-            // Name or Path"
-            //        case "crypto-bad-mac"            :  return 328;  // weak hash
-            //        case "crypto-weak-randomness"    :  return 330;  // weak random
-            //        case "crypto-bad-ciphers"        :  return 327;  // weak encryption
+                // Name or Path"
+                //        case "crypto-bad-mac"            :  return 328;  // weak hash
+                //        case "crypto-weak-randomness"    :  return 330;  // weak random
+                //        case "crypto-bad-ciphers"        :  return 327;  // weak encryption
             case "501":
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
-            //        case "xxe"                       :  return 611;  // xml entity
+                //        case "xxe"                       :  return 611;  // xml entity
             case "134":
                 return CweNumber
-                    .EXTERNALLY_CONTROLLED_STRING; // Use of Externally-Controlled Format String
-            // - Which really isn't a
+                        .EXTERNALLY_CONTROLLED_STRING; // Use of Externally-Controlled Format String
+                // - Which really isn't a
             default:
                 System.out.println(
-                    "No matching CWE # found in CAST AIP Reader for: 'CWE-" + name + "'");
+                        "No matching CWE # found in CAST AIP Reader for: 'CWE-" + name + "'");
         }
         return 0000;
     }
