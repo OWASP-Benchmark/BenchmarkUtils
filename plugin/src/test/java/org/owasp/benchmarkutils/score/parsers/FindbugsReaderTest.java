@@ -30,23 +30,32 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class FindbugsReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private ResultFile findSecBugsResultFile;
+    private ResultFile spotBugsResultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-findsecbugs-v1.11.0-105.xml");
+        findSecBugsResultFile =
+                TestHelper.resultFileOf("testfiles/Benchmark_1.2-findsecbugs-v1.11.0-105.xml");
+        spotBugsResultFile =
+                TestHelper.resultFileOf("testfiles/Benchmark_1.2-spotbugs-v4.1.4-104.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyFindbugsReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, FindbugsReader.class);
+    public void onlyFindbugsReaderReportsCanReadAsTrueForFindSecBugsFile() {
+        assertOnlyMatcherClassIs(this.findSecBugsResultFile, FindbugsReader.class);
     }
 
     @Test
-    void readerHandlesGivenResultFile() throws Exception {
+    public void onlyFindbugsReaderReportsCanReadAsTrueForSpotBugsFile() {
+        assertOnlyMatcherClassIs(this.spotBugsResultFile, FindbugsReader.class);
+    }
+
+    @Test
+    void readerHandlesGivenFindSecBugsResultFile() throws Exception {
         FindbugsReader reader = new FindbugsReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(findSecBugsResultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());
@@ -56,5 +65,20 @@ public class FindbugsReaderTest extends ReaderTestBase {
 
         assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+    }
+
+    @Test
+    void readerHandlesGivenSpotBugsResultFile() throws Exception {
+        FindbugsReader reader = new FindbugsReader();
+        TestSuiteResults result = reader.parse(spotBugsResultFile);
+
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertFalse(result.isCommercial());
+        assertEquals("SpotBugs", result.getToolName());
+
+        assertEquals(2, result.getTotalResults());
+
+        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(2).get(0).getCWE());
     }
 }

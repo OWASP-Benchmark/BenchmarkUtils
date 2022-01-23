@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <BugCollection sequence="0" release="" analysisTimestamp="0" version="4.2.3" timestamp="0">
     <Project projectName="OWASP Benchmark Project">
-        <Jar>/somepath/Develop/Benchmark/target/classes</Jar>
+        <Jar>/somepath/Benchmark/target/classes</Jar>
         <AuxClasspathEntry>/root/.m2/repository/javax/javaee-api/7.0/javaee-api-7.0.jar</AuxClasspathEntry>
         <AuxClasspathEntry>/root/.m2/repository/com/sun/mail/javax.mail/1.5.0/javax.mail-1.5.0.jar</AuxClasspathEntry>
         <Plugin id="com.h3xstream.findsecbugs" enabled="true" />
         <SrcDir>/somepath/Benchmark/src/main/java</SrcDir>
-        <SrcDir>/somepath/Develop/Benchmark/target/generated-sources/annotations</SrcDir>
-        <WrkDir>/somepath/Develop/Benchmark/target</WrkDir>
+        <SrcDir>/somepath/Benchmark/target/generated-sources/annotations</SrcDir>
+        <WrkDir>/somepath/Benchmark/target</WrkDir>
     </Project>
-    <BugInstance instanceOccurrenceNum="0" instanceHash="2c4d05f745ac515006d4e5f1a8390b43" cweid="79" rank="12" abbrev="SECXSS2" category="SECURITY" priority="2" type="XSS_SERVLET" instanceOccurrenceMax="0">
+    <BugInstance instanceOccurrenceNum="0" instanceHash="00000000000000000000000000000000" cweid="79" rank="12" abbrev="SECXSS2" category="SECURITY" priority="2" type="XSS_SERVLET" instanceOccurrenceMax="0">
         <ShortMessage>Potential XSS in Servlet</ShortMessage>
         <LongMessage>This use of java/io/PrintWriter.println(Ljava/lang/String;)V could be vulnerable to XSS in the
             Servlet
@@ -45,7 +45,7 @@
             <Message>At BenchmarkTest00001.java:[line 80]</Message>
         </SourceLine>
     </BugInstance>
-    <BugInstance instanceOccurrenceNum='0' instanceHash='87e651eac2271d409c65b3ac827642b3' cweid='89' rank='10' abbrev='SECSQLIJDBC' category='SECURITY' priority='1' type='SQL_INJECTION_JDBC' instanceOccurrenceMax='0'>
+    <BugInstance instanceOccurrenceNum='0' instanceHash='00000000000000000000000000000000' cweid='89' rank='10' abbrev='SECSQLIJDBC' category='SECURITY' priority='1' type='SQL_INJECTION_JDBC' instanceOccurrenceMax='0'>
         <ShortMessage>Potential JDBC Injection</ShortMessage>
         <LongMessage>This use of java/sql/Connection.prepareCall(Ljava/lang/String;)Ljava/sql/CallableStatement; can be
             vulnerable to SQL injection (with JDBC)
