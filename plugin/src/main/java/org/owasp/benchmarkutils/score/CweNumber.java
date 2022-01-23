@@ -73,6 +73,33 @@ public class CweNumber {
     /** CWE-352: Cross-Site Request Forgery (CSRF) */
     public static int CSRF = 352;
 
+    /** CWE-382: J2EE Bad Practices: Use of System.exit() */
+    public static int SYSTEM_EXIT = 382;
+
+    /** CWE-395: Use of NullPointerException Catch to Detect NULL Pointer Dereference */
+    public static int CATCHING_NULL_POINTER_EXCEPTION = 395;
+
+    /** CWE-396: Declaration of Catch for Generic Exception */
+    public static int CATCH_GENERIC_EXCEPTION = 396;
+
+    /** CWE-397: Declaration of Throws for Generic Exception */
+    public static int THROW_GENERIC_EXCEPTION = 397;
+
+    /** CWE-478: Missing Default Case in Switch Statement */
+    public static int MISSING_DEFAULT_CASE = 478;
+
+    /** CWE-483: Incorrect Block Delimitation */
+    public static int INCORRECT_BLOCK_DELIMITATION = 483;
+
+    /** CWE-484: Omitted Break Statement in Switch */
+    public static int OMITTED_BREAK = 484;
+
+    /** CWE-493: Critical Public Variable Without Final Modifier */
+    public static int PUBLIC_VAR_WITHOUT_FINAL = 493;
+
+    /** CWE-500: Public Static Field Not Marked Final */
+    public static int PUBLIC_STATIC_NOT_FINAL = 500;
+
     /** CWE-501: Trust Boundary Violation */
     public static int TRUST_BOUNDARY_VIOLATION = 501;
 
@@ -84,6 +111,27 @@ public class CweNumber {
 
     /** CWE-532: Insertion of Sensitive Information into Log File */
     public static int SENSITIVE_LOGFILE = 532;
+
+    /** CWE-572: Call to Thread run() instead of start() */
+    public static int THREAD_WRONG_CALL = 572;
+
+    /** CWE-580: clone() Method Without super.clone() */
+    public static int CLONE_WITHOUT_SUPER_CLONE = 580;
+
+    /** CWE-563: Assignment to Variable without Use */
+    public static int UNUSED_VAR_ASSIGNMENT = 563;
+
+    /** CWE-581: Object Model Violation: Just One of Equals and Hashcode Defined */
+    public static int OBJECT_MODEL_VIOLATION = 581;
+
+    /** CWE-583: finalize() Method Declared Public */
+    public static int FINALIZE_DECLARED_PUBLIC = 583;
+
+    /** CWE-584: Return Inside Finally Block */
+    public static int RETURN_INSIDE_FINALLY = 584;
+
+    /** CWE-595: Comparison of Object References Instead of Object Contents */
+    public static int OBJECT_REFERENCE_COMPARISON = 595;
 
     /** CWE-611: Improper Restriction of XML External Entity Reference */
     public static int XML_ENTITIES = 611;
@@ -99,6 +147,15 @@ public class CweNumber {
      * Checking
      */
     public static int OBFUSCATION = 649;
+
+    /** CWE-754: Improper Check for Unusual or Exceptional Conditions */
+    public static int IMPROPER_CHECK_FOR_CONDITIONS = 754;
+
+    /** CWE-783: Operator Precedence Logic Error */
+    public static int OPERATOR_PRECEDENCE_LOGIC = 783;
+
+    /** CWE-835: Loop with Unreachable Exit Condition ('Infinite Loop') */
+    public static int LOOP_WITH_UNREACHABLE_EXIT = 835;
 
     /** CWE-1004: Sensitive Cookie Without 'HttpOnly' Flag */
     public static int COOKIE_WITHOUT_HTTPONLY = 1004;
