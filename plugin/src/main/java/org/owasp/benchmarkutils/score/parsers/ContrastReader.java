@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -54,12 +53,7 @@ public class ContrastReader extends Reader {
                 new TestSuiteResults("Contrast", true, TestSuiteResults.ToolType.IAST);
 
         BufferedReader reader = new BufferedReader(new FileReader(resultFile.file()));
-        // This use of repeat() allows test case IDs to be different lengths for different
-        // test suites.
-        String FIRSTLINEINDICATOR =
-                BenchmarkScore.TESTCASENAME
-                        + StringUtils.repeat("0", BenchmarkScore.TESTIDLENGTH - 1)
-                        + "1";
+        String FIRSTLINEINDICATOR = BenchmarkScore.TESTCASENAME;
         String firstLine = null;
         String lastLine = "";
         String line = "";
@@ -85,11 +79,14 @@ public class ContrastReader extends Reader {
                                         line.indexOf(','));
                         tr.setToolVersion(version);
                     } // First line check for Java
-                    else if (line.contains("DEBUG - >>> [URL")
+                    else if (firstLine == null
+                            && line.contains("DEBUG - >>> [URL")
                             && line.contains(FIRSTLINEINDICATOR)) {
-                        firstLine = line;
+                        firstLine =
+                                line; // Once set, don't set again, hence 'firstLine == null' check
                     } // First line check for Node
-                    else if (line.contains("Received request ")
+                    else if (firstLine == null
+                            && line.contains("Received request ")
                             && line.contains(FIRSTLINEINDICATOR)) {
                         firstLine = line;
                     } else if (line.contains("DEBUG - >>>") || line.contains("Received request ")) {

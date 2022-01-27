@@ -259,6 +259,7 @@ public class AppScanDynamicReader2 extends Reader {
             case "MHTMLXSS":
                 // case "OpenSource" : return 00;  // Known vuln in open source lib.
                 // case "phishingInFrames" : return 00;
+            case "OldTLS":
             case "ShellShockCheck":
             case "SriSupport":
                 // case "SSL_CertWithBadCN" : return 00;
