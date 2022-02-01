@@ -39,7 +39,7 @@ public class CheckmarxESReader extends Reader {
         TestSuiteResults tr =
                 new TestSuiteResults("Checkmarx SAST", true, TestSuiteResults.ToolType.SAST);
 
-        JSONObject obj = new JSONObject(resultFile.json());
+        JSONObject obj = resultFile.json();
 
         // engine version
         String version = obj.getString("EngineVersion");
