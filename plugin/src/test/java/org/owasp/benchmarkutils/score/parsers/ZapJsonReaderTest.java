@@ -30,23 +30,30 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class ZapJsonReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private ResultFile resultFileOldFormat;
+    private ResultFile resultFileNewFormat;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-ZAP-v2.10.0.json");
+        resultFileOldFormat = TestHelper.resultFileOf("testfiles/Benchmark_1.2-ZAP-v2.10.0.json");
+        resultFileNewFormat = TestHelper.resultFileOf("testfiles/Benchmark_1.2-ZAP-v2.11.1.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyZapJsonReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, ZapJsonReader.class);
+    public void onlyZapJsonReaderReportsCanReadAsTrueForOldFormat() {
+        assertOnlyMatcherClassIs(this.resultFileOldFormat, ZapJsonReader.class);
     }
 
     @Test
-    void readerHandlesGivenResultFile() throws Exception {
+    public void onlyZapJsonReaderReportsCanReadAsTrueForNewFormat() {
+        assertOnlyMatcherClassIs(this.resultFileNewFormat, ZapJsonReader.class);
+    }
+
+    @Test
+    void readerHandlesGivenOldFormatResultFile() throws Exception {
         ZapJsonReader reader = new ZapJsonReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(resultFileOldFormat);
 
         assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
         assertFalse(result.isCommercial());
@@ -56,5 +63,21 @@ public class ZapJsonReaderTest extends ReaderTestBase {
 
         assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
+    }
+
+    @Test
+    void readerHandlesGivenNewFormatResultFile() throws Exception {
+        ZapJsonReader reader = new ZapJsonReader();
+        TestSuiteResults result = reader.parse(resultFileNewFormat);
+
+        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
+        assertFalse(result.isCommercial());
+        assertEquals("OWASP ZAP", result.getToolName());
+        assertEquals("2.11.1", result.getToolVersion());
+
+        assertEquals(2, result.getTotalResults());
+
+        assertEquals(CweNumber.CSRF, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(2).get(0).getCWE());
     }
 }
