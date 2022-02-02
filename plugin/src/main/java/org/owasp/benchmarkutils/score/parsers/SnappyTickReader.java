@@ -22,16 +22,23 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Node;
 
 public class SnappyTickReader extends Reader {
 
-    public TestSuiteResults parse(Node root) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.xmlRootNodeName().equals("Report");
+    }
 
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         // root Node is Report
-        Node toolInfo = getNamedChild("ToolInfo", root);
+        Node toolInfo = getNamedChild("ToolInfo", resultFile.xmlRootNode());
         Node tool = getNamedChild("Tool", toolInfo);
         String toolName = getAttributeValue("Name", tool);
         TestSuiteResults tr = new TestSuiteResults(toolName, true, TestSuiteResults.ToolType.SAST);
@@ -39,7 +46,7 @@ public class SnappyTickReader extends Reader {
         String version = getAttributeValue("Version", tool);
         tr.setToolVersion(version);
 
-        Node projectInfo = getNamedChild("ProjectInfo", root);
+        Node projectInfo = getNamedChild("ProjectInfo", resultFile.xmlRootNode());
         Node project = getNamedChild("Project", projectInfo);
         String duration = getAttributeValue("Duration", project);
         tr.setTime(duration);
@@ -57,7 +64,7 @@ public class SnappyTickReader extends Reader {
         //          <Finding FileName="BenchmarkTest00008.java" LineNo="59"
         //                  CodeLine="java.sql.ResultSet rs = statement.executeQuery();" />
 
-        Node vulnReport = getNamedChild("VulnerabilityReport", root);
+        Node vulnReport = getNamedChild("VulnerabilityReport", resultFile.xmlRootNode());
 
         // Loop through all the Severity nodes
         List<Node> sevLevels = getNamedChildren("Severity", vulnReport);
@@ -95,8 +102,7 @@ public class SnappyTickReader extends Reader {
         return tr;
     }
 
-    private static int extractTestNumber(String testfile) {
-
+    private int extractTestNumber(String testfile) {
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
             String testno = testfile.substring(BenchmarkScore.TESTCASENAME.length());
             try {
@@ -108,8 +114,7 @@ public class SnappyTickReader extends Reader {
         return -1;
     }
 
-    private static int cweLookup(String checkerKey) {
-
+    private int cweLookup(String checkerKey) {
         switch (checkerKey.trim()) {
             case "1004":
                 return 614; // HTTPOnly Flag Not Set For Cookies:insecure cookie use

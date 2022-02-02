@@ -17,12 +17,13 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -32,12 +33,19 @@ import org.xml.sax.InputSource;
 
 public class ParasoftReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.line(1).startsWith("<ResultsSession");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr =
@@ -156,19 +164,19 @@ public class ParasoftReader extends Reader {
                 //        case "BD.PB.CC" : return x;
                 //        case "BD.RES.LEAKS" : return x;
             case "BD.SECURITY.TDCMD":
-                return 78;
+                return CweNumber.COMMAND_INJECTION;
             case "BD.SECURITY.TDFNAMES":
-                return 22;
+                return CweNumber.PATH_TRAVERSAL;
             case "BD.SECURITY.TDLDAP":
-                return 90;
+                return CweNumber.LDAP_INJECTION;
                 //        case "BD.SECURITY.TDNET" : return x;
                 //        case "BD.SECURITY.TDRESP" : return x;
             case "BD.SECURITY.TDSQL":
-                return 89;
+                return CweNumber.SQL_INJECTION;
             case "BD.SECURITY.TDXPATH":
-                return 643;
+                return CweNumber.XPATH_INJECTION;
             case "BD.SECURITY.TDXSS":
-                return 79;
+                return CweNumber.XSS;
                 //        case "INTER" : return x;
                 //        case "JDBC" : return x;
                 //        case "OPT" : return x;
@@ -179,7 +187,7 @@ public class ParasoftReader extends Reader {
                 //        case "Cookie Security" : return 614;
                 //        case "Header Manipulation" : return 113;
             case "SECURITY.WSC.SRD":
-                return 330;
+                return CweNumber.WEAK_RANDOM;
                 //        case "Password Management" : return 00;
                 //        case "Trust Boundary Violation" : return 501;
                 //        case "Weak Cryptographic Hash" : return 328;

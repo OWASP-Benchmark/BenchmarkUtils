@@ -17,25 +17,29 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Node;
 
 public class QualysWASReader extends Reader {
 
-    // filename passed in so we can extract the scan time if it is included in the filename
-    // root of XML doc passed in so we can parse the results
-    public TestSuiteResults parse(File f, Node root) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.xmlRootNodeName().equals("WAS_SCAN_REPORT");
+    }
 
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("Qualys WAS", true, TestSuiteResults.ToolType.DAST);
 
         // If the fliename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml) set the
         // compute time on the scorecard.
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
         // TODO: Parse out start/end time to calculate scan time from results file.
 
         // <APPENDIX>
@@ -59,7 +63,7 @@ public class QualysWASReader extends Reader {
         //         </SCAN>
         //     </SCAN_LIST>
 
-        List<Node> appendix = getNamedChildren("APPENDIX", root);
+        List<Node> appendix = getNamedChildren("APPENDIX", resultFile.xmlRootNode());
         List<Node> scanList = getNamedChildren("SCAN_LIST", appendix);
         List<Node> scan = getNamedChildren("SCAN", scanList);
 
@@ -94,7 +98,7 @@ public class QualysWASReader extends Reader {
         //     <IGNORED>false</IGNORED>
         // </VULNERABILITY>
 
-        List<Node> resultsList = getNamedChildren("RESULTS", root);
+        List<Node> resultsList = getNamedChildren("RESULTS", resultFile.xmlRootNode());
         List<Node> vulnerabilityList = getNamedChildren("VULNERABILITY_LIST", resultsList);
         List<Node> issueList = getNamedChildren("VULNERABILITY", vulnerabilityList);
 

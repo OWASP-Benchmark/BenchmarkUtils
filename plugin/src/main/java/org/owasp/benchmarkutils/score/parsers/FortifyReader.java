@@ -17,12 +17,15 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.io.FileInputStream;
+import static org.owasp.benchmarkutils.score.TestSuiteResults.formatTime;
+
+import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -32,59 +35,122 @@ import org.xml.sax.InputSource;
 
 public class FortifyReader extends Reader {
 
-    public static TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".fpr");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultZip) throws Exception {
+        ResultFile resultFile = resultZip.extract("audit.fvdl");
+
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr = new TestSuiteResults("Fortify", true, TestSuiteResults.ToolType.SAST);
 
-        // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.fpr),
-        // set the compute time on the score card.
-        tr.setFortifyTime(f);
-
         // FIXME: Is there any way to get the time from Fortify itself?
+        tr.setTime(resultZip.file());
 
         Node root = doc.getDocumentElement();
 
-        // try to figure out if this is Fortify On-Demand. Note: I believe this only works for
-        // Older versions of Fortify like 4.1. BenchmarkScore contains a test for more recent
-        // versions of Fortify, like 4.3
-        Node build = getNamedChild("Build", root);
-        String source = getNamedChild("SourceBasePath", build).getTextContent();
-        if (source.contains("ronq")) {
+        if (isFortifyOnDemand(root)) {
             tr.setTool(tr.getToolName() + "-OnDemand");
         }
 
         // get engine build version and rulepack version
-        Node eData = getNamedChild("EngineData", root);
-        String version = getNamedChild("EngineVersion", eData).getTextContent();
-        Node rps = getNamedChild("RulePacks", eData);
-        Node rp = getNamedChild("RulePack", rps);
-        version += "-rp" + getNamedChild("Version", rp).getTextContent();
-        tr.setToolVersion(version);
+        tr.setToolVersion(fetchToolVersison(root));
 
         NodeList rootList = root.getChildNodes();
         List<Node> vulnList = getNamedNodes("Vulnerabilities", rootList);
-
         List<Node> vulns = getNamedChildren("Vulnerability", vulnList);
 
-        // int i = 0;
         for (Node flaw : vulns) {
             TestCaseResult tcr = parseFortifyVulnerability(flaw);
             if (tcr != null) {
                 tr.put(tcr);
             }
-            // if (++i % 1000 == 0) System.out.println("Processed " + i + " vulns.");
         }
 
         return tr;
     }
 
-    private static TestCaseResult parseFortifyVulnerability(Node vuln) {
+    private String fetchToolVersison(Node root) {
+        Node eData = getNamedChild("EngineData", root);
+        String version = getNamedChild("EngineVersion", eData).getTextContent();
+        Node rps = getNamedChild("RulePacks", eData);
+        Node rp = getNamedChild("RulePack", rps);
+        return version + "-rp" + getNamedChild("Version", rp).getTextContent();
+    }
+
+    /**
+     * Try to figure out if this is Fortify On-Demand.
+     *
+     * <p>Note: I believe this only works for older versions of Fortify like 4.1. BenchmarkScore
+     * contains a test for more recent versions of Fortify, like 4.3
+     *
+     * @param root
+     * @return
+     */
+    private boolean isFortifyOnDemand(Node root) {
+        return getNamedChild("SourceBasePath", getNamedChild("Build", root))
+                .getTextContent()
+                .contains("ronq");
+    }
+
+    public String parseTime(String filename) {
+        try {
+            // to make the same as normal filenames, strip off the '.fvdl' at the end of the
+            // filename
+            filename = filename.substring(0, filename.lastIndexOf('.') - 1);
+            String time =
+                    filename.substring(filename.lastIndexOf('-') + 1, filename.lastIndexOf('.'));
+            int seconds = Integer.parseInt(time);
+            return formatTime(seconds * 1000L);
+        } catch (Exception e) {
+            return "Time not specified";
+        }
+    }
+
+    //        // Check to see if the results are regular Fortify or Fortify OnDemand results
+    //        // To check, you have to look at the filtertemplate.xml file inside the .fpr archive
+    //        // and see if that file contains: "Fortify-FOD-Template"
+    //        outputFile = File.createTempFile(resultFile.filename() + "-filtertemplate", ".xml");
+    //        source = fileSystem.getPath("filtertemplate.xml");
+    //
+    //        // In older versions of Fortify, like 4.1, the filtertemplate.xml file doesn't exist
+    //        // So only check it if it exists
+    //        try {
+    //            Files.copy(source, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    //
+    //            BufferedReader br = new BufferedReader(new FileReader(outputFile));
+    //            try {
+    //                StringBuilder sb = new StringBuilder();
+    //                String line = br.readLine();
+    //
+    //                // Only read the first 3 lines and the answer is near the top of the file.
+    //                int i = 1;
+    //                while (line != null && i++ <= 3) {
+    //                    sb.append(line);
+    //                    line = br.readLine();
+    //                }
+    //                if (sb.indexOf("Fortify-FOD-") > -1) {
+    //                    tr.setTool(tr.getToolName() + "-OnDemand");
+    //                }
+    //            } finally {
+    //                br.close();
+    //            }
+    //        } catch (NoSuchFileException e) {
+    //            // Do nothing if the filtertemplate.xml file doesn't exist in the .fpr archive
+    //        } finally {
+    //            outputFile.delete();
+    //        }
+
+    private TestCaseResult parseFortifyVulnerability(Node vuln) {
         TestCaseResult tcr = new TestCaseResult();
 
         Node ci = getNamedNode("ClassInfo", vuln.getChildNodes());
@@ -159,24 +225,25 @@ public class FortifyReader extends Reader {
         return null;
     }
 
-    private static int cweLookup(String vtype, String subtype, Node unifiedNode) {
+    private int cweLookup(String vtype, String subtype, Node unifiedNode) {
 
         switch (vtype) {
             case "Access Control":
-                return 284;
+                return CweNumber.IMPROPER_ACCESS_CONTROL;
 
             case "Command Injection":
-                return 78;
+                return CweNumber.COMMAND_INJECTION;
 
             case "Cookie Security":
                 {
                     // Verify its the exact type we are looking for (e.g., not HttpOnly finding)
-                    if ("Cookie not Sent Over SSL".equals(subtype)) return 614;
+                    if ("Cookie not Sent Over SSL".equals(subtype))
+                        return CweNumber.INSECURE_COOKIE;
                     else return 00;
                 }
 
             case "Cross-Site Request Forgery":
-                return 352;
+                return CweNumber.CSRF;
 
             case "Cross-Site Scripting":
                 {
@@ -264,7 +331,7 @@ public class FortifyReader extends Reader {
                 return 99;
 
             case "SQL Injection":
-                return 89;
+                return CweNumber.SQL_INJECTION;
             case "System Information Leak":
                 return 209;
             case "Trust Boundary Violation":

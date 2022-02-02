@@ -17,35 +17,50 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class LGTMReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
-        String content = new String(Files.readAllBytes(Paths.get(f.getPath())));
+    private final String LGTMCWEPREFIX = "external/cwe/cwe-";
+    private final int LGTMCWEPREFIXLENGTH = LGTMCWEPREFIX.length();
 
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        try {
+            return resultFile.filename().endsWith(".sarif")
+                    && resultFile.isJson()
+                    && resultFile
+                            .json()
+                            .getJSONArray("runs")
+                            .getJSONObject(0)
+                            .getJSONObject("properties")
+                            .has("semmle.sourceLanguage");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         /*
          * This parser was written against version 2.1.0 of the sarif-schema
          * NOTE: To help understand contents of JSON file, use: http://jsonviewer.stack.hu to view it.
          */
-        JSONObject obj = new JSONObject(content);
         //		String resultsFormatVersion = obj.getString( "version" ); // Might be needed in future
         // if format changes
 
-        JSONArray runs = obj.getJSONArray("runs");
+        JSONArray runs = resultFile.json().getJSONArray("runs");
 
         TestSuiteResults tr = new TestSuiteResults("LGTM", true, TestSuiteResults.ToolType.SAST);
         // Scan time is not included in the sarif-schema. But scan time is provided on their web
         // site next to results
-        tr.setTime(f); // This grabs the scan time out of the filename, if provided
+        tr.setTime(resultFile.file()); // This grabs the scan time out of the filename, if provided
         // e.g., Benchmark_1.2_LGTM-660.sarif, means the scan took 660 seconds.
 
         for (int i = 0; i < runs.length(); i++) {
@@ -85,11 +100,7 @@ public class LGTMReader extends Reader {
         return tr;
     }
 
-    private static final String LGTMCWEPREFIX = "external/cwe/cwe-";
-    private static final int LGTMCWEPREFIXLENGTH = LGTMCWEPREFIX.length();
-
     private HashMap<String, Integer> parseLGTMRules(JSONArray rulesJSON) {
-
         HashMap<String, Integer> rulesUsed = new HashMap<String, Integer>();
 
         for (int j = 0; j < rulesJSON.length(); j++) {

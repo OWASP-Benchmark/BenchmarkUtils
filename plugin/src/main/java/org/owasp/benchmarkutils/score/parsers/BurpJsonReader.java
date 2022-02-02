@@ -17,38 +17,31 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class BurpJsonReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
-        String content = new String(Files.readAllBytes(Paths.get(f.getPath())));
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.isJson() && resultFile.json().has("issue_events");
+    }
 
-        JSONObject obj = new JSONObject(content);
-        JSONArray arr;
-        try {
-            arr = obj.getJSONArray("issue_events");
-        } catch (JSONException e) {
-            System.out.println(
-                    "ERROR: Couldn't find 'issue_events' element in Burp JSON results."
-                            + " Maybe not a Burp JSON results file?");
-            return null;
-        }
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
+        JSONArray arr = resultFile.json().getJSONArray("issue_events");
 
         TestSuiteResults tr =
                 new TestSuiteResults("Burp Suite Enterprise", true, TestSuiteResults.ToolType.DAST);
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml),
         // set the compute time on the score card.
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
 
         int numIssues = arr.length();
         for (int i = 0; i < numIssues; i++) {
@@ -87,7 +80,7 @@ public class BurpJsonReader extends Reader {
      * <tr><td><b>Issued to:</b>&nbsp;&nbsp;</td><td>OWASP Benchmark</td></tr><tr><td><b>Issued by:</b>&nbsp;&nbsp;</td><td>OWASP Benchmark</td></tr><tr><td><b>Valid from:</b>&nbsp;&nbsp;</td><td>Mon Sep 28 19:39:43 CEST 2015</td></tr><tr><td><b>Valid to:</b>&nbsp;&nbsp;</td><td>Sun Dec 27 18:39:43 CET 2015</td></tr>
      * </table>
      *
-     * ", "caption": "/", "evidence": [], "internal_data":
+     * <p>", "caption": "/", "evidence": [], "internal_data":
      * "eyJmbGFncyI6MTQsInZhcmlhbnQiOjAsImlzc3VlX2RldGFpbHNfbWFwIjp7IjM0Ijoip09XQVNQIEJlbmNobWFya6dPV0FTUCBCZW5jaG1hcmunTW9uIFNlcCAyOCAxOTozOTo0MyBDRVNUIDIwMTWnU3VuIERlYyAyNyAxODozOTo0MyBDRVQgMjAxNacxNKcifX0="
      * } }, ...
      */

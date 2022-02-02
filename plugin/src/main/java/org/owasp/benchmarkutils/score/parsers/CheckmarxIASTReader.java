@@ -17,18 +17,66 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class CheckmarxIASTReader extends Reader {
 
-    private static int cweLookup(String checkerKey) {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".csv")
+                && resultFile.line(0).contains("CWE")
+                && resultFile.line(0).contains("URL");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
+        TestSuiteResults tr = new TestSuiteResults("CxIAST", true, TestSuiteResults.ToolType.IAST);
+
+        java.io.Reader inReader = new java.io.StringReader(resultFile.content());
+        Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(inReader);
+        for (CSVRecord record : records) {
+            String checkerKey = record.get("Vulnerability Type");
+            String url = record.get("URL");
+            //      System.out.println("URL = "+url); //For debugging YE
+
+            TestCaseResult tcr = new TestCaseResult();
+            tcr.setCategory(checkerKey);
+            tcr.setCWE(cweLookup(checkerKey));
+            Pattern testCasePattern =
+                    Pattern.compile(
+                            BenchmarkScore.TESTCASENAME
+                                    + "[0-9]{"
+                                    + BenchmarkScore.TESTIDLENGTH
+                                    + "}");
+            Matcher testCaseMatcher = testCasePattern.matcher(url);
+            if (testCaseMatcher.find()) {
+                String testCase = testCaseMatcher.group(0);
+                // System.out.println("testCase = "+testCase+" Test Num =
+                // "+testCase.substring(testCase.length()-Utils.TESTCASE_DIGITS,
+                // testCase.length())); // For debugging YE
+                tcr.setTestCaseName(testCase);
+                // BenchmarkTest00000 - BenchmarkTest99999
+                tcr.setNumber(
+                        Integer.parseInt(
+                                testCase.substring(
+                                        testCase.length() - BenchmarkScore.TESTIDLENGTH)));
+                if (tcr.getCWE() != 0) {
+                    tr.put(tcr);
+                }
+            }
+        }
+        tr.setTime("100");
+        return tr;
+    }
+
+    private int cweLookup(String checkerKey) {
         //    checkerKey = checkerKey.replace("-SECOND-ORDER", "");
 
         switch (checkerKey) {
@@ -122,45 +170,5 @@ public class CheckmarxIASTReader extends Reader {
                 return 611;
         }
         return 0;
-    }
-
-    public TestSuiteResults parse(File f) throws Exception {
-        TestSuiteResults tr = new TestSuiteResults("CxIAST", true, TestSuiteResults.ToolType.IAST);
-
-        java.io.Reader inReader = new java.io.FileReader(f);
-        Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(inReader);
-        for (CSVRecord record : records) {
-            String checkerKey = record.get("Vulnerability Type");
-            String url = record.get("URL");
-            //      System.out.println("URL = "+url); //For debugging YE
-
-            TestCaseResult tcr = new TestCaseResult();
-            tcr.setCategory(checkerKey);
-            tcr.setCWE(cweLookup(checkerKey));
-            Pattern testCasePattern =
-                    Pattern.compile(
-                            BenchmarkScore.TESTCASENAME
-                                    + "[0-9]{"
-                                    + BenchmarkScore.TESTIDLENGTH
-                                    + "}");
-            Matcher testCaseMatcher = testCasePattern.matcher(url);
-            if (testCaseMatcher.find()) {
-                String testCase = testCaseMatcher.group(0);
-                // System.out.println("testCase = "+testCase+" Test Num =
-                // "+testCase.substring(testCase.length()-Utils.TESTCASE_DIGITS,
-                // testCase.length())); // For debugging YE
-                tcr.setTestCaseName(testCase);
-                // BenchmarkTest00000 - BenchmarkTest99999
-                tcr.setNumber(
-                        Integer.parseInt(
-                                testCase.substring(
-                                        testCase.length() - BenchmarkScore.TESTIDLENGTH)));
-                if (tcr.getCWE() != 0) {
-                    tr.put(tcr);
-                }
-            }
-        }
-        tr.setTime("100");
-        return tr;
     }
 }

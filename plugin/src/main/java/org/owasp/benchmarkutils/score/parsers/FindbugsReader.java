@@ -17,11 +17,11 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -30,17 +30,22 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+// This reader supports both FindBugs and FindSecBugs, since the later is simply a FindBugs plugin.
 public class FindbugsReader extends Reader {
 
-    // This reader supports both FindBugs and FindSecBugs, since the later is simply a FindBugs
-    // plugin.
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.line(1).startsWith("<BugCollection");
+    }
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr =
@@ -48,7 +53,7 @@ public class FindbugsReader extends Reader {
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml), set the
         // compute time on the scorecard.
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
 
         // <BugCollection timestamp='1434663265000' analysisTimestamp='1434663273732' sequence='0'
         // release='' version='3.0.1>
@@ -69,6 +74,15 @@ public class FindbugsReader extends Reader {
                 if (tcr != null) {
                     tr.put(tcr);
                 }
+            }
+        }
+
+        // change the name of the tool if the filename contains findsecbugs
+        if (resultFile.filename().contains("findsecbugs")) {
+            if (tr.getToolName().startsWith("Find")) {
+                tr.setTool("FBwFindSecBugs");
+            } else {
+                tr.setTool("SBwFindSecBugs");
             }
         }
 
@@ -106,7 +120,7 @@ public class FindbugsReader extends Reader {
         return null;
     }
 
-    private static int figureCWE(TestCaseResult tcr, Node cwenode, Node catnode) {
+    private int figureCWE(TestCaseResult tcr, Node cwenode, Node catnode) {
         String cwe = null;
         if (cwenode != null) {
             cwe = cwenode.getNodeValue();

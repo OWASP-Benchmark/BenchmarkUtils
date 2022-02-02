@@ -18,9 +18,8 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.TestSuiteResults.ToolType;
@@ -33,10 +32,17 @@ import org.owasp.benchmarkutils.score.TestSuiteResults.ToolType;
  */
 
 public class ShiftLeftReader extends Reader {
-    public TestSuiteResults parse(File f) throws IOException {
 
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".sl");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr = new TestSuiteResults("ShiftLeft", true, ToolType.SAST);
-        try (BufferedReader reader = new BufferedReader(new FileReader(f)); ) {
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(resultFile.file()))) {
             String line;
             while ((line = reader.readLine()) != null) {
 

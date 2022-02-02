@@ -22,11 +22,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 /**
- * Class with static methods to read from the results of njsscan and place them in the conforming
+ * Class with methods to read from the results of njsscan and place them in the conforming
  * TestSuiteResults. See: https://github.com/ajinabraham/njsscan
  */
 public class NJSScanReader extends Reader {
@@ -34,13 +35,13 @@ public class NJSScanReader extends Reader {
     /**
      * Searches for the key "njsscan_version" in the given json object
      *
-     * @param json The json object to search the key for
+     * @param resultFile The result file to search the key for
      * @return True if "njsscan_version" is present, false otherwise
      */
-    public static boolean isNJSScanReport(JSONObject json) {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
         try {
-            json.getString("njsscan_version");
-            return true;
+            return resultFile.isJson() && resultFile.json().has("njsscan_version");
         } catch (JSONException jsonE) {
             return false;
         }
@@ -51,10 +52,11 @@ public class NJSScanReader extends Reader {
      * that the JSONObject supplied is a njsscan report using the function
      * NJSScanReader.isNJSScanReport(json)
      *
-     * @param json The JSONObject generated from a njsscan report
+     * @param resultFile The ResultFile containing the JSONObject generated from a njsscan report
      * @return A TestSuiteResults object containing a mapping of test cases
      */
-    public static TestSuiteResults parse(JSONObject json) {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         JSONObject cwe_object;
 
         TestSuiteResults tsrs =
@@ -62,11 +64,11 @@ public class NJSScanReader extends Reader {
 
         try {
             // "njsscan_version" holds the version of the program
-            String njsscan_version = json.getString("njsscan_version");
+            String njsscan_version = resultFile.json().getString("njsscan_version");
             tsrs.setToolVersion(njsscan_version);
 
             // "nodejs" holds a dictionary of all the encountered cwes
-            cwe_object = json.getJSONObject("nodejs");
+            cwe_object = resultFile.json().getJSONObject("nodejs");
             String[] cwes = JSONObject.getNames(cwe_object);
 
             // Iterate through all CWEs and process them
@@ -133,7 +135,7 @@ public class NJSScanReader extends Reader {
      * @param issue The JSONObject which contains the "files" and "metadata" key
      * @return Array of TestCaseResult all for the same CWE
      */
-    private static TestCaseResult[] parseCWE(JSONObject CWE) {
+    private TestCaseResult[] parseCWE(JSONObject CWE) {
         List<TestCaseResult> results = new ArrayList<TestCaseResult>();
 
         try {
@@ -180,7 +182,7 @@ public class NJSScanReader extends Reader {
      * @return A TestCaseResult with the information from the file or null if finding is not in a
      *     test case source file
      */
-    private static TestCaseResult produceTestCaseResult(JSONObject file, int cwe_identifier) {
+    private TestCaseResult produceTestCaseResult(JSONObject file, int cwe_identifier) {
         TestCaseResult tcr = new TestCaseResult();
         tcr.setCWE(cwe_identifier);
 
@@ -211,7 +213,7 @@ public class NJSScanReader extends Reader {
         return tcr;
     }
 
-    private static int cweLookup(int cwe) {
+    private int cweLookup(int cwe) {
         switch (cwe) {
             case 23: // Relative Path Traversal <-- care about this one
                 return 22; // We expect 22, not 23

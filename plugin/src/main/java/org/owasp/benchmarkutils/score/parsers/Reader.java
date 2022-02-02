@@ -18,12 +18,76 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import org.owasp.benchmarkutils.score.ResultFile;
+import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class Reader {
+public abstract class Reader {
+
+    public static List<Reader> allReaders() {
+        return Arrays.asList(
+                new AcunetixReader(),
+                new AppScanDynamicReader(),
+                new AppScanDynamicReader2(),
+                new AppScanSourceReader(),
+                new AppScanSourceReader2(),
+                new ArachniReader(),
+                new BurpJsonReader(),
+                new BurpReader(),
+                new CASTAIPReader(),
+                new CheckmarxESReader(),
+                new CheckmarxIASTReader(),
+                new CheckmarxReader(),
+                new CodeQLReader(),
+                new ContrastReader(),
+                new CoverityReader(),
+                new CrashtestReader(),
+                new FaastReader(),
+                new FindbugsReader(),
+                new FortifyReader(),
+                new FusionLiteInsightReader(),
+                new HCLReader(),
+                new HdivReader(),
+                new HorusecReader(),
+                new InsiderReader(),
+                new JuliaReader(),
+                new KiuwanReader(),
+                new LGTMReader(),
+                new NetsparkerReader(),
+                new NJSScanReader(),
+                new NoisyCricketReader(),
+                new ParasoftReader(),
+                new PMDReader(),
+                new QualysWASReader(),
+                new Rapid7Reader(),
+                new ReshiftReader(),
+                new SeekerReader(),
+                new SemgrepReader(),
+                new ShiftLeftReader(),
+                new ShiftLeftScanReader(),
+                new SnappyTickReader(),
+                new SonarQubeJsonReader(),
+                new SonarQubeReader(),
+                new SourceMeterReader(),
+                new ThunderScanReader(),
+                new VeracodeReader(),
+                new VisualCodeGrepperReader(),
+                new W3AFReader(),
+                new WapitiJsonReader(),
+                new WapitiReader(),
+                new WebInspectReader(),
+                new XanitizerReader(),
+                new ZapJsonReader(),
+                new ZapReader());
+    }
+
+    public abstract boolean canRead(ResultFile resultFile);
+
+    public abstract TestSuiteResults parse(ResultFile resultFile) throws Exception;
 
     public static Node getNamedNode(String name, NodeList list) {
         for (int i = 0; i < list.getLength(); i++) {
@@ -34,9 +98,9 @@ public class Reader {
         }
         return null;
     }
-
     // Returns the node inside this nodelist whose name matches 'name', that also has an attribute
     // called 'key' whose value matches 'keyvalue'
+
     public static Node getNamedNode(String name, String keyValue, NodeList list) {
         if ((name == null) || (keyValue == null) || (list == null)) return null;
         for (int i = 0; i < list.getLength(); i++) {
@@ -56,13 +120,12 @@ public class Reader {
     }
 
     public static List<Node> getNamedChildren(String name, List<Node> list) {
-        List<Node> results = new ArrayList<Node>();
+        List<Node> results = new ArrayList<>();
         for (Node n : list) {
             NodeList children = n.getChildNodes();
             for (int i = 0; i < children.getLength(); i++) {
                 Node child = children.item(i);
                 if (child.getNodeName().equals(name)) {
-                    // System.out.println("> " + child.getNodeName() + "::" + child.getNodeValue());
                     results.add(child);
                 }
             }
@@ -93,8 +156,7 @@ public class Reader {
         if (nnm != null) {
             Node attrnode = nnm.getNamedItem(name);
             if (attrnode != null) {
-                String value = attrnode.getNodeValue();
-                return value;
+                return attrnode.getNodeValue();
             }
         }
         return null;

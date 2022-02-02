@@ -17,14 +17,21 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
+import java.io.StringReader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class ReshiftReader extends Reader {
+
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".csv")
+                && resultFile.line(0).contains("Reshift Report");
+    }
 
     private static int cweLookup(String checkerKey) {
         checkerKey = checkerKey.replace("-SECOND-ORDER", "");
@@ -68,7 +75,8 @@ public class ReshiftReader extends Reader {
         return 0;
     }
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr = new TestSuiteResults("Reshift", true, TestSuiteResults.ToolType.SAST);
 
         /* The start of a Reshift .csv results file looks like this (where I've added the line #'s in front):
@@ -84,7 +92,8 @@ public class ReshiftReader extends Reader {
         N: The rest of the results lines from here to end ...
 
         */
-        java.io.BufferedReader inReader = new java.io.BufferedReader(new java.io.FileReader(f));
+        java.io.BufferedReader inReader =
+                new java.io.BufferedReader(new StringReader(resultFile.content()));
         for (int i = 1; i <= 6; i++) { // Read 6 lines so we can skip over the preamble
             inReader.readLine();
         }

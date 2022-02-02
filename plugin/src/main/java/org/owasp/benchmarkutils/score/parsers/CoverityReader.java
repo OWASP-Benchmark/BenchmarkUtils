@@ -17,21 +17,25 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class CoverityReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
-        String content = new String(Files.readAllBytes(Paths.get(f.getPath())));
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".json")
+                && (resultFile.line(1).contains("Coverity")
+                        || resultFile.line(1).contains("formatVersion"));
+    }
 
-        JSONObject obj = new JSONObject(content);
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
+        JSONObject obj = resultFile.json();
         int version = obj.getInt("formatVersion");
 
         String key = version > 1 ? "issues" : "mergedIssues";
@@ -43,9 +47,10 @@ public class CoverityReader extends Reader {
                         true,
                         TestSuiteResults.ToolType
                                 .SAST); // Coverity's tool is called Code Advisor or Code Advisor On
+
         // Demand
         // Fixme: See if we can figure this out from some of the files they provide
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
 
         for (int i = 0; i < arr.length(); i++) {
             TestCaseResult tcr = parseCoverityFinding(arr.getJSONObject(i), version);
@@ -129,8 +134,8 @@ public class CoverityReader extends Reader {
      *
      * @param finding Coverity finding in JSON format that needs parsing
      * @return either a <code>TestCaseResult</code> object containing the finding details or <code>
-     *     null</code> if the finding is not relevant (not in a test case) or of an unknown type
-     *     (that is: not part of the test case definition)
+     * null</code> if the finding is not relevant (not in a test case) or of an unknown type (that
+     *     is: not part of the test case definition)
      */
     private TestCaseResult parseCoverityFindingV2(JSONObject finding) {
         try {

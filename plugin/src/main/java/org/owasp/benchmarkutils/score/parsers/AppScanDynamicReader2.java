@@ -17,13 +17,14 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -31,17 +32,24 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
+// This is the new AppScan Dynamic reader, where they generate ".xml" files.
 public class AppScanDynamicReader2 extends Reader {
 
-    // This is the new AppScan Dynamic reader, where they generate ".xml" files.
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.xmlRootNodeName().equals("xml-report")
+                && "AppScan Report".equals(getAttributeValue("name", resultFile.xmlRootNode()))
+                && "DAST".equals(getAttributeValue("technology", resultFile.xmlRootNode()));
+    }
 
-    public TestSuiteResults parse(File f) throws Exception {
-
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         Node root = doc.getDocumentElement();
@@ -101,9 +109,9 @@ public class AppScanDynamicReader2 extends Reader {
     }
 
     /// Issues which are not variants
-    private static TestCaseResult TestCaseLookup(String issueType, String url) {
+    private TestCaseResult TestCaseLookup(String issueType, String url) {
         TestCaseResult tcr = new TestCaseResult();
-        String urlElements[] = url.split("/");
+        String[] urlElements = url.split("/");
         String testArea =
                 urlElements[urlElements.length - 2].split("-")[0]; // .split strips off the -##
 
@@ -139,9 +147,9 @@ public class AppScanDynamicReader2 extends Reader {
     }
 
     // Fetch Issues listed as variants, to cater to post 10.x release xml format
-    private static List<String> variantLookup(
+    private List<String> variantLookup(
             String issueType, String itemID, String startingUrl, List<Node> variants) {
-        List<String> testCaseElementsFromVariants = new ArrayList<String>();
+        List<String> testCaseElementsFromVariants = new ArrayList<>();
 
         // System.out.println("Variant Lookup Item ID: " + itemID);
 
@@ -162,7 +170,7 @@ public class AppScanDynamicReader2 extends Reader {
                     String benchMarkTestCase = variantUrl[1].trim();
 
                     if (benchMarkTestCase.contains("BenchmarkTest")) {
-                        String urlElements[] = benchMarkTestCase.split("/");
+                        String[] urlElements = benchMarkTestCase.split("/");
 
                         String testAreaUrl =
                                 startingUrl
@@ -181,7 +189,7 @@ public class AppScanDynamicReader2 extends Reader {
         return testCaseElementsFromVariants;
     }
 
-    private static int cweLookup(String vtype, String testArea) {
+    private int cweLookup(String vtype, String testArea) {
         int cwe = cweLookup(vtype); // Do the standard CWE lookup
 
         // Then map some to other CWEs based on the test area being processed.
@@ -191,45 +199,45 @@ public class AppScanDynamicReader2 extends Reader {
         return cwe;
     }
 
-    private static int cweLookup(String vtype) {
+    private int cweLookup(String vtype) {
         switch (vtype) {
             case "attDirectoryFound":
             case "attDirOptions":
             case "attFileUnix":
-                return 22;
+                return CweNumber.PATH_TRAVERSAL;
 
             case "attApplicationRemoteCodeExecutionAdns":
             case "attCodeInjectionInSystemCall":
             case "attCommandInjectionAdns":
             case "attCommandInjectionUnixTws":
             case "attFileParamPipe":
-                return 78;
+                return CweNumber.COMMAND_INJECTION;
 
             case "attCrossSiteScripting":
-                return 79;
+                return CweNumber.XSS;
 
             case "attBlindSqlInjectionStrings":
             case "attSqlInjectionChecks":
-                return 89;
+                return CweNumber.SQL_INJECTION;
 
             case "attLDAPInjection":
             case "attLDAPInjection2":
             case "attBlindLDAPInjection":
-                return 90;
+                return CweNumber.LDAP_INJECTION;
 
             case "SHA1CipherSuites":
-                return 327; // Better if set to 327?
+                return CweNumber.REVERSIBLE_HASH; // Better if set to 327?
 
             case "passParamGET":
-                return 523;
+                return CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT;
 
             case "attRespCookieNotSecureSSL":
-                return 614;
+                return CweNumber.INSECURE_COOKIE;
 
             case "attXPathInjection":
             case "attBlindXpathInjectionSingleQuote":
             case "attBlindXPathInjection":
-                return 643;
+                return CweNumber.XPATH_INJECTION;
 
                 // These don't map to anything we care about
             case "attContentSecurityPolicyObjectSrc":

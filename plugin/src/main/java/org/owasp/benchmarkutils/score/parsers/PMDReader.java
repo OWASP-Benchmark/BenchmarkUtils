@@ -17,13 +17,13 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -33,19 +33,25 @@ import org.xml.sax.InputSource;
 
 public class PMDReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml") && resultFile.line(1).startsWith("<pmd ");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr = new TestSuiteResults("PMD", false, TestSuiteResults.ToolType.SAST);
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml), set the
         // compute time on the scorecard.
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
 
         Node root = doc.getDocumentElement();
         String version = getAttributeValue("version", root);
@@ -66,7 +72,6 @@ public class PMDReader extends Reader {
     }
 
     private List<TestCaseResult> parsePMDItem(Node fileNode) {
-
         List<TestCaseResult> results = new ArrayList<TestCaseResult>();
         String filename = fileNode.getAttributes().getNamedItem("name").getNodeValue();
 
@@ -102,7 +107,7 @@ public class PMDReader extends Reader {
         return results;
     }
 
-    private static int figureCWE(String rule) {
+    private int figureCWE(String rule) {
         switch (rule) {
             case "AvoidUsingOctalValues":
             case "CollapsibleIfStatements":

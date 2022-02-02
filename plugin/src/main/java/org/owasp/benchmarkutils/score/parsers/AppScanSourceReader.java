@@ -17,7 +17,6 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +26,8 @@ import java.util.TreeMap;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -36,14 +37,20 @@ import org.xml.sax.InputSource;
 
 public class AppScanSourceReader extends Reader {
 
-    // This is the original AppScan Source reader, when they generated ".ozasmt" files.
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".ozasmt");
+    }
 
-    public TestSuiteResults parse(File f) throws Exception {
+    // This is the original AppScan Source reader, when they generated ".ozasmt" files.
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
         Document doc = docBuilder.parse(is);
 
         Node root = doc.getDocumentElement();
@@ -136,40 +143,40 @@ public class AppScanSourceReader extends Reader {
     		}
     	  }
     */
-    private static int cweLookup(String vtype) {
+    private int cweLookup(String vtype) {
         switch (vtype) {
                 //		case "Vulnerability.AppDOS" : return 00;
                 //		case "Vulnerability.Authentication.Entity" : return 00;
             case "Vulnerability.Cryptography.InsecureAlgorithm":
-                return 327;
+                return CweNumber.STATIC_CRYPTO_INIT;
             case "Vulnerability.Cryptography.PoorEntropy":
-                return 330;
+                return CweNumber.WEAK_RANDOM;
             case "Vulnerability.Cryptography.????WeakHash":
-                return 328; // They don't have a weak hashing rule
+                return CweNumber.REVERSIBLE_HASH; // They don't have a weak hashing rule
                 //		case "Vulnerability.ErrorHandling.RevealDetails.Message" : return 00;
                 //		case "Vulnerability.ErrorHandling.RevealDetails.StackTrace" : return 00;
             case "Vulnerability.Injection.HttpResponseSplitting":
-                return 113;
+                return CweNumber.HTTP_RESPONSE_SPLITTING;
             case "Vulnerability.Injection.LDAP":
-                return 90;
+                return CweNumber.LDAP_INJECTION;
             case "Vulnerability.Injection.OS":
-                return 78;
+                return CweNumber.COMMAND_INJECTION;
             case "Vulnerability.Injection.SQL":
-                return 89;
+                return CweNumber.SQL_INJECTION;
             case "Vulnerability.Injection.XPath":
-                return 643;
+                return CweNumber.XPATH_INJECTION;
                 //		case "Vulnerability.Malicious.DynamicCode" : return 00;
                 //		case "Vulnerability.Malicious.DynamicCode.Execution" : return 00;
             case "Vulnerability.PathTraversal":
-                return 22;
+                return CweNumber.PATH_TRAVERSAL;
                 //		case "Vulnerability.Quality.TestCode" : return 00;
                 //		case "Vulnerability.Quality.Unsupported" : return 00;
             case "Vulnerability.SessionManagement.Cookies":
-                return 614;
+                return CweNumber.INSECURE_COOKIE;
             case "Vulnerability.Validation.EncodingRequired":
-                return 79;
+                return CweNumber.XSS;
             case "Vulnerability.Validation.Required":
-                return 501;
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
         }
         return 0;
     }

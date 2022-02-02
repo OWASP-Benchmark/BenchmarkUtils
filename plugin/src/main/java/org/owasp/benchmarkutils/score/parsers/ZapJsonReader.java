@@ -26,6 +26,7 @@ import java.net.URL;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
@@ -35,9 +36,11 @@ public class ZapJsonReader extends Reader {
         "sourceid", "other", "method", "evidence", "pluginId", "cweid", "confidence", "wascid"
     };
 
-    public static boolean isZapReport(JSONObject json) {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
         try {
-            return hasExpectedKeys(json.getJSONArray("vulnerabilities").getJSONObject(0));
+            return hasExpectedKeys(
+                    resultFile.json().getJSONArray("vulnerabilities").getJSONObject(0));
         } catch (Exception e) {
             return false;
         }
@@ -53,11 +56,12 @@ public class ZapJsonReader extends Reader {
         return true;
     }
 
-    public TestSuiteResults parse(JSONObject json) throws Exception {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("OWASP ZAP", false, TestSuiteResults.ToolType.DAST);
 
-        JSONArray arr = json.getJSONArray("vulnerabilities");
+        JSONArray arr = resultFile.json().getJSONArray("vulnerabilities");
 
         for (int i = 0; i < arr.length(); i++) {
             TestCaseResult tcr = parseTestCaseResult(arr.getJSONObject(i));

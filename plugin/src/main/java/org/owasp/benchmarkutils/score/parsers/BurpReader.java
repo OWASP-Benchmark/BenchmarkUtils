@@ -17,33 +17,40 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Node;
 
 public class BurpReader extends Reader {
 
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.xmlRootNodeName().equals("issues");
+    }
+
     // filename passed in so we can extract the scan time if it is included in the filename
     // root of XML doc passed in so we can parse the results
-    public TestSuiteResults parse(File f, Node root) throws Exception {
-
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("Burp Suite Pro", true, TestSuiteResults.ToolType.DAST);
 
         // <issues burpVersion="1.6.24"
         // exportTime="Wed Aug 19 23:27:54 EDT 2015">
 
-        String version = getAttributeValue("burpVersion", root);
+        String version = getAttributeValue("burpVersion", resultFile.xmlRootNode());
         tr.setToolVersion(version);
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml) set the
         // compute time on the scorecard.
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
 
-        List<Node> issueList = getNamedChildren("issue", root);
+        List<Node> issueList = getNamedChildren("issue", resultFile.xmlRootNode());
 
         for (Node issue : issueList) {
             TestCaseResult tcr = parseBurpVulnerability(issue);
@@ -97,6 +104,7 @@ public class BurpReader extends Reader {
 
         return null;
     }
+
     // https://portswigger.net/kb/issues - This page lists all the issue types Burp looks for, and
     // their
     // customer ID #'s. There are more on this page. The following primarily lists those
@@ -104,29 +112,25 @@ public class BurpReader extends Reader {
     static int cweLookup(String id) {
         switch (id) {
             case "1048832":
-                return 78; // Command Injection
+                return CweNumber.COMMAND_INJECTION;
             case "1049088":
-                return 89; // SQL Injection
+                return CweNumber.SQL_INJECTION;
             case "1049344":
-                return 22; // File Path Traversal
+            case "1051392": // File Path Manipulation - Not sure exact difference with 1049344 above
+                return CweNumber.PATH_TRAVERSAL;
             case "1049600":
-                return 611; // XXE
+                return CweNumber.XML_ENTITIES;
             case "1049856":
-                return 90; // LDAP Injection
+                return CweNumber.LDAP_INJECTION;
             case "1050112":
-                return 643; // XPATH Injection
-            case "1050368":
-                return 643; // XML Injection - Meaning what?
-            case "1051392":
-                return 22; // File Path Manipulation - Not sure exact difference with 1049344 above
-            case "2097408":
-                return 79; // Stored XSS
-            case "2097920":
-                return 79; // Reflected XSS
-            case "2097936":
-                return 79; // DOM-Based XSS (Probably want separate ID for this in the future)
+            case "1050368": // XML Injection - Meaning what?
+                return CweNumber.XPATH_INJECTION;
+            case "2097408": // Stored XSS
+            case "2097920": // Reflected XSS
+            case "2097936": // DOM-Based XSS (Probably want separate ID for this in the future)
+                return CweNumber.XSS;
             case "2098944":
-                return 352; // CSRF Vulnerability
+                return CweNumber.CSRF;
             case "3146240":
                 return 918; // External service interaction (DNS)
             case "4194560":
@@ -138,7 +142,7 @@ public class BurpReader extends Reader {
             case "4197632":
                 return 20; // Suspicious input transformation (reflected)
             case "5243392":
-                return 614; // SSL cookie without secure flag set
+                return CweNumber.INSECURE_COOKIE;
             case "5244416":
                 return 9998; // Cookie without HttpOnly flag set - There is no CWE defined for this
                 // weakness

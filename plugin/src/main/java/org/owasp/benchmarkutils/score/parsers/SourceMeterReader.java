@@ -17,14 +17,16 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.List;
-import org.apache.commons.io.IOUtils;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class SourceMeterReader extends Reader {
+
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".txt") && resultFile.line(0).startsWith("Possible ");
+    }
 
     // Possible Cross-site Scripting Vulnerability:
     // Source: String getValue()
@@ -35,17 +37,16 @@ public class SourceMeterReader extends Reader {
     // /home/istvan/owasp/ellenorzes/benchmark/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00023.java(80):(80,33,81,61)[0]
     // /home/istvan/owasp/ellenorzes/benchmark/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00023.java(80):(80,4,81,62)[0]
 
-    public TestSuiteResults parse(File fileToParse) throws Exception {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults(
                         "SourceMeter VulnerabilityHunter", true, TestSuiteResults.ToolType.SAST);
 
-        List<String> sourceLines = IOUtils.readLines(new FileInputStream(fileToParse));
-
         String vuln = null;
         String file = null;
         boolean nextLine = false;
-        for (String line : sourceLines) {
+        for (String line : resultFile.lines()) {
             try {
                 if (line.length() == 0) {
                     vuln = null;
