@@ -17,7 +17,6 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,6 +24,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -33,6 +33,12 @@ import org.xml.sax.InputSource;
 
 public class CrashtestReader extends Reader {
 
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.line(0).startsWith("<testsuites name=\"");
+    }
+
     // <testsuites name="" tests="16553" disabled="0" errors="5" failures="440" time="128361">
     //   <testsuite name="Crashtest Security Suite" tests="16553" disabled="0" errors="5"
     // failures="440" skipped="0" time="128361">
@@ -40,12 +46,13 @@ public class CrashtestReader extends Reader {
     //	   <failure message="TLS 1.1 is offered by the server. This version of TLS is deprecated. You
     // should use TLS 1.2 or TLS 1.3" type="high"/>
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr =

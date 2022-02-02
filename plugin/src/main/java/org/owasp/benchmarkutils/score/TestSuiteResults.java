@@ -247,23 +247,6 @@ public class TestSuiteResults {
         }
     }
 
-    // We had to create a custom method for Fortify since we extract the contents of the .fpr
-    // file out into a temp file whose name looks like this:
-    //      Benchmark_1.1-Fortify-13121.fpr8111236727473243675.fvdl
-
-    public void setFortifyTime(File f) {
-        String filename = f.getName();
-        // to make the same as normal filenames, strip off the '.fvdl' at the end of the filename
-        filename = filename.substring(0, filename.lastIndexOf('.') - 1);
-        String time = filename.substring(filename.lastIndexOf('-') + 1, filename.lastIndexOf('.'));
-        try {
-            int seconds = Integer.parseInt(time);
-            this.setTime(formatTime(seconds * 1000));
-        } catch (Exception e) {
-            this.setTime("Time not specified");
-        }
-    }
-
     /**
      * Get the total number of results for these TestResults.
      *

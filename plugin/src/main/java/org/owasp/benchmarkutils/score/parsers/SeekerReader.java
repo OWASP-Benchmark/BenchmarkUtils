@@ -17,15 +17,53 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class SeekerReader extends Reader {
 
-    private static int cweLookup(String checkerKey) {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".csv")
+                && resultFile.line(0).contains("CheckerKey")
+                && resultFile.line(0).contains("LastDetectionURL");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
+        TestSuiteResults tr = new TestSuiteResults("Seeker", true, TestSuiteResults.ToolType.IAST);
+
+        java.io.Reader inReader = new java.io.FileReader(resultFile.file());
+        Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(inReader);
+        for (CSVRecord record : records) {
+            String checkerKey = record.get("CheckerKey");
+            String url = record.get("LastDetectionURL");
+
+            TestCaseResult tcr = new TestCaseResult();
+            tcr.setCategory(checkerKey);
+            tcr.setCWE(cweLookup(checkerKey));
+            try {
+                if (url.length() >= 5) {
+                    tcr.setNumber(Integer.parseInt(url.substring(url.length() - 5, url.length())));
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("> Parse error: " + record.toString());
+            }
+
+            if (tcr.getCWE() != 0) {
+                tr.put(tcr);
+            }
+        }
+
+        tr.setTime("100");
+
+        return tr;
+    }
+
+    private int cweLookup(String checkerKey) {
         checkerKey = checkerKey.replace("-SECOND-ORDER", "");
 
         switch (checkerKey) {
@@ -69,35 +107,5 @@ public class SeekerReader extends Reader {
                 return 501;
         }
         return 0;
-    }
-
-    public TestSuiteResults parse(File f) throws Exception {
-        TestSuiteResults tr = new TestSuiteResults("Seeker", true, TestSuiteResults.ToolType.IAST);
-
-        java.io.Reader inReader = new java.io.FileReader(f);
-        Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(inReader);
-        for (CSVRecord record : records) {
-            String checkerKey = record.get("CheckerKey");
-            String url = record.get("LastDetectionURL");
-
-            TestCaseResult tcr = new TestCaseResult();
-            tcr.setCategory(checkerKey);
-            tcr.setCWE(cweLookup(checkerKey));
-            try {
-                if (url.length() >= 5) {
-                    tcr.setNumber(Integer.parseInt(url.substring(url.length() - 5, url.length())));
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("> Parse error: " + record.toString());
-            }
-
-            if (tcr.getCWE() != 0) {
-                tr.put(tcr);
-            }
-        }
-
-        tr.setTime("100");
-
-        return tr;
     }
 }

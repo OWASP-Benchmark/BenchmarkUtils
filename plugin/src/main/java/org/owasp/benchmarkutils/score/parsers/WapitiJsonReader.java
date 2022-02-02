@@ -26,23 +26,30 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class WapitiJsonReader extends Reader {
 
-    public static boolean isWapitiReport(JSONObject json) {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
         try {
-            return json.getJSONObject("infos").getString("version").startsWith("Wapiti");
+            return resultFile
+                    .json()
+                    .getJSONObject("infos")
+                    .getString("version")
+                    .startsWith("Wapiti");
         } catch (Exception e) {
             return false;
         }
     }
 
-    public static TestSuiteResults parse(JSONObject json) throws Exception {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr = new TestSuiteResults("Wapiti", false, TestSuiteResults.ToolType.DAST);
 
-        JSONObject vulnerabilities = json.getJSONObject("vulnerabilities");
+        JSONObject vulnerabilities = resultFile.json().getJSONObject("vulnerabilities");
 
         Map<String, Integer> categoryCweMap = new HashMap<>();
 
@@ -98,7 +105,7 @@ public class WapitiJsonReader extends Reader {
             }
         }
 
-        tr.setToolVersion(readVersion(json));
+        tr.setToolVersion(readVersion(resultFile.json()));
 
         return tr;
     }

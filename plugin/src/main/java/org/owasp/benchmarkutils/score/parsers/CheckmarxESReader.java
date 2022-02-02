@@ -17,22 +17,29 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class CheckmarxESReader extends Reader {
-    public TestSuiteResults parse(File f) throws Exception {
+
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".json")
+                && resultFile.line(1).contains("Vendor")
+                && resultFile.line(1).contains("Checkmarx");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("Checkmarx SAST", true, TestSuiteResults.ToolType.SAST);
 
-        String content = new String(Files.readAllBytes(Paths.get(f.getPath())));
-        JSONObject obj = new JSONObject(content);
+        JSONObject obj = resultFile.json();
 
         // engine version
         String version = obj.getString("EngineVersion");
@@ -112,12 +119,12 @@ public class CheckmarxESReader extends Reader {
     private int translate(int cwe) {
         switch (cwe) {
             case 77:
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
             case 36:
             case 23:
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
             case 338:
-                return 330; // weak random
+                return CweNumber.WEAK_RANDOM;
         }
         return cwe;
     }

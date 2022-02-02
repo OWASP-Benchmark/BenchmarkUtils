@@ -17,12 +17,13 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -31,29 +32,24 @@ import org.xml.sax.InputSource;
 
 public class CASTAIPReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.line(1).toLowerCase().startsWith("<castaip");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr =
                 new TestSuiteResults("CAST AIP", true, TestSuiteResults.ToolType.SAST);
         Node root = doc.getDocumentElement();
-
-        //      <?xml version="1.0" encoding="UTF-8"?>
-        //      <CASTAIP version="8.2.3" timestamp="2017-09-18 11:55:12.312+00">
-
-        //      Only start time available in XML, per above. No stop time
-        //        String duration = getNamedChild("timestamp", root ).getTextContent();
-        //        try {
-        //            long millis = Long.parseLong(duration);
-        //            tr.setTime( TestResults.formatTime( millis ) );
-        //        } catch( Exception e ) {
-        //            tr.setTime( duration );
-        //        }
 
         String version = getAttributeValue("version", root);
         if (version != null) {
@@ -74,15 +70,6 @@ public class CASTAIPReader extends Reader {
         }
         return tr;
     }
-
-    // Issues look like this (all on one line)
-    // <file name="C:\CASTMS\Deploy\OWASPTST\My
-    // Package\src\main\java\org\owasp\benchmark\testcode\BenchmarkTest00007.java">
-    // <violation beginline="39" endline="70" begincolumn="2" endcolumn="3" rule=" " ruleset="Secure
-    // Coding - Input Validation"
-    // fullname="org.owasp.benchmark.testcode.BenchmarkTest00007.doPost" type="Java Method"
-    // critical="YES" >
-    // Avoid OS command injection vulnerabilities ( CWE-78 )</violation></file>
 
     private TestCaseResult parseCASTAIPIssue(Node flaw) throws Exception {
         TestCaseResult tcr = new TestCaseResult();
@@ -116,44 +103,43 @@ public class CASTAIPReader extends Reader {
         return null;
     }
 
-    private static int cweLookup(String name) {
+    private int cweLookup(String name) {
         if (name == null || name.isEmpty()) {
             return 0000;
         }
         switch (name.trim()) {
             case "614":
-                return 614; // insecure cookie use
+                return CweNumber.INSECURE_COOKIE;
             case "78":
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
             case "79":
-                return 79; // xss
+                return CweNumber.XSS;
             case "89":
-                return 89; // sql injection
+                return CweNumber.SQL_INJECTION;
             case "90":
-                return 90; // ldap injection
+                return CweNumber.LDAP_INJECTION;
                 //        case "header-injection"          :  return 113;  // header injection
                 //        case "hql-injection"             :  return 0000; // hql injection
                 //        case "unsafe-readline"           :  return 0000; // unsafe readline
                 //        case "reflection-injection"      :  return 0000; // reflection injection
                 //        case "reflected-xss"             :  return 79;   // xss
             case "91":
-                return 643; // xpath injection
-            case "73":
-                return 22; // path traversal - This tool calls this CWE-73 "External Control of File
+            case "643":
+                return CweNumber.XPATH_INJECTION;
+            case "73": // This tool calls this CWE-73 "External Control of File"
+            case "22":
+                return CweNumber.PATH_TRAVERSAL;
                 // Name or Path"
                 //        case "crypto-bad-mac"            :  return 328;  // weak hash
                 //        case "crypto-weak-randomness"    :  return 330;  // weak random
                 //        case "crypto-bad-ciphers"        :  return 327;  // weak encryption
             case "501":
-                return 501; // trust boundary
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
                 //        case "xxe"                       :  return 611;  // xml entity
             case "134":
-                return 134; // Use of Externally-Controlled Format String - Which really isn't a
-                // Java vuln
-            case "22":
-                return 22;
-            case "643":
-                return 643;
+                return CweNumber
+                        .EXTERNALLY_CONTROLLED_STRING; // Use of Externally-Controlled Format String
+                // - Which really isn't a
             default:
                 System.out.println(
                         "No matching CWE # found in CAST AIP Reader for: 'CWE-" + name + "'");

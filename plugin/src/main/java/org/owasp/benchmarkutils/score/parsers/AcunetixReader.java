@@ -19,15 +19,24 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Node;
 
 public class AcunetixReader extends Reader {
 
-    public TestSuiteResults parse(Node root) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && (resultFile.xmlRootNodeName().equals("ScanGroup")
+                        || resultFile.xmlRootNodeName().equals("acunetix-360"));
+    }
 
-        if (root.getNodeName().equalsIgnoreCase("acunetix-360")) {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
+        if (resultFile.xmlRootNodeName().equalsIgnoreCase("acunetix-360")) {
 
             /* This is for the 2020 format that looks like:
             	 <acunetix-360 generated="28/02/2020 08:59 AM">
@@ -45,12 +54,12 @@ public class AcunetixReader extends Reader {
             TestSuiteResults tr =
                     new TestSuiteResults("Acunetix 360", true, TestSuiteResults.ToolType.DAST);
 
-            Node target = getNamedChild("target", root);
+            Node target = getNamedChild("target", resultFile.xmlRootNode());
             String duration = getNamedChild("duration", target).getTextContent();
             // duration format is: 01:57:21.2094646
             tr.setTime(duration.substring(0, duration.lastIndexOf('.')));
 
-            Node issues = getNamedChild("vulnerabilities", root);
+            Node issues = getNamedChild("vulnerabilities", resultFile.xmlRootNode());
             List<Node> issueList = getNamedChildren("vulnerability", issues);
 
             for (Node issue : issueList) {
@@ -65,7 +74,7 @@ public class AcunetixReader extends Reader {
             }
             return tr;
 
-        } else if (root.getNodeName().equalsIgnoreCase("ScanGroup")) {
+        } else if (resultFile.xmlRootNodeName().equalsIgnoreCase("ScanGroup")) {
 
             // The following is for the legacy format that looks like so:
 
@@ -87,7 +96,7 @@ public class AcunetixReader extends Reader {
             */
             TestSuiteResults tr =
                     new TestSuiteResults("Acunetix WVS", true, TestSuiteResults.ToolType.DAST);
-            Node scan = getNamedChild("Scan", root);
+            Node scan = getNamedChild("Scan", resultFile.xmlRootNode());
 
             String duration = getNamedChild("ScanTime", scan).getTextContent();
             tr.setTime(duration);
@@ -220,22 +229,22 @@ public class AcunetixReader extends Reader {
         return null;
     }
 
-    private static int cweLookup(String cweNum) {
+    private int cweLookup(String cweNum) {
         if (cweNum == null || cweNum.isEmpty()) {
             System.out.println("ERROR: No CWE number supplied");
             return 0000;
         }
         switch (cweNum) {
             case "22":
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
             case "78":
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
             case "79":
-                return 79; // xss
+                return CweNumber.XSS;
             case "89":
-                return 89; // sql injection
+                return CweNumber.SQL_INJECTION;
             case "614":
-                return 614; // insecure cookie use
+                return CweNumber.INSECURE_COOKIE;
 
                 // switch left in case we ever need to map a reported cwe to the one expected by
                 // Benchmark

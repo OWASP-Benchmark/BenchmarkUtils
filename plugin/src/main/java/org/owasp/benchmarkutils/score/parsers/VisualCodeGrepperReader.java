@@ -17,11 +17,12 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -31,12 +32,19 @@ import org.xml.sax.InputSource;
 
 public class VisualCodeGrepperReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.line(1).startsWith("<CodeIssueCollection");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr =
@@ -44,7 +52,7 @@ public class VisualCodeGrepperReader extends Reader {
 
         // If the filename includes an elapsed time in seconds (e.g.,
         // TOOLNAME-seconds.xml), set the compute time on the scorecard.
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
         NodeList nl = doc.getDocumentElement().getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
@@ -106,14 +114,14 @@ public class VisualCodeGrepperReader extends Reader {
         return tcr;
     }
 
-    private static int figureCWE(TestCaseResult tcr, Node catnode) {
+    private int figureCWE(TestCaseResult tcr, Node catnode) {
         String cat = null;
         if (catnode != null) {
             cat = catnode.getTextContent();
         }
         if (cat.startsWith("Cipher.getInstance(")) {
             // Weak encryption
-            return 327;
+            return CweNumber.BROKEN_CRYPTO;
         } else if (cat.startsWith("Class Contains Public Variable: ")) {
             // Potential SQL Injection
             // return 89;
@@ -122,50 +130,43 @@ public class VisualCodeGrepperReader extends Reader {
         switch (cat) {
                 // Cookies
             case "Poor Input Validation":
-                return 614;
+                return CweNumber.INSECURE_COOKIE;
 
                 // Injections
             case "Potential SQL Injection":
-                return 89;
+                return CweNumber.SQL_INJECTION;
                 // case "Operation on Primitive Data Type" : return 89;
 
                 // Command injection
             case "java.lang.Runtime.exec Gets Path from Variable":
-                return 78;
+                return CweNumber.COMMAND_INJECTION;
 
                 // XPath Injection
             case "FileInputStream":
-                return 643;
             case "java.io.FileWriter":
-                return 643;
             case "java.io.FileReader":
-                return 643;
             case "FileStream Opened Without Exception Handling":
-                return 643;
+                return CweNumber.XPATH_INJECTION;
 
                 // Weak random
             case "java.util.Random":
-                return 330;
+                return CweNumber.WEAK_RANDOM;
 
                 // Path traversal
             case "java.io.File":
-                return 22;
             case "java.io.FileOutputStream":
-                return 22;
             case "getResourceAsStream":
-                return 22;
+                return CweNumber.PATH_TRAVERSAL;
 
                 // XSS
             case "Potential XSS":
-                return 79;
+                return CweNumber.XSS;
 
                 // Trust Boundary Violation
             case "getParameterValues":
-                return 501;
             case "getParameterNames":
-                return 501;
             case "getParameter":
-                return 501;
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
 
             default:
                 return 00; // System.out.println( "Unknown vuln category for VisualCodeGrepper: " +

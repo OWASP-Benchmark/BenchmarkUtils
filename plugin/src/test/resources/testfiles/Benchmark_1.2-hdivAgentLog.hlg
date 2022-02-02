@@ -1,0 +1,7 @@
+05:40:55,460 CFG [FINE]  LOREM IPSUM
+05:41:58,220 ANL [FINE] benchmark SourceCodeVulnerability [origin=REQUEST, type=PATH_TRAVERSAL, url=/benchmark/pathtraver-01/BenchmarkTest00001, httpParameterName=BenchmarkTest00001, httpOriginalValue=FileName, taintedValue=SomeValue, className=org.owasp.benchmark.testcode.BenchmarkTest00001, lineNumber=1, score=1.0, hash=0000000000]
+05:41:58,280 DTF [FINE] /benchmark/pathtraver-01/BenchmarkTest00001
+05:41:58,280 DTF [FINE] TaintedObjectsImpl [SomeDetails]
+05:41:58,330 ANL [FINE] benchmark SourceCodeVulnerability [origin=REQUEST, type=INSECURE_HASHING, url=/benchmark/hash-01/BenchmarkTest00002, taintedValue=SomeValue, className=org.owasp.benchmark.testcode.BenchmarkTest00002, lineNumber=1, score=1.0, hash=0000000000]
+05:41:58,380 DTF [FINE] /benchmark/hash-00/BenchmarkTest00002
+05:41:58,380 DTF [FINE] TaintedObjectsImpl [SomeDetails]

@@ -17,31 +17,36 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class SonarQubeJsonReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        // SonarQube has two different JSON formats, one for standard issues and
+        // another for 'hotspots' which are security issues. Both are handled by
+        // the same parser for SonarQube.
+        return resultFile.isJson()
+                && (resultFile.json().has("hotspots") || resultFile.json().has("issues"))
+                && !resultFile.json().has("type"); // Ignore Coverty results
+    }
 
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("SonarQube", false, TestSuiteResults.ToolType.SAST);
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml),
         // set the compute time on the score card.
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
 
-        String content = new String(Files.readAllBytes(Paths.get(f.getPath())));
-        JSONObject obj = new JSONObject(content);
-
-        parseIssues(tr, obj);
-        parseHotspots(tr, obj);
+        parseIssues(tr, resultFile.json());
+        parseHotspots(tr, resultFile.json());
 
         return tr;
     }
@@ -185,7 +190,7 @@ public class SonarQubeJsonReader extends Reader {
      *            in some findings to move such issues to the 'right' CWE.
      *  As such, we specifically look at the message in some cases to fix the mapping.
      */
-    public static int securityCategoryCWELookup(String secCat, String message) {
+    public int securityCategoryCWELookup(String secCat, String message) {
         // Not sure where to look up all the possible security categories in SonarQube, but the
         // mappings seem obvious enough.
 

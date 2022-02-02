@@ -18,12 +18,12 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.nio.file.Files;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -33,12 +33,19 @@ import org.xml.sax.InputSource;
 
 public class SonarQubeReader extends Reader {
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && (resultFile.line(0).startsWith("<total")
+                        || resultFile.line(0).startsWith("<p>"));
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        byte[] bytes = Files.readAllBytes(f.toPath());
 
         // Because the Sonar results file is not well formed, i.e., it has multiple root elements,
         // not
@@ -48,7 +55,7 @@ public class SonarQubeReader extends Reader {
         // org.xml.sax.SAXParseException;
         // lineNumber: X; columnNumber: YY; The markup in the document following the root element
         // must be well-formed.
-        String fixed = "<sonar>" + new String(bytes, "UTF-8") + "</sonar>";
+        String fixed = "<sonar>" + resultFile.content() + "</sonar>";
         InputSource is = new InputSource(new ByteArrayInputStream(fixed.getBytes()));
         Document doc = docBuilder.parse(is);
 
@@ -91,7 +98,7 @@ public class SonarQubeReader extends Reader {
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml),
         // set the compute time on the score card. TODO: Move this to BenchmarkScore for ALL tools?
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
 
         return tr;
     }
@@ -173,151 +180,178 @@ public class SonarQubeReader extends Reader {
         // the #'s with no leading zeroes to look up the 'squid' rule.
         switch (squidNumber) {
             case "S100":
-                return 0000; // Method names should comply with a naming convention
+                return -1; // Method names should comply with a naming convention
             case "S105":
             case "S00105":
-                return 000; // Replace all tab characters in this file by sequences of white-spaces.
+                return -1; // Replace all tab characters in this file by sequences of white-spaces.
             case "S106":
-                return 0000; // Replace this usage of System.out or System.err by a logger.
+                return -1; // Replace this usage of System.out or System.err by a logger.
             case "S108":
-                return 0000; // Nested blocks of code should not be left empty
+                return -1; // Nested blocks of code should not be left empty
             case "S112":
             case "S00112":
-                return 397; // Generic exceptions should never be thrown
+                return CweNumber
+                        .THROW_GENERIC_EXCEPTION; // Generic exceptions should never be thrown
             case "S115":
-                return 0000; // Constant names should comply with a naming convention
+                return -1; // Constant names should comply with a naming convention
             case "S116":
-                return 0000; // Field names should comply with a naming convention
+                return -1; // Field names should comply with a naming convention
             case "S117":
-                return 0000; // Local variable and method parameter names should comply with a
+                return -1; // Local variable and method parameter names should comply with a
                 // naming convention
             case "S121":
             case "S00121":
-                return 483; // Control structures should always use curly braces
+                return CweNumber
+                        .INCORRECT_BLOCK_DELIMITATION; // Control structures should always use curly
+                // braces
             case "S125":
-                return 0000; // Sections of code should not be commented out
+                return -1; // Sections of code should not be commented out
             case "S128":
-                return 484; // Switch cases should end with an unconditional"break" statement
+                return CweNumber
+                        .OMITTED_BREAK; // Switch cases should end with an unconditional "break"
+                // statement
             case "S131":
-                return 478; // "switch" statements should have "default" clauses
+                return CweNumber
+                        .MISSING_DEFAULT_CASE; // "switch" statements should have "default" clauses
             case "S135":
-                return 0000; // Loops should not contain more than a single "break" or "continue"
+                return -1; // Loops should not contain more than a single "break" or "continue"
                 // statement
             case "S864":
-                return 783; // Limited dependence should be placed on operator precedence rules in
+                return CweNumber
+                        .OPERATOR_PRECEDENCE_LOGIC; // Limited dependence should be placed on
+                // operator precedence rules in
                 // expressions
             case "S888":
-                return 835; // Relational operators should be used in"for" loop termination
+                return CweNumber
+                        .LOOP_WITH_UNREACHABLE_EXIT; // Relational operators should be used in "for"
+                // loop termination
                 // conditions
             case "S899":
-                return 754; // Return values should not be ignored when they contain the operation
+                return CweNumber
+                        .IMPROPER_CHECK_FOR_CONDITIONS; // Return values should not be ignored when
+                // they contain the operation
                 // status code
             case "S1066":
-                return 0000; // Collapsible "if" statements should be merged
+                return -1; // Collapsible "if" statements should be merged
             case "S1075":
-                return 0000; // URIs should not be hardcoded
+                return -1; // URIs should not be hardcoded
             case "S1104":
-                return 493; // Class variable fields should not have public accessibility
+                return CweNumber
+                        .PUBLIC_VAR_WITHOUT_FINAL; // Class variable fields should not have public
+                // accessibility
             case "S1116":
-                return 0000; // Empty statements should be removed
+                return -1; // Empty statements should be removed
             case "S1117":
-                return 0000; // Local variables should not shadow class fields
+                return -1; // Local variables should not shadow class fields
             case "S1118":
-                return 0000; // Utility classes should not have public constructors
+                return -1; // Utility classes should not have public constructors
             case "S1128":
-                return 0000; // Unnecessary imports should be removed
+                return -1; // Unnecessary imports should be removed
             case "S1130":
-                return 0000; // "throws" declarations should not be superfluous
+                return -1; // "throws" declarations should not be superfluous
             case "S1132":
-                return 0000; // Strings literals should be placed on the left side when checking for
+                return -1; // Strings literals should be placed on the left side when checking for
                 // equality
             case "S1134":
-                return 0000; // Track uses of "FIXME" tags
+                return -1; // Track uses of "FIXME" tags
             case "S1135":
-                return 0000; // Track uses of "TODO" tags
+                return -1; // Track uses of "TODO" tags
             case "S1141":
-                return 0000; // Try-catch blocks should not be nested
+                return -1; // Try-catch blocks should not be nested
             case "S1143":
-                return 584; // "return " statements should not occur in "finally" blocks
+                return CweNumber.RETURN_INSIDE_FINALLY; // "return " statements should not occur in
+                // "finally" blocks
             case "S1144":
-                return 0000; // Unused "private" methods should be removed
+                return -1; // Unused "private" methods should be removed
             case "S1145":
-                return 0000; // "if" statement conditions should not unconditionally evaluate
+                return -1; // "if" statement conditions should not unconditionally evaluate
                 // to"true" or to"false"
             case "S1147":
-                return 382; // Exit methods should not be called
+                return CweNumber.SYSTEM_EXIT; // Exit methods should not be called
             case "S1149":
-                return 0000; // Synchronized classes Vector, Hashtable, Stack and StringBuffer
+                return -1; // Synchronized classes Vector, Hashtable, Stack and StringBuffer
                 // should not be used
             case "S1155":
-                return 0000; // Collection.isEmpty() should be used to test for emptiness
+                return -1; // Collection.isEmpty() should be used to test for emptiness
             case "S1161":
-                return 0000; // "@Override" should be used on overriding and implementing methods
+                return -1; // "@Override" should be used on overriding and implementing methods
             case "S1163":
-                return 0000; // Exceptions should not be thrown in finally blocks
+                return -1; // Exceptions should not be thrown in finally blocks
             case "S1168":
-                return 0000; // Empty arrays and collections should be returned instead of null
+                return -1; // Empty arrays and collections should be returned instead of null
             case "S1171":
-                return 0000; // Only static class initializers should be used
+                return -1; // Only static class initializers should be used
             case "S1172":
-                return 0000; // Unused method parameters should be removed
+                return -1; // Unused method parameters should be removed
             case "S1174":
-                return 583; // "Object.finalize()" should remain protected (versus public) when
-                // overriding
+                return CweNumber
+                        .FINALIZE_DECLARED_PUBLIC; // "Object.finalize()" should remain protected
+                // (versus public) when overriding
             case "S1181":
-                return 396; // Throwable and Error should not be caught
+                return CweNumber
+                        .CATCH_GENERIC_EXCEPTION; // Throwable and Error should not be caught
             case "S1182":
-                return 580; // Classes that override"clone" should be"Cloneable" and
-                // call"super.clone()"
+                return CweNumber
+                        .CLONE_WITHOUT_SUPER_CLONE; // Classes that override "clone" should be
+                // "Cloneable" and
+                // call "super.clone()"
             case "S1186":
-                return 0000; // Methods should not be empty
+                return -1; // Methods should not be empty
             case "S1192":
-                return 0000; // String literals should not be duplicated
+                return -1; // String literals should not be duplicated
             case "S1197":
-                return 0000; // Array designators "[]" should be on the type, not the variable
+                return -1; // Array designators "[]" should be on the type, not the variable
             case "S1199":
-                return 0000; // Nested code blocks should not be used
+                return -1; // Nested code blocks should not be used
             case "S1206":
-                return 581; // "equals(Object obj)" and"hashCode()" should be overridden in pairs
+                return CweNumber
+                        .OBJECT_MODEL_VIOLATION; // "equals(Object obj)" and"hashCode()" should be
+                // overridden in pairs
             case "S1210":
-                return 0000; // "equals(Object obj)" should be overridden along with the
+                return -1; // "equals(Object obj)" should be overridden along with the
                 // "compareTo(T obj)" method
             case "S1217":
-                return 572; // Thread.run() and Runnable.run() should not be called directly
+                return CweNumber
+                        .THREAD_WRONG_CALL; // Thread.run() and Runnable.run() should not be called
+                // directly
             case "S1301":
-                return 0000; // "switch" statements should have at least 3 "case" clauses
+                return -1; // "switch" statements should have at least 3 "case" clauses
             case "S1481":
-                return 0000; // Remove this unused "c" local variable.
+                return -1; // Remove this unused "c" local variable.
             case "S1444":
-                return 500; // "public static" fields should always be constant
+                return CweNumber.PUBLIC_STATIC_NOT_FINAL; // "public static" fields should always be
+                // constant
             case "S1479":
-                return 0000; // "switch" statements should not have too many "case" clauses
+                return -1; // "switch" statements should not have too many "case" clauses
             case "S1488":
-                return 0000; // Local variables should not be declared and then immediately returned
+                return -1; // Local variables should not be declared and then immediately returned
                 // or thrown
             case "S1643":
-                return 0000; // Strings should not be concatenated using '+' in a loop
+                return -1; // Strings should not be concatenated using '+' in a loop
             case "S1659":
-                return 0000; // Multiple variables should not be declared on the same line
+                return -1; // Multiple variables should not be declared on the same line
             case "S1696":
-                return 395; // "NullPointerException" should not be caught
+                return CweNumber
+                        .CATCHING_NULL_POINTER_EXCEPTION; // "NullPointerException" should not be
+                // caught
             case "S1698":
-                return 595; // Objects should be compared with"equals()"
+                return CweNumber
+                        .OBJECT_REFERENCE_COMPARISON; // Objects should be compared with"equals()"
             case "S1724":
-                return 0000; // Deprecated classes and interfaces should not be extended/implemented
+                return -1; // Deprecated classes and interfaces should not be extended/implemented
             case "S1850":
-                return 0000; // "instanceof" operators that always return "true" or"false" should be
+                return -1; // "instanceof" operators that always return "true" or"false" should be
                 // removed
             case "S1854":
-                return 563; // Unused assignments should be removed
+                return CweNumber.UNUSED_VAR_ASSIGNMENT; // Unused assignments should be removed
             case "S1872":
                 return 486; // Classes should not be compared by name
             case "S1873":
                 return 582; // "static final" arrays should be"private"
             case "S1874":
-                return 0000; // "@Deprecated" code should not be used
+                return -1; // "@Deprecated" code should not be used
             case "S1905":
-                return 0000; // Redundant casts should not be used
+                return -1; // Redundant casts should not be used
             case "S1948":
                 return 594; // Fields in a"Serializable" class should either be transient or
                 // serializable
@@ -326,40 +360,49 @@ public class SonarQubeReader extends Reader {
             case "S2068":
                 return 259; // Credentials should not be hard-coded
             case "S2070":
-                return 328; // Benchmark Vuln: SHA-1 and Message-Digest hash algorithms should not
+                return CweNumber.REVERSIBLE_HASH; // Benchmark Vuln: SHA-1 and Message-Digest hash
+                // algorithms should not
                 // be used
             case "S2076":
-                return 78; // Benchmark Vuln: Values passed to OS commands should be sanitized
+                return CweNumber
+                        .COMMAND_INJECTION; // Benchmark Vuln: Values passed to OS commands should
+                // be sanitized
             case "S2077":
-                return 89; // Benchmark Vuln: Values passed to SQL commands should be sanitized
+                return CweNumber
+                        .SQL_INJECTION; // Benchmark Vuln: Values passed to SQL commands should be
+                // sanitized
             case "S2078":
-                return 90; // Benchmark Vuln: Values passed to LDAP queries should be sanitized
+                return CweNumber
+                        .LDAP_INJECTION; // Benchmark Vuln: Values passed to LDAP queries should be
+                // sanitized
             case "S2083":
-                return 22; // Benchmark Vuln: I/O function calls should not be vulnerable to path
+                return CweNumber.PATH_TRAVERSAL; // Benchmark Vuln: I/O function calls should not be
+                // vulnerable to path
                 // injection attacks
             case "S2089":
                 return 293; // HTTP referers should not be relied on
             case "S2091":
-                return 643; // Benchmark Vuln: XPath expressions should not be vulnerable to
+                return CweNumber.XPATH_INJECTION; // Benchmark Vuln: XPath expressions should not be
+                // vulnerable to
                 // injection attacks
             case "S2092":
-                return 614; // Benchmark Vuln: Cookies should be "secure"
+                return CweNumber.INSECURE_COOKIE; // Benchmark Vuln: Cookies should be "secure"
             case "S2093":
-                return 0000; // Try-with-resources should be used
+                return -1; // Try-with-resources should be used
             case "S2095":
                 return 459; // Resources should be closed
             case "S2130":
-                return 0000; // Parsing should be used to convert "Strings" to primitives
+                return -1; // Parsing should be used to convert "Strings" to primitives
             case "S2147":
-                return 0000; // Catches should be combined
+                return -1; // Catches should be combined
             case "S2157":
-                return 0000; // "Cloneables" should implement "clone"
+                return -1; // "Cloneables" should implement "clone"
             case "S2160":
-                return 0000; // Subclasses that add fields should override "equals"
+                return -1; // Subclasses that add fields should override "equals"
             case "S2176":
-                return 0000; // Class names should not shadow interfaces or superclasses
+                return -1; // Class names should not shadow interfaces or superclasses
             case "S2178":
-                return 0000; // Short-circuit logic should be used in boolean contexts
+                return -1; // Short-circuit logic should be used in boolean contexts
             case "S2184":
                 return 190; // Math operands should be cast before assignment
             case "S2222":
@@ -367,25 +410,31 @@ public class SonarQubeReader extends Reader {
             case "S2225":
                 return 476; // "toString()" and"clone()" methods should not return null
             case "S2245":
-                return 330; // Benchmark Vuln: Pseudorandom number generators (PRNGs) should not be
+                return CweNumber
+                        .WEAK_RANDOM; // Benchmark Vuln: Pseudorandom number generators (PRNGs)
+                // should not be
                 // used in secure contexts
             case "S2254":
-                return 0000; // "HttpServletRequest.getRequestedSessionId()" should not be used
+                return -1; // "HttpServletRequest.getRequestedSessionId()" should not be used
             case "S2257":
-                return 327; // Benchmark Vuln: Only standard cryptographic algorithms should be used
+                return CweNumber
+                        .BROKEN_CRYPTO; // Benchmark Vuln: Only standard cryptographic algorithms
+                // should be used
             case "S2259":
                 return 476; // Null pointers should not be dereferenced
             case "S2275":
-                return 0000; // Printf-style format strings should not lead to unexpected behavior
+                return -1; // Printf-style format strings should not lead to unexpected behavior
                 // at runtime
             case "S2277":
                 return 780; // Cryptographic RSA algorithms should always incorporate OAEP (Optimal
                 // Asymmetric Encryption Padding)
             case "S2278":
-                return 327; // Benchmark Vuln: DES (Data Encryption Standard) and DESede (3DES)
+                return CweNumber
+                        .BROKEN_CRYPTO; // Benchmark Vuln: DES (Data Encryption Standard) and DESede
+                // (3DES)
                 // should not be used
             case "S2293":
-                return 0000; // The diamond operator ("<>") should be used
+                return -1; // The diamond operator ("<>") should be used
             case "S2384":
                 return 374; // Mutable members should not be stored or returned directly
             case "S2386":
@@ -393,79 +442,85 @@ public class SonarQubeReader extends Reader {
             case "S2441":
                 return 579; // Non-serializable objects should not be stored in"HttpSessions"
             case "S2479":
-                return 0000; // Whitespace and control characters in literals should be explicit
+                return -1; // Whitespace and control characters in literals should be explicit
             case "S2583":
                 return 489; // Conditions should not unconditionally evaluate to"TRUE" or to"FALSE"
             case "S2589":
-                return 0000; // Boolean expressions should not be gratuitous - CWEs: 570/571
+                return -1; // Boolean expressions should not be gratuitous - CWEs: 570/571
             case "S2658":
                 return 470; // Use of Externally-Controlled Input to Select Classes or Code ('Unsafe
                 // Reflection')
             case "S2677":
-                return 0000; // "read" and "readLine" return values should be used
+                return -1; // "read" and "readLine" return values should be used
             case "S2681":
                 return 483; // Multiline blocks should be enclosed in curly braces
             case "S2696":
-                return 0000; // Instance methods should not write to "static" fields
+                return -1; // Instance methods should not write to "static" fields
             case "S2755":
-                return 611; // XML parsers should not be vulnerable to XXE attacks
+                return CweNumber
+                        .XML_ENTITIES; // XML parsers should not be vulnerable to XXE attacks
             case "S2786":
-                return 0000; // Nested "enum"s should not be declared static
+                return -1; // Nested "enum"s should not be declared static
             case "S2864":
-                return 0000; // "entrySet()" should be iterated when both the key and value are
+                return -1; // "entrySet()" should be iterated when both the key and value are
                 // needed
             case "S3008":
-                return 0000; // Static non-final field names should comply with a naming convention
+                return -1; // Static non-final field names should comply with a naming convention
             case "S3012":
-                return 0000; // Arrays should not be copied using loops
+                return -1; // Arrays should not be copied using loops
             case "S3400":
-                return 0000; // Methods should not return constants
+                return -1; // Methods should not return constants
             case "S3518":
                 return 369; // Zero should not be a possible denominator
             case "S3599":
-                return 0000; // Double Brace Initialization should not be used
+                return -1; // Double Brace Initialization should not be used
             case "S3626":
-                return 0000; // Jump statements should not be redundant
+                return -1; // Jump statements should not be redundant
             case "S3649":
-                return 89; // Database queries should not be vulnerable to injection attacks
+                return CweNumber
+                        .SQL_INJECTION; // Database queries should not be vulnerable to injection
+                // attacks
             case "S3740":
-                return 0000; // Raw types should not be used
+                return -1; // Raw types should not be used
             case "S3776":
-                return 0000; // Cognitive Complexity of methods should not be too high
+                return -1; // Cognitive Complexity of methods should not be too high
             case "S3824":
-                return 0000; // "Map.get" and value test should be replaced with single method call
+                return -1; // "Map.get" and value test should be replaced with single method call
             case "S3973":
-                return 0000; // A conditionally executed single line should be denoted by
+                return -1; // A conditionally executed single line should be denoted by
                 // indentation
             case "S4042":
-                return 0000; // "java.nio.Files#delete" should be preferred
+                return -1; // "java.nio.Files#delete" should be preferred
             case "S4435":
-                return 611; // XML transformers should be secured
+                return CweNumber.XML_ENTITIES; // XML transformers should be secured
             case "S4488":
-                return 0000; // Composed "@RequestMapping" variants should be preferred
+                return -1; // Composed "@RequestMapping" variants should be preferred
             case "S4719":
-                return 0000; // "StandardCharsets" constants should be preferred
+                return -1; // "StandardCharsets" constants should be preferred
             case "S4838":
-                return 0000; // An iteration on a Collection should be performed on the type handled
+                return -1; // An iteration on a Collection should be performed on the type handled
                 // by the Collection
-            case "S5131":
-                return 79; // Endpoints should not be vulnerable to reflected cross-site scripting
+            case "S5131": // Endpoints should not be vulnerable to reflected cross-site scripting
                 // (XSS) attacks
+                return CweNumber.XSS;
             case "S5261":
-                return 0000; // "else" statements should be clearly matched with an "if"
+                return -1; // "else" statements should be clearly matched with an "if"
             case "S5361":
-                return 0000; // "String#replace" should be preferred to "String#replaceAll"
+                return -1; // "String#replace" should be preferred to "String#replaceAll"
             case "S5542":
-                return 327; // Benchmark Vuln: Encryption algorithms should be used with secure mode
+                return CweNumber
+                        .BROKEN_CRYPTO; // Benchmark Vuln: Encryption algorithms should be used with
+                // secure mode
                 // and padding scheme
             case "S5547":
-                return 327; // Benchmark Vuln: Cipher algorithms should be robust
+                return CweNumber
+                        .BROKEN_CRYPTO; // Benchmark Vuln: Cipher algorithms should be robust
 
             case "CallToDeprecatedMethod":
             case "ClassVariableVisibilityCheck":
             case "DuplicatedBlocks":
             case "SwitchLastCaseIsDefaultCheck":
-                return 0000; // Don't care. Not sure why these are being returned instead of an
+                return -1; // Don't care. Not sure why these are being returned instead of an
                 // S#### value
             default:
                 System.out.println(

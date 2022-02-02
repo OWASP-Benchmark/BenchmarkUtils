@@ -19,7 +19,7 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -29,23 +29,31 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class HdivReader extends Reader {
 
-    private Set<String> invalid = new HashSet<>();
+    private final Set<String> invalid = new HashSet<>();
+
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".hlg");
+    }
 
     public static void main(final String[] args) throws Exception {
         File f = new File("hdivAgentLog.hlg");
+        ResultFile resultFile = new ResultFile(f);
         HdivReader cr = new HdivReader();
-        System.out.println(cr.parse(f));
+        System.out.println(cr.parse(resultFile));
     }
 
-    public TestSuiteResults parse(final File f) throws Exception {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr = new TestSuiteResults("Hdiv", true, TestSuiteResults.ToolType.IAST);
 
-        BufferedReader reader = new BufferedReader(new FileReader(f));
+        BufferedReader reader = new BufferedReader(new StringReader(resultFile.content()));
         String firstLine = reader.readLine();
         String lastLine = "";
         String line = "";

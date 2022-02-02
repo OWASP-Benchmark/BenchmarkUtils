@@ -19,20 +19,28 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Node;
 
 public class NoisyCricketReader extends Reader {
 
-    public TestSuiteResults parse(Node root) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.xmlRootNodeName().equals("noisycricket");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("NoisyCricket", false, TestSuiteResults.ToolType.SAST);
         tr.setTime("1 minute");
-        Node meta = getNamedChild("meta", root);
+        Node meta = getNamedChild("meta", resultFile.xmlRootNode());
         tr.setToolVersion(getAttributeValue("version", meta));
 
-        Node vulns = getNamedChild("vulnerabilities", root);
+        Node vulns = getNamedChild("vulnerabilities", resultFile.xmlRootNode());
         List<Node> items = getNamedChildren("vulnerability", vulns);
         for (Node item : items) {
             try {
@@ -69,6 +77,5 @@ public class NoisyCricketReader extends Reader {
                 tr.put(tcr);
             }
         }
-        return;
     }
 }

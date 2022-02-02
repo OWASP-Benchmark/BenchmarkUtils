@@ -17,8 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
@@ -26,6 +25,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -34,6 +34,18 @@ import org.xml.sax.InputSource;
 
 public class ArachniReader extends Reader {
 
+    // 2015-08-17T14:21:14+03:00
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.line(1).contains("Arachni")
+                && !resultFile
+                        .xmlRootNodeName()
+                        .equals("BugCollection"); // Ignore Find(Sec)Bugs files
+    }
+
     //    <report xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     // xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/Arachni/arachni/v2.0dev/components/reporters/xml/schema.xsd">
     //    <version>2.0dev</version>
@@ -41,12 +53,13 @@ public class ArachniReader extends Reader {
     //    <finish_datetime>2015-08-17T14:44:14+03:00</finish_datetime>
     //    <sitemap>
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(f));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr =
@@ -115,9 +128,6 @@ public class ArachniReader extends Reader {
     //      </inputs>
     //    </vector>
     //  </issue>
-
-    // 2015-08-17T14:21:14+03:00
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
 
     private String calculateTime(String submitted, String published) {
         try {

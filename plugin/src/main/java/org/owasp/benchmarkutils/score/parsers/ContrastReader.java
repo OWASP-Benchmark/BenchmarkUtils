@@ -24,25 +24,35 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class ContrastReader extends Reader {
 
-    private static final String NODEFINDINGLINEINDICATOR = "contrast:rules:sinks - ";
-    private static final String NODEAGENTVERSIONLINEINDICATOR = "contrast:contrast-init - agent v";
+    private final String NODEFINDINGLINEINDICATOR = "contrast:rules:sinks - ";
+    private final String NODEAGENTVERSIONLINEINDICATOR = "contrast:contrast-init - agent v";
 
     public static void main(String[] args) throws Exception {
         File f = new File("results/Benchmark_1.2-Contrast.log");
+        ResultFile resultFile = new ResultFile(f);
         ContrastReader cr = new ContrastReader();
-        cr.parse(f);
+        cr.parse(resultFile);
     }
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        // first line contains: Starting Contrast (for Java) or contrast:contrastAgent (for Node)
+        return resultFile.filename().endsWith(".log")
+                && resultFile.line(0).toLowerCase().contains(" contrast");
+    }
+
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
                 new TestSuiteResults("Contrast", true, TestSuiteResults.ToolType.IAST);
 
-        BufferedReader reader = new BufferedReader(new FileReader(f));
+        BufferedReader reader = new BufferedReader(new FileReader(resultFile.file()));
         String FIRSTLINEINDICATOR = BenchmarkScore.TESTCASENAME;
         String firstLine = null;
         String lastLine = "";
@@ -192,7 +202,7 @@ public class ContrastReader extends Reader {
         }
     }
 
-    private static int cweLookup(String rule) {
+    private int cweLookup(String rule) {
         switch (rule) {
             case "cache-controls-missing":
                 return 525; // Web Browser Cache Containing Sensitive Info

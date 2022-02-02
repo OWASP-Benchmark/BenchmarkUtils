@@ -17,7 +17,6 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +25,7 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
@@ -36,12 +36,18 @@ import org.xml.sax.InputSource;
 
 public class ThunderScanReader extends Reader {
 
-    private static List<String> fileListDuplicates = new ArrayList<String>();
+    private final List<String> fileListDuplicates = new ArrayList<>();
 
-    public TestSuiteResults parse(File f) throws Exception {
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.line(1).startsWith("  <ProjectName>");
+    }
 
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilder dBuilder = Utils.safeDocBuilderFactory.newDocumentBuilder();
-        InputSource fileInput = new InputSource(new FileInputStream(f));
+        InputSource fileInput = new InputSource(new FileInputStream(resultFile.file()));
         Document doc = dBuilder.parse(fileInput);
 
         TestSuiteResults testResults =
@@ -59,7 +65,6 @@ public class ThunderScanReader extends Reader {
             if (vulnerabilities.getLength() < 1) continue;
 
             for (int j = 0; j < vulnerabilities.getLength(); j++) {
-
                 Node vulnerability = vulnerabilities.item(j);
                 Element vulnElement = (Element) vulnerability;
 
@@ -79,8 +84,7 @@ public class ThunderScanReader extends Reader {
         return testResults;
     }
 
-    private static TestCaseResult parseThunderScanVulnerability(
-            Element vulnElement, String vulnType) {
+    private TestCaseResult parseThunderScanVulnerability(Element vulnElement, String vulnType) {
 
         TestCaseResult tcResult = new TestCaseResult();
 

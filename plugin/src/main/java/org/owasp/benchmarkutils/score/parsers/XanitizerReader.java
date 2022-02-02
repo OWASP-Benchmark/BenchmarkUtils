@@ -17,11 +17,11 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.File;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.xml.sax.Attributes;
@@ -30,12 +30,17 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class XanitizerReader extends Reader {
 
-    public XanitizerReader() {}
+    @Override
+    public boolean canRead(ResultFile resultFile) {
+        return resultFile.filename().endsWith(".xml")
+                && resultFile.line(1).startsWith("<XanitizerFindingsList");
+    }
 
-    public TestSuiteResults parse(final File f) throws Exception {
+    @Override
+    public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         final TestSuiteResults tr =
                 new TestSuiteResults("Xanitizer", false, TestSuiteResults.ToolType.SAST);
-        tr.setTime(f);
+        tr.setTime(resultFile.file());
 
         /*
          * Create a SAX handler that collects and registers the needed data from
@@ -43,7 +48,6 @@ public class XanitizerReader extends Reader {
          */
         final DefaultHandler handler =
                 new DefaultHandler() {
-
                     private final StringBuilder m_CollectedCharacters = new StringBuilder();
 
                     private String m_ProblemTypeId;
@@ -175,12 +179,12 @@ public class XanitizerReader extends Reader {
         factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, false);
         final SAXParser saxParser = factory.newSAXParser();
 
-        saxParser.parse(f, handler);
+        saxParser.parse(resultFile.file(), handler);
 
         return tr;
     }
 
-    private static int figureCWE(final String problemTypeId) {
+    private int figureCWE(final String problemTypeId) {
         switch (problemTypeId) {
             case "ci:CommandInjection":
                 return 78;
