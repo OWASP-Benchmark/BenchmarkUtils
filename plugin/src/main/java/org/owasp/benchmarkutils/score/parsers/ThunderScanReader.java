@@ -18,6 +18,7 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.io.FileInputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +48,7 @@ public class ThunderScanReader extends Reader {
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         DocumentBuilder dBuilder = Utils.safeDocBuilderFactory.newDocumentBuilder();
-        InputSource fileInput = new InputSource(new FileInputStream(resultFile.file()));
+        InputSource fileInput = new InputSource(new StringReader(resultFile.content()));
         Document doc = dBuilder.parse(fileInput);
 
         TestSuiteResults testResults =
