@@ -17,7 +17,6 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.FileInputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
