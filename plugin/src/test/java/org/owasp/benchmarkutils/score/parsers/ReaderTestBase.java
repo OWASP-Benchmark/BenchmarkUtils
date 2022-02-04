@@ -1,22 +1,31 @@
 package org.owasp.benchmarkutils.score.parsers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.owasp.benchmarkutils.score.ResultFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import org.owasp.benchmarkutils.score.ResultFile;
+
+import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public abstract class ReaderTestBase {
 
     void assertOnlyMatcherClassIs(ResultFile resultFile, Class<? extends Reader> c) {
-        List<Reader> readers =
-                Reader.allReaders().stream()
-                        .filter(r -> r.canRead(resultFile))
-                        .collect(Collectors.toList());
+        List<Class<?>> readers =
+            Reader.allReaders().stream()
+                .filter(r -> r.canRead(resultFile))
+                .map(Reader::getClass)
+                .collect(Collectors.toList());
 
-        assertEquals(1, readers.size());
+        assertEquals(simpleNames(singletonList(c)), simpleNames(readers));
 
-        assertTrue(readers.get(0).getClass().isAssignableFrom(c));
+        assertTrue(readers.get(0).isAssignableFrom(c));
+    }
+
+    private List<String> simpleNames(List<Class<?>> classList) {
+        return classList.stream()
+            .map(Class::getSimpleName)
+            .collect(Collectors.toList());
     }
 }
