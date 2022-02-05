@@ -100,10 +100,7 @@ public class HCLReader extends Reader {
             String uri = request.getString("uri");
 
             if (uri.contains(BenchmarkScore.TESTCASENAME)) {
-                String testNumber =
-                        uri.substring(
-                                uri.lastIndexOf('/') + 1 + BenchmarkScore.TESTCASENAME.length());
-                tcr.setNumber(Integer.parseInt(testNumber));
+                tcr.setNumber(testNumber(uri));
                 if (tcr.getCWE() != 0) {
                     // System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                     // tcr.getCategory() );

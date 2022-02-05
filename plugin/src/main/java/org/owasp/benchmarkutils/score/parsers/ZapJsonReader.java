@@ -155,10 +155,6 @@ public class ZapJsonReader extends Reader {
         }
     }
 
-    private int testNumber(String filename) {
-        return Integer.parseInt(filename.substring(BenchmarkScore.TESTCASENAME.length()));
-    }
-
     private int figureCwe(JSONObject finding) {
         return mapCwe(finding.getString("cweid"));
     }

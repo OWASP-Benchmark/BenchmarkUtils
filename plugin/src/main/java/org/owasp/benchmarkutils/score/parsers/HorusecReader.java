@@ -169,12 +169,6 @@ public class HorusecReader extends Reader {
         return details.split("\n")[0].trim();
     }
 
-    private int testNumber(String filename) {
-        return Integer.parseInt(
-                filename.substring(
-                        BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.')));
-    }
-
     private String filename(JSONObject vuln) {
         return new File(vuln.getString("file")).getName();
     }

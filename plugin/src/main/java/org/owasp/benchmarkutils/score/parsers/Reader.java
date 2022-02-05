@@ -17,9 +17,13 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.NamedNodeMap;
@@ -160,5 +164,41 @@ public abstract class Reader {
             }
         }
         return null;
+    }
+
+    /* get rid of everything except the test name */
+    public static int testNumber(String path) {
+        try {
+            path = removeUrlPart(path);
+
+            String filename = new File(fixWindowsPath(path)).getName();
+
+            if (!filename.contains(BenchmarkScore.TESTCASENAME)) {
+                return -1;
+            }
+
+            if (filename.contains(".")) {
+                filename = removeFileEnding(filename);
+            }
+
+            return Integer.parseInt(filename.substring(BenchmarkScore.TESTCASENAME.length()));
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private static String removeFileEnding(String filename) {
+        return filename.substring(0, filename.lastIndexOf('.'));
+    }
+
+    private static String fixWindowsPath(String path) {
+        return path.replace("\\", File.separator);
+    }
+
+    private static String removeUrlPart(String path) throws MalformedURLException {
+        if (path.startsWith("http")) {
+            path = new URL(path).getPath();
+        }
+        return path;
     }
 }

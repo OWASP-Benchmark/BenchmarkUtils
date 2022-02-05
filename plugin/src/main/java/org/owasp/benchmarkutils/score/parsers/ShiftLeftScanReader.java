@@ -159,10 +159,4 @@ public class ShiftLeftScanReader extends Reader {
                 return -1;
         }
     }
-
-    private int testNumber(String filename) {
-        return Integer.parseInt(
-                filename.substring(
-                        BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.')));
-    }
 }

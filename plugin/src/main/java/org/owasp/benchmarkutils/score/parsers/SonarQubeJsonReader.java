@@ -108,11 +108,7 @@ public class SonarQubeJsonReader extends Reader {
             filename = filename.replaceAll("\\\\", "/");
             filename = filename.substring(filename.lastIndexOf('/'));
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
-                String testNumber =
-                        filename.substring(
-                                BenchmarkScore.TESTCASENAME.length() + 1,
-                                filename.lastIndexOf('.'));
-                tcr.setNumber(Integer.parseInt(testNumber));
+                tcr.setNumber(testNumber(filename));
                 String rule = finding.getString("rule");
                 String squid = rule.substring(rule.indexOf(":") + 1);
                 if (squid == null || squid.equals("none")) {
@@ -157,11 +153,7 @@ public class SonarQubeJsonReader extends Reader {
                             "\\\\", "/"); // In case there are \ instead of / in the path
             filename = filename.substring(filename.lastIndexOf('/'));
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
-                String testNumber =
-                        filename.substring(
-                                BenchmarkScore.TESTCASENAME.length() + 1,
-                                filename.lastIndexOf('.'));
-                tcr.setNumber(Integer.parseInt(testNumber));
+                tcr.setNumber(testNumber(filename));
                 String secCat = finding.getString("securityCategory");
                 if (secCat == null || secCat.equals("none")) {
                     return null;

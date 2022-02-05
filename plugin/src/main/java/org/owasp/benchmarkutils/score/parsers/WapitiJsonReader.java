@@ -132,10 +132,6 @@ public class WapitiJsonReader extends Reader {
         return new File(finding.getString("path")).getName();
     }
 
-    private static int testNumber(String filename) {
-        return Integer.parseInt(filename.substring(BenchmarkScore.TESTCASENAME.length()));
-    }
-
     private static String readVersion(JSONObject json) {
         return json.getJSONObject("infos").getString("version").substring("Wapiti ".length());
     }
