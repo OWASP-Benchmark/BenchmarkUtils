@@ -18,7 +18,6 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.ArrayList;
@@ -30,8 +29,6 @@ import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class ThunderScanReader extends Reader {
-
-    private final XmlMapper xmlMapper = new XmlMapper();
 
     @Override
     public boolean canRead(ResultFile resultFile) {

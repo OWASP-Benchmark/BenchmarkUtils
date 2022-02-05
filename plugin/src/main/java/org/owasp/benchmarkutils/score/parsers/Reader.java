@@ -17,6 +17,8 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -31,6 +33,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public abstract class Reader {
+
+    protected final ObjectMapper jsonMapper = new ObjectMapper();
+    protected final XmlMapper xmlMapper = new XmlMapper();
 
     public static List<Reader> allReaders() {
         return Arrays.asList(
@@ -169,9 +174,7 @@ public abstract class Reader {
     /* get rid of everything except the test name */
     public static int testNumber(String path) {
         try {
-            path = removeUrlPart(path);
-
-            String filename = new File(fixWindowsPath(path)).getName();
+            String filename = extractFilename(path);
 
             if (!filename.contains(BenchmarkScore.TESTCASENAME)) {
                 return -1;
@@ -184,6 +187,16 @@ public abstract class Reader {
             return Integer.parseInt(filename.substring(BenchmarkScore.TESTCASENAME.length()));
         } catch (Exception e) {
             return -1;
+        }
+    }
+
+    public static String extractFilename(String path) {
+        try {
+            path = removeUrlPart(path);
+
+            return new File(fixWindowsPath(path)).getName();
+        } catch (Throwable t) {
+            return "";
         }
     }
 
