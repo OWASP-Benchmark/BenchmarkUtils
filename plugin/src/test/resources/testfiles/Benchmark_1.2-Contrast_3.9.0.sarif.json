@@ -1,0 +1,52 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Contrast Scan",
+          "organization": "Contrast Security, Inc.",
+          "version": "pkg: null, engine: null, policy: null",
+          "informationUri": "https://www.contrastsecurity.com"
+        }
+      },
+      "artifacts": [],
+      "results": [
+        {
+          "ruleId": "cmd-injection",
+          "level": "error",
+          "message": {
+            "text": "cmd-injection in BenchmarkTest00001.doPost() reachable from BenchmarkTest00001.doPost()"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "org/owasp/benchmark/testcode/BenchmarkTest00001.java"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "cookie-flags-missing",
+          "level": "error",
+          "message": {
+            "text": "cookie-flags-missing in BenchmarkTest00002.doPost() reachable from BenchmarkTest00002.doPost()"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "org/owasp/benchmark/testcode/BenchmarkTest00002.java"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
