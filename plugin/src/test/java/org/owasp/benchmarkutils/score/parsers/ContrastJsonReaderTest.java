@@ -13,7 +13,7 @@
  * PURPOSE. See the GNU General Public License for more details.
  *
  * @author Sascha Knoop
- * @created 2021
+ * @created 2022
  */
 package org.owasp.benchmarkutils.score.parsers;
 
