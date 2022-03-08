@@ -23,7 +23,6 @@ package org.owasp.benchmarkutils.score.parsers;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -45,8 +44,6 @@ public class ZapJsonReader extends Reader {
 
     // result keys for ZAP >= 2.11.0
     private static final String[] newFormatKeys = {"@version", "@generated", "site"};
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public boolean canRead(ResultFile resultFile) {
@@ -116,7 +113,7 @@ public class ZapJsonReader extends Reader {
 
     private void handleNewReportFormat(ResultFile resultFile, TestSuiteResults tr) {
         try {
-            ReportV2_11 report = objectMapper.readValue(resultFile.content(), ReportV2_11.class);
+            ReportV2_11 report = jsonMapper.readValue(resultFile.content(), ReportV2_11.class);
 
             tr.setToolVersion(report.version);
 
@@ -153,10 +150,6 @@ public class ZapJsonReader extends Reader {
         } catch (MalformedURLException e) {
             return "";
         }
-    }
-
-    private int testNumber(String filename) {
-        return Integer.parseInt(filename.substring(BenchmarkScore.TESTCASENAME.length()));
     }
 
     private int figureCwe(JSONObject finding) {

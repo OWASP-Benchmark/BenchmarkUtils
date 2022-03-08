@@ -17,131 +17,182 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.FileInputStream;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import javax.xml.parsers.DocumentBuilder;
-import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 public class ThunderScanReader extends Reader {
-
-    private final List<String> fileListDuplicates = new ArrayList<>();
 
     @Override
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".xml")
-                && resultFile.line(1).startsWith("  <ProjectName>");
+                && resultFile.xmlRootNodeName().equals("Report")
+                && resultFile.xmlRootNode().getElementsByTagName("ProjectName").getLength() == 1;
     }
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        DocumentBuilder dBuilder = Utils.safeDocBuilderFactory.newDocumentBuilder();
-        InputSource fileInput = new InputSource(new FileInputStream(resultFile.file()));
-        Document doc = dBuilder.parse(fileInput);
+        Report report = xmlMapper.readValue(resultFile.content(), Report.class);
 
         TestSuiteResults testResults =
                 new TestSuiteResults("ThunderScan", true, TestSuiteResults.ToolType.SAST);
 
-        NodeList vulnTypeNodeList = doc.getElementsByTagName("VulnerabilityType");
-
-        for (int i = 0; i < vulnTypeNodeList.getLength(); i++) {
-            Node vulnTypeNode = vulnTypeNodeList.item(i);
-            Element eElement = (Element) vulnTypeNode;
-
-            String vulnerabilityType = eElement.getAttribute("Name");
-            NodeList vulnerabilities = eElement.getElementsByTagName("Vulnerability");
-
-            if (vulnerabilities.getLength() < 1) continue;
-
-            for (int j = 0; j < vulnerabilities.getLength(); j++) {
-                Node vulnerability = vulnerabilities.item(j);
-                Element vulnElement = (Element) vulnerability;
-
-                String file = vulnElement.getElementsByTagName("File").item(0).getTextContent();
-                String function =
-                        vulnElement.getElementsByTagName("Function").item(0).getTextContent();
-
-                if (!file.contains(BenchmarkScore.TESTCASENAME)) continue;
-                if (function.matches("/printStackTrace|Cookie$|getMessage$/")) continue;
-
-                TestCaseResult tcResult =
-                        parseThunderScanVulnerability(vulnElement, vulnerabilityType);
-                if (tcResult != null) testResults.put(tcResult);
-            }
-        }
+        report.vulnerabilityTypes.stream()
+                .flatMap(
+                        vulnerabilityType ->
+                                vulnerabilityType.vulnerabilities.stream()
+                                        .filter(v -> createsTestCaseResult(vulnerabilityType, v))
+                                        .map(v -> toTestCaseResult(vulnerabilityType, v)))
+                .forEach(testResults::put);
 
         return testResults;
     }
 
-    private TestCaseResult parseThunderScanVulnerability(Element vulnElement, String vulnType) {
-
+    private TestCaseResult toTestCaseResult(
+            Report.VulnerabilityType vulnerabilityType,
+            Report.VulnerabilityType.Vulnerability vulnerability) {
         TestCaseResult tcResult = new TestCaseResult();
 
-        int cwe = 0;
-
-        @SuppressWarnings("serial")
-        Map<String, Integer> vulnTypesMap =
-                new HashMap<String, Integer>() {
-                    {
-                        put("SQL Injection", 89);
-                        put("File Disclosure", 22);
-                        put("JSP Page Execution", 0);
-                        put("Command Execution", 78);
-                        put("Cross Site Scripting", 79);
-                        put("File Manipulation", 22);
-                        put("HTTP Response Splitting", 0);
-                        put("LDAP Injection", 90);
-                        put("XPATH Injection", 643);
-                        put("Mail Relay", 0);
-                        put("Log Forging", 0);
-                        put("Misc. Dangerous Functions", 31339);
-                        put("Arbitrary Server Connection", 0);
-                        put("Dangerous File Extensions", 0);
-                    }
-                };
-
-        cwe = vulnTypesMap.get(vulnType);
-
-        String file = vulnElement.getElementsByTagName("File").item(0).getTextContent();
-        String function = vulnElement.getElementsByTagName("Function").item(0).getTextContent();
-        Node functionCalls = vulnElement.getElementsByTagName("FunctionCalls").item(0);
-        String line =
-                ((Element) ((Element) functionCalls).getElementsByTagName("CallStackItem").item(0))
-                        .getAttribute("Line");
-
-        String testcase = file.substring(file.lastIndexOf('\\') + 1);
-        String testNumber =
-                testcase.substring(BenchmarkScore.TESTCASENAME.length(), testcase.length() - 5);
-
-        if (cwe == 31339) {
-            if (function.contains("Weak Enc")) cwe = 327;
-            if (function.contains("Weak Hash")) cwe = 328;
-            if (function.contains("Weak Random")) cwe = 330;
-            if (function.contains("putValue") || function.contains("setAttribute")) cwe = 501;
-            if (function.contains("setSecure")) cwe = 614;
-        }
-
-        if (cwe == 0 || cwe == 31339 || fileListDuplicates.contains(file)) return null;
-
-        tcResult.setCWE(cwe);
-        tcResult.setNumber(Integer.parseInt(testNumber));
-        tcResult.setCategory(vulnType);
+        tcResult.setCWE(
+                figureCwe(vulnerabilityType.name, vulnerability.function, vulnerability.filename));
+        tcResult.setNumber(testNumber(vulnerability.filename));
+        tcResult.setCategory(vulnerabilityType.name);
         tcResult.setConfidence(1);
-        tcResult.setEvidence(line);
-
-        fileListDuplicates.add(file);
-
+        tcResult.setEvidence(lineNumber(vulnerability));
         return tcResult;
+    }
+
+    private boolean createsTestCaseResult(
+            Report.VulnerabilityType vulnerabilityType, Report.VulnerabilityType.Vulnerability v) {
+        return isBenchmarkTest(v.filename)
+                && isRealVulnerability(v.function)
+                && resultsInCwe(vulnerabilityType, v);
+    }
+
+    private String lineNumber(Report.VulnerabilityType.Vulnerability vulnerability) {
+        return vulnerability.functionCalls.get(0).callStackItem.line;
+    }
+
+    private boolean resultsInCwe(
+            Report.VulnerabilityType vulnerabilityType, Report.VulnerabilityType.Vulnerability v) {
+        return figureCwe(vulnerabilityType.name, v.function, v.filename) != -1;
+    }
+
+    private boolean isBenchmarkTest(String filename) {
+        return filename.contains(BenchmarkScore.TESTCASENAME);
+    }
+
+    private boolean isRealVulnerability(String function) {
+        return !function.matches("/printStackTrace|Cookie$|getMessage$/");
+    }
+
+    private int figureCwe(String type, String function, String filename) {
+        switch (type) {
+            case "SQL Injection":
+                return CweNumber.SQL_INJECTION;
+            case "File Disclosure":
+            case "File Manipulation":
+                return CweNumber.PATH_TRAVERSAL;
+            case "Command Execution":
+                return CweNumber.COMMAND_INJECTION;
+            case "Cross Site Scripting":
+                return CweNumber.XSS;
+            case "LDAP Injection":
+                return CweNumber.LDAP_INJECTION;
+            case "XPATH Injection":
+                return CweNumber.XPATH_INJECTION;
+            case "Misc. Dangerous Functions":
+                if (function.contains("Weak Enc")) {
+                    return CweNumber.BROKEN_CRYPTO;
+                }
+
+                if (function.contains("Weak Hash")) {
+                    return CweNumber.REVERSIBLE_HASH;
+                }
+
+                if (function.contains("Weak Random")) {
+                    return CweNumber.WEAK_RANDOM;
+                }
+
+                if (function.contains("putValue") || function.contains("setAttribute")) {
+                    return CweNumber.TRUST_BOUNDARY_VIOLATION;
+                }
+
+                if (function.contains("setSecure")) {
+                    return CweNumber.INSECURE_COOKIE;
+                }
+
+                return -1;
+            case "JSP Page Execution":
+            case "Dangerous File Extensions":
+            case "Arbitrary Server Connection":
+            case "Log Forging":
+            case "Mail Relay":
+            case "HTTP Response Splitting":
+                return -1;
+            default:
+                System.out.println(
+                        "INFO: Unable to figure out cwe for: "
+                                + type
+                                + ", "
+                                + function
+                                + " @ "
+                                + filename);
+                return -1;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static class Report {
+
+        @JacksonXmlProperty(localName = "VulnerabilityType")
+        @JacksonXmlElementWrapper(useWrapping = false)
+        public List<VulnerabilityType> vulnerabilityTypes;
+
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        private static class VulnerabilityType {
+
+            @JacksonXmlProperty(localName = "Name", isAttribute = true)
+            public String name;
+
+            @JacksonXmlElementWrapper(useWrapping = false)
+            @JacksonXmlProperty(localName = "Vulnerability")
+            public List<Vulnerability> vulnerabilities = new ArrayList<>();
+
+            @JsonIgnoreProperties(ignoreUnknown = true)
+            private static class Vulnerability {
+
+                @JacksonXmlProperty(localName = "File")
+                public String filename;
+
+                @JacksonXmlProperty(localName = "Function")
+                public String function;
+
+                @JacksonXmlElementWrapper(useWrapping = false)
+                @JacksonXmlProperty(localName = "FunctionCalls")
+                public List<FunctionCalls> functionCalls;
+
+                @JsonIgnoreProperties(ignoreUnknown = true)
+                private static class FunctionCalls {
+
+                    @JacksonXmlProperty(localName = "CallStackItem")
+                    public CallStackItem callStackItem;
+
+                    @JsonIgnoreProperties(ignoreUnknown = true)
+                    private static class CallStackItem {
+
+                        @JacksonXmlProperty(localName = "Line", isAttribute = true)
+                        public String line;
+                    }
+                }
+            }
+        }
     }
 }

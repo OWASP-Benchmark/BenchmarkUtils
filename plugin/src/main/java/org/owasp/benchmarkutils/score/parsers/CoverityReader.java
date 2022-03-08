@@ -72,11 +72,7 @@ public class CoverityReader extends Reader {
                 filename = filename.replaceAll("\\\\", "/");
                 filename = filename.substring(filename.lastIndexOf('/') + 1);
                 if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    String testNumber =
-                            filename.substring(
-                                    BenchmarkScore.TESTCASENAME.length(),
-                                    filename.lastIndexOf('.'));
-                    tcr.setNumber(Integer.parseInt(testNumber));
+                    tcr.setNumber(testNumber(filename));
                     JSONObject props = finding.getJSONObject("checkerProperties");
                     String cweNumber = props.getString("cweCategory");
                     if (cweNumber == null || cweNumber.equals("none")) {
@@ -102,11 +98,7 @@ public class CoverityReader extends Reader {
                 filename = filename.replaceAll("\\\\", "/");
                 filename = filename.substring(filename.lastIndexOf('/') + 1);
                 if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    String testNumber =
-                            filename.substring(
-                                    BenchmarkScore.TESTCASENAME.length(),
-                                    filename.lastIndexOf('.'));
-                    tcr.setNumber(Integer.parseInt(testNumber));
+                    tcr.setNumber(testNumber(filename));
                     if (finding.isNull("cweNumber")) {
                         return null;
                     }
@@ -146,10 +138,7 @@ public class CoverityReader extends Reader {
             filename = filename.replaceAll("\\\\", "/");
             filename = filename.substring(filename.lastIndexOf('/') + 1);
             if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                String testNumber =
-                        filename.substring(
-                                BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.'));
-                tcr.setNumber(Integer.parseInt(testNumber));
+                tcr.setNumber(testNumber(filename));
                 //
                 // *** Warning: serious foefeling and cutting of corners ahead. ***
                 //

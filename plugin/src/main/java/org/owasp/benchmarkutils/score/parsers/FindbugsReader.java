@@ -98,8 +98,7 @@ public class FindbugsReader extends Reader {
             classname = classname.substring(classname.lastIndexOf('.') + 1);
             if (classname.startsWith(BenchmarkScore.TESTCASENAME)) {
                 try {
-                    String testNumber = classname.substring(BenchmarkScore.TESTCASENAME.length());
-                    tcr.setNumber(Integer.parseInt(testNumber));
+                    tcr.setNumber(testNumber(classname));
                 } catch (Exception e) {
                     // System.out.println("Error parsing node: " + n.toString() + " for classname: "
                     // + classname);

@@ -93,16 +93,7 @@ public class VisualCodeGrepperReader extends Reader {
         String classname = getNamedChild("FileName", n).getTextContent();
         classname = (classname.substring(classname.lastIndexOf('\\') + 1)).split("\\.")[0];
         if (classname.startsWith(BenchmarkScore.TESTCASENAME)) {
-            try {
-                String testNumber = classname.substring(BenchmarkScore.TESTCASENAME.length());
-                tcr.setNumber(Integer.parseInt(testNumber));
-            } catch (Exception e) {
-                // System.out.println("Error parsing node: " + n.toString() + " for classname: "
-                // + classname);
-                return null; // If we can't parse the test #, its not in a real test case file.
-                // e.g.,
-                // BenchmarkTesting.java
-            }
+            tcr.setNumber(testNumber(classname));
         }
 
         Node catnode = getNamedNode("Title", n.getChildNodes());

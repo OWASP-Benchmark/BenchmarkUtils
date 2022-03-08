@@ -20,6 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -88,11 +89,7 @@ public class KiuwanReader extends Reader {
             String filename = dataFlow.getJSONObject(propagationPathLength).getString("file");
             filename = filename.substring(filename.lastIndexOf('/'));
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
-                String testNumber =
-                        filename.substring(
-                                BenchmarkScore.TESTCASENAME.length() + 1,
-                                filename.lastIndexOf('.'));
-                tcr.setNumber(Integer.parseInt(testNumber));
+                tcr.setNumber(testNumber(filename));
 
                 int cwe = -1;
                 try {
@@ -111,13 +108,10 @@ public class KiuwanReader extends Reader {
                 }
 
                 if (cwe != -1) {
-                    // System.out.println("Found finding in: " + testNumber + " of cwe type: " +
-                    // cwe);
                     tcr.setCWE(cwe);
                     tcr.setCategory(finding.getString("summary"));
                     tcr.setEvidence(finding.getString("scannerDetail"));
-                } // else System.out.println("ERROR: Finding in: " + testNumber + " included no CWE
-                // number.");
+                }
             }
             return tcr;
         } catch (Exception e) {
@@ -128,8 +122,14 @@ public class KiuwanReader extends Reader {
 
     private int fixCWE(String cweNumber) {
         int cwe = Integer.parseInt(cweNumber);
-        if (cwe == 564) cwe = 89; // SQLi
-        if (cwe == 77) cwe = 78; // Command Injection
+
+        if (cwe == 564) {
+            cwe = CweNumber.SQL_INJECTION;
+        }
+
+        if (cwe == 77) {
+            cwe = CweNumber.COMMAND_INJECTION;
+        }
         return cwe;
     }
 }

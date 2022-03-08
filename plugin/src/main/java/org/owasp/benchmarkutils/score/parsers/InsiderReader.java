@@ -112,12 +112,6 @@ public class InsiderReader extends Reader {
         }
     }
 
-    private int testNumber(String filename) {
-        return Integer.parseInt(
-                filename.substring(
-                        BenchmarkScore.TESTCASENAME.length(), filename.lastIndexOf('.')));
-    }
-
     private String filename(JSONObject vuln) {
         String className = vuln.getString("class");
         return className.substring(0, className.indexOf(' '));

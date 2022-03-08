@@ -32,7 +32,8 @@ public class SnappyTickReader extends Reader {
     @Override
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".xml")
-                && resultFile.xmlRootNodeName().equals("Report");
+                && resultFile.xmlRootNodeName().equals("Report")
+                && resultFile.xmlRootNode().getElementsByTagName("ToolInfo").getLength() > 0;
     }
 
     @Override
