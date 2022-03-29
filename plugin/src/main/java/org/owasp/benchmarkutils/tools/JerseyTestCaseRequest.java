@@ -17,11 +17,9 @@
  */
 package org.owasp.benchmarkutils.tools;
 
-import java.io.UnsupportedEncodingException;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 import org.owasp.benchmarkutils.helpers.RequestVariable;
 
@@ -36,7 +34,7 @@ public class JerseyTestCaseRequest extends AbstractTestCaseRequest {
     }
 
     @Override
-    HttpRequestBase createRequestInstance(String URL) {
+    HttpUriRequestBase createRequestInstance(String URL) {
         // Apparently all Jersey Requests are POSTS. Never any query string params per buildQuery()
         // above.
         HttpPost httpPost = new HttpPost(URL);
@@ -44,7 +42,7 @@ public class JerseyTestCaseRequest extends AbstractTestCaseRequest {
     }
 
     @Override
-    void buildHeaders(HttpRequestBase request) {
+    void buildHeaders(HttpUriRequestBase request) {
         request.addHeader("Content-Type", "application/xml; charset=utf-8");
         for (RequestVariable header : getHeaders()) {
             String name = header.getName();
@@ -55,7 +53,7 @@ public class JerseyTestCaseRequest extends AbstractTestCaseRequest {
     }
 
     @Override
-    void buildCookies(HttpRequestBase request) {
+    void buildCookies(HttpUriRequestBase request) {
         for (RequestVariable cookie : getCookies()) {
             String name = cookie.getName();
             String value = cookie.getValue();
@@ -65,7 +63,7 @@ public class JerseyTestCaseRequest extends AbstractTestCaseRequest {
     }
 
     @Override
-    void buildBodyParameters(HttpRequestBase request) {
+    void buildBodyParameters(HttpUriRequestBase request) {
         String params = "<person>";
         for (RequestVariable field : getFormParams()) {
             String name = field.getName();
@@ -73,12 +71,8 @@ public class JerseyTestCaseRequest extends AbstractTestCaseRequest {
             params += "<" + name + ">" + escapeXML(value) + "</" + name + ">";
         }
         params += "</person>";
-        try {
-            StringEntity paramsEnt = new StringEntity(params);
-            ((HttpEntityEnclosingRequestBase) request).setEntity(paramsEnt);
-        } catch (UnsupportedEncodingException e) {
-            System.out.println("Error encoding URL: " + e.getMessage());
-        }
+        StringEntity paramsEnt = new StringEntity(params);
+        request.setEntity(paramsEnt);
     }
 
     private static String escapeXML(String value) {

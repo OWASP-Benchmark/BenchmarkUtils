@@ -20,6 +20,7 @@ package org.owasp.benchmarkutils.tools;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -30,8 +31,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -228,14 +229,22 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                 String.format(
                         "--> (%d : %d sec)%n",
                         responseInfo.getStatusCode(), responseInfo.getTimeInSeconds());
-        if (isTimingEnabled) {
-            if (responseInfo.getTimeInSeconds() >= maxTimeInSeconds) {
-                tLogger.println(requestBase.getMethod() + " " + requestBase.getURI());
+        try {
+            if (isTimingEnabled) {
+                if (responseInfo.getTimeInSeconds() >= maxTimeInSeconds) {
+                    tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
+                    tLogger.println(outputString);
+                } // else do nothing
+            } else {
+                tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
                 tLogger.println(outputString);
             }
-        } else {
-            tLogger.println(requestBase.getMethod() + " " + requestBase.getURI());
+        } catch (URISyntaxException e) {
+            String errMsg = requestBase.getMethod() + " COULDN'T LOG URI due to URISyntaxException";
+            tLogger.println(errMsg);
             tLogger.println(outputString);
+            System.out.println(errMsg);
+            e.printStackTrace();
         }
     }
 

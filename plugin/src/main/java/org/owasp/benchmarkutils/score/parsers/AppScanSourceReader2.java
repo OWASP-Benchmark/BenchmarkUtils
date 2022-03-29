@@ -17,8 +17,6 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import static org.owasp.benchmarkutils.score.parsers.Reader.getAttributeValue;
-
 import java.io.FileInputStream;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;

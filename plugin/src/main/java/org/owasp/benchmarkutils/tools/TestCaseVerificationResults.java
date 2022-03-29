@@ -1,6 +1,6 @@
 package org.owasp.benchmarkutils.tools;
 
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 
 /** Not a great class name. */
 public class TestCaseVerificationResults {

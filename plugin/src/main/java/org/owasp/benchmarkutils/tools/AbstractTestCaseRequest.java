@@ -27,8 +27,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;
 import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.CategoryAdapter;
@@ -86,13 +86,13 @@ public abstract class AbstractTestCaseRequest {
     public AbstractTestCaseRequest() {}
 
     /** Defines what parameters in the body will be sent. */
-    abstract void buildBodyParameters(HttpRequestBase request);
+    abstract void buildBodyParameters(HttpUriRequestBase request);
 
     /** Defines what cookies will be sent. */
-    abstract void buildCookies(HttpRequestBase request);
+    abstract void buildCookies(HttpUriRequestBase request);
 
     /** Defines what headers will be sent. */
-    abstract void buildHeaders(HttpRequestBase request);
+    abstract void buildHeaders(HttpUriRequestBase request);
 
     /** Defines how to construct URL query string. */
     abstract void buildQueryString();
@@ -105,7 +105,7 @@ public abstract class AbstractTestCaseRequest {
      */
     public HttpUriRequest buildRequest() {
         buildQueryString();
-        HttpRequestBase request = createRequestInstance(fullURL + query);
+        HttpUriRequestBase request = createRequestInstance(fullURL + query);
         buildHeaders(request);
         buildCookies(request);
         buildBodyParameters(request);
@@ -125,9 +125,9 @@ public abstract class AbstractTestCaseRequest {
     /**
      * Method to create a POST, GET, DELETE, HEAD, OPTIONS, TRACE request object.
      *
-     * @return an instance of a subclass of HttpRequestBase
+     * @return an instance of a subclass of HttpUriRequestBase
      */
-    abstract HttpRequestBase createRequestInstance(String URL);
+    abstract HttpUriRequestBase createRequestInstance(String URL);
 
     @XmlAttribute(name = "tcAttackSuccess")
     public String getAttackSuccessString() {
