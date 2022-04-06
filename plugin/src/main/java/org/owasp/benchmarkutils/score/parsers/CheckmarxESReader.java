@@ -119,6 +119,7 @@ public class CheckmarxESReader extends Reader {
     private int translate(int cwe) {
         switch (cwe) {
             case 77:
+            case 15:
                 return CweNumber.COMMAND_INJECTION;
             case 36:
             case 23:
