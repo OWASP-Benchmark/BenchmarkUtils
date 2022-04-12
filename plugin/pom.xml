@@ -22,21 +22,33 @@
         </dependency>
 
         <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.13.2.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>2.13.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>30.1.1-jre</version>
+            <version>31.1-jre</version>
         </dependency>
 
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-core</artifactId>
-            <version>3.0.2</version>
+            <version>${version.jaxb}</version>
         </dependency>
 
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-impl</artifactId>
-            <version>3.0.2</version>
+            <version>${version.jaxb}</version>
         </dependency>
 
         <dependency>
@@ -78,19 +90,19 @@
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
-            <version>5.1.3</version>
+            <version>${version.httpcomponents}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.httpcomponents.core5</groupId>
             <artifactId>httpcore5</artifactId>
-            <version>5.1.3</version>
+            <version>${version.httpcomponents}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>3.8.4</version>
+            <version>3.8.5</version>
         </dependency>
 
         <dependency>
@@ -103,14 +115,14 @@
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.core</artifactId>
-            <version>2.7.10</version>
+            <version>${version.eclipse.persistence}</version>
         </dependency>
 
         <!-- Version 3.0.2 gave a weird ClassCastException -->
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.moxy</artifactId>
-            <version>2.7.10</version>
+            <version>${version.eclipse.persistence}</version>
         </dependency>
 
         <dependency>
@@ -122,7 +134,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20211205</version>
+            <version>20220320</version>
         </dependency>
 
         <dependency>
@@ -130,6 +142,14 @@
             <artifactId>snakeyaml</artifactId>
             <version>1.30</version>
         </dependency>
+
+        <!-- The following dependency might be an upgrade/replacement for jaxb.xml.bind.JAXBContext,
+            but it looks like it requires Java 11.
+            <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>4.0.0</version>
+            </dependency -->
 
         <dependency>
             <groupId>javax.validation</groupId>
@@ -146,20 +166,8 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.8.0</version>
+            <version>5.8.2</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.13.2.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-xml</artifactId>
-            <version>2.13.1</version>
         </dependency>
 
     </dependencies>
@@ -177,6 +185,11 @@
 
     <properties>
         <version.exec.maven>1.6.0</version.exec.maven>
+        <version.httpcomponents>5.1.3</version.httpcomponents>
+        <!-- jaxb 4.0.0-M4 requires Java 11. But seems to compile/pass tests fine. -->
+        <version.jaxb>3.1.0-M1</version.jaxb>
+        <!-- 3.0.2 version of eclipse.persistence requires jakarta.xml.bind instead of jaxb -->
+        <version.eclipse.persistence>2.7.10</version.eclipse.persistence>
     </properties>
 
 </project>

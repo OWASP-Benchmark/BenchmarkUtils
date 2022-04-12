@@ -43,7 +43,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -53,7 +53,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>3.0.0-M4</version>
+                    <version>3.0.0-M5</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -89,13 +89,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.0</version>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.10.1</version>
                 <configuration>
                     <fork>true</fork>
                     <meminitial>1000m</meminitial>
@@ -106,7 +106,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.0.0-M1</version>
+                <version>3.0.0-M2</version>
             </plugin>
 
             <plugin>
@@ -129,7 +129,7 @@
                         <configuration>
                             <rules>
                                 <enforceBytecodeVersion>
-                                    <maxJdkVersion>1.8</maxJdkVersion>
+                                    <maxJdkVersion>${project.java.target}</maxJdkVersion>
                                     <message>Dependencies shouldn't require Java 9+.</message>
                                 </enforceBytecodeVersion>
                             </rules>
@@ -144,7 +144,7 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>1.8</version>
+                                    <version>${project.java.target}</version>
                                     <message>BenchmarkUtls is currently written to support Java 8.</message>
                                 </requireJavaVersion>
                             </rules>
@@ -162,13 +162,19 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.2</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
                 <version>3.2.0</version>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>3.2.2</version>
             </plugin>
 
             <plugin>
@@ -180,19 +186,25 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.9.1</version>
+                <version>3.11.0</version>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
+                <version>3.0.0-M6</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.10.0</version>
             </plugin>
 
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
-                <version>2.17.6</version>
+                <version>2.22.1</version>
                 <configuration>
                     <!-- optional: limit format enforcement to just the files changed by this
                         feature branch -->
@@ -298,12 +310,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jxr-plugin</artifactId>
-                <version>2.3</version>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
-                <version>2.5</version>
                 <reportSets>
                     <reportSet>
                         <reports>
@@ -317,10 +327,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>3.0.0</version>
                 <reportSets>
                     <reportSet>
                         <reports>
+                            <report>index</report>
                             <report>dependency-convergence</report>
                         </reports>
                     </reportSet>
@@ -330,9 +340,10 @@
     </reporting>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>${project.java.target}</maven.compiler.source>
+        <maven.compiler.target>${project.java.target}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.java.target>1.8</project.java.target>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <log.directory>${project.build.directory}/log</log.directory>
 
