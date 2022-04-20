@@ -156,22 +156,49 @@ public class ZapJsonReader extends Reader {
         return mapCwe(finding.getString("cweid"));
     }
 
-    private int mapCwe(String cwe) {
+    static int mapCwe(String cwe) {
         switch (cwe) {
             case "22":
                 return CweNumber.PATH_TRAVERSAL;
+            case "78":
+                return CweNumber.COMMAND_INJECTION;
             case "79":
                 return CweNumber.XSS;
             case "89":
                 return CweNumber.SQL_INJECTION;
+            case "90":
+                return CweNumber.LDAP_INJECTION;
+            case "264":
+            case "284":
+                return CweNumber.IMPROPER_ACCESS_CONTROL;
+
             case "352":
                 return CweNumber.CSRF;
+            case "614":
+                return CweNumber.INSECURE_COOKIE;
+
             case "1004":
                 return CweNumber.COOKIE_WITHOUT_HTTPONLY;
 
+                // Don't care about these:
+            case "16": // Configuration
+            case "134": // Use of Externally-Controlled Format String
+            case "200": // Exposure of Sensitive Information to Unauthorized Actor - When 500 errors
+                // are returned
+            case "436": // Interpretation Conflict
+            case "345": // Insufficient Verification of Data Authenticity
+            case "525": // Browser caching sensitive data
+            case "565": // Reliance on Cookies without Validation and Integrity Checking
+            case "693": // Protection Mechanism Failure
+            case "829": // Inclusion of Functionality from Untrusted Control Sphere (e.g., CDN)
+            case "933": // Security Misconfiguration
+            case "1021": // Improper Restriction of Rendered UI Layers or Frames
+            case "1275": // Sensitive Cookie with Improper SameSite Attribute
+                return Integer.parseInt(cwe); // Return the CWE anyway.
+
             default:
                 System.out.println(
-                        "INFO: Found following CWE which we haven't seen before: " + cwe);
+                        "WARNING: ZAP CWE not mapped to expected test suite CWE: " + cwe);
                 return Integer.parseInt(cwe);
         }
     }

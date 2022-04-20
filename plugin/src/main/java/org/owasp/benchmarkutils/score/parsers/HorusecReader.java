@@ -123,7 +123,7 @@ public class HorusecReader extends Reader {
 
                 return CweNumber.INSECURE_DESERIALIZATION;
             case "611":
-                return CweNumber.XML_ENTITIES;
+                return CweNumber.XXE;
             case "614":
                 return CweNumber.INSECURE_COOKIE;
             case "643":
@@ -131,8 +131,7 @@ public class HorusecReader extends Reader {
             case "649":
                 return CweNumber.OBFUSCATION;
             default:
-                System.out.println(
-                        "INFO: Found following CWE which we haven't seen before: " + cwe);
+                System.out.println("WARN: Horusec reported CWE not yet mapped: " + cwe);
                 return Integer.parseInt(cwe);
         }
     }

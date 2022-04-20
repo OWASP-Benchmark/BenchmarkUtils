@@ -163,6 +163,6 @@ public class ZapReader extends Reader {
     }
 
     private int cweLookup(String orig) {
-        return Integer.parseInt(orig);
+        return ZapJsonReader.mapCwe(orig);
     }
 }
