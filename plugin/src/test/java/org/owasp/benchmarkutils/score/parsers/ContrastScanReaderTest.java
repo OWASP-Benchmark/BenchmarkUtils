@@ -28,7 +28,7 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class ContrastJsonReaderTest extends ReaderTestBase {
+public class ContrastScanReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
@@ -40,12 +40,12 @@ public class ContrastJsonReaderTest extends ReaderTestBase {
 
     @Test
     public void onlyContrastJsonReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, ContrastJsonReader.class);
+        assertOnlyMatcherClassIs(this.resultFile, ContrastScanReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        ContrastJsonReader reader = new ContrastJsonReader();
+        ContrastScanReader reader = new ContrastScanReader();
         TestSuiteResults result = reader.parse(resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
