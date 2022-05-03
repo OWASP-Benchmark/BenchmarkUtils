@@ -32,8 +32,9 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-// This is the new AppScan Dynamic reader, where they generate ".xml" files.
-public class AppScanDynamicReader2 extends Reader {
+// This is the new HCL AppScan DAST reader, where they generate ".xml" files. HCL calls this AppScan Standard.
+// The 'old' reader is AppScanDynamicReader, which supports the previous .xml format from IBM.
+public class HCLAppScanStandardReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
@@ -59,7 +60,7 @@ public class AppScanDynamicReader2 extends Reader {
         String startingUrl = getNamedChild("starting-url", scanConfiguration).getTextContent();
 
         TestSuiteResults tr =
-                new TestSuiteResults("HCL AppScan Dynamic", true, TestSuiteResults.ToolType.DAST);
+                new TestSuiteResults("HCL AppScan Standard", true, TestSuiteResults.ToolType.DAST);
 
         // version is usually like 9.3.0 but sometimes like 9.3.0 iFix005. We trim off the part
         // after the space char.
@@ -264,10 +265,11 @@ public class AppScanDynamicReader2 extends Reader {
             case "SriSupport":
                 // case "SSL_CertWithBadCN" : return 00;
                 // case "XSSProtectionHeader" : return 00;
-                return 00;
+                return CweNumber.DONTCARE;
 
             default:
-                System.out.println("Identified unknown vulnerability type of: " + vtype);
+                System.out.println(
+                        "WARNING: HCL AppScan Standard-Unrecognized finding type: " + vtype);
         }
         return 0;
     }

@@ -28,36 +28,33 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class AppScanDynamicReader2Test extends ReaderTestBase {
+public class HCLAppScanIASTReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile =
-                TestHelper.resultFileOf(
-                        "testfiles/Benchmark_1.2-AppScanDynamicReader2-v10.0.6.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2_HCL-IAST.hcl");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyAppScanDynamicReader2ReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, AppScanDynamicReader2.class);
+    public void onlyHCLReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, HCLAppScanIASTReader.class);
     }
 
     @Test
-    void readerHandlesGivenV10ResultFile() throws Exception {
-        AppScanDynamicReader2 reader = new AppScanDynamicReader2();
+    void readerHandlesGivenResultFile() throws Exception {
+        HCLAppScanIASTReader reader = new HCLAppScanIASTReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
+        assertEquals(TestSuiteResults.ToolType.IAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("HCL AppScan Dynamic", result.getToolName());
-        assertEquals("10.0.6", result.getToolVersion());
+        assertEquals("HCL AppScan IAST", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
     }
 }
