@@ -39,6 +39,7 @@ public abstract class Reader {
 
     public static List<Reader> allReaders() {
         return Arrays.asList(
+                new SeekerReader(),
                 new AcunetixReader(),
                 new AppScanDynamicReader(),
                 new AppScanSourceReader(),
@@ -75,7 +76,6 @@ public abstract class Reader {
                 new QualysWASReader(),
                 new Rapid7Reader(),
                 new ReshiftReader(),
-                new SeekerReader(),
                 new SemgrepReader(),
                 new ShiftLeftReader(),
                 new ShiftLeftScanReader(),
