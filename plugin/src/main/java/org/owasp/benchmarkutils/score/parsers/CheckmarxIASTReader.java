@@ -32,7 +32,8 @@ public class CheckmarxIASTReader extends Reader {
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".csv")
                 && resultFile.line(0).contains("CWE")
-                && resultFile.line(0).contains("URL");
+                && resultFile.line(0).contains("URL")
+                && !resultFile.line(0).contains("SeekerServerLink");
     }
 
     @Override

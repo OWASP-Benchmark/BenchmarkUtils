@@ -35,8 +35,8 @@ public class SeekerReader extends Reader {
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr = new TestSuiteResults("Seeker", true, TestSuiteResults.ToolType.IAST);
-
-        java.io.Reader inReader = new java.io.FileReader(resultFile.file());
+        
+        java.io.Reader inReader = new java.io.StringReader(resultFile.content());
         Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(inReader);
         for (CSVRecord record : records) {
             String checkerKey = record.get("CheckerKey");
