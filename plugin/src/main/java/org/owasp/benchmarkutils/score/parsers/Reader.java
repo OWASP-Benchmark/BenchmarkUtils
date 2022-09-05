@@ -54,6 +54,7 @@ public abstract class Reader {
                 new ContrastScanReader(),
                 new CoverityReader(),
                 new CrashtestReader(),
+                new DatadogReader(),
                 new FaastReader(),
                 new FindbugsReader(),
                 new FortifyReader(),
