@@ -39,7 +39,7 @@ public class DatadogReaderTest extends ReaderTestBase {
     }
 
     @Test
-    public void onlyHdivReaderReportsCanReadAsTrue() {
+    public void onlyDatadogReaderReportsCanReadAsTrue() {
         assertOnlyMatcherClassIs(this.resultFile, DatadogReader.class);
     }
 
