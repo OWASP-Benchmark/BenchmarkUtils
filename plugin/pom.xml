@@ -108,7 +108,7 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>3.8.5</version>
+            <version>3.8.6</version>
             <scope>provided</scope>
         </dependency>
 
@@ -141,13 +141,13 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20220320</version>
+            <version>20220924</version>
         </dependency>
 
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.30</version>
+            <version>1.33</version>
         </dependency>
 
         <!-- The following dependency might be an upgrade/replacement for jaxb.xml.bind.JAXBContext,
@@ -173,14 +173,14 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.8.2</version>
+            <version>${version.junit.jupiter}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <version>5.8.2</version>
+            <version>${version.junit.jupiter}</version>
             <scope>test</scope>
         </dependency>
 
@@ -199,12 +199,13 @@
 
     <properties>
         <version.exec.maven>1.6.0</version.exec.maven>
-        <version.fasterxml.jackson>2.13.2</version.fasterxml.jackson>
+        <version.fasterxml.jackson>2.13.4</version.fasterxml.jackson>
         <version.httpcomponents>5.1.3</version.httpcomponents>
         <!-- jaxb 4.0.0-M4 requires Java 11. But seems to compile/pass tests fine. -->
         <version.jaxb>3.1.0-M1</version.jaxb>
         <!-- 3.0.2 version of eclipse.persistence requires jakarta.xml.bind instead of jaxb -->
-        <version.eclipse.persistence>2.7.10</version.eclipse.persistence>
+        <version.eclipse.persistence>2.7.11</version.eclipse.persistence>
+        <version.junit.jupiter>5.9.1</version.junit.jupiter>
     </properties>
 
 </project>
