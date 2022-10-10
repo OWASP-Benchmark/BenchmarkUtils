@@ -392,6 +392,8 @@ public class SonarQubeReader extends Reader {
                 return CweNumber.DONTCARE; // Try-with-resources should be used
             case "S2095":
                 return 459; // Resources should be closed
+            case "S2115":
+                return 521; // Secure password should be used when connecting to a database
             case "S2130":
                 return CweNumber
                         .DONTCARE; // Parsing should be used to convert "Strings" to primitives

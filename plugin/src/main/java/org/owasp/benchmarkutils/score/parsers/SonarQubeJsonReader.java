@@ -20,6 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -211,25 +212,37 @@ public class SonarQubeJsonReader extends Reader {
         switch (secCat) {
             case "sql-injection":
                 // "Ensure that string concatenation is required and safe for this SQL query."
-                return 89;
+                return CweNumber.SQL_INJECTION;
             case "insecure-conf":
                 // "Make sure creating this cookie without the \"secure\" flag is safe here."
-                return 614;
+                return CweNumber.INSECURE_COOKIE;
             case "xss":
                 {
                     // "Make sure creating this cookie without the \"HttpOnly\" flag is safe."
-                    if (message != null && message.contains("HttpOnly")) return 1004;
-                    else return 79; // Actual XSS CWE
+                    if (message != null && message.contains("HttpOnly"))
+                        return CweNumber.COOKIE_WITHOUT_HTTPONLY;
+                    else return CweNumber.XSS; // Actual XSS CWE
                 }
             case "weak-cryptography":
                 {
                     // "Make sure that using this pseudorandom number generator is safe here."
                     // or "Make sure that hashing data is safe here."
                     if (message != null) {
-                        if (message.contains("pseudorandom")) return 330;
-                        if (message.contains("hashing")) return 328;
-                        else return 0000;
-                    } else return 327; // Actual Weak Crypto CWE
+                        if (message.contains("pseudorandom")) return CweNumber.WEAK_RANDOM;
+                        if (message.contains("hashing")) return CweNumber.REVERSIBLE_HASH;
+                        // Deliberately fall through. The 'others' check will also fail since the
+                        // message check is very specific. So it will drop through to the default:
+                        // case.
+                    } else return CweNumber.BROKEN_CRYPTO; // Actual Weak Crypto CWE
+                }
+            case "others":
+                {
+                    if (message != null
+                            && message.equals(
+                                    "Make sure this weak hash algorithm is not used in a sensitive context here.")) {
+                        return CweNumber.REVERSIBLE_HASH;
+                    }
+                    // Otherwise deliberately drop through to default error message.
                 }
             default:
                 System.out.println(
