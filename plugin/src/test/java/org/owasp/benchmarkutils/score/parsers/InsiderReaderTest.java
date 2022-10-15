@@ -34,7 +34,7 @@ public class InsiderReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-insider-v3.0.0.json");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_insider-v3.0.0.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
@@ -55,6 +55,6 @@ public class InsiderReaderTest extends ReaderTestBase {
         assertEquals(2, result.getTotalResults());
 
         assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.BROKEN_CRYPTO, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.WEAK_CRYPTO_ALGO, result.get(2).get(0).getCWE());
     }
 }

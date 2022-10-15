@@ -34,7 +34,7 @@ public class WapitiJsonReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-wapiti-v3.0.5.json");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Wapiti-v3.0.5.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

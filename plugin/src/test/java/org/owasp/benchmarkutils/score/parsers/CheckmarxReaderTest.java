@@ -34,7 +34,7 @@ public class CheckmarxReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Checkmarx-v8.2.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Checkmarx-v8.2.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

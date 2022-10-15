@@ -59,10 +59,10 @@ public class CweNumber {
     public static int IMPROPER_ACCESS_CONTROL = 284;
 
     /** CWE-327: Use of a Broken or Risky Cryptographic Algorithm */
-    public static int BROKEN_CRYPTO = 327;
+    public static int WEAK_CRYPTO_ALGO = 327;
 
-    /** CWE-328: Reversible One-Way Hash */
-    public static int REVERSIBLE_HASH = 328;
+    /** CWE-328: Use of Weak Hash */
+    public static int WEAK_HASH_ALGO = 328;
 
     /** CWE-329: Generation of Predictable IV with CBC Mode */
     public static int STATIC_CRYPTO_INIT = 329;

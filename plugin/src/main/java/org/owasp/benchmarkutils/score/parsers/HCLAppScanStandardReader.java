@@ -32,7 +32,8 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-// This is the new HCL AppScan DAST reader, where they generate ".xml" files. HCL calls this AppScan Standard.
+// This is the new HCL AppScan DAST reader, where they generate ".xml" files. HCL calls this AppScan
+// Standard.
 // The 'old' reader is AppScanDynamicReader, which supports the previous .xml format from IBM.
 public class HCLAppScanStandardReader extends Reader {
 
@@ -227,7 +228,7 @@ public class HCLAppScanStandardReader extends Reader {
                 return CweNumber.LDAP_INJECTION;
 
             case "SHA1CipherSuites":
-                return CweNumber.REVERSIBLE_HASH; // Better if set to 327?
+                return CweNumber.WEAK_HASH_ALGO; // Better if set to 327?
 
             case "passParamGET":
                 return CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT;

@@ -34,7 +34,7 @@ public class CheckmarxIASTReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-CxIAST.csv");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CxIAST.csv");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

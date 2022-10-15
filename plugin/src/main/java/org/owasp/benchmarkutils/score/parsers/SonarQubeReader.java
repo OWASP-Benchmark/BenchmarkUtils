@@ -363,7 +363,7 @@ public class SonarQubeReader extends Reader {
             case "S2068":
                 return 259; // Credentials should not be hard-coded
             case "S2070":
-                return CweNumber.REVERSIBLE_HASH; // Benchmark Vuln: SHACweNumber.DONTCARE and
+                return CweNumber.WEAK_HASH_ALGO; // Benchmark Vuln: SHACweNumber.DONTCARE and
                 // Message-Digest hash
                 // algorithms should not be used
             case "S2076":
@@ -424,7 +424,7 @@ public class SonarQubeReader extends Reader {
                 // used
             case "S2257":
                 return CweNumber
-                        .BROKEN_CRYPTO; // Benchmark Vuln: Only standard cryptographic algorithms
+                        .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Only standard cryptographic algorithms
                 // should be used
             case "S2259":
                 return 476; // Null pointers should not be dereferenced
@@ -438,7 +438,8 @@ public class SonarQubeReader extends Reader {
                 // Asymmetric Encryption Padding)
             case "S2278":
                 return CweNumber
-                        .BROKEN_CRYPTO; // Benchmark Vuln: DES (Data Encryption Standard) and DESede
+                        .WEAK_CRYPTO_ALGO; // Benchmark Vuln: DES (Data Encryption Standard) and
+                // DESede
                 // (3DES) should not be used
             case "S2293":
                 return CweNumber.DONTCARE; // The diamond operator ("<>") should be used
@@ -530,11 +531,12 @@ public class SonarQubeReader extends Reader {
                         .DONTCARE; // "String#replace" should be preferred to "String#replaceAll"
             case "S5542":
                 return CweNumber
-                        .BROKEN_CRYPTO; // Benchmark Vuln: Encryption algorithms should be used with
+                        .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Encryption algorithms should be used
+                // with
                 // secure mode and padding scheme
             case "S5547":
                 return CweNumber
-                        .BROKEN_CRYPTO; // Benchmark Vuln: Cipher algorithms should be robust
+                        .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Cipher algorithms should be robust
 
             case "CallToDeprecatedMethod":
             case "ClassVariableVisibilityCheck":

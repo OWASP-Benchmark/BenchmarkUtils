@@ -101,12 +101,21 @@ public class TestSuiteResults {
         return isCommercial;
     }
 
+    /**
+     * Add a test case result to the set of results for this tool.
+     *
+     * @param tcr The test case result to add.
+     */
     public void put(TestCaseResult tcr) {
+        // There is a list of results for each test case
         List<TestCaseResult> results = testCaseResults.get(tcr.getNumber());
         if (results == null) {
+            // If there are no results yet for this test case, create a List.
+            // Add this list for this test case to the set of results
             results = new ArrayList<TestCaseResult>();
             testCaseResults.put(tcr.getNumber(), results);
         }
+        // Add this specific result to this test case's results
         results.add(tcr);
     }
 

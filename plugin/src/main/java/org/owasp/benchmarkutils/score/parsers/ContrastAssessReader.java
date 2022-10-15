@@ -218,9 +218,9 @@ public class ContrastAssessReader extends Reader {
             case "cookie-flags-missing":
                 return CweNumber.INSECURE_COOKIE;
             case "crypto-bad-ciphers":
-                return CweNumber.BROKEN_CRYPTO; // weak encryption
+                return CweNumber.WEAK_CRYPTO_ALGO; // weak encryption
             case "crypto-bad-mac":
-                return CweNumber.REVERSIBLE_HASH; // weak hash
+                return CweNumber.WEAK_HASH_ALGO; // weak hash
             case "crypto-weak-randomness":
                 return CweNumber.WEAK_RANDOM;
             case "csp-header-insecure":

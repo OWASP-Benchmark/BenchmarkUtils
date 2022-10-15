@@ -110,11 +110,11 @@ public class ThunderScanReader extends Reader {
                 return CweNumber.XPATH_INJECTION;
             case "Misc. Dangerous Functions":
                 if (function.contains("Weak Enc")) {
-                    return CweNumber.BROKEN_CRYPTO;
+                    return CweNumber.WEAK_CRYPTO_ALGO;
                 }
 
                 if (function.contains("Weak Hash")) {
-                    return CweNumber.REVERSIBLE_HASH;
+                    return CweNumber.WEAK_HASH_ALGO;
                 }
 
                 if (function.contains("Weak Random")) {

@@ -109,9 +109,9 @@ public class HorusecReader extends Reader {
                 return CweNumber.SQL_INJECTION;
             case "326":
             case "327":
-                return CweNumber.BROKEN_CRYPTO;
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "328":
-                return CweNumber.REVERSIBLE_HASH;
+                return CweNumber.WEAK_HASH_ALGO;
             case "329":
                 return CweNumber.STATIC_CRYPTO_INIT;
             case "330":

@@ -12,8 +12,8 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Sascha Knoop
- * @created 2021
+ * @author Dave Wichers
+ * @created 2022
  */
 package org.owasp.benchmarkutils.score.parsers;
 
@@ -28,33 +28,36 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class CovertyReaderTest extends ReaderTestBase {
+public class KlocworkCSVReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Coverity-v3.0.json");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Klocwork.csv");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyCovertyReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, CoverityReader.class);
+    public void onlyKlocworkCSVReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, KlocworkCSVReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        CoverityReader reader = new CoverityReader();
+        KlocworkCSVReader reader = new KlocworkCSVReader();
         TestSuiteResults result = reader.parse(resultFile);
+        System.out.println(
+                "Validating results of parsing Klocwork results test file: "
+                        + resultFile.filename());
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("Coverity Code Advisor", result.getToolName());
+        assertEquals("Klocwork", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(2).get(0).getCWE());
     }
 }

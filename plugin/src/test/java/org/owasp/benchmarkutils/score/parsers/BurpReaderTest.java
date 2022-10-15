@@ -34,7 +34,7 @@ public class BurpReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-BurpPro-v2020.2.1.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_BurpPro-v2020.2.1.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

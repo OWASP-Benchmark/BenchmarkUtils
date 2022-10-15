@@ -34,7 +34,7 @@ public class SonarQubeJsonReader extends Reader {
         // the same parser for SonarQube.
         return resultFile.isJson()
                 && (resultFile.json().has("hotspots") || resultFile.json().has("issues"))
-                && !resultFile.json().has("type"); // Ignore Coverty results
+                && !resultFile.json().has("type"); // Ignore Coverity results
     }
 
     @Override
@@ -229,18 +229,18 @@ public class SonarQubeJsonReader extends Reader {
                     // or "Make sure that hashing data is safe here."
                     if (message != null) {
                         if (message.contains("pseudorandom")) return CweNumber.WEAK_RANDOM;
-                        if (message.contains("hashing")) return CweNumber.REVERSIBLE_HASH;
+                        if (message.contains("hashing")) return CweNumber.WEAK_HASH_ALGO;
                         // Deliberately fall through. The 'others' check will also fail since the
                         // message check is very specific. So it will drop through to the default:
                         // case.
-                    } else return CweNumber.BROKEN_CRYPTO; // Actual Weak Crypto CWE
+                    } else return CweNumber.WEAK_CRYPTO_ALGO; // Actual Weak Crypto CWE
                 }
             case "others":
                 {
                     if (message != null
                             && message.equals(
                                     "Make sure this weak hash algorithm is not used in a sensitive context here.")) {
-                        return CweNumber.REVERSIBLE_HASH;
+                        return CweNumber.WEAK_HASH_ALGO;
                     }
                     // Otherwise deliberately drop through to default error message.
                 }

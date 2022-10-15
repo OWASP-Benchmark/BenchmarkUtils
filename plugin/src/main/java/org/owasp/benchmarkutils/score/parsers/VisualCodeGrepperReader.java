@@ -112,7 +112,7 @@ public class VisualCodeGrepperReader extends Reader {
         }
         if (cat.startsWith("Cipher.getInstance(")) {
             // Weak encryption
-            return CweNumber.BROKEN_CRYPTO;
+            return CweNumber.WEAK_CRYPTO_ALGO;
         } else if (cat.startsWith("Class Contains Public Variable: ")) {
             // Potential SQL Injection
             // return 89;

@@ -34,7 +34,7 @@ public class ShiftLeftScanReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-shiftleftscan-v2.0.3.json");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_shiftleftscan-v2.0.3.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

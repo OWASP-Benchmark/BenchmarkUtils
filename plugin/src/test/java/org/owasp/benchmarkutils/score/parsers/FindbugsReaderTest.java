@@ -36,9 +36,8 @@ public class FindbugsReaderTest extends ReaderTestBase {
     @BeforeEach
     void setUp() {
         findSecBugsResultFile =
-                TestHelper.resultFileOf("testfiles/Benchmark_1.2-findsecbugs-v1.11.0-105.xml");
-        spotBugsResultFile =
-                TestHelper.resultFileOf("testfiles/Benchmark_1.2-spotbugs-v4.1.4-104.xml");
+                TestHelper.resultFileOf("testfiles/Benchmark_findsecbugs-v1.11.0-105.xml");
+        spotBugsResultFile = TestHelper.resultFileOf("testfiles/Benchmark_spotbugs-v4.1.4-104.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

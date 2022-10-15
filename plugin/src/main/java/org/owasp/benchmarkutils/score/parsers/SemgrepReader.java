@@ -72,7 +72,7 @@ public class SemgrepReader extends Reader {
             case 326:
             case 327:
             case 696: // Incorrect Behavior Order
-                return CweNumber.BROKEN_CRYPTO; // weak encryption
+                return CweNumber.WEAK_CRYPTO_ALGO; // weak encryption
             case 614:
             case 1004:
                 return CweNumber.INSECURE_COOKIE;

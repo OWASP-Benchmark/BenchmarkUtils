@@ -34,7 +34,7 @@ public class HorusecReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-horusec-v2.5.0.json");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_horusec-v2.5.0.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

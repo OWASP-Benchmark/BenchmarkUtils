@@ -35,8 +35,7 @@ public class HCLAppScanStandardReaderTest extends ReaderTestBase {
     @BeforeEach
     void setUp() {
         resultFile =
-                TestHelper.resultFileOf(
-                        "testfiles/Benchmark_1.2-HCLAppScanStandardReader-v10.0.6.xml");
+                TestHelper.resultFileOf("testfiles/Benchmark_HCLAppScanStandardReader-v10.0.6.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

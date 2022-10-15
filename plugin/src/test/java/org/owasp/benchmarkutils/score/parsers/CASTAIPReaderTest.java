@@ -34,7 +34,7 @@ public class CASTAIPReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-CAST_AIP-v8.2.3.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CAST_AIP-v8.2.3.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
