@@ -47,9 +47,6 @@ public class KlocworkCSVReaderTest extends ReaderTestBase {
     void readerHandlesGivenResultFile() throws Exception {
         KlocworkCSVReader reader = new KlocworkCSVReader();
         TestSuiteResults result = reader.parse(resultFile);
-        System.out.println(
-                "Validating results of parsing Klocwork results test file: "
-                        + resultFile.filename());
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
