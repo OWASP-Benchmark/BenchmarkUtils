@@ -74,18 +74,17 @@ public class HorusecReader extends Reader {
 
     private TestCaseResult parseTestCaseResult(JSONObject finding) {
         try {
-            TestCaseResult tcr = new TestCaseResult();
-
             JSONObject vuln = finding.getJSONObject("vulnerabilities");
 
             String filename = filename(vuln);
 
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+                TestCaseResult tcr = new TestCaseResult();
                 tcr.setNumber(testNumber(filename));
                 tcr.setCWE(figureCwe(vuln));
+                return tcr;
             }
 
-            return tcr;
         } catch (Exception e) {
             e.printStackTrace();
         }

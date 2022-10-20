@@ -82,6 +82,7 @@ public class CoverityReader extends Reader {
                     tcr.setCWE(cwe);
                     tcr.setCategory(props.getString("subcategoryShortDescription"));
                     tcr.setEvidence(props.getString("subcategoryLongDescription"));
+                    return tcr;
                 }
             } else if (version == 2) {
                 //
@@ -107,9 +108,9 @@ public class CoverityReader extends Reader {
                     tcr.setCWE(cwe);
                     tcr.setCategory(finding.getString("categoryDescription"));
                     tcr.setEvidence(finding.getString("longDescription"));
+                    return tcr;
                 }
             }
-            return tcr;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -131,13 +132,13 @@ public class CoverityReader extends Reader {
      */
     private TestCaseResult parseCoverityFindingV2(JSONObject finding) {
         try {
-            TestCaseResult tcr = new TestCaseResult();
             String filename = null;
 
             filename = finding.getString("mainEventFilePathname");
             filename = filename.replaceAll("\\\\", "/");
             filename = filename.substring(filename.lastIndexOf('/') + 1);
             if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
+                TestCaseResult tcr = new TestCaseResult();
                 tcr.setNumber(testNumber(filename));
                 //
                 // *** Warning: serious foefeling and cutting of corners ahead. ***

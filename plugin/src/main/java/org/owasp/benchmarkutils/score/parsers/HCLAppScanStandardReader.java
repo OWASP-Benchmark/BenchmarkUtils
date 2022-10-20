@@ -97,12 +97,12 @@ public class HCLAppScanStandardReader extends Reader {
                 // before
                 // First get the type of vuln, and if we don't care about that type, move on
                 TestCaseResult tcr = TestCaseLookup(issueType, url);
-                tr.put(tcr);
+                if (tcr != null) tr.put(tcr);
             } else {
                 // Handle issues which are Variants, new xml format after 10.x release
                 for (String testArea : testCaseElementsFromVariants) {
                     TestCaseResult tcr = TestCaseLookup(issueType, testArea);
-                    tr.put(tcr);
+                    if (tcr != null) tr.put(tcr);
                 }
             }
         }
@@ -112,7 +112,6 @@ public class HCLAppScanStandardReader extends Reader {
 
     /// Issues which are not variants
     private TestCaseResult TestCaseLookup(String issueType, String url) {
-        TestCaseResult tcr = new TestCaseResult();
         String[] urlElements = url.split("/");
         String testArea =
                 urlElements[urlElements.length - 2].split("-")[0]; // .split strips off the -##
@@ -140,12 +139,14 @@ public class HCLAppScanStandardReader extends Reader {
             // issueType);
 
             // Add the vuln found in a test case to the results for this tool
+            TestCaseResult tcr = new TestCaseResult();
             tcr.setNumber(tn);
             tcr.setCategory(issueType); // TODO: Is this right?
             tcr.setCWE(vtype);
             tcr.setEvidence(issueType);
+            return tcr;
         }
-        return tcr;
+        return null;
     }
 
     // Fetch Issues listed as variants, to cater to post 10.x release xml format

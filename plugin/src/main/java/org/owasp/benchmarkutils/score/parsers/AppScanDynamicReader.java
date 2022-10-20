@@ -165,10 +165,10 @@ public class AppScanDynamicReader extends Reader {
             String testno = testcase.substring(BenchmarkScore.TESTCASENAME.length());
             try {
                 tcr.setNumber(Integer.parseInt(testno));
+                return tcr;
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
-            return tcr;
         }
 
         return null;

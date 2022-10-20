@@ -104,9 +104,9 @@ public class BurpJsonReader extends Reader {
                 tcr.setCWE(cwe);
                 // tcr.setEvidence( issue.getString("description") ); // Sometimes descriptions
                 // aren't provided, so comment out.
+                return tcr;
             }
 
-            return tcr;
         } catch (JSONException e) {
             e.printStackTrace();
         }

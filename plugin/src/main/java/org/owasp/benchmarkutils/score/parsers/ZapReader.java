@@ -146,7 +146,9 @@ public class ZapReader extends Reader {
     private void addIssue(
             Node alertData, TestSuiteResults tr, int cwe, String category, int confidence) {
         int testNumber = testNumber(getNamedChild("uri", alertData).getTextContent());
-        tr.put(createTestCaseResult(cwe, category, confidence, testNumber));
+        if (testNumber > 0) {
+            tr.put(createTestCaseResult(cwe, category, confidence, testNumber));
+        }
     }
 
     private TestCaseResult createTestCaseResult(

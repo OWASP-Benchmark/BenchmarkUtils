@@ -103,17 +103,17 @@ public class KiuwanReader extends Reader {
                         }
                     }
 
+                    if (cwe != -1) {
+                        tcr.setCWE(cwe);
+                        tcr.setCategory(finding.getString("summary"));
+                        tcr.setEvidence(finding.getString("scannerDetail"));
+                        return tcr;
+                    }
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-                if (cwe != -1) {
-                    tcr.setCWE(cwe);
-                    tcr.setCategory(finding.getString("summary"));
-                    tcr.setEvidence(finding.getString("scannerDetail"));
-                }
             }
-            return tcr;
         } catch (Exception e) {
             e.printStackTrace();
         }

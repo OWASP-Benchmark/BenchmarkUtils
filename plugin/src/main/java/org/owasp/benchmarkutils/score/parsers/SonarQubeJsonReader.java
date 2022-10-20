@@ -76,6 +76,13 @@ public class SonarQubeJsonReader extends Reader {
                             ? parseSonarQubeHotSpotIssue(arr.getJSONObject(i))
                             : parseSonarQubeQualityIssue(arr.getJSONObject(i)));
             if (tcr != null) {
+                if (tcr.getNumber() == 0) {
+                    System.out.println(
+                            "SQ Error: JSON object parsed with isHotspot key: '"
+                                    + key
+                                    + "' to test case num 0: "
+                                    + arr.getJSONObject(i));
+                }
                 tr.put(tcr);
             }
         }
@@ -100,15 +107,20 @@ public class SonarQubeJsonReader extends Reader {
     // Quality Issues are normal SonarQube findings that are mostly not relevant to security
     // However, there are a small number of security issues that do show up this way so we have
     // to support both
+    /**
+     * Parse the SonarQube Quality results to see if there is a finding in Benchmark test case.
+     *
+     * @param finding The JSON text of the SonarQube Quality finding.
+     * @return Returns a TestCaseResult if there is a finding in a Benchmark testcase file,
+     *     otherwise it returns null.
+     */
     private TestCaseResult parseSonarQubeQualityIssue(JSONObject finding) {
         try {
-            TestCaseResult tcr = new TestCaseResult();
-            String filename = null;
-
-            filename = finding.getString("component");
+            String filename = finding.getString("component");
             filename = filename.replaceAll("\\\\", "/");
             filename = filename.substring(filename.lastIndexOf('/'));
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+                TestCaseResult tcr = new TestCaseResult();
                 tcr.setNumber(testNumber(filename));
                 String rule = finding.getString("rule");
                 String squid = rule.substring(rule.indexOf(":") + 1);
@@ -119,13 +131,13 @@ public class SonarQubeJsonReader extends Reader {
                 tcr.setCWE(cwe);
                 tcr.setCategory(finding.getJSONArray("tags").toString());
                 tcr.setEvidence(finding.getString("message"));
+                return tcr;
             }
 
-            return tcr;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return null; // Finding not in a test case
     }
 
     // The parseSonarQubeQualityIssue() method above relies on the SQUID # mapping method in
@@ -143,17 +155,22 @@ public class SonarQubeJsonReader extends Reader {
      */
 
     // Hotspot Issues are SonarQube security findings.
+    /**
+     * Parse the SonarQube HotSpot results to see if there is a finding in Benchmark test case.
+     *
+     * @param finding The JSON text of the SonarQube HotSpot finding.
+     * @return Returns a TestCaseResult if there is a finding in a Benchmark testcase file,
+     *     otherwise it returns null.
+     */
     private TestCaseResult parseSonarQubeHotSpotIssue(JSONObject finding) {
         try {
-            TestCaseResult tcr = new TestCaseResult();
-            String filename = null;
-
-            filename = finding.getString("component");
+            String filename = finding.getString("component");
             filename =
                     filename.replaceAll(
                             "\\\\", "/"); // In case there are \ instead of / in the path
             filename = filename.substring(filename.lastIndexOf('/'));
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+                TestCaseResult tcr = new TestCaseResult();
                 tcr.setNumber(testNumber(filename));
                 String secCat = finding.getString("securityCategory");
                 if (secCat == null || secCat.equals("none")) {
@@ -165,13 +182,13 @@ public class SonarQubeJsonReader extends Reader {
                 tcr.setEvidence(
                         "vulnerabilityProbability: "
                                 + finding.getString("vulnerabilityProbability"));
+                return tcr;
             }
 
-            return tcr;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return null; // Finding not in a test case
     }
 
     /*
