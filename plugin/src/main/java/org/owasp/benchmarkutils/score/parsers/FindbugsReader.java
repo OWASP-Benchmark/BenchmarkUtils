@@ -151,6 +151,8 @@ public class FindbugsReader extends Reader {
                 // Cookies
             case "SECIC":
                 return CweNumber.INSECURE_COOKIE;
+            case "SECCU":
+                return CweNumber.DONTCARE;
             case "SECHOC":
                 return CweNumber.COOKIE_WITHOUT_HTTPONLY;
 
