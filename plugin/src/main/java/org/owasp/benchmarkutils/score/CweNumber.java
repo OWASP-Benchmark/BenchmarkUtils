@@ -14,6 +14,15 @@ public enum CweNumber {
     /** CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal') */
     PATH_TRAVERSAL(22),
 
+    /** CWE-73: External Control of File Name or Path */
+    EXTERNAL_FILE_OR_PATH_CONTROL(73),
+
+    /**
+     * CWE-74: Improper Neutralization of Special Elements in Output Used by a Downstream Component
+     * ('Injection')
+     */
+    GENERAL_INJECTION(74),
+
     /**
      * CWE-77: Improper Neutralization of Special Elements used in a Command ('Command Injection')
      */
@@ -34,6 +43,11 @@ public enum CweNumber {
     IMPROPER_NEUTRALIZATION_OF_ATTRIBUTES(83),
 
     /**
+     * CWE-88: Improper Neutralization of Argument Delimiters in a Command ('Argument Injection')
+     */
+    ARGUMENT_INJECTION(88),
+
+    /**
      * CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')
      */
     SQL_INJECTION(89),
@@ -42,6 +56,9 @@ public enum CweNumber {
      * CWE-90: Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection')
      */
     LDAP_INJECTION(90),
+
+    /** CWE-91: XML Injection (aka Blind XPath Injection) */
+    BLIND_XPATH_INJECTION(91),
 
     /** CWE-93: Improper Neutralization of CRLF Sequences ('CRLF Injection') */
     CRLF_INJECTION(93),
@@ -67,14 +84,26 @@ public enum CweNumber {
     /** CWE-117: Improper Output Neutralization for Logs */
     MISSING_LOG_OUTPUT_NEUTRALIZATION(117),
 
+    /** CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow') */
+    CLASSIC_BUFFER_OVERFLOW(120),
+
     /** CWE-134: Use of Externally-Controlled Format String */
     EXTERNALLY_CONTROLLED_STRING(134),
+
+    /** CWE-180: Incorrect Behavior Order: Validate Before Canonicalize */
+    INCORRECT_BEHAVIOUR_ORDER(180),
+
+    /** CWE-182: Collapse of Data into Unsafe Value */
+    COLLAPSE_DATA_IN_UNSAFE_VALUE(182),
 
     /** CWE-190: Integer Overflow or Wraparound */
     INTEGER_OVERFLOW_WRAPAROUND(190),
 
     /** CWE-200: Exposure of Sensitive Information to an Unauthorized Actor */
     EXPOSURE_SENSITIVE_TO_UNAUTHORIZED_USER(200),
+
+    /** CWE-205: Observable Behavioral Discrepancy */
+    OBSERVABLE_BEHAVIORAL_DISCREPANCY(205),
 
     /** CWE-209: Generation of Error Message Containing Sensitive Information */
     ERROR_MESSAGE_WITH_SENSITIVE_INFO(209),
@@ -84,6 +113,12 @@ public enum CweNumber {
 
     /** CWE-235: Improper Handling of Extra Parameters */
     IMPROPER_HANDLING_OF_PARAMETERS(235),
+
+    /** CWE-244: Improper Clearing of Heap Memory Before Release ('Heap Inspection') */
+    HEAP_INSPECTION(244),
+
+    /** CWE-248: Uncaught Exception */
+    UNCAUGHT_EXCEPTION(248),
 
     /** CWE-250: Execution with Unnecessary Privileges */
     TOO_PRIVILIGED_EXECUTION(250),
@@ -97,11 +132,23 @@ public enum CweNumber {
     /** CWE-284: Improper Access Control */
     IMPROPER_ACCESS_CONTROL(284),
 
+    /** CWE-285: Improper Authorization */
+    IMPROPER_AUTHORIZATION(285),
+
     /** CWE-293: Using Referer Field for Authentication */
     REFERER_FIELD_IN_AUTHENTICATION(293),
 
+    /** CWE-295: Improper Certificate Validation */
+    IMPROPER_CERTIFICATE_VALIDATION(295),
+
     /** CWE-311: Missing Encryption of Sensitive Data */
     UNENCRYPTED_SENSITIVE_DATA(311),
+
+    /** CWE-315: Cleartext Storage of Sensitive Information in a Cookie */
+    UNENCRYPTED_SENSITIVE_INFO_STORED_IN_COOKIE(315),
+
+    /** CWE-319: Cleartext Transmission of Sensitive Information */
+    CLEARTEXT_TRANSMISSION_OF_SENSITIVE_INFO(319),
 
     /** CWE-320: CWE CATEGORY: Key Management Errors */
     CATEGORY_KEY_MANAGEMENT_ERROR(320),
@@ -121,14 +168,29 @@ public enum CweNumber {
     /** CWE-330: Use of Insufficiently Random Values */
     WEAK_RANDOM(330),
 
+    /** CWE-332: Insufficient Entropy in PRNG */
+    INSUFFICIENT_ENTRUPY_IN_PNRG(332),
+
+    /** CWE-345: Insufficient Verification of Data Authenticity */
+    INSUFFICIENT_DATA_AUTHENTICITY_VERIFICATION(345),
+
     /** CWE-346: Origin Validation Error */
     ORIGIN_VALIDATION_ERROR(346),
 
     /** CWE-352: Cross-Site Request Forgery (CSRF) */
     CSRF(352),
 
+    /** CWE-353: Missing Support for Integrity Check */
+    MISSING_SUPPORT_FOR_INTEGRITY_CHECK(353),
+
     /** CWE-359: Exposure of Private Personal Information to an Unauthorized Actor */
     EXPOSURE_PRIVATE_TO_UNAUTHORIZED_USER(359),
+
+    /**
+     * CWE-362: Concurrent Execution using Shared Resource with Improper Synchronization ('Race
+     * Condition')
+     */
+    RACE_CONDITION(362),
 
     /** CWE-369: Divide By Zero */
     DIVISION_BY_ZERO(369),
@@ -136,8 +198,17 @@ public enum CweNumber {
     /** CWE-374: Passing Mutable Objects to an Untrusted Method */
     PASS_MUTABLE_OBJECT_TO_UNTRUSTED_MODULE(374),
 
+    /** CWE-379: Creation of Temporary File in Directory with Insecure Permissions */
+    TEMPORARY_FILE_WITH_INSECURE_PERMISSIONS(379),
+
     /** CWE-382: J2EE Bad Practices: Use of System.exit() */
     SYSTEM_EXIT(382),
+
+    /** CWE-390: Detection of Error Condition Without Action */
+    DETECTING_ERROR_WITHOUT_ACTION(390),
+
+    /** CWE-391: Unchecked Error Condition */
+    UNCHECKED_ERROR_CONDITION(391),
 
     /** CWE-395: Use of NullPointerException Catch to Detect NULL Pointer Dereference */
     CATCHING_NULL_POINTER_EXCEPTION(395),
@@ -148,6 +219,9 @@ public enum CweNumber {
     /** CWE-397: Declaration of Throws for Generic Exception */
     THROW_GENERIC_EXCEPTION(397),
 
+    /** CWE-398: CWE CATEGORY: 7PK - Code Quality */
+    CATEGORY_CODE_QUALITY(398),
+
     /** CWE-400: Uncontrolled Resource Consumption */
     UNCONTROLLED_RESOURCE_CONSUMPTION(400),
 
@@ -156,6 +230,12 @@ public enum CweNumber {
 
     /** CWE-434: Unrestricted Upload of File with Dangerous Type */
     UNRESTRICTED_FILE_UPLOAD(434),
+
+    /** CWE-436: Interpretation Conflict */
+    INTERPRETATION_CONFLICT(436),
+
+    /** CWE-440: Expected Behavior Violation */
+    EXPECTED_BEHAVIOUR_VIOLATION(440),
 
     /** CWE-451: User Interface (UI) Misrepresentation of Critical Information */
     MISREPRESENTATION_OF_CRITICAL_INFO(451),
@@ -171,8 +251,14 @@ public enum CweNumber {
     /** CWE-472: External Control of Assumed-Immutable Web Parameter */
     EXTERNAL_CONTROL_OF_WEB_PARAM(472),
 
+    /** CWE-474: Use of Function with Inconsistent Implementations */
+    FUNCTION_WITH_INCONSISTENT_IMPLEMENTATION(474),
+
     /** CWE-476: NULL Pointer Dereference */
     NULL_POINTER_DEREFERENCE(476),
+
+    /** CWE-477: Use of Obsolete Function */
+    OBSOLETE_FUNCTION_USAGE(477),
 
     /** CWE-478: Missing Default Case in Switch Statement */
     MISSING_DEFAULT_CASE(478),
@@ -195,6 +281,15 @@ public enum CweNumber {
     /** CWE-493: Critical Public Variable Without Final Modifier */
     PUBLIC_VAR_WITHOUT_FINAL(493),
 
+    /** CWE-494: Download of Code Without Integrity Check */
+    MISSING_INTEGRITY_CHECK_FOR_DOWNLOADED_CODE(494),
+
+    /** CWE-497: Exposure of Sensitive System Information to an Unauthorized Control Sphere */
+    EXPOSE_SYSTEM_INFO_TO_UNAUTHORIZED_CONTROL(497),
+
+    /** CWE-499: Serializable Class Containing Sensitive Data */
+    SERIALIZABLE_CLASS_WITH_SENSITIVE_DATA(499),
+
     /** CWE-500: Public Static Field Not Marked Final */
     PUBLIC_STATIC_NOT_FINAL(500),
 
@@ -207,20 +302,53 @@ public enum CweNumber {
     /** CWE-521: Weak Password Requirements */
     WEAK_PASSWORD_REQUIREMENTS(521),
 
+    /** CWE-522: Insufficiently Protected Credentials */
+    INSUFFICIENTLY_RPOTECTED_CREDENTIALS(522),
+
     /** CWE-523: Unprotected Transport of Credentials */
     UNPROTECTED_CREDENTIALS_TRANSPORT(523),
 
     /** CWE-525: Use of Web Browser Cache Containing Sensitive Information */
     SENSITIVE_INFORMATION_IN_BROWSER_CACHE(525),
 
+    /** CWE-530: Exposure of Backup File to an Unauthorized Control Sphere */
+    EXPOSE_BACKUP_TO_UNAUTHORIZED_TARGET(530),
+
     /** CWE-532: Insertion of Sensitive Information into Log File */
     SENSITIVE_LOGFILE(532),
+
+    /** CWE-538: Insertion of Sensitive Information into Externally-Accessible File or Directory */
+    SENSITIVE_INFO_IN_EXTERNAL_ACCESSIBLE_SPACE(538),
+
+    /** CWE-539: Use of Persistent Cookies Containing Sensitive Information */
+    PERSISTENT_COOKIE_CONTAINS_SENSITIVE_INFO(539),
+
+    /** CWE-541: Inclusion of Sensitive Information in an Include File */
+    SENSITIVE_INFORMATION_IN_INCLUDED_FILE(541),
+
+    /** CWE-547: Use of Hard-coded, Security-relevant Constants */
+    HARDCODED_SECURITY_RELEVANT_CONSTANTS(547),
+
+    /** CWE-561: Dead Code */
+    DEAD_CODE(561),
 
     /** CWE-563: Assignment to Variable without Use */
     UNUSED_VAR_ASSIGNMENT(563),
 
     /** CWE-564: SQL Injection: Hibernate */
     HIBERNATE_INJECTION(564),
+
+    /** CWE-565: Reliance on Cookies without Validation and Integrity Checking */
+    MISSING_COOKIE_VALIDATION(565),
+
+    /** CWE-567: Unsynchronized Access to Shared Data in a Multithreaded Context */
+    UNSYNCHRONIZED_ACCESS_TO_SHARED_DATA(567),
+
+    /** CWE-570: Expression is Always False */
+    EXPRESSION_ALWAYS_FALSE(570),
+
+    /** CWE-571: Expression is Always True */
+    EXPRESSION_ALWAYS_TRUE(571),
 
     /** CWE-572: Call to Thread run() instead of start() */
     THREAD_WRONG_CALL(572),
@@ -255,6 +383,9 @@ public enum CweNumber {
     /** CWE-601: URL Redirection to Untrusted Site ('Open Redirect') */
     OPEN_REDIRECT(601),
 
+    /** CWE-606: Unchecked Input for Loop Condition */
+    UNCHECKED_INPUT_FOR_LOOP_CONDITION(606),
+
     /** CWE-607: Public Static Final Field References Mutable Object */
     PUBLIC_STATIC_FINAL_MUTABLE_OBJECT(607),
 
@@ -282,14 +413,26 @@ public enum CweNumber {
     /** CWE-652: Improper Neutralization of Data within XQuery Expressions ('XQuery Injection') */
     XQUERY_INJECTION(652),
 
+    /** CWE-676: Use of Potentially Dangerous Function */
+    USE_POTENTIALLY_DANGEROUS_FUNCTION(676),
+
+    /** CWE-681: Incorrect Conversion between Numeric Types */
+    INCORRECT_NUMERIC_TYPE_CONVERSION(681),
+
     /** CWE-693: Protection Mechanism Failure */
     PROTECTION_MECHANISM_FAILURE(693),
 
     /** CWE-703: Improper Check or Handling of Exceptional Conditions */
     IMPROPER_CHECK_FOR_EXCEPTION_CONDITIONS(703),
 
+    /** CWE-732: Incorrect Permission Assignment for Critical Resource */
+    INCORRECT_PERMISSIONS_FOR_CRITICAL_RESOURCE(732),
+
     /** CWE-754: Improper Check for Unusual or Exceptional Conditions */
     IMPROPER_CHECK_FOR_CONDITIONS(754),
+
+    /** CWE-760: Use of a One-Way Hash with a Predictable Salt */
+    ONE_WAY_HASH_WITH_PREDICTABLE_SALT(760),
 
     /** CWE-759: Use of a One-Way Hash without a Salt */
     UNSALTED_ONE_WAY_HASH(759),
@@ -311,6 +454,23 @@ public enum CweNumber {
     /** CWE-783: Operator Precedence Logic Error */
     OPERATOR_PRECEDENCE_LOGIC(783),
 
+    /**
+     * CWE-784: Reliance on Cookies without Validation and Integrity Checking in a Security Decision
+     */
+    RELIANCE_ON_UNCHECKED_COOKIE(784),
+
+    /** CWE-789: Memory Allocation with Excessive Size Value */
+    EXCESSIVE_SIZE_MEMORY_ALLOCATION(789),
+
+    /** CWE-798: Use of Hard-coded Credentials */
+    HARDCODED_CREDENTIALS(798),
+
+    /** CWE-807: Reliance on Untrusted Inputs in a Security Decision */
+    RELIANCE_IN_UNTRUSTED_INPUT(807),
+
+    /** CWE-829: Inclusion of Functionality from Untrusted Control Sphere */
+    INCLUDE_CODE_FROM_UNTRUSTED_SOURCE(829),
+
     /** CWE-835: Loop with Unreachable Exit Condition ('Infinite Loop') */
     LOOP_WITH_UNREACHABLE_EXIT(835),
 
@@ -319,6 +479,9 @@ public enum CweNumber {
 
     /** CWE-918: Server-Side Request Forgery (SSRF) */
     SERVER_SIDE_REQUEST_FORGERY(918),
+
+    /** CWE CATEGORY: OWASP Top Ten 2013 Category A5 - Security Misconfiguration */
+    CATEGORY_OWASP_2013_A5(933),
 
     /**
      * CWE-937: CWE CATEGORY: OWASP Top Ten 2013 Category A9 - Using Components with Known
@@ -333,7 +496,10 @@ public enum CweNumber {
     COOKIE_WITHOUT_HTTPONLY(1004),
 
     /** CWE-1021: Improper Restriction of Rendered UI Layers or Frames */
-    IMPROPER_RESTRICTION_OF_UI_LAYERS(1021);
+    IMPROPER_RESTRICTION_OF_UI_LAYERS(1021),
+
+    /** CWE-1275: Sensitive Cookie with Improper SameSite Attribute */
+    SENSITIVE_COOKIE_WITH_IMPROPER_SAMESITE_ATTR(1275);
 
     int number;
 
