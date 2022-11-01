@@ -76,7 +76,7 @@ public class WapitiReader extends Reader {
             // type
 
             // First, get the CWE for all these entries
-            int cwe = getCWE(vuln);
+            CweNumber cwe = getCWE(vuln);
 
             // Then process each entry
             Node entriesNode = getNamedChild("entries", vuln);
@@ -106,47 +106,17 @@ public class WapitiReader extends Reader {
     }
 
     // Parse the CWE # out of the references included with the vuln
-    private int getCWE(Node vuln) {
-        int cwe = -1;
+    private CweNumber getCWE(Node vuln) {
+        CweNumber cwe = CweNumber.DONTCARE;
         Node refs = getNamedChild("references", vuln);
         List<Node> references = getNamedChildren("reference", refs);
         for (Node ref : references) {
             String title = getNamedChild("title", ref).getTextContent();
             if (title.startsWith("CWE-")) {
                 String cweNum = title.substring("CWE-".length(), title.indexOf(":"));
-                cwe = cweLookup(cweNum);
+                cwe = CweNumber.lookup(cweNum);
             }
         }
         return cwe;
-    }
-
-    private int cweLookup(String cwe) {
-        switch (cwe) {
-            case "22":
-                return CweNumber.PATH_TRAVERSAL;
-            case "78":
-                return CweNumber.COMMAND_INJECTION;
-            case "79":
-                return CweNumber.XSS;
-            case "89": // Normal and Blind SQL Injection
-                return CweNumber.SQL_INJECTION;
-            case "352":
-                return CweNumber.CSRF;
-            case "611":
-                return CweNumber.XXE;
-            case "93": // HTTP Response Splitting
-            case "530": // Exposure of Backup file
-            case "538": // Htaccess bypass
-            case "601": // Open Redirect
-            case "798": // Hard Coded credentials
-            case "918": // SSRF
-                return CweNumber.DONTCARE;
-
-                // Note: Wapiti does report Secure Flag not set on cookie findings, but doesn't
-                // report the specific page. Only the entire web app.
-            default:
-                System.out.println("WARNING: Wapiti-Unmapped CWE number: " + cwe);
-        }
-        return -1;
     }
 }

@@ -143,7 +143,7 @@ public class AppScanSourceReader extends Reader {
     		}
     	  }
     */
-    private int cweLookup(String vtype) {
+    private CweNumber cweLookup(String vtype) {
         switch (vtype) {
                 //		case "Vulnerability.AppDOS" : return 00;
                 //		case "Vulnerability.Authentication.Entity" : return 00;
@@ -160,7 +160,7 @@ public class AppScanSourceReader extends Reader {
             case "Vulnerability.Injection.LDAP":
                 return CweNumber.LDAP_INJECTION;
             case "Vulnerability.Injection.OS":
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
             case "Vulnerability.Injection.SQL":
                 return CweNumber.SQL_INJECTION;
             case "Vulnerability.Injection.XPath":
@@ -178,7 +178,7 @@ public class AppScanSourceReader extends Reader {
             case "Vulnerability.Validation.Required":
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
         }
-        return 0;
+        return CweNumber.DONTCARE;
     }
 
     /**

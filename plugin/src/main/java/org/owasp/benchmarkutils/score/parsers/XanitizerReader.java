@@ -21,6 +21,7 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -51,7 +52,7 @@ public class XanitizerReader extends Reader {
                     private final StringBuilder m_CollectedCharacters = new StringBuilder();
 
                     private String m_ProblemTypeId;
-                    private int m_CWE = -1;
+                    private CweNumber m_CWE = CweNumber.DONTCARE;
                     private String m_Class;
                     private String m_Classification;
 
@@ -99,15 +100,16 @@ public class XanitizerReader extends Reader {
                             case "cweNumber":
                                 // remove leading "CWE-" and thousands delimiter
                                 try {
-                                    m_CWE =
+                                    int cwe =
                                             Integer.parseInt(
                                                     m_CollectedCharacters
                                                             .toString()
                                                             .substring(4)
                                                             .replace(".", "")
                                                             .replace(",", ""));
-                                } catch (NumberFormatException e) {
-                                    m_CWE = -1;
+
+                                    m_CWE = CweNumber.lookup(cwe);
+                                } catch (NumberFormatException ignored) {
                                 }
                                 break;
 
@@ -141,7 +143,7 @@ public class XanitizerReader extends Reader {
                                             // for backward compatibility
                                             // for reports without CWE numbers - map problem type to
                                             // CWE number
-                                            if (m_CWE < 0) {
+                                            if (CweNumber.DONTCARE.equals(m_CWE)) {
                                                 m_CWE = figureCWE(m_ProblemTypeId);
                                             }
 
@@ -159,7 +161,7 @@ public class XanitizerReader extends Reader {
                                 }
 
                                 m_ProblemTypeId = null;
-                                m_CWE = -1;
+                                m_CWE = CweNumber.DONTCARE;
                                 m_Class = null;
                                 m_Classification = null;
                                 break;
@@ -184,45 +186,34 @@ public class XanitizerReader extends Reader {
         return tr;
     }
 
-    private int figureCWE(final String problemTypeId) {
+    private CweNumber figureCWE(final String problemTypeId) {
         switch (problemTypeId) {
             case "ci:CommandInjection":
-                return 78;
-
+                return CweNumber.OS_COMMAND_INJECTION;
             case "SpecialMethodCall:WeakEncryption":
-                return 327;
-
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "SpecialMethodCall:WeakHash":
-                return 328;
-
+                return CweNumber.WEAK_HASH_ALGO;
             case "ci:LDAPInjection":
-                return 90;
-
+                return CweNumber.LDAP_INJECTION;
             case "pt:PathTraversal":
-                return 22;
-
+                return CweNumber.PATH_TRAVERSAL;
             case "cook:UnsecuredCookie":
-                return 614;
-
+                return CweNumber.INSECURE_COOKIE;
             case "ci:SQLInjection":
-                return 89;
-
+                return CweNumber.SQL_INJECTION;
             case "tbv:TrustBoundaryViolationSession":
-                return 501;
-
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
             case "SpecialMethodCall:java.util.Random":
-                return 330;
-
+                return CweNumber.WEAK_RANDOM;
             case "ci:XPathInjection":
-                return 643;
-
+                return CweNumber.XPATH_INJECTION;
             case "xss:XSSFromRequest":
             case "xss:XSSFromDb":
-                return 79;
-
+                return CweNumber.XSS;
             default:
                 // Dummy.
-                return 0;
+                return CweNumber.DONTCARE;
         }
     }
 }

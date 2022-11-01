@@ -131,7 +131,8 @@ public class ContrastAssessReader extends Reader {
         tcr.setCWE(cweLookup(elements[0]));
         tcr.setCategory(elements[0]);
 
-        if (tcr.getCWE() != 0 && elements[1].contains(BenchmarkScore.TESTCASENAME)) {
+        if (!CweNumber.DONTCARE.equals(tcr.getCWE())
+                && elements[1].contains(BenchmarkScore.TESTCASENAME)) {
             String testNumber =
                     elements[1].substring(
                             elements[1].lastIndexOf('/')
@@ -171,7 +172,8 @@ public class ContrastAssessReader extends Reader {
             JSONObject request = obj.getJSONObject("request");
             String uri = request.getString("uri");
 
-            if (tcr.getCWE() != 0 && uri.contains(BenchmarkScore.TESTCASENAME)) {
+            if (!CweNumber.DONTCARE.equals(tcr.getCWE())
+                    && uri.contains(BenchmarkScore.TESTCASENAME)) {
                 // Normal uri's look like: "uri":"/benchmark/cmdi-00/BenchmarkTest00215", but for
                 // web services, they can look like:
                 // "uri":"/benchmark/rest/xxe-00/BenchmarkTest03915/send"
@@ -203,7 +205,7 @@ public class ContrastAssessReader extends Reader {
         }
     }
 
-    static int cweLookup(String rule) {
+    static CweNumber cweLookup(String rule) {
         switch (rule) {
             case "autocomplete-missing":
                 // Not sure the CWE for this.
@@ -214,7 +216,7 @@ public class ContrastAssessReader extends Reader {
                 return CweNumber.DONTCARE;
             case "unsafe-code-execution": // Note: This is technically CWE 95 'Eval Injection'
             case "cmd-injection":
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
             case "cookie-flags-missing":
                 return CweNumber.INSECURE_COOKIE;
             case "crypto-bad-ciphers":
@@ -262,7 +264,7 @@ public class ContrastAssessReader extends Reader {
                 System.out.println("WARNING: Contrast-Unrecognized finding type: " + rule);
         }
 
-        return 0;
+        return CweNumber.DONTCARE;
     }
 
     private String calculateTime(String firstLine, String lastLine) {

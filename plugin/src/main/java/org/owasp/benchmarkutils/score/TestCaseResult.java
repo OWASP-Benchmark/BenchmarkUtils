@@ -27,7 +27,7 @@ public class TestCaseResult {
     private int number = 0;
     private boolean real = false;
     private boolean result = false;
-    private int CWE = 0;
+    private CweNumber CWE = CweNumber.DONTCARE;
     private String category = null;
     private String evidence = null;
     private int confidence = 0;
@@ -84,11 +84,11 @@ public class TestCaseResult {
         this.result = result;
     }
 
-    public int getCWE() {
+    public CweNumber getCWE() {
         return CWE;
     }
 
-    public void setCWE(int cwe) {
+    public void setCWE(CweNumber cwe) {
         this.CWE = cwe;
     }
 

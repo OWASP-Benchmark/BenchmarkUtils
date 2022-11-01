@@ -76,7 +76,7 @@ public class HCLAppScanSourceReader extends Reader {
                     getNamedChild("ref", getNamedChild("issue-type", vulnerability))
                             .getTextContent();
 
-            int vtype = cweLookup(issueType);
+            CweNumber vtype = cweLookup(issueType);
             //	System.out.println("Vuln type: " + issueType + " has CWE of: " + vtype);
 
             // Then get the filename containing the vuln. And if not in a test case, skip it.
@@ -154,7 +154,7 @@ public class HCLAppScanSourceReader extends Reader {
     	    return hours + ":" + mins + ":" + secs;
         }
     */
-    private int cweLookup(String vtype) {
+    private CweNumber cweLookup(String vtype) {
         switch (vtype) {
                 //			case "AppDOS" : return 00;
                 //			case "Authentication.Entity" : return 00;
@@ -176,7 +176,7 @@ public class HCLAppScanSourceReader extends Reader {
             case "Injection.LDAP":
                 return CweNumber.LDAP_INJECTION;
             case "Injection.OS":
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
             case "Injection.SQL":
                 return CweNumber.SQL_INJECTION;
             case "Injection.XPath":
@@ -184,7 +184,7 @@ public class HCLAppScanSourceReader extends Reader {
                 //			case "Malicious.DynamicCode" : return 00;
                 //			case "Malicious.DynamicCode.Execution" : return 00;
             case "OpenSource":
-                return 00; // Known vuln in open source lib.
+                return CweNumber.DONTCARE; // Known vuln in open source lib.
             case "PathTraversal":
                 return CweNumber.PATH_TRAVERSAL;
                 //			case "Quality.TestCode" : return 00;
@@ -199,6 +199,6 @@ public class HCLAppScanSourceReader extends Reader {
                 System.out.println(
                         "WARNING: HCL AppScan Source-Unrecognized finding type: " + vtype);
         }
-        return 0;
+        return CweNumber.DONTCARE;
     }
 }

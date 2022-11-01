@@ -89,8 +89,7 @@ public class W3AFReader extends Reader {
         tcr.setEvidence(severity + "::" + description);
 
         String name = getAttributeValue("name", flaw);
-        int cwe = cweLookup(name);
-        tcr.setCWE(cwe);
+        tcr.setCWE(cweLookup(name));
 
         String uri = getAttributeValue("url", flaw);
         String testfile = uri.substring(uri.lastIndexOf('/') + 1);
@@ -113,9 +112,9 @@ public class W3AFReader extends Reader {
         return null;
     }
 
-    private int cweLookup(String name) {
+    private CweNumber cweLookup(String name) {
         if (name == null || name.isEmpty()) {
-            return 0000;
+            return CweNumber.DONTCARE;
         }
         switch (name) {
             case "Cross site scripting vulnerability":
@@ -137,6 +136,6 @@ public class W3AFReader extends Reader {
                 //        case "trust-boundary-violation"  :  return 501;  // trust boundary
                 //        case "xxe"                       :  return 611;  // xml entity
         }
-        return 0000;
+        return CweNumber.DONTCARE;
     }
 }

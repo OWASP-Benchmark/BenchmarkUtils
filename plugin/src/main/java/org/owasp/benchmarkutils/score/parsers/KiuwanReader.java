@@ -91,7 +91,7 @@ public class KiuwanReader extends Reader {
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
                 tcr.setNumber(testNumber(filename));
 
-                int cwe = -1;
+                CweNumber cwe = CweNumber.DONTCARE;
                 try {
                     JSONArray mappings = finding.getJSONArray("mappings");
                     for (int i = 0; i < mappings.length(); i++) {
@@ -103,7 +103,7 @@ public class KiuwanReader extends Reader {
                         }
                     }
 
-                    if (cwe != -1) {
+                    if (!CweNumber.DONTCARE.equals(cwe)) {
                         tcr.setCWE(cwe);
                         tcr.setCategory(finding.getString("summary"));
                         tcr.setEvidence(finding.getString("scannerDetail"));
@@ -120,16 +120,15 @@ public class KiuwanReader extends Reader {
         return null;
     }
 
-    private int fixCWE(String cweNumber) {
-        int cwe = Integer.parseInt(cweNumber);
-
-        if (cwe == 564) {
-            cwe = CweNumber.SQL_INJECTION;
+    private CweNumber fixCWE(String cweNumber) {
+        if ("564".equals(cweNumber)) {
+            return CweNumber.SQL_INJECTION;
         }
 
-        if (cwe == 77) {
-            cwe = CweNumber.COMMAND_INJECTION;
+        if ("77".equals(cweNumber)) {
+            return CweNumber.OS_COMMAND_INJECTION;
         }
-        return cwe;
+
+        return CweNumber.lookup(cweNumber);
     }
 }

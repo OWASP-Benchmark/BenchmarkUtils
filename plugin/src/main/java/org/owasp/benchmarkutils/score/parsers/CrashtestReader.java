@@ -24,6 +24,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -97,9 +98,9 @@ public class CrashtestReader extends Reader {
 
         String testCaseType = testcase.getAttributes().getNamedItem("classname").getNodeValue();
 
-        int cwe = cweLookup(testCaseType);
+        CweNumber cwe = cweLookup(testCaseType);
         tcr.setCWE(cwe);
-        if (cwe != -1) {
+        if (CweNumber.DONTCARE.equals(cwe)) {
             String message = failure.getAttributes().getNamedItem("message").getNodeValue();
 
             // Parse testcase # from URL:
@@ -173,27 +174,26 @@ public class CrashtestReader extends Reader {
      * name="XML External Entity (XXE) (2740)"/>
      *
      * @param the Crashtest classname
-     * @return CWE number or -1 if we don't care about this test type
+     * @return CWE Number
      */
-    private int cweLookup(String classname) {
-
+    private CweNumber cweLookup(String classname) {
         switch (classname) {
             case "commandinjection.crashtest.cloud":
-                return 78;
+                return CweNumber.OS_COMMAND_INJECTION;
             case "sqlinjection.crashtest.cloud":
-                return 89;
+                return CweNumber.SQL_INJECTION;
             case "xss.crashtest.cloud":
-                return 79;
+                return CweNumber.XSS;
             case "xxe.crashtest.cloud":
-                return 611;
+                return CweNumber.XXE;
 
             case "portscan.crashtest.cloud":
             case "ssl.crashtest.cloud":
-                return -1;
+                return CweNumber.DONTCARE;
 
             default:
                 System.out.println("Unrecognized Crashtest rule: " + classname);
-                return -1;
+                return CweNumber.DONTCARE;
         }
     }
 }

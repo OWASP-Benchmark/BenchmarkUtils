@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -147,8 +148,10 @@ public class AppScanDynamicReader extends Reader {
         TestCaseResult tcr = new TestCaseResult();
         String cwekey = getAttributeValue("IssueTypeID", issue);
         Integer cwe = cweMap.get(cwekey);
-        if (cwe == null) return null;
-        tcr.setCWE(translate(cwe));
+        if (cwe == null) {
+            return null;
+        }
+        tcr.setCWE(CweNumber.lookup(cwe));
 
         tcr.setCategory(cwekey);
         tcr.setEvidence(cwekey);
@@ -172,37 +175,5 @@ public class AppScanDynamicReader extends Reader {
         }
 
         return null;
-    }
-
-    private int translate(int id) {
-        switch (id) {
-                // //case "Build Misconfiguration" : return 00;
-                // case "Command Injection" : return 78;
-                // case "Cookie Security" : return 614;
-                // case "Cross-Site Scripting" : return 79;
-                // //case "Dead Code" : return 00;
-                // //case "Denial of Service" : return 00;
-                // case "Header Manipulation" : return 113;
-                // case "Insecure Randomness" : return 330;
-                // //case "J2EE Bad Practices" : return 00;
-                // case "LDAP Injection" : return 90;
-                // //case "Missing Check against Null" : return 00;
-                // //case "Null Dereference" : return 00;
-                // case "Password Management" : return 00;
-                // case "Path Manipulation" : return 22;
-                // //case "Poor Error Handling" : return 00;
-                // //case "Poor Logging Practice" : return 00;
-                // //case "Poor Style" : return 00;
-                // //case "Resource Injection" : return 00;
-                // case "SQL Injection" : return 89;
-                // //case "System Information Leak" : return 00;
-                // case "Trust Boundary Violation" : return 501;
-                // //case "Unreleased Resource" : return 00;
-                // //case "Unsafe Reflection" : return 00;
-                // case "Weak Cryptographic Hash" : return 328;
-                // case "Weak Encryption" : return 327;
-                // case "XPath Injection" : return 643;
-        }
-        return id;
     }
 }

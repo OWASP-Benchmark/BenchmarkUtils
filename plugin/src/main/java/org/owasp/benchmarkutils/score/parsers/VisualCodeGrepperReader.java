@@ -106,7 +106,7 @@ public class VisualCodeGrepperReader extends Reader {
         return null;
     }
 
-    private int figureCWE(TestCaseResult tcr, Node catnode) {
+    private CweNumber figureCWE(TestCaseResult tcr, Node catnode) {
         String cat = null;
         if (catnode != null) {
             cat = catnode.getTextContent();
@@ -131,7 +131,7 @@ public class VisualCodeGrepperReader extends Reader {
 
                 // Command injection
             case "java.lang.Runtime.exec Gets Path from Variable":
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
 
                 // XPath Injection
             case "FileInputStream":
@@ -161,7 +161,8 @@ public class VisualCodeGrepperReader extends Reader {
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
 
             default:
-                return 00; // System.out.println( "Unknown vuln category for VisualCodeGrepper: " +
+                return CweNumber.DONTCARE; // System.out.println( "Unknown vuln category for
+                // VisualCodeGrepper: " +
                 // cat );
         }
     }

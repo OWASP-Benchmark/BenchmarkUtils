@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -77,7 +78,7 @@ public class FaastReader extends Reader {
 
         if (url.contains(BenchmarkScore.TESTCASENAME)) {
             tcr.setNumber(Integer.parseInt(testNumber));
-            tcr.setCWE(cwe);
+            tcr.setCWE(CweNumber.lookup(cwe));
             tcr.setCategory(category);
             return tcr;
         }

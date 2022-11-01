@@ -21,6 +21,7 @@ import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -163,8 +164,7 @@ public class LGTMReader extends Reader {
                             "Unexpectedly found more than one location for finding against rule: "
                                     + ruleId);
                 }
-                int cwe = cweForRule.intValue();
-                tcr.setCWE(cwe);
+                tcr.setCWE(CweNumber.lookup(cweForRule.intValue()));
                 //				tcr.setCategory( props.getString( "subcategoryShortDescription" ) ); //
                 // Couldn't find any Category info in results file
                 tcr.setEvidence(finding.getJSONObject("message").getString("text"));
@@ -175,14 +175,4 @@ public class LGTMReader extends Reader {
         }
         return null;
     }
-
-    /*
-    	private int fixCWE( String cweNumber ) {
-    		int cwe = Integer.parseInt( cweNumber );
-    		if ( cwe == 94 ) cwe = 643;
-    		if ( cwe == 36 ) cwe = 22;
-    		if ( cwe == 23 ) cwe = 22;
-    		return cwe;
-    	}
-    */
 }

@@ -116,7 +116,7 @@ public class HCLAppScanStandardReader extends Reader {
         String testArea =
                 urlElements[urlElements.length - 2].split("-")[0]; // .split strips off the -##
 
-        int vtype = cweLookup(issueType, testArea);
+        CweNumber vtype = cweLookup(issueType, testArea);
 
         // Then get the filename containing the vuln. And if not in a test case, skip it.
         // Parse out test number from:
@@ -192,17 +192,22 @@ public class HCLAppScanStandardReader extends Reader {
         return testCaseElementsFromVariants;
     }
 
-    private int cweLookup(String vtype, String testArea) {
-        int cwe = cweLookup(vtype); // Do the standard CWE lookup
+    private CweNumber cweLookup(String vtype, String testArea) {
+        CweNumber cwe = cweLookup(vtype); // Do the standard CWE lookup
 
-        // Then map some to other CWEs based on the test area being processed.
-        if ("xpathi".equals(testArea) && cwe == 89) cwe = 643; // CWE for XPath injection
-        if ("ldapi".equals(testArea) && cwe == 89) cwe = 90; // CWE for LDAP injection
-
+        if (CweNumber.SQL_INJECTION.equals(cwe)) {
+            // Then map some to other CWEs based on the test area being processed.
+            if ("xpathi".equals(testArea)) {
+                return CweNumber.XPATH_INJECTION;
+            }
+            if ("ldapi".equals(testArea)) {
+                return CweNumber.LDAP_INJECTION;
+            }
+        }
         return cwe;
     }
 
-    private int cweLookup(String vtype) {
+    private CweNumber cweLookup(String vtype) {
         switch (vtype) {
             case "attDirectoryFound":
             case "attDirOptions":
@@ -214,7 +219,7 @@ public class HCLAppScanStandardReader extends Reader {
             case "attCommandInjectionAdns":
             case "attCommandInjectionUnixTws":
             case "attFileParamPipe":
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
 
             case "attCrossSiteScripting":
                 return CweNumber.XSS;
@@ -273,6 +278,6 @@ public class HCLAppScanStandardReader extends Reader {
                 System.out.println(
                         "WARNING: HCL AppScan Standard-Unrecognized finding type: " + vtype);
         }
-        return 0;
+        return CweNumber.DONTCARE;
     }
 }

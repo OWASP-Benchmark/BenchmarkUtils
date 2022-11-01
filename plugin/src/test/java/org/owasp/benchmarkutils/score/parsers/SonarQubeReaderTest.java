@@ -56,7 +56,7 @@ public class SonarQubeReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.OS_COMMAND_INJECTION, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.WEAK_RANDOM, result.get(2).get(0).getCWE());
     }
 }

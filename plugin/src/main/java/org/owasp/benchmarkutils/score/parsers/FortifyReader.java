@@ -225,21 +225,22 @@ public class FortifyReader extends Reader {
         return null;
     }
 
-    private int cweLookup(String vtype, String subtype, Node unifiedNode) {
-
+    private CweNumber cweLookup(String vtype, String subtype, Node unifiedNode) {
         switch (vtype) {
             case "Access Control":
                 return CweNumber.IMPROPER_ACCESS_CONTROL;
 
             case "Command Injection":
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
 
             case "Cookie Security":
                 {
                     // Verify its the exact type we are looking for (e.g., not HttpOnly finding)
-                    if ("Cookie not Sent Over SSL".equals(subtype))
+                    if ("Cookie not Sent Over SSL".equals(subtype)) {
                         return CweNumber.INSECURE_COOKIE;
-                    else return 00;
+                    } else {
+                        return CweNumber.DONTCARE;
+                    }
                 }
 
             case "Cross-Site Request Forgery":
@@ -251,41 +252,36 @@ public class FortifyReader extends Reader {
                             // Not a type of XSS weakness we are testing for. Causes False Positives
                             // for Fortify.
                         case "Poor Validation":
-                            return 83;
+                            return CweNumber.IMPROPER_NEUTRALIZATION_OF_ATTRIBUTES;
                     }
-                    return 79;
+                    return CweNumber.XSS;
                 }
 
             case "Dead Code":
-                return 00;
+                return CweNumber.DONTCARE;
             case "Denial of Service":
-                return 400;
+                return CweNumber.UNCONTROLLED_RESOURCE_CONSUMPTION;
             case "Dynamic Code Evaluation":
-                return 95;
+                return CweNumber.EVAL_INJECTION;
             case "Header Manipulation":
-                return 113;
+                return CweNumber.HTTP_RESPONSE_SPLITTING;
             case "Hidden Field":
-                return 472;
+                return CweNumber.EXTERNAL_CONTROL_OF_WEB_PARAM;
             case "Insecure Randomness":
-                return 330;
+                return CweNumber.WEAK_RANDOM;
             case "Key Management":
-                return 320;
-
+                return CweNumber.CATEGORY_KEY_MANAGEMENT_ERROR;
             case "LDAP Injection":
-                return 90;
-
+                return CweNumber.LDAP_INJECTION;
             case "Mass Assignment":
-                return 915;
-
+                return CweNumber.IMPROPER_CHECK_FOR_MODIFICATION;
             case "Missing Check against Null":
             case "Missing Check for Null Parameter":
-                return 476;
-
+                return CweNumber.NULL_POINTER_DEREFERENCE;
             case "Missing XML Validation":
-                return 112;
-
+                return CweNumber.MISSING_XML_VALIDATION;
             case "Null Dereference":
-                return 476;
+                return CweNumber.NULL_POINTER_DEREFERENCE;
 
                 // Fortify reports weak randomness issues under Obsolete by ESAPI, rather than in
                 // the Insecure Randomness category if it thinks you are using ESAPI. However, its
@@ -310,71 +306,64 @@ public class FortifyReader extends Reader {
                                 // generates random #'s using the java.util.Random or
                                 // java.security.SecureRandom classes. e.g., nextWHATEVER().
                                 (methodName != null && methodName.startsWith("next"))) {
-                            return 330;
+                            return CweNumber.WEAK_RANDOM;
                         }
                     }
-                    return 00; // If neither of these, then don't care
+                    return CweNumber.DONTCARE; // If neither of these, then don't care
                 }
 
             case "Password Management":
-                return 00;
+                return CweNumber.DONTCARE;
             case "Path Manipulation":
-                return 22;
-
+                return CweNumber.PATH_TRAVERSAL;
             case "Poor Error Handling":
-                return 703;
+                return CweNumber.IMPROPER_CHECK_FOR_EXCEPTION_CONDITIONS;
             case "Poor Logging Practice":
-                return 478;
+                return CweNumber.MISSING_DEFAULT_CASE;
             case "Privacy Violation":
-                return 359;
+                return CweNumber.EXPOSURE_PRIVATE_TO_UNAUTHORIZED_USER;
             case "Resource Injection":
-                return 99;
-
+                return CweNumber.RESOURCE_INJECTION;
             case "SQL Injection":
                 return CweNumber.SQL_INJECTION;
             case "System Information Leak":
-                return 209;
+                return CweNumber.ERROR_MESSAGE_WITH_SENSITIVE_INFO;
             case "Trust Boundary Violation":
-                return 501;
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
             case "Unchecked Return Value":
-                return 252;
+                return CweNumber.UNCHECKED_RETURN_VALUE;
             case "Unreleased Resource":
-                return 404;
+                return CweNumber.UNRELEASED_RESOURCE;
             case "Unsafe Reflection":
-                return 470;
-
+                return CweNumber.UNSAFE_REFLECTION;
             case "Weak Cryptographic Hash":
-                return 328;
-
+                return CweNumber.WEAK_HASH_ALGO;
             case "Weak Encryption":
                 {
                     switch (subtype) {
                             // These 2 are not types of Encryption weakness we are testing for.
                             // Cause False Positives for Fortify.
                         case "Missing Required Step":
-                            return 325;
+                            return CweNumber.MISSING_CRYPTOGRAPHIC_STEP;
                         case "Inadequate RSA Padding":
-                            return 780;
+                            return CweNumber.RSA_MISSING_PADDING;
                             // TODO: Assuming this Fortify rule is valid, we might need to fix
                             // Benchmark itself to eliminate unintended vulns.
                         case "Insecure Mode of Operation":
-                            return 0; // Disable so it doesn't count against Fortify.
+                            return CweNumber
+                                    .DONTCARE; // Disable so it doesn't count against Fortify.
                     }
-                    return 327;
+                    return CweNumber.WEAK_CRYPTO_ALGO;
                 }
 
             case "XPath Injection":
-                return 643;
-
+                return CweNumber.XPATH_INJECTION;
             case "XQuery Injection":
-                return 652;
-
+                return CweNumber.XQUERY_INJECTION;
             case "XML Entity Expansion Injection":
-                return 776;
-
+                return CweNumber.XML_ENTITY_EXPANSION;
             case "XML External Entity Injection":
-                return 611;
-
+                return CweNumber.XXE;
                 // Things we don't care about
             case "Build Misconfiguration":
             case "Code Correctness":
@@ -386,13 +375,13 @@ public class FortifyReader extends Reader {
             case "Portability Flaw":
             case "Race Condition":
             case "Redundant Null Check":
-                return 00;
+                return CweNumber.DONTCARE;
 
             default:
                 System.out.println(
                         "Fortify parser encountered unknown vulnerability type: " + vtype);
         } // end switch
 
-        return 0;
+        return CweNumber.DONTCARE;
     }
 }

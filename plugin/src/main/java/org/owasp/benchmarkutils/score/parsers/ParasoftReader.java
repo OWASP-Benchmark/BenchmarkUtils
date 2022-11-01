@@ -158,13 +158,12 @@ public class ParasoftReader extends Reader {
     }
 
     // https://www.securecoding.cert.org/confluence/display/java/Parasoft
-    private int cweLookup(String cat) {
-
+    private CweNumber cweLookup(String cat) {
         switch (cat) {
                 //        case "BD.PB.CC" : return x;
                 //        case "BD.RES.LEAKS" : return x;
             case "BD.SECURITY.TDCMD":
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
             case "BD.SECURITY.TDFNAMES":
                 return CweNumber.PATH_TRAVERSAL;
             case "BD.SECURITY.TDLDAP":
@@ -193,6 +192,6 @@ public class ParasoftReader extends Reader {
                 //        case "Weak Cryptographic Hash" : return 328;
                 //        case "Weak Encryption" : return 327;
         }
-        return -1;
+        return CweNumber.DONTCARE;
     }
 }

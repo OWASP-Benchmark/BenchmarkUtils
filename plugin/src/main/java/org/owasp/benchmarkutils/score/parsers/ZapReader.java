@@ -22,6 +22,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -121,7 +122,7 @@ public class ZapReader extends Reader {
     //    </alertitem>
 
     private void parseAndAddZapIssues(Node flaw, TestSuiteResults tr) throws URISyntaxException {
-        int cwe = -1;
+        CweNumber cwe = CweNumber.DONTCARE;
         Node rule = getNamedChild("cweid", flaw);
         if (rule != null) {
             cwe = cweLookup(rule.getTextContent());
@@ -144,7 +145,7 @@ public class ZapReader extends Reader {
     }
 
     private void addIssue(
-            Node alertData, TestSuiteResults tr, int cwe, String category, int confidence) {
+            Node alertData, TestSuiteResults tr, CweNumber cwe, String category, int confidence) {
         int testNumber = testNumber(getNamedChild("uri", alertData).getTextContent());
         if (testNumber > 0) {
             tr.put(createTestCaseResult(cwe, category, confidence, testNumber));
@@ -152,9 +153,9 @@ public class ZapReader extends Reader {
     }
 
     private TestCaseResult createTestCaseResult(
-            int cwe, String category, int confidence, int testNumber) {
+            CweNumber cwe, String category, int confidence, int testNumber) {
         TestCaseResult tcr = new TestCaseResult();
-        if (cwe != -1) {
+        if (!CweNumber.DONTCARE.equals(cwe)) {
             tcr.setCWE(cwe);
         }
         tcr.setCategory(category);
@@ -164,7 +165,7 @@ public class ZapReader extends Reader {
         return tcr;
     }
 
-    private int cweLookup(String orig) {
+    private CweNumber cweLookup(String orig) {
         return ZapJsonReader.mapCwe(orig);
     }
 }

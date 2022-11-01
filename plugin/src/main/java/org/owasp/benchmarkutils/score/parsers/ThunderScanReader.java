@@ -86,7 +86,8 @@ public class ThunderScanReader extends Reader {
 
     private boolean resultsInCwe(
             Report.VulnerabilityType vulnerabilityType, Report.VulnerabilityType.Vulnerability v) {
-        return figureCwe(vulnerabilityType.name, v.function, v.filename) != -1;
+        return !CweNumber.DONTCARE.equals(
+                figureCwe(vulnerabilityType.name, v.function, v.filename));
     }
 
     private boolean isBenchmarkTest(String filename) {
@@ -97,7 +98,7 @@ public class ThunderScanReader extends Reader {
         return !function.matches("/printStackTrace|Cookie$|getMessage$/");
     }
 
-    private int figureCwe(String type, String function, String filename) {
+    private CweNumber figureCwe(String type, String function, String filename) {
         switch (type) {
             case "SQL Injection":
                 return CweNumber.SQL_INJECTION;
@@ -105,7 +106,7 @@ public class ThunderScanReader extends Reader {
             case "File Manipulation":
                 return CweNumber.PATH_TRAVERSAL;
             case "Command Execution":
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
             case "Cross Site Scripting":
                 return CweNumber.XSS;
             case "LDAP Injection":
@@ -133,14 +134,14 @@ public class ThunderScanReader extends Reader {
                     return CweNumber.INSECURE_COOKIE;
                 }
 
-                return -1;
+                return CweNumber.DONTCARE;
             case "JSP Page Execution":
             case "Dangerous File Extensions":
             case "Arbitrary Server Connection":
             case "Log Forging":
             case "Mail Relay":
             case "HTTP Response Splitting":
-                return -1;
+                return CweNumber.DONTCARE;
             default:
                 System.out.println(
                         "INFO: Unable to figure out cwe for: "
@@ -149,7 +150,7 @@ public class ThunderScanReader extends Reader {
                                 + function
                                 + " @ "
                                 + filename);
-                return -1;
+                return CweNumber.DONTCARE;
         }
     }
 

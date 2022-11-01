@@ -25,6 +25,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -144,7 +145,7 @@ public class ArachniReader extends Reader {
         TestCaseResult tcr = new TestCaseResult();
         Node rule = getNamedChild("cwe", flaw);
         if (rule != null) {
-            tcr.setCWE(cweLookup(rule.getTextContent()));
+            tcr.setCWE(CweNumber.lookup(rule.getTextContent()));
         }
 
         String cat = getNamedChild("name", flaw).getTextContent();
@@ -177,9 +178,5 @@ public class ArachniReader extends Reader {
             }
         }
         return null;
-    }
-
-    private int cweLookup(String orig) {
-        return Integer.parseInt(orig);
     }
 }

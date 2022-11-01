@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -106,9 +107,9 @@ public class ContrastScanReader extends Reader {
         // TODO: This should use SARIF format, but that doesn't work yet, per above comment.
         for (Report.Run run : report.runs) {
             for (Report.Run.Result result : run.results) {
-                int cwe = ContrastAssessReader.cweLookup(result.rule);
+                CweNumber cwe = ContrastAssessReader.cweLookup(result.rule);
 
-                if (cwe <= 0) {
+                if (CweNumber.DONTCARE.equals(cwe)) {
                     continue;
                 }
 

@@ -19,6 +19,7 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -114,7 +115,7 @@ public class QualysWASReader extends Reader {
     private TestCaseResult parseQualysVulnerability(Node issue) {
         TestCaseResult tcr = new TestCaseResult();
         String cwe = getNamedChild("QID", issue).getTextContent();
-        tcr.setCWE(translate_cwe(cwe));
+        tcr.setCWE(translateCwe(cwe));
 
         String name = getNamedChild("QID", issue).getTextContent();
         tcr.setCategory(translate_name(name));
@@ -141,85 +142,85 @@ public class QualysWASReader extends Reader {
         return null;
     }
 
-    private int translate_cwe(String id) {
+    private CweNumber translateCwe(String id) {
         switch (id) {
             case "150001":
-                return 79; // Reflected Cross-Site Scripting (XSS) Vulnerabilities
+                return CweNumber.XSS;
             case "150003":
-                return 89; // SQL Injection
-            case "150009":
-                return 9999; // Links Crawled
-            case "150010":
-                return 9999; // External Links Discovered
+                return CweNumber.SQL_INJECTION;
+            case "150009": // Links Crawled
+                return CweNumber.DONTCARE;
+            case "150010": // External Links Discovered
+                return CweNumber.DONTCARE;
             case "150012":
-                return 89; // Blind SQL Injection
-            case "150018":
-                return 9999; // Connection Error Occurred During Web Application Scan
-            case "150021":
-                return 9999; // Scan Diagnostics
+                return CweNumber.SQL_INJECTION;
+            case "150018": // Connection Error Occurred During Web Application Scan
+                return CweNumber.DONTCARE;
+            case "150021": // Scan Diagnostics
+                return CweNumber.DONTCARE;
             case "150022":
-                return 209; // Verbose Error Message
-            case "150028":
-                return 9999; // Cookies Collected
-            case "150033":
-                return 9999; // Credit Card Number Pattern Identified In HTML
-            case "150042":
-                return 9999; // Server Returns HTTP 500 Message For Request
-            case "150046":
-                return 79; // Reflected Cross-Site Scripting (XSS) in HTTP Header
-            case "150054":
-                return 9999; // Email Addresses Collected
-            case "150055":
-                return 78; // PHP Command Injection
-            case "150079":
-                return 772; // Slow HTTP headers vulnerability
-            case "150081":
-                return 693; // X-Frame-Options header is not set
-            case "150084":
-                return 79; // Unencoded characters
-            case "150085":
-                return 772; // Slow HTTP POST vulnerability
-            case "150086":
-                return 9999; // Server accepts unnecessarily large POST request body
-            case "150104":
-                return 9999; // Form Contains Email Address Field
-            case "150115":
-                return 9999; // Authentication Form found
-            case "150122":
-                return 614; // Cookie Does Not Contain The "secure" Attribute
-            case "150123":
-                return 1004; // Cookie Does Not Contain The "HTTPOnly" Attribute
-            case "150124":
-                return 451; // Clickjacking - Framable Page
-            case "150126":
-                return 9999; // Links With High Resource Consumption
-            case "150135":
-                return 9999; // HTTP Strict Transport Security (HSTS) header missing/misconfigured.
-            case "150148":
-                return 9999; // AJAX Links Crawled
-            case "150152":
-                return 9999; // Forms Crawled
-            case "150162":
-                return 937; // Use of JavaScript Library with Known Vulnerability
-            case "150172":
-                return 9999; // Requests Crawled
-            case "150176":
-                return 9999; // JavaScript Libraries Detected
-            case "150202":
-                return 9999; // Missing header: X-Content-Type-Options
-            case "150204":
-                return 9999; // Missing header: X-XSS-Protection
-            case "150205":
-                return 9999; // Misconfigured header: X-XSS-Protection
-            case "150206":
-                return 9999; // Content-Security-Policy Not Implemented
-            case "150251":
-                return 643; // Blind XPath Injection
+                return CweNumber.ERROR_MESSAGE_WITH_SENSITIVE_INFO;
+            case "150028": // Cookies Collected
+                return CweNumber.DONTCARE;
+            case "150033": // Credit Card Number Pattern Identified In HTML
+                return CweNumber.DONTCARE;
+            case "150042": // Server Returns HTTP 500 Message For Request
+                return CweNumber.DONTCARE;
+            case "150046": // Reflected Cross-Site Scripting (XSS) in HTTP Header
+                return CweNumber.XSS;
+            case "150054": // Email Addresses Collected
+                return CweNumber.DONTCARE;
+            case "150055": // PHP Command Injection
+                return CweNumber.OS_COMMAND_INJECTION;
+            case "150079": // Slow HTTP headers vulnerability
+                return CweNumber.MISSING_RELEASE_OF_RESOURCE;
+            case "150081": // X-Frame-Options header is not set
+                return CweNumber.PROTECTION_MECHANISM_FAILURE;
+            case "150084": // Unencoded characters
+                return CweNumber.XSS;
+            case "150085": // Slow HTTP POST vulnerability
+                return CweNumber.MISSING_RELEASE_OF_RESOURCE;
+            case "150086": // Server accepts unnecessarily large POST request body
+                return CweNumber.DONTCARE;
+            case "150104": // Form Contains Email Address Field
+                return CweNumber.DONTCARE;
+            case "150115": // Authentication Form found
+                return CweNumber.DONTCARE;
+            case "150122": // Cookie Does Not Contain The "secure" Attribute
+                return CweNumber.INSECURE_COOKIE;
+            case "150123": // Cookie Does Not Contain The "HTTPOnly" Attribute
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
+            case "150124": // Clickjacking - Framable Page
+                return CweNumber.MISREPRESENTATION_OF_CRITICAL_INFO;
+            case "150126": // Links With High Resource Consumption
+                return CweNumber.DONTCARE;
+            case "150135": // HTTP Strict Transport Security (HSTS) header missing/misconfigured.
+                return CweNumber.DONTCARE;
+            case "150148": // AJAX Links Crawled
+                return CweNumber.DONTCARE;
+            case "150152": // Forms Crawled
+                return CweNumber.DONTCARE;
+            case "150162": // Use of JavaScript Library with Known Vulnerability
+                return CweNumber.CATEGORY_OWASP_2013_A9;
+            case "150172": // Requests Crawled
+                return CweNumber.DONTCARE;
+            case "150176": // JavaScript Libraries Detected
+                return CweNumber.DONTCARE;
+            case "150202": // Missing header: X-Content-Type-Options
+                return CweNumber.DONTCARE;
+            case "150204": // Missing header: X-XSS-Protection
+                return CweNumber.DONTCARE;
+            case "150205": // Misconfigured header: X-XSS-Protection
+                return CweNumber.DONTCARE;
+            case "150206": // Content-Security-Policy Not Implemented
+                return CweNumber.DONTCARE;
+            case "150251": // Blind XPath Injection
+                return CweNumber.XPATH_INJECTION;
             case "123456":
-                return 6666;
+                return CweNumber.DONTCARE;
         } // end switch(id)
         System.out.println("Unknown id: " + id);
-        return -1;
+        return CweNumber.DONTCARE;
     }
 
     // Qualys does not provide the NAME of the vulnerabilities in the VULNERABILITY node. These are

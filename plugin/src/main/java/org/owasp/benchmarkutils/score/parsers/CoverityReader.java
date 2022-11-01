@@ -20,6 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -78,8 +79,7 @@ public class CoverityReader extends Reader {
                     if (cweNumber == null || cweNumber.equals("none")) {
                         return null;
                     }
-                    int cwe = fixCWE(cweNumber);
-                    tcr.setCWE(cwe);
+                    tcr.setCWE(fixCWE(cweNumber));
                     tcr.setCategory(props.getString("subcategoryShortDescription"));
                     tcr.setEvidence(props.getString("subcategoryLongDescription"));
                     return tcr;
@@ -104,8 +104,7 @@ public class CoverityReader extends Reader {
                         return null;
                     }
                     String cweNumber = finding.getString("cweNumber");
-                    int cwe = fixCWE(cweNumber);
-                    tcr.setCWE(cwe);
+                    tcr.setCWE(fixCWE(cweNumber));
                     tcr.setCategory(finding.getString("categoryDescription"));
                     tcr.setEvidence(finding.getString("longDescription"));
                     return tcr;
@@ -177,10 +176,12 @@ public class CoverityReader extends Reader {
                 } else if (checker_name.equals("ldap_injection")) {
                     cwe_string = "90";
                 }
-                int cwe = fixCWE(cwe_string);
-                if (cwe <= 0) {
+                CweNumber cwe = fixCWE(cwe_string);
+
+                if (CweNumber.DONTCARE.equals(cwe)) {
                     return null;
                 }
+
                 tcr.setCWE(cwe);
                 tcr.setCategory(checker_name);
                 tcr.setEvidence(subcategory);
@@ -192,11 +193,17 @@ public class CoverityReader extends Reader {
         return null;
     }
 
-    private int fixCWE(String cweNumber) {
+    private CweNumber fixCWE(String cweNumber) {
         int cwe = Integer.parseInt(cweNumber);
-        if (cwe == 94) cwe = 643;
-        if (cwe == 36) cwe = 22;
-        if (cwe == 23) cwe = 22;
-        return cwe;
+
+        switch (cwe) {
+            case 23:
+            case 36:
+                return CweNumber.PATH_TRAVERSAL;
+            case 94:
+                return CweNumber.XPATH_INJECTION;
+        }
+
+        return CweNumber.lookup(cwe);
     }
 }

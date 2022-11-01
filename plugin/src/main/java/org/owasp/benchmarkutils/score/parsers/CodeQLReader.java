@@ -22,6 +22,7 @@ import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -177,8 +178,7 @@ public class CodeQLReader extends Reader {
                             "WARNING: Unexpectedly found more than one location for finding against rule: "
                                     + ruleId);
                 }
-                int cwe = mapCWE(ruleId, cweForRule);
-                tcr.setCWE(cwe);
+                tcr.setCWE(mapCWE(cweForRule));
                 // tcr.setCategory( props.getString( "subcategoryShortDescription" ) ); //
                 // Couldn't find any Category info in results file
                 tcr.setEvidence(finding.getJSONObject("message").getString("text"));
@@ -190,75 +190,11 @@ public class CodeQLReader extends Reader {
         return null;
     }
 
-    private int mapCWE(String ruleName, Integer cweNumber) {
-
-        switch (cweNumber) {
-                // These are properly mapped by default
-            case 22: // java/path-injection and zipslip
-            case 78: // java & js/command-line-injection
-            case 79: // java/xss & js/reflected-xss
-            case 89: // java & js/sql-injection and similar sqli rules
-            case 90: // java/ldap-injection
-            case 327: // java/weak-cryptographic-algorithm
-            case 611: // java & js/xxe
-            case 614: // java/insecure-cookie
-            case 643: // java/xml/xpath-injection
-                return cweNumber.intValue(); // Return CWE as is
-
-                // These rules we care about, but have to map to the CWE we expect
-            case 335: // java/predictable-seed - This mapping improves the tool's score
-                return 330; // Weak Random
-
-                /*
-                 * These rules exist in the java-code-scanning.qls query set, but we don't see findings
-                 * for them in Benchmark currently. They are left here in case we do see them in the
-                 * future to make it easier to support them.
-                // These rules we care about, but have to map to the CWE we expect
-                    case 338: // java/jhipster-prng
-                        return 330; // Weak Random
-                    case 347: // java/missing-jwt-signature-check - TODO - Does this affect score?
-                        return 327; // Weak Crypto
-
-                    // These rules we don't care about now, but we return their CWE value anyway in case
-                    // we care in the future
-                    case 94: // java/insecure-bean-validation and many others
-                    case 190: // java/implicit-cast-in-compound-assignment
-                    case 197: // java/tainted-numeric-cast
-                    case 297: // java/unsafe-hostname-verification
-                    case 300: // java/maven/non-https-url
-                    case 315: // java/cleartext-storage-in-cookie
-                    case 352: // java/spring-disabled-csrf-protection
-                    case 502: // java/unsafe-deserialization
-                    case 601: // java/unvalidated-url-redirection
-                    case 732: // java/world-writable-file-read
-                    case 807: // java/tainted-permissions-check
-                    case 917: // java/ognl-injection
-                    case 918: // java/ssrf
-                    case 1104: // java/maven/dependency-upon-bintray
-                */
-
-            case 113: // java/http-response-splitting
-            case 117: // js/log-injection
-            case 134: // java/tainted-format-string
-            case 209: // java/stack-trace-exposure
-            case 404: // java/database-resource-leak
-            case 477: // java/deprecated-call
-            case 485: // java/abstract-to-concrete-cast
-            case 561: // java/unused-parameter
-            case 563: // js/useless-assignment-to-local
-            case 570: // java/constant-comparison
-            case 685: // java/unused-format-argument
-            case 730: // js/regex-injection (i.e., DOS)
-            case 776: // js/xml-bomb (i.e., XEE, as opposed to XXE, which is already mapped above
-            case 843: // js/type-confusion-through-parameter-tampering
-                return cweNumber.intValue(); // Return CWE as is
-            default:
-                System.out.println(
-                        "CodeQL parser encountered new unmapped vulnerability type: "
-                                + cweNumber
-                                + " for rule: "
-                                + ruleName);
+    private CweNumber mapCWE(Integer cweNumber) {
+        if (cweNumber == 335) {
+            return CweNumber.WEAK_RANDOM;
         }
-        return 0; // Not mapped to anything
+
+        return CweNumber.lookup(cweNumber);
     }
 }

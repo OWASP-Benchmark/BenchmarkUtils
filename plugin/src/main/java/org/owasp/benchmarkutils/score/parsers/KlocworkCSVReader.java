@@ -76,7 +76,7 @@ public class KlocworkCSVReader extends Reader {
                 System.out.println("> Parse error: " + record.toString());
             }
 
-            if (tcr.getCWE() != 0) {
+            if (!CweNumber.DONTCARE.equals(tcr.getCWE())) {
                 tr.put(tcr);
             }
         }
@@ -86,10 +86,12 @@ public class KlocworkCSVReader extends Reader {
         return tr;
     }
 
-    private int cweLookup(String checkerKey) {
+    private CweNumber cweLookup(String checkerKey) {
 
         // We don't care about non-vulnerability findings
-        if (!checkerKey.startsWith("SV.")) return CweNumber.DONTCARE;
+        if (!checkerKey.startsWith("SV.")) {
+            return CweNumber.DONTCARE;
+        }
 
         switch (checkerKey) {
                 // These few are OBE because of the SV. check above, but left in, in case we want to
@@ -114,9 +116,9 @@ public class KlocworkCSVReader extends Reader {
             case "SV.EXEC.ENV": // Process Injection Environment Variables
             case "SV.EXEC.LOCAL": // Process Injection. Local Arguments
             case "SV.EXEC.PATH": // Untrusted Search Path
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
             case "SV.HASH.NO_SALT": // Use of a one-way cryptographic hash without a salt
-                return 759; // CWE-759: Use of a One-Way Hash without a Salt
+                return CweNumber.UNSALTED_ONE_WAY_HASH;
                 // Not the same as: CweNumber.WEAK_HASH_ALGO; - CWE: 328 Weak Hashing
             case "SV.LDAP": // Unvalidated user input is used as LDAP filter
                 return CweNumber.LDAP_INJECTION;
@@ -147,7 +149,7 @@ public class KlocworkCSVReader extends Reader {
             default:
                 System.out.println(
                         "WARNING: Unmapped Vulnerability category detected: " + checkerKey);
-                return 0;
+                return CweNumber.DONTCARE;
         }
     }
 }

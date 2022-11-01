@@ -19,6 +19,7 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -53,7 +54,7 @@ public class SeekerReader extends Reader {
                 System.out.println("> Parse error: " + record.toString());
             }
 
-            if (tcr.getCWE() != 0) {
+            if (!CweNumber.DONTCARE.equals(tcr.getCWE())) {
                 tr.put(tcr);
             }
         }
@@ -63,53 +64,53 @@ public class SeekerReader extends Reader {
         return tr;
     }
 
-    private int cweLookup(String checkerKey) {
+    private CweNumber cweLookup(String checkerKey) {
         checkerKey = checkerKey.replace("-SECOND-ORDER", "");
 
         switch (checkerKey) {
             case "COOK-SEC":
-                return 614; // insecure cookie use
+                return CweNumber.INSECURE_COOKIE;
             case "SQLI":
-                return 89; // sql injection
+                return CweNumber.SQL_INJECTION;
             case "CMD-INJECT":
-                return 78; // command injection
+                return CweNumber.OS_COMMAND_INJECTION;
             case "LDAP-INJECTION":
-                return 90; // ldap injection
+                return CweNumber.LDAP_INJECTION;
             case "header-injection":
-                return 113; // header injection
+                return CweNumber.HTTP_RESPONSE_SPLITTING;
             case "hql-injection":
-                return 564; // hql injection
+                return CweNumber.HIBERNATE_INJECTION;
             case "unsafe-readline":
-                return 0000; // unsafe readline
+                return CweNumber.DONTCARE;
             case "reflection-injection":
-                return 0000; // reflection injection
+                return CweNumber.DONTCARE;
             case "R-XSS":
-                return 79; // XSS
+                return CweNumber.XSS;
             case "XPATH-INJECT":
-                return 643; // XPath injection
+                return CweNumber.XPATH_INJECTION;
             case "DIR-TRAVERSAL":
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
             case "crypto-bad-mac":
-                return 328; // weak hash
+                return CweNumber.WEAK_HASH_ALGO;
             case "crypto-weak-randomness":
-                return 330; // weak random
+                return CweNumber.WEAK_RANDOM;
             case "WEAK-ENC":
-                return 327; // weak encryption
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "trust-boundary-violation":
-                return 501; // trust boundary
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
             case "xxe":
-                return 611; // XML Entity Injection
+                return CweNumber.XXE;
             case "WEAK-HASH":
-                return 328;
+                return CweNumber.WEAK_HASH_ALGO;
             case "WEAK-RANDOM-GENERATOR":
-                return 330;
+                return CweNumber.WEAK_RANDOM;
             case "TRUST-BOUNDARY-VIOLATION":
-                return 501;
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
 
             default:
                 System.out.println(
                         "WARNING: Unmapped Vulnerability category detected: " + checkerKey);
         }
-        return 0;
+        return CweNumber.DONTCARE;
     }
 }

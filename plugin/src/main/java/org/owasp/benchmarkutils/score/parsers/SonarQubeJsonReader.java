@@ -127,7 +127,7 @@ public class SonarQubeJsonReader extends Reader {
                 if (squid == null || squid.equals("none")) {
                     return null;
                 }
-                int cwe = SonarQubeReader.cweLookup(squid);
+                CweNumber cwe = SonarQubeReader.cweLookup(squid);
                 tcr.setCWE(cwe);
                 tcr.setCategory(finding.getJSONArray("tags").toString());
                 tcr.setEvidence(finding.getString("message"));
@@ -176,7 +176,7 @@ public class SonarQubeJsonReader extends Reader {
                 if (secCat == null || secCat.equals("none")) {
                     return null;
                 }
-                int cwe = securityCategoryCWELookup(secCat, finding.getString("message"));
+                CweNumber cwe = securityCategoryCWELookup(secCat, finding.getString("message"));
                 tcr.setCWE(cwe);
                 tcr.setCategory(secCat);
                 tcr.setEvidence(
@@ -200,7 +200,7 @@ public class SonarQubeJsonReader extends Reader {
      *            in some findings to move such issues to the 'right' CWE.
      *  As such, we specifically look at the message in some cases to fix the mapping.
      */
-    public int securityCategoryCWELookup(String secCat, String message) {
+    public CweNumber securityCategoryCWELookup(String secCat, String message) {
         // Not sure where to look up all the possible security categories in SonarQube, but the
         // mappings seem obvious enough.
 
@@ -270,7 +270,7 @@ public class SonarQubeJsonReader extends Reader {
                                 + "'");
         }
 
-        return -1;
+        return CweNumber.DONTCARE;
     }
 
     // This parser relies on the SQUID # mapping method in SonarQubeReader.cweLookup()

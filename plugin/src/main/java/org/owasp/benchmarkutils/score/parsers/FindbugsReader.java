@@ -21,6 +21,7 @@ import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -118,7 +119,7 @@ public class FindbugsReader extends Reader {
         return null;
     }
 
-    private int figureCWE(TestCaseResult tcr, Node cwenode, Node catnode) {
+    private CweNumber figureCWE(TestCaseResult tcr, Node cwenode, Node catnode) {
         String cwe = null;
         if (cwenode != null) {
             cwe = cwenode.getNodeValue();
@@ -140,7 +141,7 @@ public class FindbugsReader extends Reader {
             else if (cwe.equals("326")) {
                 cwe = "327";
             }
-            return Integer.parseInt(cwe);
+            return CweNumber.lookup(cwe);
         }
 
         // This is a fallback mapping for unsupported/old versions of the Find Security Bugs plugin
@@ -149,109 +150,98 @@ public class FindbugsReader extends Reader {
         switch (cat) {
                 // Cookies
             case "SECIC":
-                return 614; // insecure cookie use
-            case "SECCU":
-                return 00; // servlet cookie
+                return CweNumber.INSECURE_COOKIE;
             case "SECHOC":
-                return 00; // HTTP Only not set on cookie - Information Leak / Disclosure
-                // (CWE-200)??
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
 
                 // Injections
             case "SECSQLIHIB":
-                return 564; // Hibernate Injection, child of SQL Injection
+                return CweNumber.HIBERNATE_INJECTION;
             case "SECSQLIJDO":
-                return 89;
             case "SECSQLIJPA":
-                return 89;
             case "SECSQLISPRJDBC":
-                return 89;
             case "SECSQLIJDBC":
-                return 89;
+                return CweNumber.SQL_INJECTION;
 
                 // LDAP injection
             case "SECLDAPI":
-                return 90; // LDAP injection
+                return CweNumber.LDAP_INJECTION;
 
                 // XPath injection
             case "SECXPI":
-                return 643; // XPATH injection
+                return CweNumber.XPATH_INJECTION;
 
                 // Command injection
             case "SECCI":
-                return 78; // command injection
+                return CweNumber.OS_COMMAND_INJECTION;
 
                 // Weak random
             case "SECPR":
-                return 330; // weak random
+                return CweNumber.WEAK_RANDOM;
 
                 // Weak encryption
-            case "SECDU":
-                return 327; // weak encryption DES
-            case "CIPINT":
-                return 327; // weak encryption - cipher with no integrity
-            case "PADORA":
-                return 327; // padding oracle -- FIXME: probably wrong
+            case "SECDU": // weak encryption DES
+                return CweNumber.WEAK_CRYPTO_ALGO;
+            case "CIPINT": // weak encryption - cipher with no integrity
+                return CweNumber.WEAK_CRYPTO_ALGO;
+            case "PADORA": // padding oracle -- FIXME: probably wrong
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "STAIV":
-                return 329; // static initialization vector for crypto
+                return CweNumber.STATIC_CRYPTO_INIT;
 
                 // Weak hash
             case "SECWMD":
-                return 328; // weak hash
+                return CweNumber.WEAK_HASH_ALGO;
 
                 // Path traversal
             case "SECPTO":
-                return 22; // path traversal
             case "SECPTI":
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
 
                 // XSS
             case "SECXRW":
-                return 79; // XSS
             case "SECXSS1":
-                return 79; // XSS
             case "SECXSS2":
-                return 79; // XSS
+                return CweNumber.XSS;
 
                 // XXE
             case "SECXXEDOC":
-                return 611; // XXE
             case "SECXXEREAD":
-                return 611; // XXE
             case "SECXXESAX":
-                return 611; // XXE
+                return CweNumber.XXE;
 
                 // Input sources
-            case "SECSP":
-                return 00; // servlet parameter - not a vuln
-            case "SECSH":
-                return 00; // servlet header - not a vuln
-            case "SECSHR":
-                return 00; // Use of Request Header -- spoofable
-            case "SECSSQ":
-                return 00; // servlet query - not a vuln
+            case "SECSP": // servlet parameter - not a vuln
+                return CweNumber.DONTCARE;
+            case "SECSH": // servlet header - not a vuln
+                return CweNumber.DONTCARE;
+            case "SECSHR": // Use of Request Header -- spoofable
+                return CweNumber.DONTCARE;
+            case "SECSSQ": // servlet query - not a vuln
+                return CweNumber.DONTCARE;
 
                 // Technology detection
-            case "SECSC":
-                return 00; // found Spring endpoint - not a vuln
-            case "SECJRS":
-                return 00; // JAX-RS Endpoint
+            case "SECSC": // found Spring endpoint - not a vuln
+                return CweNumber.DONTCARE;
+            case "SECJRS": // JAX-RS Endpoint
+                return CweNumber.DONTCARE;
 
                 // Configuration
-            case "SECOPFP":
-                return 00; // Overly Permissive File Permissions
+            case "SECOPFP": // Overly Permissive File Permissions
+                return CweNumber.DONTCARE;
 
                 // Other
             case "SECHPP":
-                return 235; // HTTP Parameter Polution
-            case "SECUNI":
-                return 00; // Improper Unicode
-            case "SECWF":
-                return 00; // Weak Filename Utils - i.e., not filtering out Null bytes in file names
+                return CweNumber.IMPROPER_HANDLING_OF_PARAMETERS;
+            case "SECUNI": // Improper Unicode
+                return CweNumber.DONTCARE;
+            case "SECWF": // Weak Filename Utils - i.e., not filtering out Null bytes in file names
+                return CweNumber.DONTCARE;
 
             default:
                 System.out.println("Unknown vuln category for FindBugs: " + cat);
         }
 
-        return 0;
+        return CweNumber.DONTCARE;
     }
 }

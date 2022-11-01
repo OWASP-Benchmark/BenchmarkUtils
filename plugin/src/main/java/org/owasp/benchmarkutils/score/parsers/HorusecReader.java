@@ -92,7 +92,7 @@ public class HorusecReader extends Reader {
         return null;
     }
 
-    private int figureCwe(JSONObject vuln) {
+    private CweNumber figureCwe(JSONObject vuln) {
         String details = vuln.getString("details");
 
         String cwe = fetchCweFromDetails(details);
@@ -102,37 +102,17 @@ public class HorusecReader extends Reader {
         }
 
         switch (cwe) {
-            case "79":
-                return CweNumber.XSS;
-            case "89":
-                return CweNumber.SQL_INJECTION;
             case "326":
-            case "327":
                 return CweNumber.WEAK_CRYPTO_ALGO;
-            case "328":
-                return CweNumber.WEAK_HASH_ALGO;
-            case "329":
-                return CweNumber.STATIC_CRYPTO_INIT;
-            case "330":
-                return CweNumber.WEAK_RANDOM;
             case "502":
                 if (category(details).equals("LDAP deserialization should be disabled")) {
                     return CweNumber.LDAP_INJECTION;
                 }
 
                 return CweNumber.INSECURE_DESERIALIZATION;
-            case "611":
-                return CweNumber.XXE;
-            case "614":
-                return CweNumber.INSECURE_COOKIE;
-            case "643":
-                return CweNumber.XPATH_INJECTION;
-            case "649":
-                return CweNumber.OBFUSCATION;
-            default:
-                System.out.println("WARN: Horusec reported CWE not yet mapped: " + cwe);
-                return Integer.parseInt(cwe);
         }
+
+        return CweNumber.lookup(cwe);
     }
 
     private String fetchCweFromDetails(String details) {

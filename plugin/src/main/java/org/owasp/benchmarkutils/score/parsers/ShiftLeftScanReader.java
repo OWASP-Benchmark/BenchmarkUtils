@@ -25,6 +25,7 @@ import java.io.File;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -108,7 +109,7 @@ public class ShiftLeftScanReader extends Reader {
                 .getName();
     }
 
-    private int cweNumber(JSONObject finding) {
+    private CweNumber cweNumber(JSONObject finding) {
         String ruleId = finding.getString("ruleId");
 
         switch (ruleId) {
@@ -116,47 +117,48 @@ public class ShiftLeftScanReader extends Reader {
             case "PATH_TRAVERSAL_OUT":
             case "PT_RELATIVE_PATH_TRAVERSAL":
             case "PT_ABSOLUTE_PATH_TRAVERSAL":
-                return 22;
+                return CweNumber.PATH_TRAVERSAL;
             case "COMMAND_INJECTION":
-                return 78;
+                return CweNumber.OS_COMMAND_INJECTION;
             case "HTTP_RESPONSE_SPLITTING":
-                return 113;
+                return CweNumber.HTTP_RESPONSE_SPLITTING;
             case "XSS_SERVLET":
             case "HRS_REQUEST_PARAMETER_TO_COOKIE":
             case "XSS_REQUEST_PARAMETER_TO_SERVLET_WRITER":
-                return 79;
+                return CweNumber.XSS;
             case "SQL_INJECTION_JDBC":
             case "SQL_INJECTION_SPRING_JDBC":
             case "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE":
             case "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING":
-                return 89;
+                return CweNumber.SQL_INJECTION;
             case "LDAP_INJECTION":
-                return 90;
+                return CweNumber.LDAP_INJECTION;
             case "PADDING_ORACLE":
-                return 209;
+                // FIXME: shouldn't this be 463?
+                return CweNumber.ERROR_MESSAGE_WITH_SENSITIVE_INFO;
             case "DES_USAGE":
             case "CIPHER_INTEGRITY":
-                return 327;
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "WEAK_MESSAGE_DIGEST_MD5":
             case "WEAK_MESSAGE_DIGEST_SHA1":
-                return 328;
+                return CweNumber.WEAK_HASH_ALGO;
             case "STATIC_IV":
-                return 329;
+                return CweNumber.STATIC_CRYPTO_INIT;
             case "PREDICTABLE_RANDOM":
-                return 330;
+                return CweNumber.WEAK_RANDOM;
             case "TRUST_BOUNDARY_VIOLATION":
-                return 501;
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
             case "HTTPONLY_COOKIE":
-                return 1004;
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
             case "INSECURE_COOKIE":
-                return 614;
+                return CweNumber.INSECURE_COOKIE;
             case "XPATH_INJECTION":
-                return 643;
+                return CweNumber.XPATH_INJECTION;
 
             default:
                 System.out.println(
                         "INFO: Found following ruleId which we haven't seen before: " + ruleId);
-                return -1;
+                return CweNumber.DONTCARE;
         }
     }
 }

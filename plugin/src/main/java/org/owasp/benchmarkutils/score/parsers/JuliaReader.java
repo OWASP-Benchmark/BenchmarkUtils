@@ -21,6 +21,7 @@ import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -93,7 +94,7 @@ public class JuliaReader extends Reader {
                     tcr.setNumber(Integer.parseInt(testNumber));
                 }
             } else if (childName.equals("CWEid"))
-                tcr.setCWE(Integer.parseInt(child.getTextContent()));
+                tcr.setCWE(CweNumber.lookup(child.getTextContent()));
         }
 
         return tcr;

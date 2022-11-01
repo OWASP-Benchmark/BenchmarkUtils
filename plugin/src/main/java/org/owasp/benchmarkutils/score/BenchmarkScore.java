@@ -721,7 +721,7 @@ public class BenchmarkScore extends AbstractMojo {
     @SuppressWarnings("unused")
     private static void printExtraCWE(
             TestSuiteResults expectedResults, TestSuiteResults actualResults) {
-        Set<Integer> expectedCWE = new HashSet<Integer>();
+        Set<CweNumber> expectedCWE = new HashSet<CweNumber>();
         for (int i : expectedResults.keySet()) {
             List<TestCaseResult> list = expectedResults.get(i);
             for (TestCaseResult t : list) {
@@ -729,7 +729,7 @@ public class BenchmarkScore extends AbstractMojo {
             }
         }
 
-        Set<Integer> actualCWE = new HashSet<Integer>();
+        Set<CweNumber> actualCWE = new HashSet<CweNumber>();
         for (int i : actualResults.keySet()) {
             List<TestCaseResult> list = actualResults.get(i);
             if (list != null) {
@@ -739,8 +739,8 @@ public class BenchmarkScore extends AbstractMojo {
             }
         }
 
-        Set<Integer> extras = difference(actualCWE, expectedCWE);
-        for (int cwe : extras) {
+        Set<CweNumber> extras = difference(actualCWE, expectedCWE);
+        for (CweNumber cwe : extras) {
             System.out.println("Extra: " + cwe);
         }
     }
@@ -954,20 +954,21 @@ public class BenchmarkScore extends AbstractMojo {
             // System.out.println( "  Evidence: " + act.getCWE() + " " + act.getEvidence() + "[" +
             // act.getConfidence() + "]");
 
-            int actualCWE = act.getCWE();
-            int expectedCWE = exp.getCWE();
+            CweNumber actualCWE = act.getCWE();
+            CweNumber expectedCWE = exp.getCWE();
 
-            boolean match = actualCWE == expectedCWE;
+            boolean match = actualCWE.equals(expectedCWE);
 
             // Special case: many tools report CWE 89 (sqli) for Hibernate Injection (hqli) rather
             // than actual CWE of 564 So we accept either
-            if (!match && (expectedCWE == 564)) {
-                match = (actualCWE == 89);
+            if (!match && (CweNumber.HIBERNATE_INJECTION.equals(expectedCWE))) {
+                match = CweNumber.SQL_INJECTION.equals(actualCWE);
             }
 
             // special hack since IBM/Veracode don't distinguish different kinds of weak algorithm
             if (tool.startsWith("AppScan") || tool.startsWith("Vera")) {
-                if (expectedCWE == 328 && actualCWE == 327) {
+                if (CweNumber.WEAK_HASH_ALGO.equals(expectedCWE)
+                        && CweNumber.WEAK_CRYPTO_ALGO.equals(actualCWE)) {
                     match = true;
                 }
             }
@@ -1036,7 +1037,7 @@ public class BenchmarkScore extends AbstractMojo {
                         tcr.setTestCaseName(parts[0]);
                         tcr.setCategory(parts[1]);
                         tcr.setReal(Boolean.parseBoolean(parts[2]));
-                        tcr.setCWE(Integer.parseInt(parts[3]));
+                        tcr.setCWE(CweNumber.lookup(Integer.parseInt(parts[3])));
 
                         String tcname = parts[0].substring(TESTCASENAME.length());
                         tcr.setNumber(Integer.parseInt(tcname));

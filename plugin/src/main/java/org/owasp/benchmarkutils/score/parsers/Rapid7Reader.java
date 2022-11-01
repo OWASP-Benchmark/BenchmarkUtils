@@ -66,7 +66,7 @@ public class Rapid7Reader extends Reader {
         return tr;
     }
 
-    private int cweLookup(String cweNum, String evidence) {
+    private CweNumber cweLookup(String cweNum, String evidence) {
         int cwe = 0;
         if (cweNum != null && !cweNum.isEmpty()) {
             cwe = Integer.parseInt(cweNum);
@@ -95,14 +95,14 @@ public class Rapid7Reader extends Reader {
                     case "X-Content-Type-Options header not found":
                     case "X-Frame-Options HTTP header checking":
                     case "X-XSS-Protection header not found":
-                        return 0;
+                        return CweNumber.DONTCARE;
                     default:
                         {
                             // If this prints out anything new, add to this mapping so we know it's
                             // mapped properly.
                             System.out.println(
                                     "Found new unmapped finding with evidence: " + evidence);
-                            return 0; // In case they add any new mappings
+                            return CweNumber.DONTCARE; // In case they add any new mappings
                         }
                 }
             case 79:
@@ -143,7 +143,7 @@ public class Rapid7Reader extends Reader {
                 // FP rate up 7.75%
                 return CweNumber.SQL_INJECTION;
         }
-        return cwe;
+        return CweNumber.lookup(cwe);
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

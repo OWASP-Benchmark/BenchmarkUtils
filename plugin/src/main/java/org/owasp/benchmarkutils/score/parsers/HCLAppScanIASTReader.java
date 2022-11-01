@@ -101,7 +101,7 @@ public class HCLAppScanIASTReader extends Reader {
 
             if (uri.contains(BenchmarkScore.TESTCASENAME)) {
                 tcr.setNumber(testNumber(uri));
-                if (tcr.getCWE() != 0) {
+                if (!CweNumber.DONTCARE.equals(tcr.getCWE())) {
                     // System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                     // tcr.getCategory() );
                     tr.put(tcr);
@@ -113,14 +113,14 @@ public class HCLAppScanIASTReader extends Reader {
         }
     }
 
-    private int cweLookup(String rule) {
+    private CweNumber cweLookup(String rule) {
         switch (rule) {
             case "SessionManagement.Cookies":
                 return CweNumber.INSECURE_COOKIE;
             case "Injection.SQL":
                 return CweNumber.SQL_INJECTION;
             case "Injection.OS":
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
             case "Injection.LDAP":
                 return CweNumber.LDAP_INJECTION;
             case "CrossSiteScripting.Reflected":
@@ -140,7 +140,7 @@ public class HCLAppScanIASTReader extends Reader {
             default:
                 System.out.println("WARNING: HCL AppScan IAST-Unrecognized finding type: " + rule);
         }
-        return 0;
+        return CweNumber.DONTCARE;
     }
 
     private String calculateTime(String firstLine, String lastLine) {

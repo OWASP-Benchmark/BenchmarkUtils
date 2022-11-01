@@ -79,8 +79,8 @@ public class InsiderReader extends Reader {
                 TestCaseResult tcr = new TestCaseResult();
 
                 tcr.setNumber(testNumber(filename));
-                int cwe = cweNumber(finding);
-                tcr.setCWE(cwe);
+                String cwe = finding.getString("cwe").substring(4);
+                tcr.setCWE(CweNumber.lookup(cwe));
 
                 return tcr;
             }
@@ -89,27 +89,6 @@ public class InsiderReader extends Reader {
         }
 
         return null;
-    }
-
-    private int cweNumber(JSONObject finding) {
-        String cwe = finding.getString("cwe").substring(4);
-
-        switch (cwe) {
-            case "78":
-                return CweNumber.COMMAND_INJECTION;
-            case "326":
-            case "327":
-                return CweNumber.WEAK_CRYPTO_ALGO;
-            case "330":
-                return CweNumber.WEAK_RANDOM;
-            case "532":
-                return CweNumber.SENSITIVE_LOGFILE;
-
-            default:
-                System.out.println(
-                        "INFO: Found following CWE which we haven't seen before: " + cwe);
-                return Integer.parseInt(cwe);
-        }
     }
 
     private String filename(JSONObject vuln) {

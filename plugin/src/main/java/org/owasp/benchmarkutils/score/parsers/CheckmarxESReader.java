@@ -57,12 +57,7 @@ public class CheckmarxESReader extends Reader {
             JSONObject query = queries.getJSONObject(i);
 
             // cwe
-            int cwe = query.getJSONObject("Metadata").getInt("CweId");
-            try {
-                cwe = translate(cwe);
-            } catch (NumberFormatException ex) {
-                System.out.println("flaw: " + query);
-            }
+            CweNumber cwe = translate(query.getJSONObject("Metadata").getInt("CweId"));
 
             // category
             String category = query.getJSONObject("Metadata").getString("QueryName");
@@ -116,22 +111,23 @@ public class CheckmarxESReader extends Reader {
                 || name.equals("Unprotected_Cookie");
     }
 
-    private int translate(int cwe) {
+    private CweNumber translate(int cwe) {
         switch (cwe) {
             case 77:
             case 15:
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
             case 36:
             case 23:
                 return CweNumber.PATH_TRAVERSAL;
             case 338:
                 return CweNumber.WEAK_RANDOM;
         }
-        return cwe;
+
+        return CweNumber.lookup(cwe);
     }
 
     private TestCaseResult parseCheckmarxFindings(
-            int cwe, String category, String evidence, JSONObject result) {
+            CweNumber cwe, String category, String evidence, JSONObject result) {
         try {
             TestCaseResult tcr = new TestCaseResult();
             tcr.setCWE(cwe);

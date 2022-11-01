@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -68,7 +69,7 @@ public class CheckmarxIASTReader extends Reader {
                         Integer.parseInt(
                                 testCase.substring(
                                         testCase.length() - BenchmarkScore.TESTIDLENGTH)));
-                if (tcr.getCWE() != 0) {
+                if (!CweNumber.DONTCARE.equals(tcr.getCWE())) {
                     tr.put(tcr);
                 }
             }
@@ -77,103 +78,101 @@ public class CheckmarxIASTReader extends Reader {
         return tr;
     }
 
-    private int cweLookup(String checkerKey) {
+    private CweNumber cweLookup(String checkerKey) {
         //    checkerKey = checkerKey.replace("-SECOND-ORDER", "");
 
         switch (checkerKey) {
             case "App_DOS_Database_Connections":
-                return 400; // App_DOS_Database_Connections
+                return CweNumber.UNCONTROLLED_RESOURCE_CONSUMPTION; // App_DOS_Database_Connections
             case "Blind_SQL_Injection":
-                return 89; // sql injection
+                return CweNumber.SQL_INJECTION;
             case "Click_Jacking":
-                return 693; // Click_Jacking
+                return CweNumber.PROTECTION_MECHANISM_FAILURE;
             case "Command_Injection":
-                return 78; // Command_Injection
+                return CweNumber.OS_COMMAND_INJECTION;
             case "CORS":
-                return 346; // CORS
+                return CweNumber.ORIGIN_VALIDATION_ERROR;
             case "CSRF":
-                return 352; // CSRF
+                return CweNumber.CSRF;
             case "Debug_Mode_Enabled":
-                return 215; // Debug_Mode_Enabled
+                return CweNumber.SENSITIVE_INFO_IN_DEBUG_MODE;
             case "Deserialize_Vulnerability":
-                return 502; // Deserialize_Vulnerability
+                return CweNumber.INSECURE_DESERIALIZATION;
             case "Failed_Login_Without_Audit":
-                return 778; // Failed_Login_Without_Audit
+                return CweNumber.INSUFFICIENT_LOGGING;
             case "File_Upload_To_Unprotected_Directory":
-                return 434; // File_Upload_To_Unprotected_Directory
+                return CweNumber.UNRESTRICTED_FILE_UPLOAD;
             case "Improper_HTTP_Get_Usage":
-                return 650; // Improper_HTTP_Get_Usage
+                return CweNumber.TRUSTING_SERVER_HTTP;
             case "Insecure_Cookie":
             case "Session_Id_Disclosure": // CxIAST does not define but it is same as
                 // Insecure_Cookie YE
-                return 614; // Insecure_Cookie
+                return CweNumber.INSECURE_COOKIE;
             case "Insecure_Outgoing_Communication":
-                return 311; // Insecure_Outgoing_Communication
+                return CweNumber.UNENCRYPTED_SENSITIVE_DATA;
             case "Insufficient_Session_Expiration":
-                return 613; // Insufficient_Session_Expiration
+                return CweNumber.INSUFFICIENT_SESSION_EXPIRATION;
             case "LDAP_Injection":
-                return 90; // LDAP_Injection
+                return CweNumber.LDAP_INJECTION;
             case "Least_Privilege_Violation":
-                return 250; // Least_Privilege_Violation
+                return CweNumber.TOO_PRIVILIGED_EXECUTION;
             case "Log_Forging":
-                return 117;
+                return CweNumber.MISSING_LOG_OUTPUT_NEUTRALIZATION;
             case "Missing_X_Content_Type_Options_Header":
-                return 693;
+                return CweNumber.PROTECTION_MECHANISM_FAILURE;
             case "Missing_X_XSS_Protection_Header":
-                return 693;
+                return CweNumber.PROTECTION_MECHANISM_FAILURE;
             case "NoSQL_Injection":
-                return 943;
+                return CweNumber.IMPROPER_DATA_QUERY_NEUTRALIZATION;
             case "Open_Redirect":
-                return 601;
+                return CweNumber.OPEN_REDIRECT;
             case "Parameter_Pollution":
-                return 235;
+                return CweNumber.IMPROPER_HANDLING_OF_PARAMETERS;
             case "Parameter_Tampering":
-                return 99;
+                return CweNumber.RESOURCE_INJECTION;
             case "Path_Traversal":
-                return 22;
+                return CweNumber.PATH_TRAVERSAL;
             case "Second_Order_Command_Injection":
-                return 77;
+                return CweNumber.COMMAND_INJECTION;
             case "Second_Order_LDAP_Injection":
-                return 90;
+                return CweNumber.LDAP_INJECTION;
             case "Second_Order_Path_Traversal":
-                return 22;
+                return CweNumber.PATH_TRAVERSAL;
             case "Second_Order_SQL_Injection":
-                return 89;
+                return CweNumber.SQL_INJECTION;
             case "Second_Order_XPath_Injection":
-                return 643;
+                return CweNumber.XPATH_INJECTION;
             case "Sensitive_Data_Exposure_Credit_Card":
-                return 311;
             case "Sensitive_Data_Exposure_Email":
-                return 311;
             case "Sensitive_Data_Exposure_Long_Number":
-                return 311;
+                return CweNumber.UNENCRYPTED_SENSITIVE_DATA;
             case "SQL_Injection":
-                return 89;
+                return CweNumber.SQL_INJECTION;
             case "Stored_XSS":
-                return 79;
+                return CweNumber.XSS;
             case "Successful_Login_Without_Audit":
-                return 778;
+                return CweNumber.INSUFFICIENT_LOGGING;
             case "Trust_Boundary_Violation":
-                return 501;
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
             case "Weak_Cryptography":
-                return 327;
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "Weak_DB_Password":
-                return 521;
+                return CweNumber.WEAK_PASSWORD_REQUIREMENTS;
             case "Weak_Hashing":
-                return 328;
+                return CweNumber.WEAK_HASH_ALGO;
             case "Weak_Random":
-                return 330;
+                return CweNumber.WEAK_RANDOM;
             case "XPath_Injection":
-                return 643;
+                return CweNumber.XPATH_INJECTION;
             case "XSS":
-                return 79;
+                return CweNumber.XSS;
             case "XXE":
-                return 611;
+                return CweNumber.XXE;
 
             default:
                 System.out.println(
                         "WARNING: Unmapped Vulnerability category detected: " + checkerKey);
         }
-        return 0;
+        return CweNumber.DONTCARE;
     }
 }

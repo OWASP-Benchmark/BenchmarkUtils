@@ -22,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -144,13 +145,12 @@ public class NJSScanReader extends Reader {
 
             // Grab the number between "-num:"
             cwe_str = cwe_str.substring(cwe_str.indexOf('-') + 1, cwe_str.indexOf(':'));
-            int cwe_identifier = cweLookup(Integer.parseInt(cwe_str));
+            CweNumber cwe = cweLookup(Integer.parseInt(cwe_str));
 
             // Process each file
             JSONArray file_arr = CWE.getJSONArray("files");
             for (int i = 0; i < file_arr.length(); i++) {
-                TestCaseResult result =
-                        produceTestCaseResult(file_arr.getJSONObject(i), cwe_identifier);
+                TestCaseResult result = produceTestCaseResult(file_arr.getJSONObject(i), cwe);
                 if (result != null) results.add(result);
             }
 
@@ -178,13 +178,13 @@ public class NJSScanReader extends Reader {
      * <p>Catch errors here because I do not want to interrupt the for loop in the above call
      *
      * @param file The JSONObject which contains a single file dictionary object
-     * @param cwe_identifier The numerical value of the CWE
+     * @param cwe CweNumber value
      * @return A TestCaseResult with the information from the file or null if finding is not in a
      *     test case source file
      */
-    private TestCaseResult produceTestCaseResult(JSONObject file, int cwe_identifier) {
+    private TestCaseResult produceTestCaseResult(JSONObject file, CweNumber cwe) {
         TestCaseResult tcr = new TestCaseResult();
-        tcr.setCWE(cwe_identifier);
+        tcr.setCWE(cwe);
 
         String filename = "";
         try {
@@ -213,34 +213,16 @@ public class NJSScanReader extends Reader {
         return tcr;
     }
 
-    private int cweLookup(int cwe) {
+    private CweNumber cweLookup(int cwe) {
         switch (cwe) {
             case 23: // Relative Path Traversal <-- care about this one
-                return 22; // We expect 22, not 23
-
-            case 79: // XSS <-- care about this one
-            case 209: // Info leak from Error Message
-            case 400: // Uncontrolled Resource Consumption
-            case 522: // Insufficiently protected credentials
-            case 613: // Insufficient session expiration
-            case 614: // Sensitive cookie without Secure Attribute <-- care about this one
-            case 693: // Protection Mechanism Failure (e.g., One or more Security Response header is
-                // explicitly disabled in Helmet)
-            case 798: // Hard coded credentials
-            case 1275: // Sensitive cookie w/ Improper SameSite Attribute
-                break; // Don't care about these, or mapping is correct, so return 'as is'.
-
+                return CweNumber.PATH_TRAVERSAL; // We expect 22, not 23
             case 943: // Improper Neutralization of Special Elements in Data Query Logic (Child of
                 // SQL Injection)
-                return 89; // This is likely an SQLi finding, so mapping to that.
-
-            default:
-                System.out.println(
-                        "WARNING: NJSScan-Unrecognized cwe: "
-                                + cwe
-                                + ". Verify mapping is correct and add mapping to NJSScanReader.");
+                return CweNumber
+                        .SQL_INJECTION; // This is likely an SQLi finding, so mapping to that.
         }
 
-        return cwe;
+        return CweNumber.lookup(cwe);
     }
 }

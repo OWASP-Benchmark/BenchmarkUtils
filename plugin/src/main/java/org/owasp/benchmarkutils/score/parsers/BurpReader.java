@@ -108,10 +108,10 @@ public class BurpReader extends Reader {
     // https://portswigger.net/kb/issues - This page lists all the issue types Burp looks for, and
     // their customer ID #'s. There are more on this page. The following primarily lists those
     // that are currently relevant in the Benchmark.
-    static int cweLookup(String id) {
+    static CweNumber cweLookup(String id) {
         switch (id) {
             case "1048832":
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
             case "1049088":
                 return CweNumber.SQL_INJECTION;
             case "1049344":
@@ -131,24 +131,22 @@ public class BurpReader extends Reader {
             case "2098944":
                 return CweNumber.CSRF;
             case "3146240":
-                return 918; // External service interaction (DNS)
+                return CweNumber.SERVER_SIDE_REQUEST_FORGERY; // External service interaction (DNS)
             case "4194560":
                 return CweNumber.DONTCARE; // Referer Dependent Response
             case "4194576":
                 return CweNumber.DONTCARE; // X-Forwarded-For header dependency
-            case "4197376":
-                return 20; // Input returned in response (reflected)
-            case "4197632":
-                return 20; // Suspicious input transformation (reflected)
+            case "4197376": // Input returned in response (reflected)
+            case "4197632": // Suspicious input transformation (reflected)
+                return CweNumber.IMPROPER_INPUT_VALIDAITON;
             case "5243392":
                 return CweNumber.INSECURE_COOKIE;
             case "5244416":
-                return 9998; // Cookie without HttpOnly flag set - There is no CWE defined for this
-                // weakness
-            case "5245344":
-                return 1021; // Clickjacking
-            case "5245360":
-                return 16; // Browser cross-site scripting filter disabled
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY; // Cookie without HttpOnly flag set
+            case "5245344": // Clickjacking
+                return CweNumber.IMPROPER_RESTRICTION_OF_UI_LAYERS;
+            case "5245360": // Browser cross-site scripting filter disabled
+                return CweNumber.CATEGORY_CONFIGURATION;
             case "5245952":
                 return CweNumber
                         .DONTCARE; // Ajax request header manipulation (DOM-based) - Map to nothing
@@ -156,20 +154,22 @@ public class BurpReader extends Reader {
             case "5247488":
                 return CweNumber
                         .DONTCARE; // DOM Trust Boundary Violation - Map to nothing right now.
-            case "6291968":
-                return 200; // Information Disclosure - Email Address Disclosed
-            case "6292736":
-                return 200; // Information Disclosure - Credit Card # Disclosed
+            case "6291968": // Information Disclosure - Email Address Disclosed
+            case "6292736": // Information Disclosure - Credit Card # Disclosed
+                return CweNumber.EXPOSURE_SENSITIVE_TO_UNAUTHORIZED_USER;
             case "7340288":
-                return 525; // Information Exposure Through Browser Caching-Cacheable HTTPS Response
+                return CweNumber
+                        .SENSITIVE_INFORMATION_IN_BROWSER_CACHE; // Information Exposure Through
+                // Browser Caching-Cacheable HTTPS
+                // Response
             case "8389120":
                 return CweNumber.DONTCARE; // HTML doesn't specify character set - Map to nothing.
             case "8389632":
                 return CweNumber.DONTCARE; // Incorrect Content Type - Map to nothing right now.
             case "8389888":
-                return 16; // Content type is not specified
+                return CweNumber.CATEGORY_CONFIGURATION; // Content type is not specified
         } // end switch(id)
         System.out.println("Unknown Burp rule id: " + id);
-        return -1;
+        return CweNumber.DONTCARE;
     }
 }

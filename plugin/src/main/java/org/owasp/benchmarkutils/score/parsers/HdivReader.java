@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -134,7 +135,7 @@ public class HdivReader extends Reader {
 
             try {
                 Type t = Type.valueOf(type);
-                tcr.setCWE(t.number);
+                tcr.setCWE(CweNumber.lookup(t.number));
                 tcr.setCategory(t.id);
 
                 try {
@@ -143,7 +144,7 @@ public class HdivReader extends Reader {
                     System.out.println("> Parse error: " + line);
                 }
 
-                if (tcr.getCWE() != 0) {
+                if (!CweNumber.DONTCARE.equals(tcr.getCWE())) {
                     tr.put(tcr);
                 }
             } catch (Exception e) {

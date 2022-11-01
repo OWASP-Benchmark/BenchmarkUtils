@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -137,11 +138,18 @@ public class VeracodeReader extends Reader {
         return null;
     }
 
-    private int translate(int cwe) {
-        if (cwe == 73) return 22;
-        if (cwe == 80) return 79;
-        if (cwe == 331) return 330;
-        if (cwe == 91) return 643;
-        return cwe;
+    private CweNumber translate(int cwe) {
+        switch (cwe) {
+            case 73:
+                return CweNumber.PATH_TRAVERSAL;
+            case 80:
+                return CweNumber.XSS;
+            case 91:
+                return CweNumber.XPATH_INJECTION;
+            case 331:
+                return CweNumber.WEAK_RANDOM;
+        }
+
+        return CweNumber.lookup(cwe);
     }
 }

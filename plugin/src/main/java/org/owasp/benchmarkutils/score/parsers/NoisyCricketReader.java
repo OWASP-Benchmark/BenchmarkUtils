@@ -19,6 +19,7 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -73,7 +74,7 @@ public class NoisyCricketReader extends Reader {
             for (String cwe : cwes) {
                 TestCaseResult tcr = new TestCaseResult();
                 tcr.setNumber(testNumber);
-                tcr.setCWE(Integer.parseInt(cwe));
+                tcr.setCWE(CweNumber.lookup(cwe));
                 tr.put(tcr);
             }
         }

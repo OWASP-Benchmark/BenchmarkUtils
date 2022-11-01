@@ -159,10 +159,8 @@ public class AcunetixReader extends Reader {
                 Node vulnId = getNamedChild("cwe", classification);
                 if (vulnId != null) {
                     String cweNum = vulnId.getTextContent();
-                    int cwe = cweLookup(cweNum);
-                    tcr.setCWE(cwe);
-                    // System.out.println("Found CWE: " + cwe + " in test case: " +
-                    // tcr.getNumber());
+                    tcr.setCWE(cweLookup(cweNum));
+
                     tcr.setConfidence(
                             Integer.parseInt(getNamedChild("certainty", vuln).getTextContent()));
                     return tcr;
@@ -198,8 +196,7 @@ public class AcunetixReader extends Reader {
         Node vulnId = getNamedChild("CWE", flaw);
         if (vulnId != null) {
             String cweNum = getAttributeValue("id", vulnId);
-            int cwe = cweLookup(cweNum);
-            tcr.setCWE(cwe);
+            tcr.setCWE(cweLookup(cweNum));
         }
 
         //        String conf = getNamedChild( "Severity", flaw ).getTextContent();
@@ -230,40 +227,12 @@ public class AcunetixReader extends Reader {
         return null;
     }
 
-    private int cweLookup(String cweNum) {
+    private CweNumber cweLookup(String cweNum) {
         if (cweNum == null || cweNum.isEmpty()) {
             System.out.println("ERROR: No CWE number supplied");
-            return 0000;
-        }
-        switch (cweNum) {
-            case "22":
-                return CweNumber.PATH_TRAVERSAL;
-            case "78":
-                return CweNumber.COMMAND_INJECTION;
-            case "79":
-                return CweNumber.XSS;
-            case "89":
-                return CweNumber.SQL_INJECTION;
-            case "614":
-                return CweNumber.INSECURE_COOKIE;
-
-                // switch left in case we ever need to map a reported cwe to the one expected by
-                // Benchmark
-                //        case "ldap-injection"            :  return 90;   // ldap injection
-                //        case "header-injection"          :  return 113;  // header injection
-                //        case "hql-injection"             :  return 0000; // hql injection
-                //        case "unsafe-readline"           :  return 0000; // unsafe readline
-                //        case "reflection-injection"      :  return 0000; // reflection injection
-                //        case "xpath-injection"           :  return 643;  // xpath injection
-                //        case "crypto-bad-mac"            :  return 328;  // weak hash
-                //        case "crypto-weak-randomness"    :  return 330;  // weak random
-                //        case "crypto-bad-ciphers"        :  return 327;  // weak encryption
-                //        case "trust-boundary-violation"  :  return 501;  // trust boundary
-                //        case "xxe"                       :  return 611;  // xml entity
+            return CweNumber.DONTCARE;
         }
 
-        // Add any 'new' CWEs ever found to switch above so we know they are mapped properly.
-        System.out.println("INFO: Found following CWE which we haven't seen before: " + cweNum);
-        return Integer.parseInt(cweNum);
+        return CweNumber.lookup(cweNum);
     }
 }

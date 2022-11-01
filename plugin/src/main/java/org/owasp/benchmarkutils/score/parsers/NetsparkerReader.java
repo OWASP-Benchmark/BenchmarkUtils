@@ -86,8 +86,7 @@ public class NetsparkerReader extends Reader {
             Node vulnId = getNamedChild("CWE", classification);
             if (vulnId != null) {
                 String cweNum = vulnId.getTextContent();
-                int cwe = cweLookup(cweNum);
-                tcr.setCWE(cwe);
+                tcr.setCWE(cweLookup(cweNum));
             }
         }
 
@@ -112,9 +111,9 @@ public class NetsparkerReader extends Reader {
         return null;
     }
 
-    private int cweLookup(String cweNum) {
+    private CweNumber cweLookup(String cweNum) {
         if (cweNum == null || cweNum.isEmpty()) {
-            return 0000;
+            return CweNumber.DONTCARE;
         }
         int cwe = Integer.parseInt(cweNum);
         switch (cwe) {
@@ -137,6 +136,6 @@ public class NetsparkerReader extends Reader {
                 //        case "trust-boundary-violation"  :  return 501;  // trust boundary
                 //        case "xxe"                       :  return 611;  // xml entity
         }
-        return cwe;
+        return CweNumber.lookup(cwe);
     }
 }

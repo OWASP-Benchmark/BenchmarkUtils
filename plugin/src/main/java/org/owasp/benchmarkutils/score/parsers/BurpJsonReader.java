@@ -21,6 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -100,7 +101,7 @@ public class BurpJsonReader extends Reader {
                 String testNumber = filename.substring(BenchmarkScore.TESTCASENAME.length());
                 tcr.setNumber(Integer.parseInt(testNumber));
                 int rule = issue.getInt("type_index");
-                int cwe = BurpReader.cweLookup(new Integer(rule).toString());
+                CweNumber cwe = BurpReader.cweLookup(new Integer(rule).toString());
                 tcr.setCWE(cwe);
                 // tcr.setEvidence( issue.getString("description") ); // Sometimes descriptions
                 // aren't provided, so comment out.

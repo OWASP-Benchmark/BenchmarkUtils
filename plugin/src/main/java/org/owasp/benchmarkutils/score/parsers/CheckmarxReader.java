@@ -21,8 +21,8 @@ import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -217,17 +217,18 @@ public class CheckmarxReader extends Reader {
         return null;
     }
 
-    private int translate(int cwe) {
+    private CweNumber translate(int cwe) {
         switch (cwe) {
             case 77:
             case 15:
-                return CweNumber.COMMAND_INJECTION;
+                return CweNumber.OS_COMMAND_INJECTION;
             case 36:
             case 23:
                 return CweNumber.PATH_TRAVERSAL;
             case 338:
                 return CweNumber.WEAK_RANDOM;
         }
-        return cwe;
+
+        return CweNumber.lookup(cwe);
     }
 }

@@ -21,6 +21,7 @@ import java.io.StringReader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -33,7 +34,7 @@ public class ReshiftReader extends Reader {
                 && resultFile.line(0).contains("Reshift Report");
     }
 
-    private static int cweLookup(String checkerKey) {
+    private static CweNumber cweLookup(String checkerKey) {
         checkerKey = checkerKey.replace("-SECOND-ORDER", "");
 
         switch (checkerKey) {
@@ -41,38 +42,38 @@ public class ReshiftReader extends Reader {
             case "Path Traversal (Read)":
             case "Path Traversal (Relative)":
             case "Path Traversal (Write)":
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
 
             case "SQL Injection (Hibernate)":
             case "SQL Injection (Java Database Connectivity)":
             case "SQL Injection (JDBC)":
             case "SQL Injection (Non-constant String)":
             case "SQL Injection (Prepared Statement)":
-                return 89; // sql injection
+                return CweNumber.SQL_INJECTION;
 
             case "Arbitrary Command Execution":
-                return 78; // command injection
+                return CweNumber.OS_COMMAND_INJECTION;
             case "XPath Injection":
-                return 643; // xpath injection
+                return CweNumber.XPATH_INJECTION;
             case "Cipher is Susceptible to Padding Oracle":
             case "Cipher With No Integrity":
             case "DES is Insecure":
             case "DESede is Insecure":
             case "Static IV":
-                return 327; // weak encryption
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "MD2, MD4 and MD5 Are Weak Hash Functions":
             case "SHA-1 is a Weak Hash Function":
-                return 328; // weak hash
+                return CweNumber.WEAK_HASH_ALGO;
             case "LDAP Injection":
-                return 90; // ldap injection
+                return CweNumber.LDAP_INJECTION;
             case "Cross-Site Scripting (XSS-Servlet Output)":
-                return 79; // xss
+                return CweNumber.XSS;
 
             default:
                 System.out.println(
                         "WARNING: Unmapped Vulnerability category detected: " + checkerKey);
         }
-        return 0;
+        return CweNumber.DONTCARE;
     }
 
     @Override
@@ -122,7 +123,7 @@ public class ReshiftReader extends Reader {
                                     url.substring(
                                             testCaseNumStart,
                                             testCaseNumStart + BenchmarkScore.TESTIDLENGTH)));
-                    if (tcr.getCWE() != 0) {
+                    if (!CweNumber.DONTCARE.equals(tcr.getCWE())) {
                         tr.put(tcr);
                     }
                 }

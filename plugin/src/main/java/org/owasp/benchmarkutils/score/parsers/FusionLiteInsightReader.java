@@ -27,6 +27,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -73,10 +74,10 @@ public class FusionLiteInsightReader extends Reader {
 
                 for (Node finding : findingList) {
                     String findingName = getNamedChild("Name", finding).getTextContent();
-                    int findingCWE =
-                            Integer.parseInt(getNamedChild("CWE", finding).getTextContent());
+                    CweNumber findingCWE =
+                            CweNumber.lookup(getNamedChild("CWE", finding).getTextContent());
 
-                    if (findingCWE != 0) {
+                    if (!CweNumber.DONTCARE.equals(findingCWE)) {
                         int testNumber = extractTestNumber(targetURL);
                         if (testNumber != -1) {
                             TestCaseResult tcr = new TestCaseResult();
