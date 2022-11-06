@@ -531,16 +531,24 @@ public enum CweNumber {
             }
         }
 
-        System.out.println("WARN: Requested unmapped CWE number " + searchFor + ".");
+        System.out.println("WARN: " + callerClass() + " requested unmapped CWE number " + searchFor + ".");
 
         return DONTCARE;
+    }
+
+    private static String callerClass() {
+        return simpleName(Thread.currentThread().getStackTrace()[3].getClassName());
+    }
+
+    private static String simpleName(String fullClassName) {
+        return fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
     }
 
     public static CweNumber lookup(String searchFor) {
         try {
             return lookup(Integer.parseInt(searchFor));
         } catch (NumberFormatException n) {
-            System.out.println("ERROR: Failed to parse CWE number '" + searchFor + "'.");
+            System.out.println("ERROR: Failed to parse CWE number '" + searchFor + "' provided by " + callerClass() + ".");
             return CweNumber.DONTCARE;
         }
     }
