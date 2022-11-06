@@ -161,9 +161,7 @@ public class VisualCodeGrepperReader extends Reader {
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
 
             default:
-                return CweNumber.DONTCARE; // System.out.println( "Unknown vuln category for
-                // VisualCodeGrepper: " +
-                // cat );
+                return CweNumber.DONTCARE;
         }
     }
 }

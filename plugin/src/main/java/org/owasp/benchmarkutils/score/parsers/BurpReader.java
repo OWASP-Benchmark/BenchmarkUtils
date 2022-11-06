@@ -130,44 +130,38 @@ public class BurpReader extends Reader {
                 return CweNumber.XSS;
             case "2098944":
                 return CweNumber.CSRF;
-            case "3146240":
-                return CweNumber.SERVER_SIDE_REQUEST_FORGERY; // External service interaction (DNS)
-            case "4194560":
-                return CweNumber.DONTCARE; // Referer Dependent Response
-            case "4194576":
-                return CweNumber.DONTCARE; // X-Forwarded-For header dependency
+            case "3146240": // External service interaction (DNS)
+                return CweNumber.SERVER_SIDE_REQUEST_FORGERY;
+            case "4194560": // Referer Dependent Response
+                return CweNumber.DONTCARE;
+            case "4194576": // X-Forwarded-For header dependency
+                return CweNumber.DONTCARE;
             case "4197376": // Input returned in response (reflected)
             case "4197632": // Suspicious input transformation (reflected)
                 return CweNumber.IMPROPER_INPUT_VALIDAITON;
             case "5243392":
                 return CweNumber.INSECURE_COOKIE;
-            case "5244416":
-                return CweNumber.COOKIE_WITHOUT_HTTPONLY; // Cookie without HttpOnly flag set
+            case "5244416": // Cookie without HttpOnly flag set
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
             case "5245344": // Clickjacking
                 return CweNumber.IMPROPER_RESTRICTION_OF_UI_LAYERS;
             case "5245360": // Browser cross-site scripting filter disabled
                 return CweNumber.CATEGORY_CONFIGURATION;
-            case "5245952":
-                return CweNumber
-                        .DONTCARE; // Ajax request header manipulation (DOM-based) - Map to nothing
-                // right
-            case "5247488":
-                return CweNumber
-                        .DONTCARE; // DOM Trust Boundary Violation - Map to nothing right now.
+            case "5245952": // Ajax request header manipulation (DOM-based) - Map to nothing right
+                return CweNumber.DONTCARE;
+            case "5247488": // DOM Trust Boundary Violation - Map to nothing right now.
+                return CweNumber.DONTCARE;
             case "6291968": // Information Disclosure - Email Address Disclosed
             case "6292736": // Information Disclosure - Credit Card # Disclosed
                 return CweNumber.EXPOSURE_SENSITIVE_TO_UNAUTHORIZED_USER;
-            case "7340288":
-                return CweNumber
-                        .SENSITIVE_INFORMATION_IN_BROWSER_CACHE; // Information Exposure Through
-                // Browser Caching-Cacheable HTTPS
-                // Response
-            case "8389120":
-                return CweNumber.DONTCARE; // HTML doesn't specify character set - Map to nothing.
-            case "8389632":
-                return CweNumber.DONTCARE; // Incorrect Content Type - Map to nothing right now.
-            case "8389888":
-                return CweNumber.CATEGORY_CONFIGURATION; // Content type is not specified
+            case "7340288": // Information Exposure Throug Browser Caching-Cacheable HTTPS Response
+                return CweNumber.SENSITIVE_INFORMATION_IN_BROWSER_CACHE;
+            case "8389120": // HTML doesn't specify character set - Map to nothing.
+                return CweNumber.DONTCARE;
+            case "8389632": // Incorrect Content Type - Map to nothing right now.
+                return CweNumber.DONTCARE;
+            case "8389888": // Content type is not specified
+                return CweNumber.CATEGORY_CONFIGURATION;
         } // end switch(id)
         System.out.println("Unknown Burp rule id: " + id);
         return CweNumber.DONTCARE;

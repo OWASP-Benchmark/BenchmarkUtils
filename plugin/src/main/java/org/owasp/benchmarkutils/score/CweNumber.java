@@ -531,7 +531,8 @@ public enum CweNumber {
             }
         }
 
-        System.out.println("WARN: " + callerClass() + " requested unmapped CWE number " + searchFor + ".");
+        System.out.println(
+                "WARN: " + callerClass() + " requested unmapped CWE number " + searchFor + ".");
 
         return DONTCARE;
     }
@@ -548,7 +549,12 @@ public enum CweNumber {
         try {
             return lookup(Integer.parseInt(searchFor));
         } catch (NumberFormatException n) {
-            System.out.println("ERROR: Failed to parse CWE number '" + searchFor + "' provided by " + callerClass() + ".");
+            System.out.println(
+                    "ERROR: Failed to parse CWE number '"
+                            + searchFor
+                            + "' provided by "
+                            + callerClass()
+                            + ".");
             return CweNumber.DONTCARE;
         }
     }

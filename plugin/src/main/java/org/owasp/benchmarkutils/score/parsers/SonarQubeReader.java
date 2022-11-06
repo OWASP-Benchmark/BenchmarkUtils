@@ -387,10 +387,9 @@ public class SonarQubeReader extends Reader {
             case "S2275": // Printf-style format strings should not lead to unexpected behavior at
                 // runtime
                 return CweNumber.DONTCARE;
-            case "S2277":
-                return CweNumber.RSA_MISSING_PADDING; // Cryptographic RSA algorithms should always
-                // incorporate OAEP (Optimal Asymmetric Encryption
-                // Padding)
+            case "S2277": // Cryptographic RSA algorithms should always incorporate OAEP (Optimal
+                // Asymmetric Encryption Padding)
+                return CweNumber.RSA_MISSING_PADDING;
             case "S2278": // Benchmark Vuln: DES (Data Encryption Standard) and DESede (3DES) should
                 // not be used
                 return CweNumber.WEAK_CRYPTO_ALGO;
@@ -415,12 +414,12 @@ public class SonarQubeReader extends Reader {
                 return CweNumber.DONTCARE;
             case "S2681": // Multiline blocks should be enclosed in curly braces
                 return CweNumber.INCORRECT_BLOCK_DELIMITATION;
-            case "S2696":
-                return CweNumber.DONTCARE; // Instance methods should not write to "static" fields
-            case "S2755":
-                return CweNumber.XXE; // XML parsers should not be vulnerable to XXE attacks
-            case "S2786":
-                return CweNumber.DONTCARE; // Nested "enum"s should not be declared static
+            case "S2696": // Instance methods should not write to "static" fields
+                return CweNumber.DONTCARE;
+            case "S2755": // XML parsers should not be vulnerable to XXE attacks
+                return CweNumber.XXE;
+            case "S2786": // Nested "enum"s should not be declared static
+                return CweNumber.DONTCARE;
             case "S2864": // "entrySet()" should be iterated when both the key and value are needed
                 return CweNumber.DONTCARE;
             case "S3008": // Static non-final field names should comply with a naming convention
