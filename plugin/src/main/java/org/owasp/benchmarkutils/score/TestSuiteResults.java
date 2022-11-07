@@ -162,7 +162,7 @@ public class TestSuiteResults {
         if (!anonymous
                 && this.toolVersion != null
                 && !"".equals(this.toolVersion)
-                && !(BenchmarkScore.anonymousMode && this.isCommercial)) {
+                && !(BenchmarkScore.config.anonymousMode && this.isCommercial)) {
             return this.toolName + " v" + this.toolVersion;
         }
         return this.toolName;
