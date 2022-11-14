@@ -24,6 +24,11 @@ import java.io.SequenceInputStream;
 import java.util.Map;
 import org.yaml.snakeyaml.Yaml;
 
+/**
+ * The values of these scorecard generation variables can be changed via scorecardconfig.yaml files.
+ * These affect overall scorecard generation. These were the original command line params to
+ * scorecard generation.
+ */
 public class Configuration {
 
     public static final String DEFAULT_CONFIG = "defaultscoringconfig.yaml";

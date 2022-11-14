@@ -17,14 +17,30 @@
  */
 package org.owasp.benchmarkutils.score;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -74,13 +90,6 @@ public class BenchmarkScore extends AbstractMojo {
 
     // The values stored in this is pulled from the categories.xml config file
     //    public static Categories CATEGORIES;
-
-    // The values of these scorecard generation variables can be changed via scorecardconfig.yaml
-    // files. These affect overall scorecard generation. These were the original command line params
-    // to scorecard generation.
-
-    // Customizations of these can be set via scorecardconfig.yaml files
-    // This affects details within whatever type of scorecards are being generated
 
     // This is the default project link. This is set to "" if includeProjectLink set to false.
     // TODO: Make this value configurable via .yaml file
@@ -151,7 +160,7 @@ public class BenchmarkScore extends AbstractMojo {
         }
 
         if (!config.includePrecision) {
-            // This two values are both included or not included together (currently)
+            // These two values are both included or not included together (currently)
             PRECISIONKEYENTRY = "";
             FSCOREKEYENTRY = "";
         }
@@ -850,7 +859,7 @@ public class BenchmarkScore extends AbstractMojo {
     private static TestSuiteResults readExpectedResults(File file) {
         TestSuiteResults tr = new TestSuiteResults("Expected", true, null);
 
-        try (final BufferedReader fr = new BufferedReader(new FileReader(file)); ) {
+        try (final BufferedReader fr = new BufferedReader(new FileReader(file))) {
             // Read the 1st line. Parse out the test suite name and version #, which looks like:
             // # test name, category, real vulnerability, cwe, TESTSUITENAME version: x.y,
             // YYYY-MM-DD
