@@ -165,7 +165,10 @@ public class ContrastAssessReader extends Reader {
         try {
             JSONObject obj = new JSONObject(json);
             String ruleId = obj.getString("ruleId");
-            tcr.setCWE(cweLookup(ruleId));
+            int cweNum = cweLookup(ruleId);
+            if (CweNumber.DONTCARE == cweNum)
+                return; // Don't bother parsing finding types we don't care about
+            tcr.setCWE(cweNum);
             tcr.setCategory(ruleId);
 
             JSONObject request = obj.getJSONObject("request");
@@ -233,8 +236,12 @@ public class ContrastAssessReader extends Reader {
             case "hsts-header-missing":
                 // return 319; // CWE-319: Cleartext Transmission of Sensitive Information
                 return CweNumber.DONTCARE;
+            case "insecure-jsp-access":
+                return CweNumber.DONTCARE;
             case "ldap-injection":
                 return CweNumber.LDAP_INJECTION;
+            case "log-injection":
+                return CweNumber.DONTCARE;
             case "nosql-injection":
                 return CweNumber.SQL_INJECTION; // nosql injection
             case "path-traversal":
