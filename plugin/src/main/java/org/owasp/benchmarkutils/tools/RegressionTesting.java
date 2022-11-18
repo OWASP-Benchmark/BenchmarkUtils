@@ -222,8 +222,11 @@ public class RegressionTesting {
         out.printf("Safe response: [%d]:%n", attackResponseInfo.getStatusCode());
         out.println(safeResponseInfo == null ? "null" : safeResponseInfo.getResponseString());
         out.println();
+        String negatedAttackSuccessString =
+                (requestTemplate.getAttackSuccessStringPresent() ? "" : "Failure ");
         out.printf(
-                "Attack success indicator: -->%s<--%n", requestTemplate.getAttackSuccessString());
+                "Attack success %sindicator: -->%s<--%n",
+                negatedAttackSuccessString, requestTemplate.getAttackSuccessString());
         out.printf("-----------------------------------------------------------%n%n");
     }
 
@@ -339,14 +342,17 @@ public class RegressionTesting {
         }
 
         if (!result.isUnverifiable()) {
+            AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
             boolean isAttackValueVerified =
                     verifyResponse(
                             result.getResponseToAttackValue().getResponseString(),
-                            result.getRequestTemplate().getAttackSuccessString());
+                            requestTemplate.getAttackSuccessString(),
+                            requestTemplate.getAttackSuccessStringPresent());
             boolean isSafeValueVerified =
                     verifyResponse(
                             result.getResponseToSafeValue().getResponseString(),
-                            result.getRequestTemplate().getAttackSuccessString());
+                            requestTemplate.getAttackSuccessString(),
+                            requestTemplate.getAttackSuccessStringPresent());
             if (result.getRequestTemplate().isVulnerability()) {
                 // True positive success?
                 if (isAttackValueVerified) {
@@ -436,14 +442,17 @@ public class RegressionTesting {
      * @param response - The response from this test case.
      * @param attackSuccessIndicator - The value to look for in the response to determine if the
      *     attack was successful.
+     * @param attackSuccessStringPresent - boolean indicating if attack success indicator must be
+     *     present (or absent) to pass.
      * @return true if the response passes the described checks. False otherwise.
      */
-    public static boolean verifyResponse(String response, String attackSuccessIndicator) {
+    public static boolean verifyResponse(
+            String response, String attackSuccessIndicator, boolean attackSuccessStringPresent) {
 
         // Rip out any REFERER values
         attackSuccessIndicator = attackSuccessIndicator.replace("REFERER", "");
 
-        return response.contains(attackSuccessIndicator);
+        return (response.contains(attackSuccessIndicator) == attackSuccessStringPresent);
     }
 
     private static boolean isIncludedInTest(AbstractTestCaseRequest testCaseRequestTemplate) {
