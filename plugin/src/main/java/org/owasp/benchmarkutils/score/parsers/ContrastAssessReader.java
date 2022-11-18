@@ -24,11 +24,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class ContrastReader extends Reader {
+public class ContrastAssessReader extends Reader {
 
     private final String NODEFINDINGLINEINDICATOR = "contrast:rules:sinks - ";
     private final String NODEAGENTVERSIONLINEINDICATOR = "contrast:contrast-init - agent v";
@@ -36,7 +37,7 @@ public class ContrastReader extends Reader {
     public static void main(String[] args) throws Exception {
         File f = new File("results/Benchmark_1.2-Contrast.log");
         ResultFile resultFile = new ResultFile(f);
-        ContrastReader cr = new ContrastReader();
+        ContrastAssessReader cr = new ContrastAssessReader();
         cr.parse(resultFile);
     }
 
@@ -50,7 +51,7 @@ public class ContrastReader extends Reader {
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
-                new TestSuiteResults("Contrast", true, TestSuiteResults.ToolType.IAST);
+                new TestSuiteResults("Contrast Assess", true, TestSuiteResults.ToolType.IAST);
 
         BufferedReader reader = new BufferedReader(new FileReader(resultFile.file()));
         String FIRSTLINEINDICATOR = BenchmarkScore.TESTCASENAME;
@@ -164,7 +165,10 @@ public class ContrastReader extends Reader {
         try {
             JSONObject obj = new JSONObject(json);
             String ruleId = obj.getString("ruleId");
-            tcr.setCWE(cweLookup(ruleId));
+            int cweNum = cweLookup(ruleId);
+            if (CweNumber.DONTCARE == cweNum)
+                return; // Don't bother parsing finding types we don't care about
+            tcr.setCWE(cweNum);
             tcr.setCategory(ruleId);
 
             JSONObject request = obj.getJSONObject("request");
@@ -202,56 +206,65 @@ public class ContrastReader extends Reader {
         }
     }
 
-    private int cweLookup(String rule) {
+    static int cweLookup(String rule) {
         switch (rule) {
+            case "autocomplete-missing":
+                // Not sure the CWE for this.
             case "cache-controls-missing":
-                return 525; // Web Browser Cache Containing Sensitive Info
+                // return 525; // Web Browser Cache Containing Sensitive Info
             case "clickjacking-control-missing":
-                return 1021; // Improper Restriction of Rendered UI Layers (i.e., Clickjacking)
+                // return 1021; // Improper Restriction of Rendered UI Layers (i.e., Clickjacking)
+                return CweNumber.DONTCARE;
+            case "unsafe-code-execution": // Note: This is technically CWE 95 'Eval Injection'
             case "cmd-injection":
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
             case "cookie-flags-missing":
-                return 614; // insecure cookie use
+                return CweNumber.INSECURE_COOKIE;
             case "crypto-bad-ciphers":
-                return 327; // weak encryption
+                return CweNumber.WEAK_CRYPTO_ALGO; // weak encryption
             case "crypto-bad-mac":
-                return 328; // weak hash
+                return CweNumber.WEAK_HASH_ALGO; // weak hash
             case "crypto-weak-randomness":
-                return 330; // weak random
+                return CweNumber.WEAK_RANDOM;
             case "csp-header-insecure":
-                return 0000; // Don't care
             case "csp-header-missing":
-                return 0000; // Don't care
+                return CweNumber.DONTCARE;
             case "header-injection":
-                return 113; // header injection
+                return CweNumber.HTTP_RESPONSE_SPLITTING;
             case "hql-injection":
-                return 564; // hql injection
+                return CweNumber.HIBERNATE_INJECTION;
             case "hsts-header-missing":
-                return 319; // CWE-319: Cleartext Transmission of Sensitive Information
+                // return 319; // CWE-319: Cleartext Transmission of Sensitive Information
+                return CweNumber.DONTCARE;
+            case "insecure-jsp-access":
+                return CweNumber.DONTCARE;
             case "ldap-injection":
-                return 90; // ldap injection
+                return CweNumber.LDAP_INJECTION;
+            case "log-injection":
+                return CweNumber.DONTCARE;
             case "nosql-injection":
-                return 89; // nosql injection
+                return CweNumber.SQL_INJECTION; // nosql injection
             case "path-traversal":
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
             case "reflected-xss":
-                return 79; // xss
+                return CweNumber.XSS;
             case "reflection-injection":
-                return 0000; // reflection injection
+                return CweNumber.DONTCARE;
             case "redos":
-                return 400; // regex denial of service - CWE-400: Uncontrolled Resource Consumption
+                // return 400; // regex denial of service - CWE-400: Uncontrolled Resource
+                // Consumption
+                return CweNumber.DONTCARE;
             case "sql-injection":
-                return 89; // sql injection
+                return CweNumber.SQL_INJECTION;
             case "trust-boundary-violation":
-                return 501; // trust boundary
+                return CweNumber.TRUST_BOUNDARY_VIOLATION; // trust boundary
             case "unsafe-readline":
-                return 0000; // unsafe readline
             case "xcontenttype-header-missing":
-                return 0000; // Don't care
+                return CweNumber.DONTCARE;
             case "xpath-injection":
-                return 643; // xpath injection
+                return CweNumber.XPATH_INJECTION;
             case "xxe":
-                return 611; // xml entity
+                return CweNumber.XXE; // XML eXternal entity injection
             default:
                 System.out.println("WARNING: Contrast-Unrecognized finding type: " + rule);
         }

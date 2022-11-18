@@ -35,7 +35,7 @@ public class SonarQubeReaderTest extends ReaderTestBase {
     @BeforeEach
     void setUp() {
         pluginResultFile =
-                TestHelper.resultFileOf("testfiles/Benchmark_1.2-sonar-Java-Plugin-v3.14-1234.xml");
+                TestHelper.resultFileOf("testfiles/Benchmark_sonar-Java-Plugin-v3.14-1234.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

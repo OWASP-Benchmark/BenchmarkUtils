@@ -34,7 +34,7 @@ public class AcunetixReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Acunetix-v1.4.1.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Acunetix-v1.4.1.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

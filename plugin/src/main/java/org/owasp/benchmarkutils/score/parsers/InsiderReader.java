@@ -99,7 +99,7 @@ public class InsiderReader extends Reader {
                 return CweNumber.COMMAND_INJECTION;
             case "326":
             case "327":
-                return CweNumber.BROKEN_CRYPTO;
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "330":
                 return CweNumber.WEAK_RANDOM;
             case "532":

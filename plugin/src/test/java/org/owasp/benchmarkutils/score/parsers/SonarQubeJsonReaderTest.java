@@ -34,7 +34,7 @@ public class SonarQubeJsonReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-sonarqube-v9.1.0.47736.json");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_sonarqube-v9.1.0.47736.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
@@ -54,7 +54,7 @@ public class SonarQubeJsonReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.BROKEN_CRYPTO, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.WEAK_CRYPTO_ALGO, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
     }
 }

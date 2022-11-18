@@ -13,7 +13,7 @@
  * PURPOSE. See the GNU General Public License for more details.
  *
  * @author Sascha Knoop
- * @created 2021
+ * @created 2022
  */
 package org.owasp.benchmarkutils.score.parsers;
 
@@ -28,33 +28,33 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class BurpReaderTest extends ReaderTestBase {
+public class SeekerReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_BurpPro-v2020.2.1.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Seeker.csv");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyBurpReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, BurpReader.class);
+    public void onlySeekerReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, SeekerReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        BurpReader reader = new BurpReader();
+        SeekerReader reader = new SeekerReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
+        assertEquals(TestSuiteResults.ToolType.IAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("Burp Suite Pro", result.getToolName());
+        assertEquals("Seeker", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
         assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.TRUST_BOUNDARY_VIOLATION, result.get(2).get(0).getCWE());
     }
 }

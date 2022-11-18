@@ -22,21 +22,39 @@
         </dependency>
 
         <dependency>
+            <groupId>com.contrastsecurity</groupId>
+            <artifactId>java-sarif</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${version.fasterxml.jackson}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${version.fasterxml.jackson}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.13.4.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>${version.fasterxml.jackson}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>30.1.1-jre</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-core</artifactId>
-            <version>3.0.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <version>3.0.2</version>
+            <version>31.1-jre</version>
         </dependency>
 
         <dependency>
@@ -78,19 +96,20 @@
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
-            <version>5.1.3</version>
+            <version>${version.httpcomponents}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.httpcomponents.core5</groupId>
             <artifactId>httpcore5</artifactId>
-            <version>5.1.3</version>
+            <version>${version.httpcomponents}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>3.8.4</version>
+            <version>3.8.6</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -103,14 +122,14 @@
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.core</artifactId>
-            <version>2.7.10</version>
+            <version>${version.eclipse.persistence}</version>
         </dependency>
 
         <!-- Version 3.0.2 gave a weird ClassCastException -->
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.moxy</artifactId>
-            <version>2.7.10</version>
+            <version>${version.eclipse.persistence}</version>
         </dependency>
 
         <dependency>
@@ -122,14 +141,22 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20211205</version>
+            <version>20220924</version>
         </dependency>
 
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.30</version>
+            <version>1.33</version>
         </dependency>
+
+        <!-- The following dependency might be an upgrade/replacement for jaxb.xml.bind.JAXBContext,
+            but it looks like it requires Java 11.
+            <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>4.0.0</version>
+            </dependency -->
 
         <dependency>
             <groupId>javax.validation</groupId>
@@ -145,21 +172,16 @@
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.8.0</version>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${version.junit.jupiter}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.13.2.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-xml</artifactId>
-            <version>2.13.1</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${version.junit.jupiter}</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -177,6 +199,14 @@
 
     <properties>
         <version.exec.maven>1.6.0</version.exec.maven>
+        <!-- Note that artifactId jackson-databind has a later version and needs to be updated separately -->
+        <version.fasterxml.jackson>2.13.4</version.fasterxml.jackson>
+        <version.httpcomponents>5.1.3</version.httpcomponents>
+        <!-- jaxb 4.0.0-M4 requires Java 11. But seems to compile/pass tests fine. -->
+        <version.jaxb>3.1.0-M1</version.jaxb>
+        <!-- 3.0.2 version of eclipse.persistence requires jakarta.xml.bind instead of jaxb -->
+        <version.eclipse.persistence>2.7.11</version.eclipse.persistence>
+        <version.junit.jupiter>5.9.1</version.junit.jupiter>
     </properties>
 
 </project>

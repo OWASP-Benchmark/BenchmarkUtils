@@ -106,14 +106,14 @@ public class ReshiftReader extends Reader {
         Iterable<CSVRecord> records = CSVBuilder.build().parse(inReader);
 
         for (CSVRecord record : records) {
-            String category = record.get("Category");
             String url = record.get("Issue-File");
 
-            TestCaseResult tcr = new TestCaseResult();
-            tcr.setCategory(category);
-            tcr.setCWE(cweLookup(category));
             try {
                 if (url.contains(BenchmarkScore.TESTCASENAME)) {
+                    TestCaseResult tcr = new TestCaseResult();
+                    String category = record.get("Category");
+                    tcr.setCategory(category);
+                    tcr.setCWE(cweLookup(category));
                     int testCaseNumStart =
                             url.indexOf(BenchmarkScore.TESTCASENAME)
                                     + BenchmarkScore.TESTCASENAME.length();
@@ -122,13 +122,12 @@ public class ReshiftReader extends Reader {
                                     url.substring(
                                             testCaseNumStart,
                                             testCaseNumStart + BenchmarkScore.TESTIDLENGTH)));
+                    if (tcr.getCWE() != 0) {
+                        tr.put(tcr);
+                    }
                 }
             } catch (NumberFormatException e) {
                 System.out.println("> Parse error: " + record.toString());
-            }
-
-            if (tcr.getCWE() != 0) {
-                tr.put(tcr);
             }
         }
 

@@ -28,33 +28,33 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class BurpReaderTest extends ReaderTestBase {
+public class CoverityReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_BurpPro-v2020.2.1.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Coverity-v3.0.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyBurpReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, BurpReader.class);
+    public void onlyCoverityReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, CoverityReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        BurpReader reader = new BurpReader();
+        CoverityReader reader = new CoverityReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("Burp Suite Pro", result.getToolName());
+        assertEquals("Coverity Code Advisor", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
     }
 }

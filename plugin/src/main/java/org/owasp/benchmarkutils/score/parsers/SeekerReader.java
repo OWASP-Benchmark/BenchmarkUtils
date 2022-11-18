@@ -36,7 +36,7 @@ public class SeekerReader extends Reader {
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr = new TestSuiteResults("Seeker", true, TestSuiteResults.ToolType.IAST);
 
-        java.io.Reader inReader = new java.io.FileReader(resultFile.file());
+        java.io.Reader inReader = new java.io.StringReader(resultFile.content());
         Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(inReader);
         for (CSVRecord record : records) {
             String checkerKey = record.get("CheckerKey");
@@ -84,9 +84,9 @@ public class SeekerReader extends Reader {
             case "reflection-injection":
                 return 0000; // reflection injection
             case "R-XSS":
-                return 79; // xss
+                return 79; // XSS
             case "XPATH-INJECT":
-                return 643; // xpath injection
+                return 643; // XPath injection
             case "DIR-TRAVERSAL":
                 return 22; // path traversal
             case "crypto-bad-mac":
@@ -98,13 +98,17 @@ public class SeekerReader extends Reader {
             case "trust-boundary-violation":
                 return 501; // trust boundary
             case "xxe":
-                return 611; // xml entity
+                return 611; // XML Entity Injection
             case "WEAK-HASH":
                 return 328;
             case "WEAK-RANDOM-GENERATOR":
                 return 330;
             case "TRUST-BOUNDARY-VIOLATION":
                 return 501;
+
+            default:
+                System.out.println(
+                        "WARNING: Unmapped Vulnerability category detected: " + checkerKey);
         }
         return 0;
     }

@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.cli.CommandLine;
@@ -40,6 +41,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -66,6 +68,7 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 @Mojo(name = "run-crawler", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
 public class BenchmarkCrawler extends AbstractMojo {
 
+    static final long MAX_NETWORK_TIMEOUT = 15; // seconds
     public static String proxyHost, proxyPort;
 
     @Parameter(property = "crawlerFile")
@@ -157,7 +160,9 @@ public class BenchmarkCrawler extends AbstractMojo {
      * @throws Exception
      */
     protected void crawl(TestSuite testSuite) throws Exception {
-        CloseableHttpClient httpclient = createAcceptSelfSignedCertificateClient();
+        CloseableHttpClient httpclient =
+                createAcceptSelfSignedCertificateClient(
+                        MAX_NETWORK_TIMEOUT); // Max 15 seconds for timeouts
         long start = System.currentTimeMillis();
 
         for (AbstractTestCaseRequest requestTemplate : testSuite.getTestCases()) {
@@ -181,7 +186,7 @@ public class BenchmarkCrawler extends AbstractMojo {
 
     // This method taken directly from:
     // https://memorynotfound.com/ignore-certificate-errors-apache-httpclient/
-    static CloseableHttpClient createAcceptSelfSignedCertificateClient()
+    static CloseableHttpClient createAcceptSelfSignedCertificateClient(long timeout)
             throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
 
         // use the TrustSelfSignedStrategy to allow Self Signed Certificates
@@ -204,19 +209,29 @@ public class BenchmarkCrawler extends AbstractMojo {
 
         // Set Proxy settings
         HttpHost httpHost = null;
+        RequestConfig config =
+                RequestConfig.custom()
+                        .setConnectTimeout(timeout, TimeUnit.SECONDS)
+                        .setConnectionRequestTimeout(timeout, TimeUnit.SECONDS)
+                        .setResponseTimeout(timeout, TimeUnit.SECONDS)
+                        .build();
         if ((proxyHost = System.getProperty("proxyHost")) != null
                 && (proxyPort = System.getProperty("proxyPort")) != null) {
             httpHost = new HttpHost(proxyHost, Integer.parseInt(proxyPort));
             // finally create the HttpClient using HttpClient factory methods and assign the SSL
             // Socket Factory and assign the setProxy
             return HttpClients.custom()
+                    .setDefaultRequestConfig(config)
                     .setConnectionManager(cm)
                     .setProxy(httpHost)
                     .build();
         } else {
             // finally create the HttpClient using HttpClient factory methods and assign the SSL
             // Socket Factory
-            return HttpClients.custom().setConnectionManager(cm).build();
+            return HttpClients.custom()
+                    .setDefaultRequestConfig(config)
+                    .setConnectionManager(cm)
+                    .build();
         }
     }
 
@@ -247,23 +262,35 @@ public class BenchmarkCrawler extends AbstractMojo {
         try {
             response = httpclient.execute(request);
         } catch (IOException e) {
+            // When this occurs, a null pointer exception happens later on, so we need to do
+            // something so we can continue crawling.
             e.printStackTrace();
         }
         watch.stop();
 
         try {
-            HttpEntity entity = response.getEntity();
-            int statusCode = response.getCode();
-            responseInfo.setStatusCode(statusCode);
             int seconds = (int) watch.getTime() / 1000;
             responseInfo.setTimeInSeconds(seconds);
-            System.out.printf("--> (%d : %d sec)%n", statusCode, seconds);
+            if (response != null) {
+                HttpEntity entity = response.getEntity();
+                int statusCode = response.getCode();
+                responseInfo.setStatusCode(statusCode);
+                System.out.printf("--> (%d : %d sec)%n", statusCode, seconds);
 
-            try {
-                responseInfo.setResponseString(EntityUtils.toString(entity));
-                EntityUtils.consume(entity);
-            } catch (IOException | org.apache.hc.core5.http.ParseException e) {
-                e.printStackTrace();
+                try {
+                    if (entity != null) {
+                        responseInfo.setResponseString(EntityUtils.toString(entity));
+                        EntityUtils.consume(entity);
+                    } else
+                        // Can occur when there is a 204 No Content response
+                        responseInfo.setResponseString("");
+                } catch (IOException | org.apache.hc.core5.http.ParseException e) {
+                    e.printStackTrace();
+                }
+            } else { // This can occur when the test case never responds, throwing an exception.
+                responseInfo.setStatusCode(-1); // since no response at all
+                System.out.printf("--> (%d : %d sec)%n", -1, seconds);
+                responseInfo.setResponseString("NONE!");
             }
         } finally {
             if (response != null)

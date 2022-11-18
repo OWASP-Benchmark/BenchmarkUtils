@@ -34,7 +34,7 @@ public class Rapid7ReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-AppSpider-v7.2.119-1234.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_AppSpider-v7.2.119-1234.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

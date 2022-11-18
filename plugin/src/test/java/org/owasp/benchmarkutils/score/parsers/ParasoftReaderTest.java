@@ -34,7 +34,7 @@ public class ParasoftReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-ParasoftJTest-v10.2.3.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_ParasoftJTest-v10.2.3.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

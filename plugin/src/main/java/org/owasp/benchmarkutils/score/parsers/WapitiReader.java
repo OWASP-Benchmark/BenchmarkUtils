@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -113,29 +114,39 @@ public class WapitiReader extends Reader {
             String title = getNamedChild("title", ref).getTextContent();
             if (title.startsWith("CWE-")) {
                 String cweNum = title.substring("CWE-".length(), title.indexOf(":"));
-                try {
-                    cwe = Integer.parseInt(cweNum);
-                    break;
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
-                    break;
-                }
+                cwe = cweLookup(cweNum);
             }
         }
         return cwe;
     }
 
-    /*  // Don't need any CWE translations currently.
-        private int translate(String cwe) {
-            switch( cwe ) {
-                case "File Handling"        :   return 22;   // Path Traversal
-                case "Commands execution"   :   return 78;   // Command Injection
-                case "CRLF Injection"       :   return 9999; // don't care
-                case "Cross Site Scripting" :   return 79;
-                case "SQL Injection"        :   return 89;
-                case "Blind SQL Injection"  :   return 89;
-            }
-            return -1;
+    private int cweLookup(String cwe) {
+        switch (cwe) {
+            case "22":
+                return CweNumber.PATH_TRAVERSAL;
+            case "78":
+                return CweNumber.COMMAND_INJECTION;
+            case "79":
+                return CweNumber.XSS;
+            case "89": // Normal and Blind SQL Injection
+                return CweNumber.SQL_INJECTION;
+            case "352":
+                return CweNumber.CSRF;
+            case "611":
+                return CweNumber.XXE;
+            case "93": // HTTP Response Splitting
+            case "530": // Exposure of Backup file
+            case "538": // Htaccess bypass
+            case "601": // Open Redirect
+            case "798": // Hard Coded credentials
+            case "918": // SSRF
+                return CweNumber.DONTCARE;
+
+                // Note: Wapiti does report Secure Flag not set on cookie findings, but doesn't
+                // report the specific page. Only the entire web app.
+            default:
+                System.out.println("WARNING: Wapiti-Unmapped CWE number: " + cwe);
         }
-    */
+        return -1;
+    }
 }

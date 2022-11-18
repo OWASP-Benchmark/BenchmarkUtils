@@ -101,12 +101,31 @@ public class TestSuiteResults {
         return isCommercial;
     }
 
+    /**
+     * Add a test case result to the set of results for this tool.
+     *
+     * @param tcr The test case result to add.
+     */
     public void put(TestCaseResult tcr) {
-        List<TestCaseResult> results = testCaseResults.get(tcr.getNumber());
+
+        // This warning message is added just in case. It can be caused by a buggy parser or
+        // invalid results file.
+        int testCaseNum = tcr.getNumber();
+        if (testCaseNum <= 0 || testCaseNum > 10000) {
+            System.out.println(
+                    "WARNING: Did you really intend to add a test case result for test case: "
+                            + testCaseNum);
+        }
+
+        // There is a list of results for each test case
+        List<TestCaseResult> results = testCaseResults.get(testCaseNum);
         if (results == null) {
+            // If there are no results yet for this test case, create a List.
+            // Add this list for this test case to the set of results
             results = new ArrayList<TestCaseResult>();
             testCaseResults.put(tcr.getNumber(), results);
         }
+        // Add this specific result to this test case's results
         results.add(tcr);
     }
 

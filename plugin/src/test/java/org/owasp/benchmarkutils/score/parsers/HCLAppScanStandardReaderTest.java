@@ -28,33 +28,35 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class HCLReaderTest extends ReaderTestBase {
+public class HCLAppScanStandardReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2_HCL-IAST.hcl");
+        resultFile =
+                TestHelper.resultFileOf("testfiles/Benchmark_HCLAppScanStandardReader-v10.0.6.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyHCLReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, HCLReader.class);
+    public void onlyHCLAppScanStandardReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, HCLAppScanStandardReader.class);
     }
 
     @Test
-    void readerHandlesGivenResultFile() throws Exception {
-        HCLReader reader = new HCLReader();
+    void readerHandlesGivenV10ResultFile() throws Exception {
+        HCLAppScanStandardReader reader = new HCLAppScanStandardReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.IAST, result.getToolType());
+        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("HCL IAST", result.getToolName());
+        assertEquals("HCL AppScan Standard", result.getToolName());
+        assertEquals("10.0.6", result.getToolVersion());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
     }
 }

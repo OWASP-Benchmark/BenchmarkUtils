@@ -62,11 +62,15 @@ public class ThunderScanReader extends Reader {
 
         tcResult.setCWE(
                 figureCwe(vulnerabilityType.name, vulnerability.function, vulnerability.filename));
-        tcResult.setNumber(testNumber(vulnerability.filename));
-        tcResult.setCategory(vulnerabilityType.name);
-        tcResult.setConfidence(1);
-        tcResult.setEvidence(lineNumber(vulnerability));
-        return tcResult;
+        int testcasenum = testNumber(vulnerability.filename);
+        if (testcasenum > 0) {
+            tcResult.setNumber(testcasenum);
+            tcResult.setCategory(vulnerabilityType.name);
+            tcResult.setConfidence(1);
+            tcResult.setEvidence(lineNumber(vulnerability));
+            return tcResult;
+        }
+        return null; // Finding not in a test case
     }
 
     private boolean createsTestCaseResult(
@@ -110,11 +114,11 @@ public class ThunderScanReader extends Reader {
                 return CweNumber.XPATH_INJECTION;
             case "Misc. Dangerous Functions":
                 if (function.contains("Weak Enc")) {
-                    return CweNumber.BROKEN_CRYPTO;
+                    return CweNumber.WEAK_CRYPTO_ALGO;
                 }
 
                 if (function.contains("Weak Hash")) {
-                    return CweNumber.REVERSIBLE_HASH;
+                    return CweNumber.WEAK_HASH_ALGO;
                 }
 
                 if (function.contains("Weak Random")) {

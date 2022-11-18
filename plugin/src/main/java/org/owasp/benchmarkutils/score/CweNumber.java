@@ -12,15 +12,15 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * <p>This reader reads JSON reports from the Horusec open source tool at:
- * https://github.com/ZupIT/horusec
- *
  * @author Sascha Knoop
  * @created 2021
  */
 package org.owasp.benchmarkutils.score;
 
 public class CweNumber {
+
+    /** To be used when the CWE reported is one we don't care about in any test suite */
+    public static int DONTCARE = 0000;
 
     /** CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal') */
     public static int PATH_TRAVERSAL = 22;
@@ -59,10 +59,10 @@ public class CweNumber {
     public static int IMPROPER_ACCESS_CONTROL = 284;
 
     /** CWE-327: Use of a Broken or Risky Cryptographic Algorithm */
-    public static int BROKEN_CRYPTO = 327;
+    public static int WEAK_CRYPTO_ALGO = 327;
 
-    /** CWE-328: Reversible One-Way Hash */
-    public static int REVERSIBLE_HASH = 328;
+    /** CWE-328: Use of Weak Hash */
+    public static int WEAK_HASH_ALGO = 328;
 
     /** CWE-329: Generation of Predictable IV with CBC Mode */
     public static int STATIC_CRYPTO_INIT = 329;
@@ -112,6 +112,9 @@ public class CweNumber {
     /** CWE-532: Insertion of Sensitive Information into Log File */
     public static int SENSITIVE_LOGFILE = 532;
 
+    /** CWE-564: SQL Injection: Hibernate */
+    public static int HIBERNATE_INJECTION = 564;
+
     /** CWE-572: Call to Thread run() instead of start() */
     public static int THREAD_WRONG_CALL = 572;
 
@@ -134,7 +137,7 @@ public class CweNumber {
     public static int OBJECT_REFERENCE_COMPARISON = 595;
 
     /** CWE-611: Improper Restriction of XML External Entity Reference */
-    public static int XML_ENTITIES = 611;
+    public static int XXE = 611;
 
     /** CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute */
     public static int INSECURE_COOKIE = 614;

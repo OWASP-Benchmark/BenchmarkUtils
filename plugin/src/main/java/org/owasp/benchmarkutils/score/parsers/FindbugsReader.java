@@ -36,7 +36,7 @@ public class FindbugsReader extends Reader {
     @Override
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".xml")
-                && resultFile.line(1).startsWith("<BugCollection");
+                && resultFile.xmlRootNodeName().equals("BugCollection");
     }
 
     @Override
@@ -90,15 +90,23 @@ public class FindbugsReader extends Reader {
     }
 
     private TestCaseResult parseFindBugsBug(Node n) {
-        TestCaseResult tcr = new TestCaseResult();
         NamedNodeMap attrs = n.getAttributes();
         if (attrs.getNamedItem("category").getNodeValue().equals("SECURITY")) {
             Node cl = getNamedNode("Class", n.getChildNodes());
             String classname = cl.getAttributes().getNamedItem("classname").getNodeValue();
             classname = classname.substring(classname.lastIndexOf('.') + 1);
             if (classname.startsWith(BenchmarkScore.TESTCASENAME)) {
+                TestCaseResult tcr = new TestCaseResult();
                 try {
                     tcr.setNumber(testNumber(classname));
+                    Node cwenode = attrs.getNamedItem("cweid");
+                    Node catnode = attrs.getNamedItem("abbrev");
+                    tcr.setCWE(figureCWE(tcr, cwenode, catnode));
+
+                    String type = attrs.getNamedItem("type").getNodeValue();
+                    tcr.setCategory(type);
+
+                    return tcr;
                 } catch (Exception e) {
                     // System.out.println("Error parsing node: " + n.toString() + " for classname: "
                     // + classname);
@@ -106,15 +114,6 @@ public class FindbugsReader extends Reader {
                     // e.g., BenchmarkTesting.java
                 }
             }
-
-            Node cwenode = attrs.getNamedItem("cweid");
-            Node catnode = attrs.getNamedItem("abbrev");
-            tcr.setCWE(figureCWE(tcr, cwenode, catnode));
-
-            String type = attrs.getNamedItem("type").getNodeValue();
-            tcr.setCategory(type);
-
-            return tcr;
         }
         return null;
     }

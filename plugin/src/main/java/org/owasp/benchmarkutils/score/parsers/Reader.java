@@ -37,13 +37,14 @@ public abstract class Reader {
     protected final ObjectMapper jsonMapper = new ObjectMapper();
     protected final XmlMapper xmlMapper = new XmlMapper();
 
+    // TODO: Figure out how to dynamically add all readers here without listing them out manually
+    // NOTE: There is a unit test that at least automatically verifies that any reader with a unit
+    // test is in this list
     public static List<Reader> allReaders() {
         return Arrays.asList(
                 new AcunetixReader(),
                 new AppScanDynamicReader(),
-                new AppScanDynamicReader2(),
                 new AppScanSourceReader(),
-                new AppScanSourceReader2(),
                 new ArachniReader(),
                 new BurpJsonReader(),
                 new BurpReader(),
@@ -52,19 +53,22 @@ public abstract class Reader {
                 new CheckmarxIASTReader(),
                 new CheckmarxReader(),
                 new CodeQLReader(),
-                new ContrastJsonReader(),
-                new ContrastReader(),
+                new ContrastAssessReader(),
+                new ContrastScanReader(),
                 new CoverityReader(),
                 new CrashtestReader(),
                 new FaastReader(),
                 new FindbugsReader(),
                 new FortifyReader(),
                 new FusionLiteInsightReader(),
-                new HCLReader(),
+                new HCLAppScanIASTReader(),
+                new HCLAppScanSourceReader(),
+                new HCLAppScanStandardReader(),
                 new HdivReader(),
                 new HorusecReader(),
                 new InsiderReader(),
                 new JuliaReader(),
+                new KlocworkCSVReader(),
                 new KiuwanReader(),
                 new LGTMReader(),
                 new NetsparkerReader(),

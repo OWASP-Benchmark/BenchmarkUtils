@@ -35,7 +35,8 @@ public class PMDReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
-        return resultFile.filename().endsWith(".xml") && resultFile.line(1).startsWith("<pmd ");
+        return resultFile.filename().endsWith(".xml") 
+                && resultFile.xmlRootNodeName().equals("pmd");
     }
 
     @Override
@@ -147,6 +148,11 @@ public class PMDReader extends Reader {
                 return 78; // command injection
             case "??10":
                 return 79; // XSS
+
+            // FbInfer additional rules
+            case "RESOURCE_LEAK":
+            case "NULL_DEREFERENCE":
+                return 0;
 
             default:
                 System.out.println("Unknown category: " + rule);

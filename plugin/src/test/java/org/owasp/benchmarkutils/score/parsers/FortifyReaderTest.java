@@ -34,8 +34,7 @@ public class FortifyReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile =
-                TestHelper.resultFileOf("testfiles/Benchmark_1.2-Fortify20.20_2020Q1-1234.fpr");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Fortify20.20_2020Q1-1234.fpr");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

@@ -71,7 +71,8 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
     @Override
     protected void crawl(TestSuite testSuite) throws Exception {
-        CloseableHttpClient httpclient = createAcceptSelfSignedCertificateClient();
+        CloseableHttpClient httpclient =
+                createAcceptSelfSignedCertificateClient(MAX_NETWORK_TIMEOUT);
         long start = System.currentTimeMillis();
         List<ResponseInfo> responseInfoList = new ArrayList<ResponseInfo>();
         List<TestCaseVerificationResults> results = new ArrayList<TestCaseVerificationResults>();

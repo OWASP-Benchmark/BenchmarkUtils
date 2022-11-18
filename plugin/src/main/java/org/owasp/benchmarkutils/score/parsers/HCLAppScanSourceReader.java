@@ -30,8 +30,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-// This is the new AppScan Source reader, where they generate ".xml" files.
-public class AppScanSourceReader2 extends Reader {
+// This is the new HCL AppScan Source reader, where they generate ".xml" files.
+// The 'old' reader is AppScanSourceReader, which supports the previous .ozasmt format from IBM.
+
+public class HCLAppScanSourceReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
@@ -161,7 +163,7 @@ public class AppScanSourceReader2 extends Reader {
             case "Validation.EncodingRequired":
                 return CweNumber.XSS;
             case "Cryptography.InsecureAlgorithm":
-                return CweNumber.BROKEN_CRYPTO;
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "Cryptography.PoorEntropy":
                 return CweNumber.WEAK_RANDOM;
                 //			case "Cryptography.????WeakHash" : return 328;  // They don't have a weak
@@ -194,7 +196,8 @@ public class AppScanSourceReader2 extends Reader {
                 return CweNumber.INSECURE_DESERIALIZATION;
 
             default:
-                System.out.println("Identified unknown type of: " + vtype);
+                System.out.println(
+                        "WARNING: HCL AppScan Source-Unrecognized finding type: " + vtype);
         }
         return 0;
     }

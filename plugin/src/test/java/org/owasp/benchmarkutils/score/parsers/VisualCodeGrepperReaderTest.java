@@ -34,8 +34,7 @@ public class VisualCodeGrepperReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile =
-                TestHelper.resultFileOf("testfiles/Benchmark_1.2-visualcodegrepper-v2.2.0.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_visualcodegrepper-v2.2.0.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

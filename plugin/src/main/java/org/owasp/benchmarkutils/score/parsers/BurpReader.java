@@ -96,18 +96,17 @@ public class BurpReader extends Reader {
             String testno = testcase.substring(BenchmarkScore.TESTCASENAME.length());
             try {
                 tcr.setNumber(Integer.parseInt(testno));
+                return tcr;
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
-            return tcr;
         }
 
         return null;
     }
 
     // https://portswigger.net/kb/issues - This page lists all the issue types Burp looks for, and
-    // their
-    // customer ID #'s. There are more on this page. The following primarily lists those
+    // their customer ID #'s. There are more on this page. The following primarily lists those
     // that are currently relevant in the Benchmark.
     static int cweLookup(String id) {
         switch (id) {
@@ -119,7 +118,7 @@ public class BurpReader extends Reader {
             case "1051392": // File Path Manipulation - Not sure exact difference with 1049344 above
                 return CweNumber.PATH_TRAVERSAL;
             case "1049600":
-                return CweNumber.XML_ENTITIES;
+                return CweNumber.XXE;
             case "1049856":
                 return CweNumber.LDAP_INJECTION;
             case "1050112":
@@ -134,9 +133,9 @@ public class BurpReader extends Reader {
             case "3146240":
                 return 918; // External service interaction (DNS)
             case "4194560":
-                return 9999; // Referer Dependent Response
+                return CweNumber.DONTCARE; // Referer Dependent Response
             case "4194576":
-                return 9999; // X-Forwarded-For header dependency
+                return CweNumber.DONTCARE; // X-Forwarded-For header dependency
             case "4197376":
                 return 20; // Input returned in response (reflected)
             case "4197632":
@@ -147,14 +146,16 @@ public class BurpReader extends Reader {
                 return 9998; // Cookie without HttpOnly flag set - There is no CWE defined for this
                 // weakness
             case "5245344":
-                return 8888; // Clickjacking - There is no CWE # for this.
+                return 1021; // Clickjacking
             case "5245360":
                 return 16; // Browser cross-site scripting filter disabled
             case "5245952":
-                return 9999; // Ajax request header manipulation (DOM-based) - Map to nothing right
-                // now.
+                return CweNumber
+                        .DONTCARE; // Ajax request header manipulation (DOM-based) - Map to nothing
+                // right
             case "5247488":
-                return 9999; // DOM Trust Boundary Violation - Map to nothing right now.
+                return CweNumber
+                        .DONTCARE; // DOM Trust Boundary Violation - Map to nothing right now.
             case "6291968":
                 return 200; // Information Disclosure - Email Address Disclosed
             case "6292736":
@@ -162,9 +163,9 @@ public class BurpReader extends Reader {
             case "7340288":
                 return 525; // Information Exposure Through Browser Caching-Cacheable HTTPS Response
             case "8389120":
-                return 9999; // HTML doesn't specify character set - Don't care. Map to nothing.
+                return CweNumber.DONTCARE; // HTML doesn't specify character set - Map to nothing.
             case "8389632":
-                return 9999; // Incorrect Content Type - Don't care. Map to nothing right now.
+                return CweNumber.DONTCARE; // Incorrect Content Type - Map to nothing right now.
             case "8389888":
                 return 16; // Content type is not specified
         } // end switch(id)

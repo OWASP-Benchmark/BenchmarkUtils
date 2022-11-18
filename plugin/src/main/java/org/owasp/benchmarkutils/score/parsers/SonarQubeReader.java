@@ -179,110 +179,108 @@ public class SonarQubeReader extends Reader {
         // To look up these #'s, go here: https://rules.sonarsource.com/java/RSPEC-#### and put just
         // the #'s with no leading zeroes to look up the 'squid' rule.
         switch (squidNumber) {
-            case "S100":
-                return -1; // Method names should comply with a naming convention
+            case "S100": // Method names should comply with a naming convention
+                return CweNumber.DONTCARE;
             case "S105":
-            case "S00105":
-                return -1; // Replace all tab characters in this file by sequences of white-spaces.
-            case "S106":
-                return -1; // Replace this usage of System.out or System.err by a logger.
-            case "S108":
-                return -1; // Nested blocks of code should not be left empty
+            case "S00105": // Replace all tab characters in this file by sequences of white-spaces.
+                return CweNumber.DONTCARE;
+            case "S106": // Replace this usage of System.out or System.err by a logger.
+                return CweNumber.DONTCARE;
+            case "S108": // Nested blocks of code should not be left empty
+                return CweNumber.DONTCARE;
             case "S112":
-            case "S00112":
-                return CweNumber
-                        .THROW_GENERIC_EXCEPTION; // Generic exceptions should never be thrown
-            case "S115":
-                return -1; // Constant names should comply with a naming convention
-            case "S116":
-                return -1; // Field names should comply with a naming convention
-            case "S117":
-                return -1; // Local variable and method parameter names should comply with a
-                // naming convention
+            case "S00112": // Generic exceptions should never be thrown
+                return CweNumber.THROW_GENERIC_EXCEPTION;
+            case "S115": // Constant names should comply with a naming convention
+                return CweNumber.DONTCARE;
+            case "S116": // Field names should comply with a naming convention
+                return CweNumber.DONTCARE;
+            case "S117": // Local variable and method parameter names should comply with a naming
+                // convention
+                return CweNumber.DONTCARE;
             case "S121":
-            case "S00121":
-                return CweNumber
-                        .INCORRECT_BLOCK_DELIMITATION; // Control structures should always use curly
-                // braces
-            case "S125":
-                return -1; // Sections of code should not be commented out
-            case "S128":
-                return CweNumber
-                        .OMITTED_BREAK; // Switch cases should end with an unconditional "break"
+            case "S00121": // Control structures should always use curly braces
+                return CweNumber.INCORRECT_BLOCK_DELIMITATION;
+            case "S125": // Sections of code should not be commented out
+                return CweNumber.DONTCARE;
+            case "S128": // Switch cases should end with an unconditional "break" statement
+                return CweNumber.OMITTED_BREAK;
+            case "S131": // "switch" statements should have "default" clauses
+                return CweNumber.MISSING_DEFAULT_CASE;
+            case "S135": // Loops should not contain more than a single "break" or "continue"
                 // statement
-            case "S131":
-                return CweNumber
-                        .MISSING_DEFAULT_CASE; // "switch" statements should have "default" clauses
-            case "S135":
-                return -1; // Loops should not contain more than a single "break" or "continue"
-                // statement
+                return CweNumber.DONTCARE;
             case "S864":
                 return CweNumber
                         .OPERATOR_PRECEDENCE_LOGIC; // Limited dependence should be placed on
-                // operator precedence rules in
-                // expressions
+                // operator precedence rules in expressions
             case "S888":
                 return CweNumber
                         .LOOP_WITH_UNREACHABLE_EXIT; // Relational operators should be used in "for"
-                // loop termination
-                // conditions
+                // loop termination conditions
             case "S899":
                 return CweNumber
                         .IMPROPER_CHECK_FOR_CONDITIONS; // Return values should not be ignored when
-                // they contain the operation
-                // status code
+                // they contain the operation status code
             case "S1066":
-                return -1; // Collapsible "if" statements should be merged
+                return CweNumber.DONTCARE; // Collapsible "if" statements should be merged
             case "S1075":
-                return -1; // URIs should not be hardcoded
-            case "S1104":
-                return CweNumber
-                        .PUBLIC_VAR_WITHOUT_FINAL; // Class variable fields should not have public
-                // accessibility
+                return CweNumber.DONTCARE; // URIs should not be hardcoded
+            case "S1104": // Class variable fields should not have public accessibility
+                return CweNumber.PUBLIC_VAR_WITHOUT_FINAL;
             case "S1116":
-                return -1; // Empty statements should be removed
+                return CweNumber.DONTCARE; // Empty statements should be removed
             case "S1117":
-                return -1; // Local variables should not shadow class fields
+                return CweNumber.DONTCARE; // Local variables should not shadow class fields
             case "S1118":
-                return -1; // Utility classes should not have public constructors
+                return CweNumber.DONTCARE; // Utility classes should not have public constructors
             case "S1128":
-                return -1; // Unnecessary imports should be removed
+                return CweNumber.DONTCARE; // Unnecessary imports should be removed
             case "S1130":
-                return -1; // "throws" declarations should not be superfluous
+                return CweNumber.DONTCARE; // "throws" declarations should not be superfluous
             case "S1132":
-                return -1; // Strings literals should be placed on the left side when checking for
+                return CweNumber
+                        .DONTCARE; // Strings literals should be placed on the left side when
+                // checking for
                 // equality
             case "S1134":
-                return -1; // Track uses of "FIXME" tags
+                return CweNumber.DONTCARE; // Track uses of "FIXME" tags
             case "S1135":
-                return -1; // Track uses of "TODO" tags
+                return CweNumber.DONTCARE; // Track uses of "TODO" tags
             case "S1141":
-                return -1; // Try-catch blocks should not be nested
+                return CweNumber.DONTCARE; // Try-catch blocks should not be nested
             case "S1143":
                 return CweNumber.RETURN_INSIDE_FINALLY; // "return " statements should not occur in
                 // "finally" blocks
             case "S1144":
-                return -1; // Unused "private" methods should be removed
+                return CweNumber.DONTCARE; // Unused "private" methods should be removed
             case "S1145":
-                return -1; // "if" statement conditions should not unconditionally evaluate
+                return CweNumber
+                        .DONTCARE; // "if" statement conditions should not unconditionally evaluate
                 // to"true" or to"false"
             case "S1147":
                 return CweNumber.SYSTEM_EXIT; // Exit methods should not be called
             case "S1149":
-                return -1; // Synchronized classes Vector, Hashtable, Stack and StringBuffer
+                return CweNumber
+                        .DONTCARE; // Synchronized classes Vector, Hashtable, Stack and StringBuffer
                 // should not be used
             case "S1155":
-                return -1; // Collection.isEmpty() should be used to test for emptiness
+                return CweNumber
+                        .DONTCARE; // Collection.isEmpty() should be used to test for emptiness
             case "S1161":
-                return -1; // "@Override" should be used on overriding and implementing methods
+                return CweNumber
+                        .DONTCARE; // "@Override" should be used on overriding and implementing
+                // methods
             case "S1163":
-                return -1; // Exceptions should not be thrown in finally blocks
+                return CweNumber.DONTCARE; // Exceptions should not be thrown in finally blocks
             case "S1168":
-                return -1; // Empty arrays and collections should be returned instead of null
+                return CweNumber
+                        .DONTCARE; // Empty arrays and collections should be returned instead of
+                // null
             case "S1171":
-                return -1; // Only static class initializers should be used
+                return CweNumber.DONTCARE; // Only static class initializers should be used
             case "S1172":
-                return -1; // Unused method parameters should be removed
+                return CweNumber.DONTCARE; // Unused method parameters should be removed
             case "S1174":
                 return CweNumber
                         .FINALIZE_DECLARED_PUBLIC; // "Object.finalize()" should remain protected
@@ -293,54 +291,59 @@ public class SonarQubeReader extends Reader {
             case "S1182":
                 return CweNumber
                         .CLONE_WITHOUT_SUPER_CLONE; // Classes that override "clone" should be
-                // "Cloneable" and
-                // call "super.clone()"
+                // "Cloneable" and call "super.clone()"
             case "S1186":
-                return -1; // Methods should not be empty
+                return CweNumber.DONTCARE; // Methods should not be empty
             case "S1192":
-                return -1; // String literals should not be duplicated
+                return CweNumber.DONTCARE; // String literals should not be duplicated
             case "S1197":
-                return -1; // Array designators "[]" should be on the type, not the variable
+                return CweNumber
+                        .DONTCARE; // Array designators "[]" should be on the type, not the variable
             case "S1199":
-                return -1; // Nested code blocks should not be used
+                return CweNumber.DONTCARE; // Nested code blocks should not be used
             case "S1206":
                 return CweNumber
                         .OBJECT_MODEL_VIOLATION; // "equals(Object obj)" and"hashCode()" should be
                 // overridden in pairs
             case "S1210":
-                return -1; // "equals(Object obj)" should be overridden along with the
-                // "compareTo(T obj)" method
-            case "S1217":
                 return CweNumber
-                        .THREAD_WRONG_CALL; // Thread.run() and Runnable.run() should not be called
-                // directly
+                        .DONTCARE; // "equals(Object obj)" should be overridden along with the
+                // "compareTo(T obj)" method
+            case "S1217": // Thread.run() and Runnable.run() should not be called  directly
+                return CweNumber.THREAD_WRONG_CALL;
             case "S1301":
-                return -1; // "switch" statements should have at least 3 "case" clauses
+                return CweNumber
+                        .DONTCARE; // "switch" statements should have at least 3 "case" clauses
             case "S1481":
-                return -1; // Remove this unused "c" local variable.
+                return CweNumber.DONTCARE; // Remove this unused "c" local variable.
             case "S1444":
                 return CweNumber.PUBLIC_STATIC_NOT_FINAL; // "public static" fields should always be
                 // constant
             case "S1479":
-                return -1; // "switch" statements should not have too many "case" clauses
+                return CweNumber
+                        .DONTCARE; // "switch" statements should not have too many "case" clauses
             case "S1488":
-                return -1; // Local variables should not be declared and then immediately returned
+                return CweNumber
+                        .DONTCARE; // Local variables should not be declared and then immediately
+                // returned
                 // or thrown
             case "S1643":
-                return -1; // Strings should not be concatenated using '+' in a loop
+                return CweNumber.DONTCARE; // Strings should not be concatenated using '+' in a loop
             case "S1659":
-                return -1; // Multiple variables should not be declared on the same line
-            case "S1696":
                 return CweNumber
-                        .CATCHING_NULL_POINTER_EXCEPTION; // "NullPointerException" should not be
-                // caught
+                        .DONTCARE; // Multiple variables should not be declared on the same line
+            case "S1696": // "NullPointerException" should not be caught
+                return CweNumber.CATCHING_NULL_POINTER_EXCEPTION;
             case "S1698":
                 return CweNumber
                         .OBJECT_REFERENCE_COMPARISON; // Objects should be compared with"equals()"
             case "S1724":
-                return -1; // Deprecated classes and interfaces should not be extended/implemented
+                return CweNumber.DONTCARE; // Deprecated classes and interfaces should not be
+                // extended/implemented
             case "S1850":
-                return -1; // "instanceof" operators that always return "true" or"false" should be
+                return CweNumber
+                        .DONTCARE; // "instanceof" operators that always return "true" or"false"
+                // should be
                 // removed
             case "S1854":
                 return CweNumber.UNUSED_VAR_ASSIGNMENT; // Unused assignments should be removed
@@ -349,9 +352,9 @@ public class SonarQubeReader extends Reader {
             case "S1873":
                 return 582; // "static final" arrays should be"private"
             case "S1874":
-                return -1; // "@Deprecated" code should not be used
+                return CweNumber.DONTCARE; // "@Deprecated" code should not be used
             case "S1905":
-                return -1; // Redundant casts should not be used
+                return CweNumber.DONTCARE; // Redundant casts should not be used
             case "S1948":
                 return 594; // Fields in a"Serializable" class should either be transient or
                 // serializable
@@ -360,9 +363,9 @@ public class SonarQubeReader extends Reader {
             case "S2068":
                 return 259; // Credentials should not be hard-coded
             case "S2070":
-                return CweNumber.REVERSIBLE_HASH; // Benchmark Vuln: SHA-1 and Message-Digest hash
-                // algorithms should not
-                // be used
+                return CweNumber.WEAK_HASH_ALGO; // Benchmark Vuln: SHACweNumber.DONTCARE and
+                // Message-Digest hash
+                // algorithms should not be used
             case "S2076":
                 return CweNumber
                         .COMMAND_INJECTION; // Benchmark Vuln: Values passed to OS commands should
@@ -377,32 +380,34 @@ public class SonarQubeReader extends Reader {
                 // sanitized
             case "S2083":
                 return CweNumber.PATH_TRAVERSAL; // Benchmark Vuln: I/O function calls should not be
-                // vulnerable to path
-                // injection attacks
+                // vulnerable to path injection attacks
             case "S2089":
                 return 293; // HTTP referers should not be relied on
             case "S2091":
                 return CweNumber.XPATH_INJECTION; // Benchmark Vuln: XPath expressions should not be
-                // vulnerable to
-                // injection attacks
+                // vulnerable to injection attacks
             case "S2092":
                 return CweNumber.INSECURE_COOKIE; // Benchmark Vuln: Cookies should be "secure"
             case "S2093":
-                return -1; // Try-with-resources should be used
+                return CweNumber.DONTCARE; // Try-with-resources should be used
             case "S2095":
                 return 459; // Resources should be closed
+            case "S2115":
+                return 521; // Secure password should be used when connecting to a database
             case "S2130":
-                return -1; // Parsing should be used to convert "Strings" to primitives
+                return CweNumber
+                        .DONTCARE; // Parsing should be used to convert "Strings" to primitives
             case "S2147":
-                return -1; // Catches should be combined
+                return CweNumber.DONTCARE; // Catches should be combined
             case "S2157":
-                return -1; // "Cloneables" should implement "clone"
+                return CweNumber.DONTCARE; // "Cloneables" should implement "clone"
             case "S2160":
-                return -1; // Subclasses that add fields should override "equals"
+                return CweNumber.DONTCARE; // Subclasses that add fields should override "equals"
             case "S2176":
-                return -1; // Class names should not shadow interfaces or superclasses
+                return CweNumber
+                        .DONTCARE; // Class names should not shadow interfaces or superclasses
             case "S2178":
-                return -1; // Short-circuit logic should be used in boolean contexts
+                return CweNumber.DONTCARE; // Short-circuit logic should be used in boolean contexts
             case "S2184":
                 return 190; // Math operands should be cast before assignment
             case "S2222":
@@ -412,29 +417,32 @@ public class SonarQubeReader extends Reader {
             case "S2245":
                 return CweNumber
                         .WEAK_RANDOM; // Benchmark Vuln: Pseudorandom number generators (PRNGs)
-                // should not be
-                // used in secure contexts
+                // should not be used in secure contexts
             case "S2254":
-                return -1; // "HttpServletRequest.getRequestedSessionId()" should not be used
+                return CweNumber
+                        .DONTCARE; // "HttpServletRequest.getRequestedSessionId()" should not be
+                // used
             case "S2257":
                 return CweNumber
-                        .BROKEN_CRYPTO; // Benchmark Vuln: Only standard cryptographic algorithms
+                        .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Only standard cryptographic algorithms
                 // should be used
             case "S2259":
                 return 476; // Null pointers should not be dereferenced
             case "S2275":
-                return -1; // Printf-style format strings should not lead to unexpected behavior
+                return CweNumber
+                        .DONTCARE; // Printf-style format strings should not lead to unexpected
+                // behavior
                 // at runtime
             case "S2277":
                 return 780; // Cryptographic RSA algorithms should always incorporate OAEP (Optimal
                 // Asymmetric Encryption Padding)
             case "S2278":
                 return CweNumber
-                        .BROKEN_CRYPTO; // Benchmark Vuln: DES (Data Encryption Standard) and DESede
-                // (3DES)
-                // should not be used
+                        .WEAK_CRYPTO_ALGO; // Benchmark Vuln: DES (Data Encryption Standard) and
+                // DESede
+                // (3DES) should not be used
             case "S2293":
-                return -1; // The diamond operator ("<>") should be used
+                return CweNumber.DONTCARE; // The diamond operator ("<>") should be used
             case "S2384":
                 return 374; // Mutable members should not be stored or returned directly
             case "S2386":
@@ -442,85 +450,99 @@ public class SonarQubeReader extends Reader {
             case "S2441":
                 return 579; // Non-serializable objects should not be stored in"HttpSessions"
             case "S2479":
-                return -1; // Whitespace and control characters in literals should be explicit
+                return CweNumber
+                        .DONTCARE; // Whitespace and control characters in literals should be
+                // explicit
             case "S2583":
                 return 489; // Conditions should not unconditionally evaluate to"TRUE" or to"FALSE"
             case "S2589":
-                return -1; // Boolean expressions should not be gratuitous - CWEs: 570/571
+                return CweNumber
+                        .DONTCARE; // Boolean expressions should not be gratuitous - CWEs: 570/571
             case "S2658":
                 return 470; // Use of Externally-Controlled Input to Select Classes or Code ('Unsafe
                 // Reflection')
             case "S2677":
-                return -1; // "read" and "readLine" return values should be used
+                return CweNumber.DONTCARE; // "read" and "readLine" return values should be used
             case "S2681":
                 return 483; // Multiline blocks should be enclosed in curly braces
             case "S2696":
-                return -1; // Instance methods should not write to "static" fields
+                return CweNumber.DONTCARE; // Instance methods should not write to "static" fields
             case "S2755":
-                return CweNumber
-                        .XML_ENTITIES; // XML parsers should not be vulnerable to XXE attacks
+                return CweNumber.XXE; // XML parsers should not be vulnerable to XXE attacks
             case "S2786":
-                return -1; // Nested "enum"s should not be declared static
+                return CweNumber.DONTCARE; // Nested "enum"s should not be declared static
             case "S2864":
-                return -1; // "entrySet()" should be iterated when both the key and value are
+                return CweNumber
+                        .DONTCARE; // "entrySet()" should be iterated when both the key and value
+                // are
                 // needed
             case "S3008":
-                return -1; // Static non-final field names should comply with a naming convention
+                return CweNumber
+                        .DONTCARE; // Static non-final field names should comply with a naming
+                // convention
             case "S3012":
-                return -1; // Arrays should not be copied using loops
+                return CweNumber.DONTCARE; // Arrays should not be copied using loops
             case "S3400":
-                return -1; // Methods should not return constants
+                return CweNumber.DONTCARE; // Methods should not return constants
             case "S3518":
                 return 369; // Zero should not be a possible denominator
             case "S3599":
-                return -1; // Double Brace Initialization should not be used
+                return CweNumber.DONTCARE; // Double Brace Initialization should not be used
             case "S3626":
-                return -1; // Jump statements should not be redundant
+                return CweNumber.DONTCARE; // Jump statements should not be redundant
             case "S3649":
                 return CweNumber
                         .SQL_INJECTION; // Database queries should not be vulnerable to injection
                 // attacks
             case "S3740":
-                return -1; // Raw types should not be used
+                return CweNumber.DONTCARE; // Raw types should not be used
             case "S3776":
-                return -1; // Cognitive Complexity of methods should not be too high
+                return CweNumber.DONTCARE; // Cognitive Complexity of methods should not be too high
             case "S3824":
-                return -1; // "Map.get" and value test should be replaced with single method call
+                return CweNumber
+                        .DONTCARE; // "Map.get" and value test should be replaced with single method
+                // call
             case "S3973":
-                return -1; // A conditionally executed single line should be denoted by
+                return CweNumber
+                        .DONTCARE; // A conditionally executed single line should be denoted by
                 // indentation
             case "S4042":
-                return -1; // "java.nio.Files#delete" should be preferred
+                return CweNumber.DONTCARE; // "java.nio.Files#delete" should be preferred
             case "S4435":
-                return CweNumber.XML_ENTITIES; // XML transformers should be secured
+                return CweNumber.XXE; // XML transformers should be secured
             case "S4488":
-                return -1; // Composed "@RequestMapping" variants should be preferred
+                return CweNumber
+                        .DONTCARE; // Composed "@RequestMapping" variants should be preferred
             case "S4719":
-                return -1; // "StandardCharsets" constants should be preferred
+                return CweNumber.DONTCARE; // "StandardCharsets" constants should be preferred
             case "S4838":
-                return -1; // An iteration on a Collection should be performed on the type handled
+                return CweNumber
+                        .DONTCARE; // An iteration on a Collection should be performed on the type
+                // handled
                 // by the Collection
             case "S5131": // Endpoints should not be vulnerable to reflected cross-site scripting
                 // (XSS) attacks
                 return CweNumber.XSS;
             case "S5261":
-                return -1; // "else" statements should be clearly matched with an "if"
+                return CweNumber
+                        .DONTCARE; // "else" statements should be clearly matched with an "if"
             case "S5361":
-                return -1; // "String#replace" should be preferred to "String#replaceAll"
+                return CweNumber
+                        .DONTCARE; // "String#replace" should be preferred to "String#replaceAll"
             case "S5542":
                 return CweNumber
-                        .BROKEN_CRYPTO; // Benchmark Vuln: Encryption algorithms should be used with
-                // secure mode
-                // and padding scheme
+                        .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Encryption algorithms should be used
+                // with
+                // secure mode and padding scheme
             case "S5547":
                 return CweNumber
-                        .BROKEN_CRYPTO; // Benchmark Vuln: Cipher algorithms should be robust
+                        .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Cipher algorithms should be robust
 
             case "CallToDeprecatedMethod":
             case "ClassVariableVisibilityCheck":
             case "DuplicatedBlocks":
             case "SwitchLastCaseIsDefaultCheck":
-                return -1; // Don't care. Not sure why these are being returned instead of an
+                return CweNumber.DONTCARE; // Not sure why these are being returned instead of an
                 // S#### value
             default:
                 System.out.println(

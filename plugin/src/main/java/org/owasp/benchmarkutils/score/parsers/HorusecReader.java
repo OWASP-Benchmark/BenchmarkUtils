@@ -74,18 +74,17 @@ public class HorusecReader extends Reader {
 
     private TestCaseResult parseTestCaseResult(JSONObject finding) {
         try {
-            TestCaseResult tcr = new TestCaseResult();
-
             JSONObject vuln = finding.getJSONObject("vulnerabilities");
 
             String filename = filename(vuln);
 
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+                TestCaseResult tcr = new TestCaseResult();
                 tcr.setNumber(testNumber(filename));
                 tcr.setCWE(figureCwe(vuln));
+                return tcr;
             }
 
-            return tcr;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -109,9 +108,9 @@ public class HorusecReader extends Reader {
                 return CweNumber.SQL_INJECTION;
             case "326":
             case "327":
-                return CweNumber.BROKEN_CRYPTO;
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "328":
-                return CweNumber.REVERSIBLE_HASH;
+                return CweNumber.WEAK_HASH_ALGO;
             case "329":
                 return CweNumber.STATIC_CRYPTO_INIT;
             case "330":
@@ -123,7 +122,7 @@ public class HorusecReader extends Reader {
 
                 return CweNumber.INSECURE_DESERIALIZATION;
             case "611":
-                return CweNumber.XML_ENTITIES;
+                return CweNumber.XXE;
             case "614":
                 return CweNumber.INSECURE_COOKIE;
             case "643":
@@ -131,8 +130,7 @@ public class HorusecReader extends Reader {
             case "649":
                 return CweNumber.OBFUSCATION;
             default:
-                System.out.println(
-                        "INFO: Found following CWE which we haven't seen before: " + cwe);
+                System.out.println("WARN: Horusec reported CWE not yet mapped: " + cwe);
                 return Integer.parseInt(cwe);
         }
     }

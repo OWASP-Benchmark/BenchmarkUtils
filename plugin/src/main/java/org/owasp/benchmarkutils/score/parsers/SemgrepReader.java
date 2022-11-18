@@ -20,6 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -60,21 +61,21 @@ public class SemgrepReader extends Reader {
             case 200: // Information Leak / Disclosure;
             case 276: // Incorrect Default Permissions;
             case 352: // CSRF;
-                break; // Don't care
+                break; // Don't care - So return CWE 'as is'
 
             case 78:
-                return 78; // Command Injection
+                return CweNumber.COMMAND_INJECTION;
             case 89:
-                return 89; // SQL Injection
+                return CweNumber.SQL_INJECTION;
             case 90:
-                return 90; // LDAP Injection
+                return CweNumber.LDAP_INJECTION;
             case 326:
             case 327:
             case 696: // Incorrect Behavior Order
-                return 327; // Weak Encryption
+                return CweNumber.WEAK_CRYPTO_ALGO; // weak encryption
             case 614:
             case 1004:
-                return 614; // Insecure cookie use
+                return CweNumber.INSECURE_COOKIE;
             default:
                 System.out.println(
                         "INFO: Found following CWE in SemGrep results which we haven't seen before: "

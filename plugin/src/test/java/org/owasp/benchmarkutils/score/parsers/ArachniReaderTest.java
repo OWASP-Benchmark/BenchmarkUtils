@@ -34,7 +34,7 @@ public class ArachniReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Arachni-v2.0dev.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Arachni-v2.0dev.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

@@ -20,6 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -33,7 +34,7 @@ public class SonarQubeJsonReader extends Reader {
         // the same parser for SonarQube.
         return resultFile.isJson()
                 && (resultFile.json().has("hotspots") || resultFile.json().has("issues"))
-                && !resultFile.json().has("type"); // Ignore Coverty results
+                && !resultFile.json().has("type"); // Ignore Coverity results
     }
 
     @Override
@@ -75,6 +76,13 @@ public class SonarQubeJsonReader extends Reader {
                             ? parseSonarQubeHotSpotIssue(arr.getJSONObject(i))
                             : parseSonarQubeQualityIssue(arr.getJSONObject(i)));
             if (tcr != null) {
+                if (tcr.getNumber() == 0) {
+                    System.out.println(
+                            "SQ Error: JSON object parsed with isHotspot key: '"
+                                    + key
+                                    + "' to test case num 0: "
+                                    + arr.getJSONObject(i));
+                }
                 tr.put(tcr);
             }
         }
@@ -99,15 +107,20 @@ public class SonarQubeJsonReader extends Reader {
     // Quality Issues are normal SonarQube findings that are mostly not relevant to security
     // However, there are a small number of security issues that do show up this way so we have
     // to support both
+    /**
+     * Parse the SonarQube Quality results to see if there is a finding in Benchmark test case.
+     *
+     * @param finding The JSON text of the SonarQube Quality finding.
+     * @return Returns a TestCaseResult if there is a finding in a Benchmark testcase file,
+     *     otherwise it returns null.
+     */
     private TestCaseResult parseSonarQubeQualityIssue(JSONObject finding) {
         try {
-            TestCaseResult tcr = new TestCaseResult();
-            String filename = null;
-
-            filename = finding.getString("component");
+            String filename = finding.getString("component");
             filename = filename.replaceAll("\\\\", "/");
             filename = filename.substring(filename.lastIndexOf('/'));
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+                TestCaseResult tcr = new TestCaseResult();
                 tcr.setNumber(testNumber(filename));
                 String rule = finding.getString("rule");
                 String squid = rule.substring(rule.indexOf(":") + 1);
@@ -118,13 +131,13 @@ public class SonarQubeJsonReader extends Reader {
                 tcr.setCWE(cwe);
                 tcr.setCategory(finding.getJSONArray("tags").toString());
                 tcr.setEvidence(finding.getString("message"));
+                return tcr;
             }
 
-            return tcr;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return null; // Finding not in a test case
     }
 
     // The parseSonarQubeQualityIssue() method above relies on the SQUID # mapping method in
@@ -142,17 +155,22 @@ public class SonarQubeJsonReader extends Reader {
      */
 
     // Hotspot Issues are SonarQube security findings.
+    /**
+     * Parse the SonarQube HotSpot results to see if there is a finding in Benchmark test case.
+     *
+     * @param finding The JSON text of the SonarQube HotSpot finding.
+     * @return Returns a TestCaseResult if there is a finding in a Benchmark testcase file,
+     *     otherwise it returns null.
+     */
     private TestCaseResult parseSonarQubeHotSpotIssue(JSONObject finding) {
         try {
-            TestCaseResult tcr = new TestCaseResult();
-            String filename = null;
-
-            filename = finding.getString("component");
+            String filename = finding.getString("component");
             filename =
                     filename.replaceAll(
                             "\\\\", "/"); // In case there are \ instead of / in the path
             filename = filename.substring(filename.lastIndexOf('/'));
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+                TestCaseResult tcr = new TestCaseResult();
                 tcr.setNumber(testNumber(filename));
                 String secCat = finding.getString("securityCategory");
                 if (secCat == null || secCat.equals("none")) {
@@ -164,13 +182,13 @@ public class SonarQubeJsonReader extends Reader {
                 tcr.setEvidence(
                         "vulnerabilityProbability: "
                                 + finding.getString("vulnerabilityProbability"));
+                return tcr;
             }
 
-            return tcr;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return null; // Finding not in a test case
     }
 
     /*
@@ -211,25 +229,37 @@ public class SonarQubeJsonReader extends Reader {
         switch (secCat) {
             case "sql-injection":
                 // "Ensure that string concatenation is required and safe for this SQL query."
-                return 89;
+                return CweNumber.SQL_INJECTION;
             case "insecure-conf":
                 // "Make sure creating this cookie without the \"secure\" flag is safe here."
-                return 614;
+                return CweNumber.INSECURE_COOKIE;
             case "xss":
                 {
                     // "Make sure creating this cookie without the \"HttpOnly\" flag is safe."
-                    if (message != null && message.contains("HttpOnly")) return 1004;
-                    else return 79; // Actual XSS CWE
+                    if (message != null && message.contains("HttpOnly"))
+                        return CweNumber.COOKIE_WITHOUT_HTTPONLY;
+                    else return CweNumber.XSS; // Actual XSS CWE
                 }
             case "weak-cryptography":
                 {
                     // "Make sure that using this pseudorandom number generator is safe here."
                     // or "Make sure that hashing data is safe here."
                     if (message != null) {
-                        if (message.contains("pseudorandom")) return 330;
-                        if (message.contains("hashing")) return 328;
-                        else return 0000;
-                    } else return 327; // Actual Weak Crypto CWE
+                        if (message.contains("pseudorandom")) return CweNumber.WEAK_RANDOM;
+                        if (message.contains("hashing")) return CweNumber.WEAK_HASH_ALGO;
+                        // Deliberately fall through. The 'others' check will also fail since the
+                        // message check is very specific. So it will drop through to the default:
+                        // case.
+                    } else return CweNumber.WEAK_CRYPTO_ALGO; // Actual Weak Crypto CWE
+                }
+            case "others":
+                {
+                    if (message != null
+                            && message.equals(
+                                    "Make sure this weak hash algorithm is not used in a sensitive context here.")) {
+                        return CweNumber.WEAK_HASH_ALGO;
+                    }
+                    // Otherwise deliberately drop through to default error message.
                 }
             default:
                 System.out.println(

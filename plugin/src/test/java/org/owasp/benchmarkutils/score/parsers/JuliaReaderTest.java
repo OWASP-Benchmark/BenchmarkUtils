@@ -34,7 +34,7 @@ public class JuliaReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-JuliaSoft-v2.3.2.1.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_JuliaSoft-v2.3.2.1.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
@@ -55,6 +55,6 @@ public class JuliaReaderTest extends ReaderTestBase {
         assertEquals(2, result.getTotalResults());
 
         assertEquals(CweNumber.INSECURE_COOKIE, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.BROKEN_CRYPTO, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.WEAK_CRYPTO_ALGO, result.get(2).get(0).getCWE());
     }
 }

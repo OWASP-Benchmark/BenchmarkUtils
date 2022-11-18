@@ -13,7 +13,7 @@
  * PURPOSE. See the GNU General Public License for more details.
  *
  * @author Sascha Knoop
- * @created 2022
+ * @created 2021
  */
 package org.owasp.benchmarkutils.score.parsers;
 
@@ -28,33 +28,33 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class ContrastJsonReaderTest extends ReaderTestBase {
+public class HCLAppScanIASTReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Contrast_3.9.0.sarif.json");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_HCL-IAST.hcl");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyContrastJsonReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, ContrastJsonReader.class);
+    public void onlyHCLReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, HCLAppScanIASTReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        ContrastJsonReader reader = new ContrastJsonReader();
+        HCLAppScanIASTReader reader = new HCLAppScanIASTReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertEquals(TestSuiteResults.ToolType.IAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("Contrast Scan", result.getToolName());
+        assertEquals("HCL AppScan IAST", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
     }
 }

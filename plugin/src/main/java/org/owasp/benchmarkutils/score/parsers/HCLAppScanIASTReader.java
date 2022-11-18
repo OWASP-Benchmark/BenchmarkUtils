@@ -30,12 +30,12 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class HCLReader extends Reader {
+public class HCLAppScanIASTReader extends Reader {
 
     public static void main(String[] args) throws Exception {
         File f = new File("results/HCL-IAST.hcl");
         ResultFile resultFile = new ResultFile(f);
-        HCLReader cr = new HCLReader();
+        HCLAppScanIASTReader cr = new HCLAppScanIASTReader();
         cr.parse(resultFile);
     }
 
@@ -47,7 +47,7 @@ public class HCLReader extends Reader {
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
-                new TestSuiteResults("HCL IAST", true, TestSuiteResults.ToolType.IAST);
+                new TestSuiteResults("HCL AppScan IAST", true, TestSuiteResults.ToolType.IAST);
 
         BufferedReader reader = new BufferedReader(new StringReader(resultFile.content()));
         String FIRSTLINEINDICATOR =
@@ -130,13 +130,15 @@ public class HCLReader extends Reader {
             case "PathTraversal":
                 return CweNumber.PATH_TRAVERSAL;
             case "Cryptography.Mac":
-                return CweNumber.REVERSIBLE_HASH;
+                return CweNumber.WEAK_HASH_ALGO;
             case "Cryptography.PoorEntropy":
                 return CweNumber.WEAK_RANDOM;
             case "Cryptography.Ciphers":
-                return CweNumber.BROKEN_CRYPTO;
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "Validation.Required":
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
+            default:
+                System.out.println("WARNING: HCL AppScan IAST-Unrecognized finding type: " + rule);
         }
         return 0;
     }

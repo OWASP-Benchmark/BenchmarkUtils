@@ -34,7 +34,7 @@ public class NetsparkerReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Netsparker.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Netsparker.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
