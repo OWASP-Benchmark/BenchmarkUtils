@@ -263,6 +263,8 @@ public class ContrastAssessReader extends Reader {
                 return CweNumber.DONTCARE;
             case "xpath-injection":
                 return CweNumber.XPATH_INJECTION;
+            case "xxssprotection-header-disabled":
+                return CweNumber.DONTCARE;
             case "xxe":
                 return CweNumber.XXE; // XML eXternal entity injection
             default:
