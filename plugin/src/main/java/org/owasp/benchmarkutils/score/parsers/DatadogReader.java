@@ -49,7 +49,7 @@ public class DatadogReader extends Reader {
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr = new TestSuiteResults("Datadog", true, TestSuiteResults.ToolType.IAST);
 
-        try(BufferedReader reader = new BufferedReader(new StringReader(resultFile.content()))) {
+        try (BufferedReader reader = new BufferedReader(new StringReader(resultFile.content()))) {
             String firstLine = reader.readLine();
             String lastLine = "";
             String line = "";
@@ -69,7 +69,8 @@ public class DatadogReader extends Reader {
                             int idx = line.indexOf(fname);
                             if (idx != -1) {
                                 testNumber =
-                                        line.substring(idx + fname.length(), idx + fname.length() + 5);
+                                        line.substring(
+                                                idx + fname.length(), idx + fname.length() + 5);
                             }
                             lastLine = line;
                         } else if (line.contains(VERSION_LINE)) {
@@ -99,14 +100,19 @@ public class DatadogReader extends Reader {
     private String calculateTime(
             final String firstLine, final String lastLine, final int timeColumn)
             throws ParseException {
-        String start = firstLine.split(" ")[timeColumn];
-        String stop = lastLine.split(" ")[timeColumn];
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss:SSS");
-        Date startTime = sdf.parse(start);
-        Date stopTime = sdf.parse(stop);
-        long startMillis = startTime.getTime();
-        long stopMillis = stopTime.getTime();
-        return (stopMillis - startMillis) / 1000 + " seconds";
+        try {
+            String start = firstLine.split(" ")[timeColumn];
+            String stop = lastLine.split(" ")[timeColumn];
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss:SSS");
+            Date startTime = sdf.parse(start);
+            Date stopTime = sdf.parse(stop);
+            long startMillis = startTime.getTime();
+            long stopMillis = stopTime.getTime();
+            return (stopMillis - startMillis) / 1000 + " seconds";
+        } catch (Exception ex) {
+            System.err.println("Error parsing dates:" + firstLine + " and " + lastLine);
+            return "0 seconds";
+        }
     }
 
     private void process(final TestSuiteResults tr, String testNumber, final List<String> chunk)
