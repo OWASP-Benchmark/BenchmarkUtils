@@ -34,7 +34,7 @@ public class W3AFReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-w3af-v1.7.6.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_w3af-v1.7.6.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

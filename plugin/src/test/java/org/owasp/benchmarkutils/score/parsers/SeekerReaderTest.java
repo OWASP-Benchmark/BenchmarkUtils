@@ -34,7 +34,7 @@ public class SeekerReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2_Seeker.csv");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Seeker.csv");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

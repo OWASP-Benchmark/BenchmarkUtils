@@ -34,7 +34,7 @@ public class ContrastScanReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Contrast_3.9.0.sarif.json");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Contrast_3.9.0.sarif.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

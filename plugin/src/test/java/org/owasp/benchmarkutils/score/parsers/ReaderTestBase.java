@@ -6,9 +6,29 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.ResultFile;
 
 public abstract class ReaderTestBase {
+
+    // This list is used in the next test
+    private static final List<Reader> THE_READERS = Reader.allReaders();
+
+    @Test
+    public void assertReaderIsInReaderAllReadersList() {
+        boolean readerInList = false;
+        String thisReaderName = this.getClass().getSimpleName(); // This gets ReaderNameTEST
+        thisReaderName = thisReaderName.substring(0, thisReaderName.length() - "TEST".length());
+        for (Reader reader : THE_READERS) {
+            if (reader.getClass().getSimpleName().equals(thisReaderName)) {
+                readerInList = true;
+                break;
+            }
+        }
+        assertTrue(
+                readerInList,
+                "Reader " + thisReaderName + " must be added to Reader.allReaders() list");
+    }
 
     void assertOnlyMatcherClassIs(ResultFile resultFile, Class<? extends Reader> c) {
         List<Class<?>> readers =

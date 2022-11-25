@@ -35,8 +35,9 @@ public class ZapJsonReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFileOldFormat = TestHelper.resultFileOf("testfiles/Benchmark_1.2-ZAP-v2.10.0.json");
-        resultFileNewFormat = TestHelper.resultFileOf("testfiles/Benchmark_1.2-ZAP-v2.11.1.json");
+        resultFileOldFormat =
+                TestHelper.resultFileOf("testfiles/Benchmark_ZAP-v2.10.0-oldfmt.json");
+        resultFileNewFormat = TestHelper.resultFileOf("testfiles/Benchmark_ZAP-v2.11.1.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

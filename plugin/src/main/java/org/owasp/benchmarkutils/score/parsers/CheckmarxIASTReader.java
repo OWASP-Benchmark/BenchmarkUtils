@@ -169,6 +169,10 @@ public class CheckmarxIASTReader extends Reader {
                 return 79;
             case "XXE":
                 return 611;
+
+            default:
+                System.out.println(
+                        "WARNING: Unmapped Vulnerability category detected: " + checkerKey);
         }
         return 0;
     }

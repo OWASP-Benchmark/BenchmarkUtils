@@ -34,7 +34,7 @@ public class ZapReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-ZAP_WEEKLY.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_ZAP_WEEKLY.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

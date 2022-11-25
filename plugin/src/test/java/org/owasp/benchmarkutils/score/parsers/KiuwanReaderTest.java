@@ -34,7 +34,7 @@ public class KiuwanReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Kiuwan-20191012.threadfix");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Kiuwan-20191012.threadfix");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

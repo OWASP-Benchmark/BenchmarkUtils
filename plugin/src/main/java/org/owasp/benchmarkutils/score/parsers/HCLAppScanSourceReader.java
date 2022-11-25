@@ -163,7 +163,7 @@ public class HCLAppScanSourceReader extends Reader {
             case "Validation.EncodingRequired":
                 return CweNumber.XSS;
             case "Cryptography.InsecureAlgorithm":
-                return CweNumber.BROKEN_CRYPTO;
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "Cryptography.PoorEntropy":
                 return CweNumber.WEAK_RANDOM;
                 //			case "Cryptography.????WeakHash" : return 328;  // They don't have a weak

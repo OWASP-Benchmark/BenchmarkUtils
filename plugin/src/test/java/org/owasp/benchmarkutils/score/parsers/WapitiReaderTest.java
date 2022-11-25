@@ -34,7 +34,7 @@ public class WapitiReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Wapiti-v3.0.3.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Wapiti-v3.0.3.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

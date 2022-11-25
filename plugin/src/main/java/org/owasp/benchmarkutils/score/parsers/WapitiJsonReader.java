@@ -121,7 +121,6 @@ public class WapitiJsonReader extends Reader {
                 return tcr;
             }
 
-            return null;
         } catch (Exception e) {
             e.printStackTrace();
         }

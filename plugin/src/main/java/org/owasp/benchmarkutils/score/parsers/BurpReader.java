@@ -96,18 +96,17 @@ public class BurpReader extends Reader {
             String testno = testcase.substring(BenchmarkScore.TESTCASENAME.length());
             try {
                 tcr.setNumber(Integer.parseInt(testno));
+                return tcr;
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
-            return tcr;
         }
 
         return null;
     }
 
     // https://portswigger.net/kb/issues - This page lists all the issue types Burp looks for, and
-    // their
-    // customer ID #'s. There are more on this page. The following primarily lists those
+    // their customer ID #'s. There are more on this page. The following primarily lists those
     // that are currently relevant in the Benchmark.
     static int cweLookup(String id) {
         switch (id) {

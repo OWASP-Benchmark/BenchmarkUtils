@@ -152,27 +152,28 @@ public class AcunetixReader extends Reader {
             }
             try {
                 tcr.setNumber(Integer.parseInt(testno));
+                String cat = getNamedChild("type", vuln).getTextContent();
+                tcr.setCategory(cat);
+
+                Node classification = getNamedChild("classification", vuln);
+                Node vulnId = getNamedChild("cwe", classification);
+                if (vulnId != null) {
+                    String cweNum = vulnId.getTextContent();
+                    int cwe = cweLookup(cweNum);
+                    tcr.setCWE(cwe);
+                    // System.out.println("Found CWE: " + cwe + " in test case: " +
+                    // tcr.getNumber());
+                    tcr.setConfidence(
+                            Integer.parseInt(getNamedChild("certainty", vuln).getTextContent()));
+                    return tcr;
+                }
+
             } catch (NumberFormatException e) {
                 System.out.println("> Parse error " + testfile + ":: " + testno);
-                return null;
             }
         }
 
-        String cat = getNamedChild("type", vuln).getTextContent();
-        tcr.setCategory(cat);
-
-        Node classification = getNamedChild("classification", vuln);
-        Node vulnId = getNamedChild("cwe", classification);
-        if (vulnId != null) {
-            String cweNum = vulnId.getTextContent();
-            int cwe = cweLookup(cweNum);
-            tcr.setCWE(cwe);
-            // System.out.println("Found CWE: " + cwe + " in test case: " + tcr.getNumber());
-        } else return null;
-
-        tcr.setConfidence(Integer.parseInt(getNamedChild("certainty", vuln).getTextContent()));
-
-        return tcr;
+        return null;
     }
 
     //  This is the legacy <ReportItem> format:

@@ -28,29 +28,29 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class HCLAppScanIASTReaderTest extends ReaderTestBase {
+public class CoverityReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_HCL-IAST.hcl");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Coverity-v3.0.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyHCLReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, HCLAppScanIASTReader.class);
+    public void onlyCoverityReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, CoverityReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        HCLAppScanIASTReader reader = new HCLAppScanIASTReader();
+        CoverityReader reader = new CoverityReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.IAST, result.getToolType());
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("HCL AppScan IAST", result.getToolName());
+        assertEquals("Coverity Code Advisor", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 

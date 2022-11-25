@@ -666,8 +666,12 @@ public class BenchmarkScore extends AbstractMojo {
             File scoreCardDir) {
 
         try {
+            String resultsFileName = rawToolResultsFile.getName();
+            // If the filename starts with a . ignore it
+            if (resultsFileName.startsWith(".")) return;
+
             // Figure out the actual results for this tool from the raw results file for this tool
-            System.out.println("\nAnalyzing results from " + rawToolResultsFile.getName());
+            System.out.println("\nAnalyzing results from " + resultsFileName);
             TestSuiteResults rawToolResults = readActualResults(rawToolResultsFile);
             // System.out.println("Computed actual results for tool: " + actualResults.getTool());
 

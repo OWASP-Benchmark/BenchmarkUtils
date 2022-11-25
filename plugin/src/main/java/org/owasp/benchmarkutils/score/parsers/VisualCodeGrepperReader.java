@@ -89,20 +89,21 @@ public class VisualCodeGrepperReader extends Reader {
          *  </CodeIssue>
          */
 
-        TestCaseResult tcr = new TestCaseResult();
         String classname = getNamedChild("FileName", n).getTextContent();
         classname = (classname.substring(classname.lastIndexOf('\\') + 1)).split("\\.")[0];
         if (classname.startsWith(BenchmarkScore.TESTCASENAME)) {
+            TestCaseResult tcr = new TestCaseResult();
             tcr.setNumber(testNumber(classname));
-        }
 
-        Node catnode = getNamedNode("Title", n.getChildNodes());
-        tcr.setCWE(figureCWE(tcr, catnode));
-        tcr.setCategory(getNamedNode("Title", n.getChildNodes()).getTextContent());
-        tcr.setConfidence(
-                Integer.parseInt(getNamedNode("Priority", n.getChildNodes()).getTextContent()));
-        tcr.setEvidence(getNamedNode("CodeLine", n.getChildNodes()).getTextContent());
-        return tcr;
+            Node catnode = getNamedNode("Title", n.getChildNodes());
+            tcr.setCWE(figureCWE(tcr, catnode));
+            tcr.setCategory(getNamedNode("Title", n.getChildNodes()).getTextContent());
+            tcr.setConfidence(
+                    Integer.parseInt(getNamedNode("Priority", n.getChildNodes()).getTextContent()));
+            tcr.setEvidence(getNamedNode("CodeLine", n.getChildNodes()).getTextContent());
+            return tcr;
+        }
+        return null;
     }
 
     private int figureCWE(TestCaseResult tcr, Node catnode) {
@@ -112,7 +113,7 @@ public class VisualCodeGrepperReader extends Reader {
         }
         if (cat.startsWith("Cipher.getInstance(")) {
             // Weak encryption
-            return CweNumber.BROKEN_CRYPTO;
+            return CweNumber.WEAK_CRYPTO_ALGO;
         } else if (cat.startsWith("Class Contains Public Variable: ")) {
             // Potential SQL Injection
             // return 89;

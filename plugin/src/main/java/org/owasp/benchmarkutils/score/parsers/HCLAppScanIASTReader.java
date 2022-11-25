@@ -130,11 +130,11 @@ public class HCLAppScanIASTReader extends Reader {
             case "PathTraversal":
                 return CweNumber.PATH_TRAVERSAL;
             case "Cryptography.Mac":
-                return CweNumber.REVERSIBLE_HASH;
+                return CweNumber.WEAK_HASH_ALGO;
             case "Cryptography.PoorEntropy":
                 return CweNumber.WEAK_RANDOM;
             case "Cryptography.Ciphers":
-                return CweNumber.BROKEN_CRYPTO;
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "Validation.Required":
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
             default:

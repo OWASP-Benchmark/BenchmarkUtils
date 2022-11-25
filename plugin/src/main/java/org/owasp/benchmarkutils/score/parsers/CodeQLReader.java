@@ -130,7 +130,6 @@ public class CodeQLReader extends Reader {
     private TestCaseResult parseLGTMFinding(
             JSONObject finding, HashMap<String, Integer> rulesUsed) {
         try {
-            TestCaseResult tcr = new TestCaseResult();
             String filename = null;
             JSONArray locations = finding.getJSONArray("locations");
             filename =
@@ -141,6 +140,7 @@ public class CodeQLReader extends Reader {
                             .getString("uri");
             filename = filename.substring(filename.lastIndexOf('/') + 1);
             if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
+                TestCaseResult tcr = new TestCaseResult();
                 String testNumber =
                         filename.substring(
                                 BenchmarkScore.TESTCASENAME.length() + 1,
@@ -182,8 +182,8 @@ public class CodeQLReader extends Reader {
                 // tcr.setCategory( props.getString( "subcategoryShortDescription" ) ); //
                 // Couldn't find any Category info in results file
                 tcr.setEvidence(finding.getJSONObject("message").getString("text"));
-            }
-            return tcr;
+                return tcr;
+            } // end if
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -34,7 +34,7 @@ public class ThunderScanReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-ThunderScan.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_ThunderScan.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 

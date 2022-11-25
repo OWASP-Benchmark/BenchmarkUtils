@@ -24,7 +24,10 @@ public class TestHelper {
     }
 
     private static InputStream asStream(String filename) {
-        return Objects.requireNonNull(
-                TestHelper.class.getClassLoader().getResourceAsStream(filename));
+        InputStream stream = TestHelper.class.getClassLoader().getResourceAsStream(filename);
+        if (stream == null) {
+            System.out.println("TEST ERROR: Test file: " + filename + " does not exist");
+        }
+        return Objects.requireNonNull(stream);
     }
 }
