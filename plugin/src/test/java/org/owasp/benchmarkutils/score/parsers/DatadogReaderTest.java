@@ -53,8 +53,9 @@ public class DatadogReaderTest extends ReaderTestBase {
         assertEquals("Datadog", result.getToolName());
         assertEquals("0.108.0", result.getToolVersion());
 
-        assertEquals(2, result.getTotalResults());
+        assertEquals(3, result.getTotalResults());
 
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1609).get(0).getCWE());
         assertEquals(CweNumber.PATH_TRAVERSAL, result.get(2).get(0).getCWE());
         assertEquals(CweNumber.WEAK_HASH_ALGO, result.get(1).get(0).getCWE());
     }

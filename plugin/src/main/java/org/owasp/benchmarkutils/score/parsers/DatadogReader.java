@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -51,41 +52,50 @@ public class DatadogReader extends Reader {
 
         try (BufferedReader reader = new BufferedReader(new StringReader(resultFile.content()))) {
             String firstLine = reader.readLine();
-            String lastLine = "";
+            String[] lastLine = {""};
             String line = "";
-            ArrayList<String> chunk = new ArrayList<>();
-            String testNumber = "00001";
+            List<String> chunk = new ArrayList<>();
             while (line != null) {
                 try {
                     line = reader.readLine();
+                    if (line == null || line.startsWith("[dd.trace")) {
+                        processChunk(chunk, tr, lastLine);
+                    }
                     if (line != null) {
-                        if (line.contains("_dd.iast.json")) {
-                            // ok, we're starting a new URL, so process this one and start the next
-                            // chunk
-                            process(tr, testNumber, Arrays.asList(line));
-                            chunk.clear();
-                            testNumber = "00000";
-                            String fname = "/" + BenchmarkScore.TESTCASENAME;
-                            int idx = line.indexOf(fname);
-                            if (idx != -1) {
-                                testNumber =
-                                        line.substring(
-                                                idx + fname.length(), idx + fname.length() + 5);
-                            }
-                            lastLine = line;
-                        } else if (line.contains(VERSION_LINE)) {
-                            int pos = line.indexOf(VERSION_LINE) + VERSION_LINE.length();
-                            String version = line.substring(pos, line.indexOf('"', pos + 1));
-                            tr.setToolVersion(version);
-                        }
+                        chunk.add(line);
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
-            tr.setTime(calculateTime(firstLine, lastLine));
+            tr.setTime(calculateTime(firstLine, lastLine[0]));
         }
         return tr;
+    }
+
+    private void processChunk(List<String> chunk, TestSuiteResults tr, String[] lastLine)
+            throws Exception {
+        String testNumber = "00001";
+
+        String line = chunk.stream().collect(Collectors.joining(""));
+        if (line.contains("_dd.iast.json")) {
+            // ok, we're starting a new URL, so process this one and start the next
+            // chunk
+            process(tr, testNumber, Arrays.asList(line));
+            chunk.clear();
+            testNumber = "00000";
+            String fname = "/" + BenchmarkScore.TESTCASENAME;
+            int idx = line.indexOf(fname);
+            if (idx != -1) {
+                testNumber = line.substring(idx + fname.length(), idx + fname.length() + 5);
+            }
+            lastLine[0] = line;
+        } else if (line.contains(VERSION_LINE)) {
+            int pos = line.indexOf(VERSION_LINE) + VERSION_LINE.length();
+            String version = line.substring(pos, line.indexOf('"', pos + 1));
+            tr.setToolVersion(version);
+        }
+        chunk.clear();
     }
 
     private String calculateTime(final String firstLine, final String lastLine) {
@@ -152,7 +162,7 @@ public class DatadogReader extends Reader {
     }
 
     private enum Type {
-        CMD_INJECTION(78),
+        COMMAND_INJECTION(78),
         WEAK_HASH("crypto-bad-mac", 328),
         WEAK_CIPHER("crypto-bad-ciphers", 327),
         HEADER_INJECTION(113),
