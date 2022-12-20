@@ -69,6 +69,14 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         // The theCrawlerFile has to be instantiated before a crawl can be done.
     }
 
+    /**
+     * Overload the base crawl() method to send both attack and safe requests, and verify whether
+     * the test exploit worked or not based on the results that came back in both the attack
+     * response and safe response and whether this test case is a true positive or not.
+     *
+     * @param testSuite The TestSuite to crawl.
+     * @throws Exception If crawler configuration is messed up somehow.
+     */
     @Override
     protected void crawl(TestSuite testSuite) throws Exception {
         CloseableHttpClient httpclient =

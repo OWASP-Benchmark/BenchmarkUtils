@@ -75,7 +75,7 @@ public abstract class AbstractTestCaseRequest {
     private boolean isVulnerability;
     private String attackSuccessString;
 
-    // Occasionally its useful to verify that a string is MISSING from the response to indicate an
+    // Occasionally, its useful to verify that a string is MISSING from the response to indicate an
     // attack was successful
     private boolean attackSuccessStringPresent = true; // The default
 
@@ -350,7 +350,6 @@ public abstract class AbstractTestCaseRequest {
     }
 
     public void setSafe(boolean isSafe) {
-        //        this.isSafe = isSafe;
         for (RequestVariable header : getHeaders()) {
             // setSafe() considers whether attack and safe values exist for this parameter before
             // setting isSafe true or false. So you don't have to check that here.

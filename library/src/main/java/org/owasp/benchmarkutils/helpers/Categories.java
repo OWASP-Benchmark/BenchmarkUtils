@@ -35,7 +35,7 @@ import org.xml.sax.SAXException;
 
 /**
  * This class contains all the vulnerability categories currently defined. It is implemented as a
- * Singleton,.
+ * Singleton.
  */
 public class Categories {
     public static final String FILENAME = "categories.xml";
