@@ -199,7 +199,9 @@ public class SemgrepReader extends Reader {
                 JSONObject metadata = extra.getJSONObject("metadata");
 
                 // CWE
-                int cwe = Integer.parseInt(metadata.getString("cwe").split(":")[0].split("-")[1]);
+                String cweString = getStringOrFirstArrayIndex(metadata, "cwe");
+                int cwe = Integer.parseInt(cweString.split(":")[0].split("-")[1]);
+
                 try {
                     cwe = translate(cwe);
                 } catch (NumberFormatException ex) {
@@ -207,7 +209,7 @@ public class SemgrepReader extends Reader {
                 }
 
                 // category
-                String category = metadata.getString("owasp");
+                String category = getStringOrFirstArrayIndex(metadata, "owasp");
 
                 // evidence
                 String evidence = result.getString("check_id");
@@ -226,5 +228,13 @@ public class SemgrepReader extends Reader {
         }
 
         return null;
+    }
+
+    private static String getStringOrFirstArrayIndex(JSONObject metadata, String key) {
+        if (metadata.get(key) instanceof JSONArray) {
+            return metadata.getJSONArray(key).getString(0);
+        } else {
+            return metadata.getString(key);
+        }
     }
 }
