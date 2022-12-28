@@ -10,10 +10,10 @@
  *
  * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU General Public License for more details
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Dave Wichers
- * @created 2015
+ * @author Sascha Knoop
+ * @created 2022
  */
 package org.owasp.benchmarkutils.score.parsers;
 
@@ -21,7 +21,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.List;
-import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
+import org.owasp.benchmarkutils.score.TestCaseResult;
+import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class MendReader extends Reader {
 
