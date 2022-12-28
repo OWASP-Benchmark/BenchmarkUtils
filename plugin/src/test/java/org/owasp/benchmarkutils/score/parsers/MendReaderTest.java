@@ -1,0 +1,44 @@
+package org.owasp.benchmarkutils.score.parsers;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
+import org.owasp.benchmarkutils.score.TestHelper;
+import org.owasp.benchmarkutils.score.TestSuiteResults;
+
+public class MendReaderTest extends ReaderTestBase {
+
+    private ResultFile resultFile;
+
+    @BeforeEach
+    void setUp() {
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Mend.xml");
+        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
+    }
+
+    @Test
+    public void onlyMendReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, MendReader.class);
+    }
+
+    @Test
+    void readerHandlesGivenResultFile() throws Exception {
+        MendReader reader = new MendReader();
+        TestSuiteResults result = reader.parse(resultFile);
+
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertTrue(result.isCommercial());
+        assertEquals("Mend", result.getToolName());
+        assertEquals("01:23:45", result.getTime());
+
+        assertEquals(2, result.getTotalResults());
+
+        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get(2).get(0).getCWE());
+    }
+}
