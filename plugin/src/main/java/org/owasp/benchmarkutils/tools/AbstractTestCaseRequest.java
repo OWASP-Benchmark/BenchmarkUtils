@@ -74,6 +74,11 @@ public abstract class AbstractTestCaseRequest {
     private boolean isUnverifiable;
     private boolean isVulnerability;
     private String attackSuccessString;
+
+    // Occasionally, its useful to verify that a string is MISSING from the response to indicate an
+    // attack was successful
+    private boolean attackSuccessStringPresent = true; // The default
+
     private String name;
     private String query;
     private String sinkFile;
@@ -132,6 +137,11 @@ public abstract class AbstractTestCaseRequest {
     @XmlAttribute(name = "tcAttackSuccess")
     public String getAttackSuccessString() {
         return this.attackSuccessString;
+    }
+
+    @XmlAttribute(name = "tcAttackSuccessPresent")
+    public boolean getAttackSuccessStringPresent() {
+        return this.attackSuccessStringPresent;
     }
 
     @XmlAttribute(name = "tcCategory", required = true)
@@ -267,6 +277,10 @@ public abstract class AbstractTestCaseRequest {
         return this.attackSuccessString = attackSuccessString;
     }
 
+    public boolean setAttackSuccessStringPresent(boolean attackSuccessStringPresent) {
+        return this.attackSuccessStringPresent = attackSuccessStringPresent;
+    }
+
     public void setCategory(Category category) {
         this.category = category;
     }
@@ -336,7 +350,6 @@ public abstract class AbstractTestCaseRequest {
     }
 
     public void setSafe(boolean isSafe) {
-        //        this.isSafe = isSafe;
         for (RequestVariable header : getHeaders()) {
             // setSafe() considers whether attack and safe values exist for this parameter before
             // setting isSafe true or false. So you don't have to check that here.

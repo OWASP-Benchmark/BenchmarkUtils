@@ -57,10 +57,15 @@ public class SemgrepReader extends Reader {
             case 200: // Information Leak / Disclosure;
             case 276: // Incorrect Default Permissions;
             case 352: // CSRF;
+            case 489: // Active Debug Code;
                 break; // Don't care - So return CWE 'as is'
 
+            case 22:
+                return CweNumber.PATH_TRAVERSAL;
             case 78:
                 return CweNumber.COMMAND_INJECTION;
+            case 79:
+                return CweNumber.XSS;
             case 89:
                 return CweNumber.SQL_INJECTION;
             case 90:
@@ -69,9 +74,17 @@ public class SemgrepReader extends Reader {
             case 327:
             case 696: // Incorrect Behavior Order
                 return CweNumber.WEAK_CRYPTO_ALGO; // weak encryption
+            case 328:
+                return CweNumber.WEAK_HASH_ALGO;
+            case 330:
+                return CweNumber.WEAK_RANDOM;
+            case 501:
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
             case 614:
             case 1004:
                 return CweNumber.INSECURE_COOKIE;
+            case 643:
+                return CweNumber.XPATH_INJECTION;
             default:
                 System.out.println(
                         "INFO: Found following CWE in SemGrep results which we haven't seen before: "
