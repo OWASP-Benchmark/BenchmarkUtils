@@ -41,7 +41,8 @@ public class ReaderTest {
                 // Hdiv
                 "This is a test line for the /BenchmarkTest00042 test.",
                 "This is a test line for the /BenchmarkTest00042 test another testing. .",
-                "05:41:58,220 ANL [FINE] benchmark SourceCodeVulnerability [origin=REQUEST, type=PATH_TRAVERSAL, url=/benchmark/pathtraver-01/BenchmarkTest00042, httpParameterName=BenchmarkTest00042, httpOriginalValue=FileName, taintedValue=SomeValue, className=org.owasp.benchmark.testcode.BenchmarkTest00001, lineNumber=1, score=1.0, hash=0000000000]"
+                "05:41:58,220 ANL [FINE] benchmark SourceCodeVulnerability [origin=REQUEST, type=PATH_TRAVERSAL, url=/benchmark/pathtraver-01/BenchmarkTest00042, httpParameterName=BenchmarkTest00042, httpOriginalValue=FileName, taintedValue=SomeValue, className=org.owasp.benchmark.testcode.BenchmarkTest00001, lineNumber=1, score=1.0, hash=0000000000]",
+                "https://localhost:8443/benchmark/xss-05/BenchmarkTest00042?BenchmarkTest00042=%3Cscript%3Ealert%281%29%3B%3C%2Fscript%3E&password=ZAP&username=ZAP"
             })
     public void readsTestNumberFromPath(String path) {
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";

@@ -213,6 +213,7 @@ public abstract class Reader {
                             + 1;
             path = path.substring(numberStart);
             // System.out.println("After length: " + path);
+            path = path.replaceAll("\\?.*", "");
             path = path.replaceAll(",.*", "");
 
             path =
