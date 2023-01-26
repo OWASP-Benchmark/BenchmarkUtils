@@ -200,14 +200,8 @@ public class CheckmarxReader extends Reader {
                 testcase2 = testcase2.substring(testcase2.lastIndexOf('\\') + 1);
             }
             if (testcase2.startsWith(BenchmarkScore.TESTCASENAME)) {
-                String testno2 =
-                        testcase2.substring(
-                                BenchmarkScore.TESTCASENAME.length(), testcase2.lastIndexOf('.'));
-                try {
-                    tcr.setNumber(Integer.parseInt(testno2));
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
-                }
+                int testno2 = testNumber(testcase2);
+                tcr.setNumber(testno2);
                 return tcr;
             }
         }

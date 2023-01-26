@@ -156,15 +156,8 @@ public class CheckmarxESReader extends Reader {
                 resultFileName = nodes.getJSONObject(nodes.length() - 1).getString("FileName");
                 testcaseName = resultFileName.substring(resultFileName.lastIndexOf('\\') + 1);
                 if (testcaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    String testNo =
-                            testcaseName.substring(
-                                    BenchmarkScore.TESTCASENAME.length(),
-                                    testcaseName.lastIndexOf('.'));
-                    try {
-                        tcr.setNumber(Integer.parseInt(testNo));
-                    } catch (NumberFormatException e) {
-                        e.printStackTrace();
-                    }
+                    int testno = testNumber(testcaseName);
+                    tcr.setNumber(testno);
                     return tcr;
                 }
             }
