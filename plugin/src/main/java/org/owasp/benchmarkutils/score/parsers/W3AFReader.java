@@ -99,16 +99,9 @@ public class W3AFReader extends Reader {
         }
 
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno = testfile.substring(BenchmarkScore.TESTCASENAME.length());
-            if (testno.endsWith(".html")) {
-                testno = testno.substring(0, testno.length() - 5);
-            }
-            try {
-                tcr.setNumber(Integer.parseInt(testno));
-                return tcr;
-            } catch (NumberFormatException e) {
-                System.out.println("> Parse error " + testfile + ":: " + testno);
-            }
+            int testno = testNumber(testfile);
+            tcr.setNumber(testno);
+            return tcr;
         }
         return null;
     }

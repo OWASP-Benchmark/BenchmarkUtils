@@ -114,14 +114,16 @@ public class ReshiftReader extends Reader {
                     String category = record.get("Category");
                     tcr.setCategory(category);
                     tcr.setCWE(cweLookup(category));
-                    int testCaseNumStart =
-                            url.indexOf(BenchmarkScore.TESTCASENAME)
-                                    + BenchmarkScore.TESTCASENAME.length();
-                    tcr.setNumber(
-                            Integer.parseInt(
-                                    url.substring(
-                                            testCaseNumStart,
-                                            testCaseNumStart + BenchmarkScore.TESTIDLENGTH)));
+                    tcr.setNumber(testNumber(url));
+                    // int testCaseNumStart =
+                    //         url.indexOf(BenchmarkScore.TESTCASENAME)
+                    //                 + BenchmarkScore.TESTCASENAME.length();
+                    /// To check
+                    // tcr.setNumber(
+                    //         Integer.parseInt(
+                    //                 url.substring(
+                    //                         testCaseNumStart,
+                    //                         testCaseNumStart + BenchmarkScore.TESTIDLENGTH)));
                     if (tcr.getCWE() != 0) {
                         tr.put(tcr);
                     }

@@ -45,14 +45,8 @@ public class SeekerReader extends Reader {
             TestCaseResult tcr = new TestCaseResult();
             tcr.setCategory(checkerKey);
             tcr.setCWE(cweLookup(checkerKey));
-            try {
-                if (url.length() >= 5) {
-                    tcr.setNumber(Integer.parseInt(url.substring(url.length() - 5, url.length())));
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("> Parse error: " + record.toString());
-            }
-
+            int testno = testNumber(url);
+            tcr.setNumber(testno);
             if (tcr.getCWE() != 0) {
                 tr.put(tcr);
             }

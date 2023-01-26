@@ -86,14 +86,13 @@ public class WapitiReader extends Reader {
                 // Note that Path is a URL, not a source code file. So there is no filename
                 // extension to trim off
                 if (path.contains(BenchmarkScore.TESTCASENAME)) {
-                    String testCaseNum =
-                            path.substring(path.length() - BenchmarkScore.TESTIDLENGTH);
+                    int testno = testNumber(path);
                     TestCaseResult tcr = new TestCaseResult();
                     tcr.setCWE(cwe);
                     tcr.setCategory(getAttributeValue("name", vuln));
                     tcr.setEvidence(getNamedChild("curl_command", entry).getTextContent());
                     try {
-                        tcr.setNumber(Integer.parseInt(testCaseNum));
+                        tcr.setNumber(testno);
                         tr.put(tcr);
                     } catch (NumberFormatException e) {
                         System.out.println("ERROR: Couldn't parse test case number from: " + path);

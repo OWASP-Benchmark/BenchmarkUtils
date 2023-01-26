@@ -64,10 +64,9 @@ public class CheckmarxIASTReader extends Reader {
                 // testCase.length())); // For debugging YE
                 tcr.setTestCaseName(testCase);
                 // BenchmarkTest00000 - BenchmarkTest99999
-                tcr.setNumber(
-                        Integer.parseInt(
-                                testCase.substring(
-                                        testCase.length() - BenchmarkScore.TESTIDLENGTH)));
+                int testNo = testNumber(testCase);
+
+                tcr.setNumber(testNo);
                 if (tcr.getCWE() != 0) {
                     tr.put(tcr);
                 }

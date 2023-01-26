@@ -81,16 +81,9 @@ public class SourceMeterReader extends Reader {
         tcr.setCategory(vuln);
         tcr.setEvidence(file);
         tcr.setCWE(cweLookup(vuln));
-
-        String testno = file.substring(file.length() - 5); // extract test number
-        try {
-            tcr.setNumber(Integer.parseInt(testno));
-            return tcr;
-        } catch (NumberFormatException e) {
-            System.out.println("> Parse error " + file + ":: " + testno);
-        }
-
-        return null;
+        int testno = testNumber(file);
+        tcr.setNumber(testno);
+        return tcr;
     }
 
     private static int cweLookup(String vuln) {

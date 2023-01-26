@@ -18,7 +18,6 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -54,25 +53,17 @@ public class NoisyCricketReader extends Reader {
     }
 
     private void parseNoisyCricketIssue(Node item, TestSuiteResults tr) {
-        int testNumber = -1;
         String testcase = getAttributeValue("file", item);
-        if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno =
-                    testcase.substring(BenchmarkScore.TESTCASENAME.length(), testcase.indexOf('.'));
-            try {
-                testNumber = Integer.parseInt(testno);
-            } catch (NumberFormatException e) {
-                return;
-            }
-        }
+        int testno = testNumber(testcase);
 
         String cwelist = getAttributeValue("cwelist", item);
+        System.out.println(cwelist);
         cwelist = cwelist.substring(1, cwelist.length() - 1);
         if (!cwelist.isEmpty()) {
             String[] cwes = cwelist.split(", ");
             for (String cwe : cwes) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setNumber(testNumber);
+                tcr.setNumber(testno);
                 tcr.setCWE(Integer.parseInt(cwe));
                 tr.put(tcr);
             }

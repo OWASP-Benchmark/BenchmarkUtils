@@ -35,8 +35,7 @@ public class PMDReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
-        return resultFile.filename().endsWith(".xml") 
-                && resultFile.xmlRootNodeName().equals("pmd");
+        return resultFile.filename().endsWith(".xml") && resultFile.xmlRootNodeName().equals("pmd");
     }
 
     @Override
@@ -84,17 +83,8 @@ public class PMDReader extends Reader {
             if (testclass.startsWith(BenchmarkScore.TESTCASENAME)) {
                 TestCaseResult tcr = new TestCaseResult();
 
-                String testNumber =
-                        testclass.substring(
-                                BenchmarkScore.TESTCASENAME.length(), testclass.lastIndexOf('.'));
-                try {
-                    tcr.setNumber(Integer.parseInt(testNumber));
-                } catch (NumberFormatException e) {
-                    System.out.println(
-                            "Can't parse test case number from file: '" + filename + "'");
-                    return null; // If we can't parse the test #, its not in a real test case file.
-                    // e.g., BenchmarkTesting.java
-                }
+                int testNumber = testNumber(testclass);
+                tcr.setNumber(testNumber);
                 // System.out.println(
                 //        "PMD found violation: " + violation + " in test case: " + testclass);
                 tcr.setCWE(figureCWE(violation));
@@ -149,7 +139,7 @@ public class PMDReader extends Reader {
             case "??10":
                 return 79; // XSS
 
-            // FbInfer additional rules
+                // FbInfer additional rules
             case "RESOURCE_LEAK":
             case "NULL_DEREFERENCE":
                 return 0;

@@ -79,6 +79,8 @@ public class BenchmarkScore extends AbstractMojo {
     public static final String TEST = "Test";
     public static String TESTCASENAME; // Set w/TESTSUITE. i.e., TESTSUITE + TEST;
 
+    public static String TESTPACKAGE = "org.owasp.benchmark.testcode.";
+
     // The # of numbers in a test case name. Must match what is actually generated.
     public static final int TESTIDLENGTH = 5;
 

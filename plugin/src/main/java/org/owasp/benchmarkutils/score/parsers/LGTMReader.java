@@ -146,11 +146,8 @@ public class LGTMReader extends Reader {
                             .getString("uri");
             filename = filename.substring(filename.lastIndexOf('/'));
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
-                String testNumber =
-                        filename.substring(
-                                BenchmarkScore.TESTCASENAME.length() + 1,
-                                filename.lastIndexOf('.'));
-                tcr.setNumber(Integer.parseInt(testNumber));
+                int testno = testNumber(filename);
+                tcr.setNumber(testno);
                 String ruleId = finding.getString("ruleId");
                 Integer cweForRule = rulesUsed.get(ruleId);
                 //				System.out.println("Found finding in: " + testNumber + " of type: " + ruleId +

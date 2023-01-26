@@ -52,7 +52,7 @@ public class FaastReader extends Reader {
         TestCaseResult tcr = new TestCaseResult();
         String url = "";
         int cwe = 0;
-        String testNumber = "";
+        int testNumber = -1;
         String category = "";
         for (Object o : finding.keySet()) {
             String key = (String) o;
@@ -76,7 +76,7 @@ public class FaastReader extends Reader {
         }
 
         if (url.contains(BenchmarkScore.TESTCASENAME)) {
-            tcr.setNumber(Integer.parseInt(testNumber));
+            tcr.setNumber(testNumber);
             tcr.setCWE(cwe);
             tcr.setCategory(category);
             return tcr;
@@ -93,9 +93,12 @@ public class FaastReader extends Reader {
         return url.substring(locator_start, locator_end);
     }
 
-    private String getTestCase(String url) {
-        int locator =
-                url.lastIndexOf(BenchmarkScore.TESTCASENAME) + BenchmarkScore.TESTCASENAME.length();
-        return url.substring(locator, locator + 5);
+    private int getTestCase(String url) {
+        // TODO: Check with more test cases
+        return testNumber(url);
+        // int locator =
+        //         url.lastIndexOf(BenchmarkScore.TESTCASENAME) +
+        // BenchmarkScore.TESTCASENAME.length();
+        // return url.substring(locator, locator + 5);
     }
 }

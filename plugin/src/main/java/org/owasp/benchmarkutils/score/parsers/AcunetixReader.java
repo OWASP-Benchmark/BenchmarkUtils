@@ -146,12 +146,10 @@ public class AcunetixReader extends Reader {
             testfile = testfile.substring(0, testfile.indexOf("?"));
         }
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno = testfile.substring(BenchmarkScore.TESTCASENAME.length());
-            if (testno.endsWith(".html")) {
-                testno = testno.substring(0, testno.length() - 5);
-            }
+
+            int testno = testNumber(testfile);
             try {
-                tcr.setNumber(Integer.parseInt(testno));
+                tcr.setNumber(testno);
                 String cat = getNamedChild("type", vuln).getTextContent();
                 tcr.setCategory(cat);
 

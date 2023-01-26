@@ -94,9 +94,12 @@ public class HCLAppScanSourceReader extends Reader {
                 if (filename != null) {
                     // Parse out test number from: BenchmarkTest02603:99
                     if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                        filename = filename.substring(0, filename.indexOf(":"));
-                        String testnum = filename.substring(BenchmarkScore.TESTCASENAME.length());
-                        tn = Integer.parseInt(testnum);
+                        tn = testNumber(filename);
+                        // filename = filename.substring(0, filename.indexOf(":"));
+                        // String testnum =
+                        // filename.substring(BenchmarkScore.TESTCASENAME.length());
+                        // tn = Integer.parseInt(testnum);
+
                         // System.out.println("Found a result in filename for test: " + tn);
                     }
                 } else {
@@ -108,8 +111,9 @@ public class HCLAppScanSourceReader extends Reader {
                                 methodSig.substring(
                                         methodSig.indexOf(BenchmarkScore.TESTCASENAME)
                                                 + BenchmarkScore.TESTCASENAME.length());
-                        String testnum = s.substring(0, s.indexOf("."));
-                        tn = Integer.parseInt(testnum);
+                        tn = testNumber(s);
+                        // String testnum = s.substring(0, s.indexOf("."));
+                        // tn = Integer.parseInt(testnum);
                         // System.out.println("Found a result in method location2 for test: " + tn);
                     }
                     // else System.out.println("Didn't find Benchmark test case in method

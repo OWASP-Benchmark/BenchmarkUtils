@@ -15,7 +15,6 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -197,9 +196,12 @@ public class NJSScanReader extends Reader {
             // BenchmarkTestv2.00001.java
             // Consider a utility function that can be used across all of the parsers to extract the
             // number. This way, if changes are done they only need to be done in one place
-            filename = Paths.get(filename).getFileName().toString();
-            filename = filename.replaceAll("[^0-9]", "");
-            tcr.setNumber(Integer.parseInt(filename));
+            // filename = Paths.get(filename).getFileName().toString();
+            // filename = filename.replaceAll("[^0-9]", "");
+
+            // Note: This code should be checked with test cases
+            int testno = testNumber(filename);
+            tcr.setNumber(testno);
 
         } catch (JSONException jsonE) {
             System.out.println("Issue with file JSON : " + jsonE.toString());

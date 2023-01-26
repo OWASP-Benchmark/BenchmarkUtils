@@ -125,18 +125,7 @@ public class XanitizerReader extends Reader {
                                         // Skip findings for non-BenchmarkTest classes.
                                         if (m_Class.startsWith(BenchmarkScore.TESTCASENAME)) {
 
-                                            final String testNumberAsString =
-                                                    m_Class.substring(
-                                                            BenchmarkScore.TESTCASENAME.length());
-
-                                            int testCaseNumber;
-                                            try {
-                                                testCaseNumber =
-                                                        Integer.parseInt(testNumberAsString);
-                                            } catch (final NumberFormatException ex) {
-                                                // Inner classes can lead to this.
-                                                testCaseNumber = -1;
-                                            }
+                                            int testCaseNumber = testNumber(m_Class);
 
                                             // for backward compatibility
                                             // for reports without CWE numbers - map problem type to

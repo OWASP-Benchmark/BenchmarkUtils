@@ -21,8 +21,8 @@ import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -178,11 +178,9 @@ public class CheckmarxReader extends Reader {
             testcase = testcase.substring(testcase.lastIndexOf('\\') + 1);
         }
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno =
-                    testcase.substring(
-                            BenchmarkScore.TESTCASENAME.length(), testcase.lastIndexOf('.'));
+            int testno = testNumber(testcase);
             try {
-                tcr.setNumber(Integer.parseInt(testno));
+                tcr.setNumber(testno);
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }

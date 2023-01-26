@@ -127,14 +127,7 @@ public class HCLAppScanStandardReader extends Reader {
         testcase = testcase.split("\\.")[0];
         // System.out.println("Candidate test case is: " + testcase);
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int tn = -1;
-            String testno = testcase.substring(BenchmarkScore.TESTCASENAME.length());
-            try {
-                tn = Integer.parseInt(testno);
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-            }
-
+            int tn = testNumber(testcase);
             // if (tn == -1) System.out.println("Found vuln outside of test case of type: " +
             // issueType);
 

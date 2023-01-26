@@ -128,9 +128,12 @@ public class VeracodeReader extends Reader {
 
         String testcase = getAttributeValue("sourcefile", flaw);
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno =
-                    testcase.substring(BenchmarkScore.TESTCASENAME.length(), testcase.length() - 5);
-            tcr.setNumber(Integer.parseInt(testno));
+            int testno = testNumber(testcase);
+            // Suppose that remove the .html extension, to check
+            // String testno =
+            //         testcase.substring(BenchmarkScore.TESTCASENAME.length(), testcase.length() -
+            // 5);
+            tcr.setNumber(testno);
             return tcr;
         }
 

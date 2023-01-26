@@ -176,21 +176,79 @@ public abstract class Reader {
         return null;
     }
 
+    private static String manipulateTestcase(String path) {
+        if (path.startsWith(BenchmarkScore.TESTCASENAME)) {
+            int latest = path.indexOf(".");
+            String toReplace = path.substring(0, latest);
+            path = path.replaceAll(toReplace, BenchmarkScore.TESTCASENAME);
+            System.out.println(path);
+        }
+        return path;
+    }
+
+    private static int findFirstNonNumeric(String path) {
+        for (int i = 0; i < path.length(); i++) {
+            if (!Character.isDigit(path.charAt(i))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static long occurrences(String path, char c) {
+        return path.chars().filter(ch -> ch == c).count();
+    }
+
     /* get rid of everything except the test name */
     public static int testNumber(String path) {
         try {
-            String filename = extractFilename(path);
-
-            if (!filename.contains(BenchmarkScore.TESTCASENAME)) {
+            // System.out.println("Path: " + path);
+            // No BenchmarkTest
+            if (path.indexOf(BenchmarkScore.TESTCASENAME) < 0) {
                 return -1;
             }
+            int numberStart =
+                    path.indexOf(BenchmarkScore.TESTCASENAME)
+                            + BenchmarkScore.TESTCASENAME.length()
+                            + 1;
+            path = path.substring(numberStart);
+            // System.out.println("After length: " + path);
+            path = path.replaceAll(",.*", "");
 
-            if (filename.contains(".")) {
-                filename = removeFileEnding(filename);
+            path =
+                    path.replaceAll(
+                            BenchmarkScore.TESTCASENAME + "v[0-9]*", BenchmarkScore.TESTCASENAME);
+
+            path = path.replaceAll("/send", "");
+            if (path.contains(":")) {
+                path = removeColon(path);
             }
+            path = path.replaceAll("[^0-9.]", "");
+            // System.out.println("After replace: " + path);
+            if (path.contains(".") && occurrences(path, '.') > 1) {
+                int start = path.indexOf(".") + 1;
+                int end = path.length();
+                if (end - start > 1) {
+                    path = path.substring(start, end);
+                }
+            }
+            if (path.contains(".")) {
+                path = removeFileEnding(path);
+            }
+            // System.out.println("Before dot cleaning " + path);
 
-            return Integer.parseInt(filename.substring(BenchmarkScore.TESTCASENAME.length()));
+            // Remove remaining dots
+            path = path.replace(".", "");
+            // System.out.println("Final: " + path);
+            // In the case of $innerclass
+            int dollar = path.indexOf("$");
+            if (dollar != -1) {
+                path = path.substring(0, dollar);
+            }
+            return Integer.parseInt(path);
+
         } catch (Exception e) {
+
             return -1;
         }
     }
@@ -203,6 +261,10 @@ public abstract class Reader {
         } catch (Throwable t) {
             return "";
         }
+    }
+
+    private static String removeColon(String filename) {
+        return filename.substring(0, filename.lastIndexOf(':'));
     }
 
     private static String removeFileEnding(String filename) {

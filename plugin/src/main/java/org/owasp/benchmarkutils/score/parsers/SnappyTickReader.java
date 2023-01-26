@@ -105,12 +105,8 @@ public class SnappyTickReader extends Reader {
 
     private int extractTestNumber(String testfile) {
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno = testfile.substring(BenchmarkScore.TESTCASENAME.length());
-            try {
-                return Integer.parseInt(testno);
-            } catch (NumberFormatException e) {
-                System.out.println("> Parse error " + testfile + ":: " + testno);
-            }
+            int testno = testNumber(testfile);
+            return testno;
         }
         return -1;
     }

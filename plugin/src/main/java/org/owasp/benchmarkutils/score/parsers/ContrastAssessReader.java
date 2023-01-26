@@ -132,29 +132,33 @@ public class ContrastAssessReader extends Reader {
         tcr.setCategory(elements[0]);
 
         if (tcr.getCWE() != 0 && elements[1].contains(BenchmarkScore.TESTCASENAME)) {
-            String testNumber =
-                    elements[1].substring(
-                            elements[1].lastIndexOf('/')
-                                    + BenchmarkScore.TESTCASENAME.length()
-                                    + 1);
-            // Contrast detects potential vulns when requesting .html pages through certain Node
+            // NOTE: This should be checked
+            int testno = testNumber(elements[1]);
+            // String testNumber =
+            //         elements[1].substring(
+            //                 elements[1].lastIndexOf('/')
+            //                         + BenchmarkScore.TESTCASENAME.length()
+            //                         + 1);
+            // // Contrast detects potential vulns when requesting .html pages through certain Node
             // frameworks. Ignore those if they are detected.
-            if (!testNumber.endsWith(".html"))
-                try {
-                    tcr.setNumber(Integer.parseInt(testNumber));
-                    tr.put(tcr);
-                } catch (Exception e) {
-                    // There are a few crypto related findings not associated
-                    // with a request, so ignore errors associated with those.
-                    if (line.contains("crypto-bad-ciphers")
-                            || line.contains("crypto-bad-mac")
-                            || line.contains("crypto-weak-randomness")) {
-                        // do nothing
-                    } else {
-                        System.err.println("Contrast Node Results Parse error for: " + line);
-                        e.printStackTrace();
-                    }
-                }
+            // if (!testNumber.endsWith(".html"))
+            if (testno != -1) {
+                // try {
+                tcr.setNumber(testno);
+                tr.put(tcr);
+            }
+            // catch (Exception e) {
+            //     // There are a few crypto related findings not associated
+            //     // with a request, so ignore errors associated with those.
+            //     if (line.contains("crypto-bad-ciphers")
+            //             || line.contains("crypto-bad-mac")
+            //             || line.contains("crypto-weak-randomness")) {
+            //         // do nothing
+            //     } else {
+            //         System.err.println("Contrast Node Results Parse error for: " + line);
+            //         e.printStackTrace();
+            //     }
+            // }
         }
     }
 
@@ -178,16 +182,9 @@ public class ContrastAssessReader extends Reader {
                 // Normal uri's look like: "uri":"/benchmark/cmdi-00/BenchmarkTest00215", but for
                 // web services, they can look like:
                 // "uri":"/benchmark/rest/xxe-00/BenchmarkTest03915/send"
-                String testNumberStr =
-                        uri.substring(
-                                uri.indexOf(BenchmarkScore.TESTCASENAME)
-                                        + BenchmarkScore.TESTCASENAME.length());
+                int testno = testNumber(uri);
                 // At this point testNumber could contain '00215', or '03915/send'
-                int slashIndex = testNumberStr.indexOf('/');
-                if (slashIndex > 0) {
-                    testNumberStr = testNumberStr.substring(0, slashIndex);
-                }
-                tcr.setNumber(Integer.parseInt(testNumberStr));
+                tcr.setNumber(testno);
                 // System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                 // tcr.getCategory() );
                 tr.put(tcr);
