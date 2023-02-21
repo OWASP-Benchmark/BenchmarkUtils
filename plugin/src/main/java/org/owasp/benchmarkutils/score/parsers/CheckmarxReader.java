@@ -178,12 +178,7 @@ public class CheckmarxReader extends Reader {
             testcase = testcase.substring(testcase.lastIndexOf('\\') + 1);
         }
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int testno = testNumber(testcase);
-            try {
-                tcr.setNumber(testno);
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-            }
+            tcr.setNumber(testNumber(testcase));
             return tcr;
         } else {
             // If not, then the last PastNode must end in a FileName that startsWith BenchmarkTest
@@ -200,8 +195,7 @@ public class CheckmarxReader extends Reader {
                 testcase2 = testcase2.substring(testcase2.lastIndexOf('\\') + 1);
             }
             if (testcase2.startsWith(BenchmarkScore.TESTCASENAME)) {
-                int testno2 = testNumber(testcase2);
-                tcr.setNumber(testno2);
+                tcr.setNumber(testNumber(testcase2));
                 return tcr;
             }
         }

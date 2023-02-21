@@ -127,13 +127,12 @@ public class HCLAppScanStandardReader extends Reader {
         testcase = testcase.split("\\.")[0];
         // System.out.println("Candidate test case is: " + testcase);
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int tn = testNumber(testcase);
             // if (tn == -1) System.out.println("Found vuln outside of test case of type: " +
             // issueType);
 
             // Add the vuln found in a test case to the results for this tool
             TestCaseResult tcr = new TestCaseResult();
-            tcr.setNumber(tn);
+            tcr.setNumber(testNumber(testcase));
             tcr.setCategory(issueType); // TODO: Is this right?
             tcr.setCWE(vtype);
             tcr.setEvidence(issueType);

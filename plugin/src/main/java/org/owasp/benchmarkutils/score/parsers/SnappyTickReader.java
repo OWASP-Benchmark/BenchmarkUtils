@@ -86,15 +86,12 @@ public class SnappyTickReader extends Reader {
                     String filename = getAttributeValue("FileName", finding);
                     String findingName = filename.substring(0, filename.indexOf("."));
                     if (findingCWE != 0) {
-                        int testNumber = extractTestNumber(findingName);
-                        if (testNumber != -1) {
-                            TestCaseResult tcr = new TestCaseResult();
-                            tcr.setCategory(findingName);
-                            tcr.setCWE(findingCWE);
-                            tcr.setEvidence(findingName);
-                            tcr.setNumber(testNumber);
-                            tr.put(tcr);
-                        }
+                        TestCaseResult tcr = new TestCaseResult();
+                        tcr.setCategory(findingName);
+                        tcr.setCWE(findingCWE);
+                        tcr.setEvidence(findingName);
+                        tcr.setNumber(extractTestNumber(findingName));
+                        tr.put(tcr);
                     }
                 }
             }

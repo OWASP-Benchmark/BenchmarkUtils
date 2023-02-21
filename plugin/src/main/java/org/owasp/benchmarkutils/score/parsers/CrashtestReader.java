@@ -152,15 +152,8 @@ public class CrashtestReader extends Reader {
             testfile = testfile.substring(testfile.lastIndexOf('/') + 1);
 
             if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-                int testno = testNumber(testfile);
-
-                try {
-                    tcr.setNumber(testno);
-                    return tcr;
-                } catch (NumberFormatException e) {
-                    System.out.println("URI is: " + uri + " for message: " + message);
-                    System.out.println("> Parse error " + testfile + ":: " + testno);
-                }
+                tcr.setNumber(testNumber(testfile));
+                return tcr;
             }
         }
         return null;

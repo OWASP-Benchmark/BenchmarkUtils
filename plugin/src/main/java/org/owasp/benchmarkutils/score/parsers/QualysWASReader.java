@@ -130,8 +130,7 @@ public class QualysWASReader extends Reader {
         testcase = testcase.split("\\?")[0];
 
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int testno = testNumber(testcase);
-            tcr.setNumber(testno);
+            tcr.setNumber(testNumber(testcase));
             return tcr;
         }
         return null;

@@ -98,8 +98,7 @@ public class BurpJsonReader extends Reader {
                             0]; // If there is any extension on the filename, remove it
             if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
                 // String testNumber = filename.substring(BenchmarkScore.TESTCASENAME.length());
-                int testno = testNumber(filename);
-                tcr.setNumber(testno);
+                tcr.setNumber(testNumber(filename));
                 int rule = issue.getInt("type_index");
                 int cwe = BurpReader.cweLookup(new Integer(rule).toString());
                 tcr.setCWE(cwe);

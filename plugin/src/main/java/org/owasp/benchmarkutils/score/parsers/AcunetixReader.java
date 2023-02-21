@@ -146,28 +146,21 @@ public class AcunetixReader extends Reader {
             testfile = testfile.substring(0, testfile.indexOf("?"));
         }
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
+            tcr.setNumber(testNumber(testfile));
+            String cat = getNamedChild("type", vuln).getTextContent();
+            tcr.setCategory(cat);
 
-            int testno = testNumber(testfile);
-            try {
-                tcr.setNumber(testno);
-                String cat = getNamedChild("type", vuln).getTextContent();
-                tcr.setCategory(cat);
-
-                Node classification = getNamedChild("classification", vuln);
-                Node vulnId = getNamedChild("cwe", classification);
-                if (vulnId != null) {
-                    String cweNum = vulnId.getTextContent();
-                    int cwe = cweLookup(cweNum);
-                    tcr.setCWE(cwe);
-                    // System.out.println("Found CWE: " + cwe + " in test case: " +
-                    // tcr.getNumber());
-                    tcr.setConfidence(
-                            Integer.parseInt(getNamedChild("certainty", vuln).getTextContent()));
-                    return tcr;
-                }
-
-            } catch (NumberFormatException e) {
-                System.out.println("> Parse error " + testfile + ":: " + testno);
+            Node classification = getNamedChild("classification", vuln);
+            Node vulnId = getNamedChild("cwe", classification);
+            if (vulnId != null) {
+                String cweNum = vulnId.getTextContent();
+                int cwe = cweLookup(cweNum);
+                tcr.setCWE(cwe);
+                // System.out.println("Found CWE: " + cwe + " in test case: " +
+                // tcr.getNumber());
+                tcr.setConfidence(
+                        Integer.parseInt(getNamedChild("certainty", vuln).getTextContent()));
+                return tcr;
             }
         }
 
@@ -214,8 +207,7 @@ public class AcunetixReader extends Reader {
         }
 
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int testno = testNumber(testfile);
-            tcr.setNumber(testno);
+            tcr.setNumber(testNumber(testfile));
             return tcr;
         }
         return null;

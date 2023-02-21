@@ -1044,8 +1044,7 @@ public class BenchmarkScore extends AbstractMojo {
                         tcr.setReal(Boolean.parseBoolean(parts[2]));
                         tcr.setCWE(Integer.parseInt(parts[3]));
 
-                        int testno = Reader.testNumber(parts[0]);
-                        tcr.setNumber(testno);
+                        tcr.setNumber(Reader.testNumber(parts[0]));
 
                         // Handle situation where expected results has full details
                         // Sometimes, it also has: source, data flow, data flow filename, sink

@@ -98,8 +98,7 @@ public class WebInspectReader extends Reader {
         }
 
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int testno = testNumber(testfile);
-            tcr.setNumber(testno);
+            tcr.setNumber(testNumber(testfile));
         }
         return null;
     }

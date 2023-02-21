@@ -54,7 +54,6 @@ public class NoisyCricketReader extends Reader {
 
     private void parseNoisyCricketIssue(Node item, TestSuiteResults tr) {
         String testcase = getAttributeValue("file", item);
-        int testno = testNumber(testcase);
 
         String cwelist = getAttributeValue("cwelist", item);
         System.out.println(cwelist);
@@ -63,7 +62,7 @@ public class NoisyCricketReader extends Reader {
             String[] cwes = cwelist.split(", ");
             for (String cwe : cwes) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setNumber(testno);
+                tcr.setNumber(testNumber(testcase));
                 tcr.setCWE(Integer.parseInt(cwe));
                 tr.put(tcr);
             }

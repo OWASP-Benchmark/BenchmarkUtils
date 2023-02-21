@@ -133,7 +133,6 @@ public class ContrastAssessReader extends Reader {
 
         if (tcr.getCWE() != 0 && elements[1].contains(BenchmarkScore.TESTCASENAME)) {
             // NOTE: This should be checked
-            int testno = testNumber(elements[1]);
             // String testNumber =
             //         elements[1].substring(
             //                 elements[1].lastIndexOf('/')
@@ -142,11 +141,9 @@ public class ContrastAssessReader extends Reader {
             // // Contrast detects potential vulns when requesting .html pages through certain Node
             // frameworks. Ignore those if they are detected.
             // if (!testNumber.endsWith(".html"))
-            if (testno != -1) {
-                // try {
-                tcr.setNumber(testno);
-                tr.put(tcr);
-            }
+            // try {
+            tcr.setNumber(testNumber(elements[1]));
+            tr.put(tcr);
             // catch (Exception e) {
             //     // There are a few crypto related findings not associated
             //     // with a request, so ignore errors associated with those.
@@ -182,9 +179,8 @@ public class ContrastAssessReader extends Reader {
                 // Normal uri's look like: "uri":"/benchmark/cmdi-00/BenchmarkTest00215", but for
                 // web services, they can look like:
                 // "uri":"/benchmark/rest/xxe-00/BenchmarkTest03915/send"
-                int testno = testNumber(uri);
                 // At this point testNumber could contain '00215', or '03915/send'
-                tcr.setNumber(testno);
+                tcr.setNumber(testNumber(uri));
                 // System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                 // tcr.getCategory() );
                 tr.put(tcr);

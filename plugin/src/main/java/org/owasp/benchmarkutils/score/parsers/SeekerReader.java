@@ -45,8 +45,7 @@ public class SeekerReader extends Reader {
             TestCaseResult tcr = new TestCaseResult();
             tcr.setCategory(checkerKey);
             tcr.setCWE(cweLookup(checkerKey));
-            int testno = testNumber(url);
-            tcr.setNumber(testno);
+            tcr.setNumber(testNumber(url));
             if (tcr.getCWE() != 0) {
                 tr.put(tcr);
             }

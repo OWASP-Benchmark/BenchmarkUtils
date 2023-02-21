@@ -93,13 +93,8 @@ public class BurpReader extends Reader {
         testcase = testcase.substring(testcase.lastIndexOf('/') + 1);
         testcase = testcase.split("\\.")[0];
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int testno = testNumber(testcase);
-            try {
-                tcr.setNumber(testno);
-                return tcr;
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-            }
+            tcr.setNumber(testNumber(testcase));
+            return tcr;
         }
 
         return null;

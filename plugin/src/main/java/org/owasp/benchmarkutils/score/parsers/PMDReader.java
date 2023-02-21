@@ -83,8 +83,7 @@ public class PMDReader extends Reader {
             if (testclass.startsWith(BenchmarkScore.TESTCASENAME)) {
                 TestCaseResult tcr = new TestCaseResult();
 
-                int testNumber = testNumber(testclass);
-                tcr.setNumber(testNumber);
+                tcr.setNumber(testNumber(testclass));
                 // System.out.println(
                 //        "PMD found violation: " + violation + " in test case: " + testclass);
                 tcr.setCWE(figureCWE(violation));

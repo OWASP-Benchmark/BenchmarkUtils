@@ -121,13 +121,14 @@ public class HdivReader extends Reader {
             throws Exception {
         for (String line : chunk) {
             TestCaseResult tcr = new TestCaseResult();
-            int testno = -1;
 
             String fname = "/" + BenchmarkScore.TESTCASENAME;
             int idx = line.indexOf(fname);
             if (idx != -1) {
-                testno = testNumber(line);
+                tcr.setNumber(testNumber(line));
                 // testNumber = line.substring(idx + fname.length(), idx + fname.length() + 5);
+            } else {
+                tcr.setNumber(-1);
             }
 
             String type =
@@ -138,12 +139,6 @@ public class HdivReader extends Reader {
                 Type t = Type.valueOf(type);
                 tcr.setCWE(t.number);
                 tcr.setCategory(t.id);
-
-                try {
-                    tcr.setNumber(testno);
-                } catch (NumberFormatException e) {
-                    System.out.println("> Parse error: " + line);
-                }
 
                 if (tcr.getCWE() != 0) {
                     tr.put(tcr);

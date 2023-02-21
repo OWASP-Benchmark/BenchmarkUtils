@@ -141,8 +141,7 @@ public class CodeQLReader extends Reader {
             filename = filename.substring(filename.lastIndexOf('/') + 1);
             if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
                 TestCaseResult tcr = new TestCaseResult();
-                int testNumber = testNumber(filename);
-                tcr.setNumber(testNumber);
+                tcr.setNumber(testNumber(filename));
                 String ruleId = finding.getString("ruleId");
                 Integer cweForRule = rulesUsed.get(ruleId);
                 // System.out.println("Found finding in: " + testNumber + " of type: " + ruleId +

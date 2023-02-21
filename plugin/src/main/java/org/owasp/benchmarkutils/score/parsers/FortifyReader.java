@@ -178,8 +178,7 @@ public class FortifyReader extends Reader {
         String tc = getAttributeValue("enclosingClass", function);
 
         if (tc != null && tc.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int testno = testNumber(tc);
-            tcr.setNumber(testno);
+            tcr.setNumber(testNumber(tc));
             return tcr;
         } else {
             /* if tc is null (from attribute enclosingClass), then this might be a NodeJS finding
@@ -209,8 +208,7 @@ public class FortifyReader extends Reader {
                             if (dollar != -1) {
                                 tc = tc.substring(0, dollar);
                             }
-                            int tn = Integer.parseInt(tc);
-                            tcr.setNumber(tn);
+                            tcr.setNumber(Integer.parseInt(tc));
                             return tcr;
                         }
                     }

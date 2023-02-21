@@ -200,8 +200,7 @@ public class NJSScanReader extends Reader {
             // filename = filename.replaceAll("[^0-9]", "");
 
             // Note: This code should be checked with test cases
-            int testno = testNumber(filename);
-            tcr.setNumber(testno);
+            tcr.setNumber(testNumber(filename));
 
         } catch (JSONException jsonE) {
             System.out.println("Issue with file JSON : " + jsonE.toString());

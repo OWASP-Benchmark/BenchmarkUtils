@@ -99,8 +99,7 @@ public class W3AFReader extends Reader {
         }
 
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int testno = testNumber(testfile);
-            tcr.setNumber(testno);
+            tcr.setNumber(testNumber(testfile));
             return tcr;
         }
         return null;

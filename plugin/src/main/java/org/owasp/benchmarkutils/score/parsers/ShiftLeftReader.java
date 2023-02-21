@@ -51,12 +51,11 @@ public class ShiftLeftReader extends Reader {
                     throw new RuntimeException("Invalid line in SL result file.");
                 }
 
-                int number = Integer.parseInt(split[0]);
                 String category = split[1];
 
                 TestCaseResult testCaseResult = new TestCaseResult();
                 testCaseResult.setCategory(category);
-                testCaseResult.setNumber(number);
+                testCaseResult.setNumber(Integer.parseInt(split[0]));
                 testCaseResult.setCWE(categoryToCWE(category));
                 testCaseResult.setEvidence(line);
 

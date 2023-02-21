@@ -81,8 +81,7 @@ public class SourceMeterReader extends Reader {
         tcr.setCategory(vuln);
         tcr.setEvidence(file);
         tcr.setCWE(cweLookup(vuln));
-        int testno = testNumber(file);
-        tcr.setNumber(testno);
+        tcr.setNumber(testNumber(file));
         return tcr;
     }
 
