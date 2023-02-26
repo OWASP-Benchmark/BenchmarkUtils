@@ -136,6 +136,7 @@ public class BenchmarkScore extends AbstractMojo {
      */
     private static void loadConfigFromCommandLineArguments(String[] args) {
         if (args == null || args.length != 2) {
+            System.out.println(USAGE_MSG);
             config = Configuration.fromDefaultConfig();
         } else {
             // -cf indicates use the specified configuration file to config Permute params
