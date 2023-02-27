@@ -40,7 +40,8 @@ public class VeracodeReader extends Reader {
     @Override
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".xml")
-                && resultFile.line(1).startsWith("<detailedreport");
+                && (resultFile.line(1).startsWith("<detailedreport")
+                        || resultFile.line(2).startsWith("<detailedreport"));
     }
 
     @Override
