@@ -25,7 +25,6 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-
 public class FluidAttacksReader extends Reader {
 
     @Override
@@ -35,7 +34,8 @@ public class FluidAttacksReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr = new TestSuiteResults("Fluid Attacks", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr =
+                new TestSuiteResults("Fluid Attacks", true, TestSuiteResults.ToolType.SAST);
 
         java.io.Reader inReader = new java.io.StringReader(resultFile.content());
         Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(inReader);
@@ -55,7 +55,11 @@ public class FluidAttacksReader extends Reader {
             if (testCaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
                 testCaseResult.setCategory(category);
                 testCaseResult.setCWE(categoryToExpectedCwe(category));
-                testCaseResult.setNumber(Integer.parseInt(testCaseName.substring(testCaseName.length() - BenchmarkScore.TESTIDLENGTH, testCaseName.length())));
+                testCaseResult.setNumber(
+                        Integer.parseInt(
+                                testCaseName.substring(
+                                        testCaseName.length() - BenchmarkScore.TESTIDLENGTH,
+                                        testCaseName.length())));
                 testCaseResult.setTestCaseName(testCaseName);
                 tr.put(testCaseResult);
             }
