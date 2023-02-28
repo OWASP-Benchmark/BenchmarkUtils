@@ -59,6 +59,7 @@ public abstract class Reader {
                 new CrashtestReader(),
                 new FaastReader(),
                 new FindbugsReader(),
+                new FluidAttacksReader(),
                 new FortifyReader(),
                 new FusionLiteInsightReader(),
                 new HCLAppScanIASTReader(),

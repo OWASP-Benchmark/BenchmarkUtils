@@ -1,0 +1,3 @@
+title,what,where,cwe
+F001. SQL injection - Java SQL API,OWASP/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java,42,89
+F004. Remote command execution,OWASP/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00002.java,42,78
