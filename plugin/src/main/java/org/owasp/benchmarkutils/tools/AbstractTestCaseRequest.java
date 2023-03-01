@@ -21,6 +21,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -79,7 +81,8 @@ public abstract class AbstractTestCaseRequest {
     // attack was successful
     private boolean attackSuccessStringPresent = true; // The default
 
-    private String name;
+    private String name; // TestCase name
+    private int number = -1; // TestCase number, auto extracted from the name when its set
     private String query;
     private String sinkFile;
     private String sourceFile;
@@ -191,6 +194,12 @@ public abstract class AbstractTestCaseRequest {
     @NotNull
     public String getName() {
         return this.name;
+    }
+
+    // This value is extracted from the test case name when it is set via setName(). Not sure it is
+    // set when autoloaded from XML file.
+    public int getNumber() {
+        return this.number;
     }
 
     @XmlTransient
@@ -309,8 +318,21 @@ public abstract class AbstractTestCaseRequest {
         this.headers = headers;
     }
 
+    static final Pattern lastIntPattern = Pattern.compile("[^0-9]+([0-9]+)$");
+
     public void setName(String name) {
         this.name = name;
+        // Auto extract the test case number from the name.
+        Matcher matcher = lastIntPattern.matcher(name);
+        if (matcher.find()) {
+            String someNumberStr = matcher.group(1);
+            this.number = Integer.parseInt(someNumberStr);
+        } else {
+            System.out.println(
+                    "Warning: TestCaseRequest.setName() invoked with test case name: "
+                            + name
+                            + " that doesn't end with a test case number.");
+        }
     }
 
     public void setQuery(String query) {
