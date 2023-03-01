@@ -27,7 +27,7 @@ import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
 public class TestSuite {
     private List<AbstractTestCaseRequest> testCases;
 
-    private String name;
+    private String name; // Name of the test suite, e.g., benchmark (Which is BenchmarkJava)
 
     private String version;
 
@@ -56,6 +56,15 @@ public class TestSuite {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    /**
+     * Dump out some basic details from the Crawler file to the command line to verify it was read
+     * in properly. Used for debugging.
+     */
+    public void dumpBasicDetails() {
+        System.out.println("Test suite name and version: " + name + " v" + version);
+        System.out.println("Total test cases: " + this.getTestCases().size());
     }
 
     @Override
