@@ -40,18 +40,12 @@ public class VeracodeReader extends Reader {
     @Override
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".xml")
-                && (resultFile.line(1).startsWith("<detailedreport")
-                        || resultFile.line(2).startsWith("<detailedreport"));
+                && (resultFile.xmlRootNodeName().equalsIgnoreCase("detailedreport"));
     }
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-        // Prevent XXE
-        docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
-        Document doc = docBuilder.parse(is);
+
 
         TestSuiteResults tr =
                 new TestSuiteResults("Veracode SAST", true, TestSuiteResults.ToolType.SAST);
@@ -59,7 +53,7 @@ public class VeracodeReader extends Reader {
         // <static-analysis rating="F" score="24" submitted_date="2015-05-23 00:04:57 UTC"
         // published_date="2015-05-28 15:28:35 UTC" next_scan_due="2015-08-28 15:28:35 UTC"
         // analysis_size_bytes="70797465" engine_version="82491">
-        Node root = doc.getDocumentElement();
+        Node root = resultFile.xmlRootNode();
         NodeList rootList = root.getChildNodes();
         Node sa = getNamedNode("static-analysis", rootList);
         String version = getAttributeValue("engine_version", sa);
