@@ -95,7 +95,6 @@ public abstract class Reader {
                 new WapitiJsonReader(),
                 new WapitiReader(),
                 new WebInspectReader(),
-                new XanitizerReader(),
                 new ZapJsonReader(),
                 new ZapReader());
     }
