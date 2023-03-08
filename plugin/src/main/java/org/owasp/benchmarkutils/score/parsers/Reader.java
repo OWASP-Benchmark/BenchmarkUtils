@@ -96,7 +96,8 @@ public abstract class Reader {
                 new WebInspectReader(),
                 new XanitizerReader(),
                 new ZapJsonReader(),
-                new ZapReader());
+                new ZapReader(),
+                new SnykReader());
     }
 
     public abstract boolean canRead(ResultFile resultFile);
