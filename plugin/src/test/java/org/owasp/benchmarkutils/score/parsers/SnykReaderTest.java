@@ -5,7 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
+import org.owasp.benchmarkutils.score.TestHelper;
+import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class SnykReaderTest extends ReaderTestBase {
 

@@ -4,7 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
+import org.owasp.benchmarkutils.score.TestCaseResult;
+import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class SnykReader extends Reader {
 
