@@ -80,7 +80,7 @@ public class InsiderReader extends Reader {
 
                 tcr.setNumber(testNumber(filename));
                 String cwe = finding.getString("cwe").substring(4);
-                tcr.setCWE(CweNumber.lookup(cwe));
+                tcr.setCWE(mapCWE(cwe));
 
                 return tcr;
             }
@@ -89,6 +89,20 @@ public class InsiderReader extends Reader {
         }
 
         return null;
+    }
+
+    /**
+     * Maps detected CWE number to one that BenchmarkScore expects.
+     *
+     * @param cweNumber reported CWE number
+     * @return fixed (or same) CWE number
+     */
+    private static CweNumber mapCWE(String cweNumber) {
+        if ("326".equals(cweNumber)) {
+            return CweNumber.WEAK_CRYPTO_ALGO;
+        }
+
+        return CweNumber.lookup(cweNumber);
     }
 
     private String filename(JSONObject vuln) {
