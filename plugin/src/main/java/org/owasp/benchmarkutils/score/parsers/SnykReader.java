@@ -3,6 +3,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
@@ -102,15 +103,17 @@ public class SnykReader extends Reader {
 
     private Boolean isSnyk(ResultFile resultFile) {
 
-        return resultFile.json().has("runs")
-                && resultFile.json().getJSONArray("runs").getJSONObject(0).has("tool")
-                && resultFile
-                        .json()
-                        .getJSONArray("runs")
-                        .getJSONObject(0)
-                        .getJSONObject("tool")
-                        .getJSONObject("driver")
-                        .getString("name")
-                        .equalsIgnoreCase("SnykCode");
+        try {
+            return resultFile
+                    .json()
+                    .getJSONArray("runs")
+                    .getJSONObject(0)
+                    .getJSONObject("tool")
+                    .getJSONObject("driver")
+                    .getString("name")
+                    .equalsIgnoreCase("SnykCode");
+        } catch (JSONException e) {
+            return false;
+        }
     }
 }
