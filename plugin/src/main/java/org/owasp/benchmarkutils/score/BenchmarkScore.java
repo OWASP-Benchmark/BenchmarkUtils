@@ -17,6 +17,7 @@
  */
 package org.owasp.benchmarkutils.score;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -134,7 +135,8 @@ public class BenchmarkScore extends AbstractMojo {
      *
      * @param args - args passed to main().
      */
-    private static void loadConfigFromCommandLineArguments(String[] args) {
+    @VisibleForTesting
+    static void loadConfigFromCommandLineArguments(String[] args) {
         if (args == null || args.length != 2) {
             System.out.println(USAGE_MSG);
             config = Configuration.fromDefaultConfig();
@@ -145,13 +147,14 @@ public class BenchmarkScore extends AbstractMojo {
             } else if ("-cr".equalsIgnoreCase(args[0])) {
                 // -cr indicates use the specified configuration file resource to config Permute
                 config = Configuration.fromResourceFile(args[1]);
-            } else if (!(args[0] == null && args[1] == null)) {
+            } else if (args[0] == null && args[1] == null) {
+                System.out.println(USAGE_MSG);
+                config = Configuration.fromDefaultConfig();
+            } else {
                 // pom settings for crawler forces creation of 2 args, but if none are provided,
                 // they are null
                 System.out.println(USAGE_MSG);
                 throw new IllegalArgumentException();
-            } else {
-                config = Configuration.fromDefaultConfig();
             }
         }
 

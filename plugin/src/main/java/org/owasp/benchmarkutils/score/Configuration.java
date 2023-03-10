@@ -32,9 +32,9 @@ import org.yaml.snakeyaml.Yaml;
 public class Configuration {
 
     public static final String DEFAULT_CONFIG = "defaultscoringconfig.yaml";
-    private static final String DEFAULT_SUCCESS_MESSAGE =
+    public static final String DEFAULT_SUCCESS_MESSAGE =
             "INFO: Default YAML Scoring config file found and loaded.";
-    private static final String NON_DEFAULT_SUCCESS_MESSAGE =
+    public static final String NON_DEFAULT_SUCCESS_MESSAGE =
             "INFO: YAML Scoring config file found and loaded.";
 
     public final String expectedResultsFileName;
