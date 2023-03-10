@@ -30,23 +30,30 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class SemgrepReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private ResultFile resultFileV65;
+    private ResultFile resultFileV121;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-v0.65.0.json");
+        resultFileV65 = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-v0.65.0.json");
+        resultFileV121 = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-v0.121.0.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlySemgrepReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, SemgrepReader.class);
+    public void onlySemgrepReaderReportsCanReadAsTrueForV65() {
+        assertOnlyMatcherClassIs(this.resultFileV65, SemgrepReader.class);
     }
 
     @Test
-    void readerHandlesGivenResultFile() throws Exception {
+    public void onlySemgrepReaderReportsCanReadAsTrueForV121() {
+        assertOnlyMatcherClassIs(this.resultFileV121, SemgrepReader.class);
+    }
+
+    @Test
+    void readerHandlesGivenResultFileInV65() throws Exception {
         SemgrepReader reader = new SemgrepReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(resultFileV65);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());
@@ -56,5 +63,20 @@ public class SemgrepReaderTest extends ReaderTestBase {
 
         assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.INSECURE_COOKIE, result.get(2).get(0).getCWE());
+    }
+
+    @Test
+    void readerHandlesGivenResultFileInV121() throws Exception {
+        SemgrepReader reader = new SemgrepReader();
+        TestSuiteResults result = reader.parse(resultFileV121);
+
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertFalse(result.isCommercial());
+        assertEquals("Semgrep", result.getToolName());
+
+        assertEquals(2, result.getTotalResults());
+
+        assertEquals(CweNumber.OS_COMMAND_INJECTION, result.get(3).get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.get(4).get(0).getCWE());
     }
 }

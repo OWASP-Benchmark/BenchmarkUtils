@@ -154,10 +154,10 @@ public class BenchmarkCrawler extends AbstractMojo {
 
     /**
      * This method could be static, but needs to be an instance method so Verification crawler can
-     * overrite this method.
+     * overload this method.
      *
      * @param testSuite The TestSuite to crawl.
-     * @throws Exception
+     * @throws Exception If crawler configuration is messed up somehow.
      */
     protected void crawl(TestSuite testSuite) throws Exception {
         CloseableHttpClient httpclient =
@@ -167,7 +167,7 @@ public class BenchmarkCrawler extends AbstractMojo {
 
         for (AbstractTestCaseRequest requestTemplate : testSuite.getTestCases()) {
 
-            HttpUriRequest request = requestTemplate.buildAttackRequest();
+            HttpUriRequest request = requestTemplate.buildSafeRequest();
 
             // Send the next test case request
             sendRequest(httpclient, request);

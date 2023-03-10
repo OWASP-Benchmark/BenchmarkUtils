@@ -47,11 +47,6 @@ public abstract class TestCase {
 
     private String templateFile;
 
-    //    @XmlAttribute(name = "tcType", required = true)
-    //    @XmlReadOnly
-    //    @NotNull
-    //    private String type;
-
     private String UITemplateFile;
 
     private boolean isVulnerable;
@@ -189,8 +184,6 @@ public abstract class TestCase {
                 + sourceUIType
                 + ", templateFile="
                 + templateFile
-                //                + ", type="
-                //                + type
                 + ", UITemplateFile="
                 + UITemplateFile
                 + ", isVulnerable="

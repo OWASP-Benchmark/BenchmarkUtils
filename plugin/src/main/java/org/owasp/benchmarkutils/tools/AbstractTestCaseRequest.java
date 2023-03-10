@@ -21,6 +21,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -74,7 +76,13 @@ public abstract class AbstractTestCaseRequest {
     private boolean isUnverifiable;
     private boolean isVulnerability;
     private String attackSuccessString;
-    private String name;
+
+    // Occasionally, its useful to verify that a string is MISSING from the response to indicate an
+    // attack was successful
+    private boolean attackSuccessStringPresent = true; // The default
+
+    private String name; // TestCase name
+    private int number = -1; // TestCase number, auto extracted from the name when its set
     private String query;
     private String sinkFile;
     private String sourceFile;
@@ -134,6 +142,11 @@ public abstract class AbstractTestCaseRequest {
         return this.attackSuccessString;
     }
 
+    @XmlAttribute(name = "tcAttackSuccessPresent")
+    public boolean getAttackSuccessStringPresent() {
+        return this.attackSuccessStringPresent;
+    }
+
     @XmlAttribute(name = "tcCategory", required = true)
     @XmlJavaTypeAdapter(CategoryAdapter.class)
     @NotNull
@@ -181,6 +194,12 @@ public abstract class AbstractTestCaseRequest {
     @NotNull
     public String getName() {
         return this.name;
+    }
+
+    // This value is extracted from the test case name when it is set via setName(). Not sure it is
+    // set when autoloaded from XML file.
+    public int getNumber() {
+        return this.number;
     }
 
     @XmlTransient
@@ -267,6 +286,10 @@ public abstract class AbstractTestCaseRequest {
         return this.attackSuccessString = attackSuccessString;
     }
 
+    public boolean setAttackSuccessStringPresent(boolean attackSuccessStringPresent) {
+        return this.attackSuccessStringPresent = attackSuccessStringPresent;
+    }
+
     public void setCategory(Category category) {
         this.category = category;
     }
@@ -295,8 +318,21 @@ public abstract class AbstractTestCaseRequest {
         this.headers = headers;
     }
 
+    static final Pattern lastIntPattern = Pattern.compile("[^0-9]+([0-9]+)$");
+
     public void setName(String name) {
         this.name = name;
+        // Auto extract the test case number from the name.
+        Matcher matcher = lastIntPattern.matcher(name);
+        if (matcher.find()) {
+            String someNumberStr = matcher.group(1);
+            this.number = Integer.parseInt(someNumberStr);
+        } else {
+            System.out.println(
+                    "Warning: TestCaseRequest.setName() invoked with test case name: "
+                            + name
+                            + " that doesn't end with a test case number.");
+        }
     }
 
     public void setQuery(String query) {
@@ -336,7 +372,6 @@ public abstract class AbstractTestCaseRequest {
     }
 
     public void setSafe(boolean isSafe) {
-        //        this.isSafe = isSafe;
         for (RequestVariable header : getHeaders()) {
             // setSafe() considers whether attack and safe values exist for this parameter before
             // setting isSafe true or false. So you don't have to check that here.
