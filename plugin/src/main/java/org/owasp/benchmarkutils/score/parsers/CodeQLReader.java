@@ -190,7 +190,14 @@ public class CodeQLReader extends Reader {
         return null;
     }
 
+    /**
+     * Maps detected CWE number to one that BenchmarkScore expects.
+     *
+     * @param cweNumber reported CWE number
+     * @return fixed (or same) CWE number
+     */
     private CweNumber mapCWE(Integer cweNumber) {
+        // java/predictable-seed - This mapping improves the tool's score
         if (cweNumber == 335) {
             return CweNumber.WEAK_RANDOM;
         }
