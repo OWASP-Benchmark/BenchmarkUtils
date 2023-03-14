@@ -81,7 +81,7 @@ public class SnykReader extends Reader {
 
                 if (cwe == INVALID_RULE_ID) {
                     System.out.println("CWE # not parseable from: " + ruleId);
-                    return tcr;
+                    return null;
                 }
 
                 String evidence = result.getJSONObject("message").getString("text");
