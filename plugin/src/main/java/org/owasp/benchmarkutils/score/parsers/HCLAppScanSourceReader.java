@@ -17,7 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.FileInputStream;
+import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -49,16 +49,15 @@ public class HCLAppScanSourceReader extends Reader {
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         Node root = doc.getDocumentElement();
         Node scanInfo = getNamedChild("scan-information", root);
         TestSuiteResults tr =
-                new TestSuiteResults("IBM AppScan Cloud", true, TestSuiteResults.ToolType.SAST);
+                new TestSuiteResults("HCL AppScan Cloud", true, TestSuiteResults.ToolType.SAST);
 
         Node version = getNamedChild("product-version", scanInfo);
-        //    System.out.println("Product version is: " + version.getTextContent());
         tr.setToolVersion(version.getTextContent());
 
         // If the fliename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml) set the
@@ -97,21 +96,21 @@ public class HCLAppScanSourceReader extends Reader {
                         }
                     }
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
+                    reportWarning(e.getMessage());
                 }
             }
 
             // Add the vuln found in a test case to the results for this tool
             if (tn <= 0) {
-                System.out.println("TestCase Number is bad for file: " + filename);
+                reportWarning("TestCase Number is bad for file: " + filename);
+            } else {
+                TestCaseResult tcr = new TestCaseResult();
+                tcr.setNumber(tn);
+                tcr.setCategory(issueType); // TODO: Is this right?
+                tcr.setCWE(vtype);
+                tcr.setEvidence(issueType);
+                tr.put(tcr);
             }
-            TestCaseResult tcr = new TestCaseResult();
-            tcr.setNumber(tn);
-            tcr.setCategory(issueType); // TODO: Is this right?
-            tcr.setCWE(vtype);
-            tcr.setEvidence(issueType);
-            tr.put(tcr);
         }
 
         return tr;
@@ -170,9 +169,14 @@ public class HCLAppScanSourceReader extends Reader {
             case "ErrorHandling.RevealDetails.StackTrace":
                 return CweNumber.SENSITIVE_LOGFILE;
             default:
-                System.out.println(
-                        "WARNING: HCL AppScan Source-Unrecognized finding type: " + vtype);
+                reportWarning("WARNING: HCL AppScan Source-Unrecognized finding type: " + vtype);
         }
         return 0;
+    }
+
+    private void reportWarning(String message) {
+        if (System.getProperty("DEBUG") != null) {
+            System.out.println(message);
+        }
     }
 }
