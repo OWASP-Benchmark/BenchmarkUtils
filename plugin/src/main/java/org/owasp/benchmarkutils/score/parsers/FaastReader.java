@@ -94,11 +94,6 @@ public class FaastReader extends Reader {
     }
 
     private int getTestCase(String url) {
-        // TODO: Check with more test cases
         return testNumber(url);
-        // int locator =
-        //         url.lastIndexOf(BenchmarkScore.TESTCASENAME) +
-        // BenchmarkScore.TESTCASENAME.length();
-        // return url.substring(locator, locator + 5);
     }
 }

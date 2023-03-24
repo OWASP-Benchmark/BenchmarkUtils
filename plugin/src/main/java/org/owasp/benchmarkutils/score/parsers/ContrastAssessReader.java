@@ -132,30 +132,8 @@ public class ContrastAssessReader extends Reader {
         tcr.setCategory(elements[0]);
 
         if (tcr.getCWE() != 0 && elements[1].contains(BenchmarkScore.TESTCASENAME)) {
-            // NOTE: This should be checked
-            // String testNumber =
-            //         elements[1].substring(
-            //                 elements[1].lastIndexOf('/')
-            //                         + BenchmarkScore.TESTCASENAME.length()
-            //                         + 1);
-            // // Contrast detects potential vulns when requesting .html pages through certain Node
-            // frameworks. Ignore those if they are detected.
-            // if (!testNumber.endsWith(".html"))
-            // try {
             tcr.setNumber(testNumber(elements[1]));
             tr.put(tcr);
-            // catch (Exception e) {
-            //     // There are a few crypto related findings not associated
-            //     // with a request, so ignore errors associated with those.
-            //     if (line.contains("crypto-bad-ciphers")
-            //             || line.contains("crypto-bad-mac")
-            //             || line.contains("crypto-weak-randomness")) {
-            //         // do nothing
-            //     } else {
-            //         System.err.println("Contrast Node Results Parse error for: " + line);
-            //         e.printStackTrace();
-            //     }
-            // }
         }
     }
 
