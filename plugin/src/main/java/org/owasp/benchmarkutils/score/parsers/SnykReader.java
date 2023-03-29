@@ -28,6 +28,7 @@ public class SnykReader extends Reader {
                     put("SpringCSRF", CweNumber.CSRF);
                     put("TrustBoundaryViolation", CweNumber.TRUST_BOUNDARY_VIOLATION);
                     put("CommandInjection", CweNumber.COMMAND_INJECTION);
+                    put("EnvCommandInjection", CweNumber.COMMAND_INJECTION);
                     put("DOMXSS", CweNumber.XSS);
                     put("XSS", CweNumber.XSS);
                     put("InsecureCipherNoIntegrity", CweNumber.WEAK_CRYPTO_ALGO);
