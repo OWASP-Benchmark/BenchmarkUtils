@@ -14,6 +14,7 @@
  *
  * @author Dave Wichers
  * @author Nipuna Weerasekara
+ * @author Nicolas Couraud
  * @created 2021
  */
 package org.owasp.benchmarkutils.score.parsers;
@@ -74,11 +75,20 @@ public class CodeQLReader extends Reader {
             JSONObject driver = run.getJSONObject("tool").getJSONObject("driver");
             tr.setToolVersion(driver.getString("semanticVersion"));
 
-            // Then, identify all the rules that report results and which CWEs they map to
-            JSONArray rules = driver.getJSONArray("rules");
-            // System.out.println("Found: " + rules.length() + " rules.");
-            HashMap<String, Integer> rulesUsed = parseLGTMRules(rules);
-            // System.out.println("Parsed: " + rulesUsed.size() + " rules.");
+            // Then, identify all the rules that  report results and which CWEs they map to
+            // Rules are reported in the "extensions" section of the tool, one ruleset for each
+            // query pack.
+            JSONArray extensions = run.getJSONObject("tool").getJSONArray("extensions");
+            for (int j = 0; j < extensions.length(); j++) {
+                JSONObject extension = extensions.getJSONObject(j);
+                // System.out.println("Found extension: " + extension.getString("name"));
+                if (extension.has("rules")) {
+                    JSONArray rules = extension.getJSONArray("rules");
+                    // System.out.println("Found: " + rules.length() + " rules.");
+                    HashMap<String, Integer> rulesUsed = parseLGTMRules(rules);
+                    // System.out.println("Parsed: " + rulesUsed.size() + " rules.");
+                }
+            }
 
             // Finally, parse out all the results
             JSONArray results = run.getJSONArray("results");
@@ -111,6 +121,7 @@ public class CodeQLReader extends Reader {
                         // NOTE: If you try to map the rules here, you have to map EVERY rule in the
                         // current ruleset, even though many of those rules won't have results. So
                         // instead we map them later when there is actually a finding by that rule.
+                        // System.out.println("Mapped Rule " + ruleName + " to CWE" + val);
                         rulesUsed.put(
                                 ruleName, Integer.parseInt(val.substring(LGTMCWEPREFIXLENGTH)));
                         break; // Break out of for loop because we only want to use the first CWE it
