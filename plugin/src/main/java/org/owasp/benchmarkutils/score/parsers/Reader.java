@@ -71,6 +71,7 @@ public abstract class Reader {
                 new KlocworkCSVReader(),
                 new KiuwanReader(),
                 new LGTMReader(),
+                new MendReader(),
                 new NetsparkerReader(),
                 new NJSScanReader(),
                 new NoisyCricketReader(),
@@ -84,6 +85,7 @@ public abstract class Reader {
                 new ShiftLeftReader(),
                 new ShiftLeftScanReader(),
                 new SnappyTickReader(),
+                new SnykReader(),
                 new SonarQubeJsonReader(),
                 new SonarQubeReader(),
                 new SourceMeterReader(),
@@ -94,7 +96,6 @@ public abstract class Reader {
                 new WapitiJsonReader(),
                 new WapitiReader(),
                 new WebInspectReader(),
-                new XanitizerReader(),
                 new ZapJsonReader(),
                 new ZapReader());
     }
