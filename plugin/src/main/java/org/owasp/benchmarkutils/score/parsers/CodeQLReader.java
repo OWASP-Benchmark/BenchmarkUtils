@@ -28,21 +28,24 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class CodeQLReader extends Reader {
 
-    private final String LGTMCWEPREFIX = "external/cwe/cwe-";
-    private final int LGTMCWEPREFIXLENGTH = LGTMCWEPREFIX.length();
+    private final String CWEPREFIX = "external/cwe/cwe-";
+    private final int CWEPREFIXLENGTH = CWEPREFIX.length();
 
     @Override
     public boolean canRead(ResultFile resultFile) {
+        return resultFile.isJson() && isCodeQL(resultFile);
+    }
+
+    private boolean isCodeQL(ResultFile resultFile) {
         try {
-            return resultFile.filename().endsWith(".sarif")
-                    && resultFile.isJson()
-                    && resultFile
-                            .json()
-                            .getJSONArray("runs")
-                            .getJSONObject(0)
-                            .getJSONObject("tool")
-                            .getJSONObject("driver")
-                            .has("semanticVersion");
+            return resultFile
+                    .json()
+                    .getJSONArray("runs")
+                    .getJSONObject(0)
+                    .getJSONObject("tool")
+                    .getJSONObject("driver")
+                    .getString("name")
+                    .equalsIgnoreCase("CodeQL");
         } catch (Exception e) {
             return false;
         }
@@ -66,27 +69,36 @@ public class CodeQLReader extends Reader {
         // e.g., Benchmark_1.2-CodeQL-v2.4.1-840.sarif, means the scan took 840 seconds.
 
         for (int i = 0; i < runs.length(); i++) {
-            // There are 1 or more runs in each results file, one per language found (Java,
-            // JavaScript, etc.)
+            // There are 1 or more runs in each results file, one per language found (Java, JavaScript, etc.)
             JSONObject run = runs.getJSONObject(i);
 
-            // First, set the version of LGTM used to do the scan
+            // First, set the version of CodeQL used to do the scan
             JSONObject driver = run.getJSONObject("tool").getJSONObject("driver");
             tr.setToolVersion(driver.getString("semanticVersion"));
 
-            // Then, identify all the rules that report results and which CWEs they map to
-            JSONArray rules = driver.getJSONArray("rules");
-            // System.out.println("Found: " + rules.length() + " rules.");
-            HashMap<String, Integer> rulesUsed = parseLGTMRules(rules);
+            // Read rules from both the top level extension provided rules arrays each.
+            JSONArray driverRules = driver.getJSONArray("rules");
+            // System.out.println("Found: " + driverRules.length() + " rules.");
+            HashMap<String, Integer> rulesUsed = parseLGTMRules(driverRules);
             // System.out.println("Parsed: " + rulesUsed.size() + " rules.");
+
+            JSONArray extensions = run.getJSONObject("tool").getJSONArray("extensions");
+            for (int extensionI = 0; extensionI < extensions.length(); extensionI++) {
+                JSONObject extension = extensions.getJSONObject(extensionI);
+                if (!extension.has("rules")) {
+                    continue;
+                }
+                JSONArray extensionRules = extension.getJSONArray("rules");
+                HashMap<String, Integer> extensionRulesUsed = parseLGTMRules(extensionRules);
+                rulesUsed.putAll(extensionRulesUsed);
+            }
 
             // Finally, parse out all the results
             JSONArray results = run.getJSONArray("results");
             // System.out.println("Found: " + results.length() + " results.");
 
             for (int j = 0; j < results.length(); j++) {
-                TestCaseResult tcr =
-                        parseLGTMFinding(results.getJSONObject(j), rulesUsed); // , version );
+                TestCaseResult tcr = parseLGTMFinding(results.getJSONObject(j), rulesUsed); // , version );
                 if (tcr != null) {
                     tr.put(tcr);
                 }
@@ -107,12 +119,12 @@ public class CodeQLReader extends Reader {
                 JSONArray tags = ruleJSON.getJSONObject("properties").getJSONArray("tags");
                 for (int i = 0; i < tags.length(); i++) {
                     String val = tags.getString(i);
-                    if (val.startsWith(LGTMCWEPREFIX)) {
+                    if (val.startsWith(CWEPREFIX)) {
                         // NOTE: If you try to map the rules here, you have to map EVERY rule in the
                         // current ruleset, even though many of those rules won't have results. So
                         // instead we map them later when there is actually a finding by that rule.
                         rulesUsed.put(
-                                ruleName, Integer.parseInt(val.substring(LGTMCWEPREFIXLENGTH)));
+                                ruleName, Integer.parseInt(val.substring(CWEPREFIXLENGTH)));
                         break; // Break out of for loop because we only want to use the first CWE it
                         // is mapped to currently. If they add rules where the first CWE is
                         // not the preferred one, then we need to implement fixCWE() and
@@ -132,24 +144,21 @@ public class CodeQLReader extends Reader {
         try {
             String filename = null;
             JSONArray locations = finding.getJSONArray("locations");
-            filename =
-                    locations
-                            .getJSONObject(0)
-                            .getJSONObject("physicalLocation")
-                            .getJSONObject("artifactLocation")
-                            .getString("uri");
+            filename = locations
+                    .getJSONObject(0)
+                    .getJSONObject("physicalLocation")
+                    .getJSONObject("artifactLocation")
+                    .getString("uri");
             filename = filename.substring(filename.lastIndexOf('/') + 1);
             if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
                 TestCaseResult tcr = new TestCaseResult();
-                String testNumber =
-                        filename.substring(
-                                BenchmarkScore.TESTCASENAME.length() + 1,
-                                filename.lastIndexOf('.'));
+                String testNumber = filename.substring(
+                        BenchmarkScore.TESTCASENAME.length() + 1,
+                        filename.lastIndexOf('.'));
                 tcr.setNumber(Integer.parseInt(testNumber));
                 String ruleId = finding.getString("ruleId");
                 Integer cweForRule = rulesUsed.get(ruleId);
-                // System.out.println("Found finding in: " + testNumber + " of type: " + ruleId +
-                // " CWE: " + cweForRule);
+                System.out.println("Found finding in: " + testNumber + " of type: " + ruleId + " CWE: " + cweForRule);
                 if (cweForRule == null) {
                     switch (ruleId) {
                         case "java/inefficient-boxed-constructor":
@@ -193,7 +202,7 @@ public class CodeQLReader extends Reader {
     private int mapCWE(String ruleName, Integer cweNumber) {
 
         switch (cweNumber) {
-                // These are properly mapped by default
+            // These are properly mapped by default
             case 22: // java/path-injection and zipslip
             case 78: // java & js/command-line-injection
             case 79: // java/xss & js/reflected-xss
@@ -205,37 +214,41 @@ public class CodeQLReader extends Reader {
             case 643: // java/xml/xpath-injection
                 return cweNumber.intValue(); // Return CWE as is
 
-                // These rules we care about, but have to map to the CWE we expect
+            // These rules we care about, but have to map to the CWE we expect
             case 335: // java/predictable-seed - This mapping improves the tool's score
                 return 330; // Weak Random
 
-                /*
-                 * These rules exist in the java-code-scanning.qls query set, but we don't see findings
-                 * for them in Benchmark currently. They are left here in case we do see them in the
-                 * future to make it easier to support them.
-                // These rules we care about, but have to map to the CWE we expect
-                    case 338: // java/jhipster-prng
-                        return 330; // Weak Random
-                    case 347: // java/missing-jwt-signature-check - TODO - Does this affect score?
-                        return 327; // Weak Crypto
-
-                    // These rules we don't care about now, but we return their CWE value anyway in case
-                    // we care in the future
-                    case 94: // java/insecure-bean-validation and many others
-                    case 190: // java/implicit-cast-in-compound-assignment
-                    case 197: // java/tainted-numeric-cast
-                    case 297: // java/unsafe-hostname-verification
-                    case 300: // java/maven/non-https-url
-                    case 315: // java/cleartext-storage-in-cookie
-                    case 352: // java/spring-disabled-csrf-protection
-                    case 502: // java/unsafe-deserialization
-                    case 601: // java/unvalidated-url-redirection
-                    case 732: // java/world-writable-file-read
-                    case 807: // java/tainted-permissions-check
-                    case 917: // java/ognl-injection
-                    case 918: // java/ssrf
-                    case 1104: // java/maven/dependency-upon-bintray
-                */
+            /*
+             * These rules exist in the java-code-scanning.qls query set, but we don't see
+             * findings
+             * for them in Benchmark currently. They are left here in case we do see them in
+             * the
+             * future to make it easier to support them.
+             * // These rules we care about, but have to map to the CWE we expect
+             * case 338: // java/jhipster-prng
+             * return 330; // Weak Random
+             * case 347: // java/missing-jwt-signature-check - TODO - Does this affect
+             * score?
+             * return 327; // Weak Crypto
+             *
+             * // These rules we don't care about now, but we return their CWE value anyway
+             * in case
+             * // we care in the future
+             * case 94: // java/insecure-bean-validation and many others
+             * case 190: // java/implicit-cast-in-compound-assignment
+             * case 197: // java/tainted-numeric-cast
+             * case 297: // java/unsafe-hostname-verification
+             * case 300: // java/maven/non-https-url
+             * case 315: // java/cleartext-storage-in-cookie
+             * case 352: // java/spring-disabled-csrf-protection
+             * case 502: // java/unsafe-deserialization
+             * case 601: // java/unvalidated-url-redirection
+             * case 732: // java/world-writable-file-read
+             * case 807: // java/tainted-permissions-check
+             * case 917: // java/ognl-injection
+             * case 918: // java/ssrf
+             * case 1104: // java/maven/dependency-upon-bintray
+             */
 
             case 113: // java/http-response-splitting
             case 117: // js/log-injection
