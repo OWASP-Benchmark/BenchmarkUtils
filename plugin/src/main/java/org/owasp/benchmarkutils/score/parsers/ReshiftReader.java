@@ -115,15 +115,6 @@ public class ReshiftReader extends Reader {
                     tcr.setCategory(category);
                     tcr.setCWE(cweLookup(category));
                     tcr.setNumber(testNumber(url));
-                    // int testCaseNumStart =
-                    //         url.indexOf(BenchmarkScore.TESTCASENAME)
-                    //                 + BenchmarkScore.TESTCASENAME.length();
-                    /// To check
-                    // tcr.setNumber(
-                    //         Integer.parseInt(
-                    //                 url.substring(
-                    //                         testCaseNumStart,
-                    //                         testCaseNumStart + BenchmarkScore.TESTIDLENGTH)));
                     if (tcr.getCWE() != 0) {
                         tr.put(tcr);
                     }
