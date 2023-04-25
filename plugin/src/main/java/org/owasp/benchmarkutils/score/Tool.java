@@ -79,7 +79,7 @@ public class Tool implements Comparable<Tool> {
     void generateScorecard(Map<String, CategoryResults> overallAveToolResults, File scoreCardDir) {
 
         // Generate the HTML scorecard for this tool
-        if (!(BenchmarkScore.showAveOnlyMode && this.isCommercial)) {
+        if (!(BenchmarkScore.config.showAveOnlyMode && this.isCommercial)) {
 
             // Generate and save the Scatter Chart for this tool
             String shortTitle =
@@ -110,7 +110,7 @@ public class Tool implements Comparable<Tool> {
             // If not in anonymous mode OR the tool is not commercial, add the type at the end of
             // the name. It's not added to anonymous commercial tools, because it would be
             // redundant.
-            if (!BenchmarkScore.anonymousMode || !this.isCommercial) {
+            if (!BenchmarkScore.config.anonymousMode || !this.isCommercial) {
                 fullTitle += " (" + this.toolType + ")";
             }
 

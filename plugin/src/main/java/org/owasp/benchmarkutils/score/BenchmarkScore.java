@@ -17,17 +17,15 @@
  */
 package org.owasp.benchmarkutils.score;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.SequenceInputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,8 +46,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -61,13 +57,15 @@ import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
 import org.xml.sax.SAXException;
-import org.yaml.snakeyaml.Yaml;
 
 @Mojo(name = "create-scorecard", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
 public class BenchmarkScore extends AbstractMojo {
 
     @Parameter(property = "configFile")
     String scoringConfigFile;
+
+    static final String USAGE_MSG =
+            "Usage: -cf /PATH/TO/scoringconfigfile.yaml or -cr scoringconfigfile.yaml (where file is a resource)";
 
     // The 1st line of a supplied expectedresults.csv file looks like:
     // # test name, category, real vulnerability, cwe, TESTSUITENAME version: x.y, YYYY-MM-DD
@@ -96,45 +94,12 @@ public class BenchmarkScore extends AbstractMojo {
     // The values stored in this is pulled from the categories.xml config file
     //    public static Categories CATEGORIES;
 
-    // The values of these scorecard generation variables can be changed via scorecardconfig.yaml
-    // files. These affect overall scorecard generation. These were the original command line params
-    // to scorecard generation.
-
-    // Indicates that the names of Commercial tools should be anonymized
-    static boolean anonymousMode = false;
-    // Indicates that the results of Commercial tools should be suppressed. Only show their
-    // averages.
-    public static boolean showAveOnlyMode = false;
-    // The name of the tool to 'focus' on, if any
-    private static String focus = "none";
-    // This is used to indicate that results from multiple versions of a test suite are included in
-    // these results. Each set in their own directory with their associated expectedresults file.
-    public static boolean mixedMode = false;
-
-    private static String expectedResultsFileName;
-    private static String resultsFileOrDirName;
-
-    // Customizations of these can be set via scorecardconfig.yaml files
-    // This affects details within whatever type of scorecards are being generated
-
-    public static String CWECATEGORYNAME =
-            "Vulnerabilities"; // Default name for vuln categories menu in scorecards.
-
-    public static String TPRLABEL = "TPR"; // Default label for True Positive Rate
-
-    // Indicates whether a link to the project should be included in generated pages. By default,
-    // yes.
-    public static boolean includeProjectLink = true;
-
     // This is the default project link. This is set to "" if includeProjectLink set to false.
     // TODO: Make this value configurable via .yaml file
     public static String PROJECTLINKENTRY =
             "            <p>\n"
                     + "                For more information, please visit the <a href=\"https://owasp.org/www-project-benchmark/\">OWASP Benchmark Project Site</a>.\n"
                     + "            </p>\n";
-
-    // Indicates whether Precision score should be included in generated tables. By default, no.
-    public static boolean includePrecision = false;
 
     // This is the Key Entry for Precision, which is added to the Key for tables that include
     // Precision. If includePrecision explicitly set to false via .yaml, then this default value set
@@ -165,140 +130,50 @@ public class BenchmarkScore extends AbstractMojo {
     private static Map<String, CategoryResults> averageNonCommerciaToolResults = null;
     private static Map<String, CategoryResults> overallAveToolResults = null;
 
+    public static Configuration config;
+
     /**
      * Process the command line arguments that make any configuration changes.
      *
      * @param args - args passed to main().
-     * @return true if valid command line arguments provided. False otherwise.
      */
-    private static boolean processCommandLineArgs(String[] args) {
-
-        final String USAGE_MSG =
-                "Usage: -cf /PATH/TO/scoringconfigfile.yaml or -cr scoringconfigfile.yaml (where file is a resource)";
-
-        File yamlFile = null;
-        InputStream yamlFileStream = null;
-        if (args == null || args.length == 0) {
-            // No arguments is OK
-        } else if (args.length != 0 && args.length != 2) {
+    @VisibleForTesting
+    static void loadConfigFromCommandLineArguments(String[] args) {
+        if (args == null || args.length != 2) {
             System.out.println(USAGE_MSG);
-        } else if (args.length == 2) {
+            config = Configuration.fromDefaultConfig();
+        } else {
             // -cf indicates use the specified configuration file to config Permute params
             if ("-cf".equalsIgnoreCase(args[0])) {
-                yamlFile = new File(args[1]);
-                try {
-                    yamlFileStream = new FileInputStream(yamlFile);
-                } catch (FileNotFoundException e) {
-                    System.out.println(
-                            "ERROR: YAML scoring configuration file: '" + args[1] + "' not found!");
-                    return false;
-                }
+                config = Configuration.fromFile(args[1]);
             } else if ("-cr".equalsIgnoreCase(args[0])) {
                 // -cr indicates use the specified configuration file resource to config Permute
-                // params
-                yamlFileStream = BenchmarkScore.class.getClassLoader().getResourceAsStream(args[1]);
-                if (yamlFileStream == null) {
-                    System.out.println(
-                            "ERROR: YAML scoring configuration file: '"
-                                    + args[1]
-                                    + "' not found on classpath!");
-                    return false;
-                }
-            } else if (!(args[0] == null
-                    && args[1] == null)) { // pom settings for crawler forces creation of 2 args,
-                // but if none are provided, they are null
+                config = Configuration.fromResourceFile(args[1]);
+            } else if (args[0] == null && args[1] == null) {
                 System.out.println(USAGE_MSG);
-            }
-        }
-
-        // Find Default Scoring Config File
-        final String DEFAULTCONFIGFILE = "defaultscoringconfig.yaml";
-        InputStream defYamlFileStream =
-                BenchmarkScore.class.getClassLoader().getResourceAsStream(DEFAULTCONFIGFILE);
-        if (defYamlFileStream == null) {
-            System.out.println(
-                    "ERROR: default YAML scoring configuration file: '"
-                            + DEFAULTCONFIGFILE
-                            + "' not found on classpath!");
-            return false;
-        }
-
-        Yaml yaml = new Yaml();
-        Map<String, Object> yamlConfig = null;
-        if (yamlFileStream != null) {
-            // If specified, load Both Default and Custom YAML file in ONE Stream, so Custom Values
-            // Override Default
-            InputStream fullStream = new SequenceInputStream(defYamlFileStream, yamlFileStream);
-            yamlConfig = yaml.load(fullStream);
-            System.out.print("YAML Scoring config file found and loaded. File used was: ");
-            if (yamlFile != null) { // Not null means the a normal file was used, not a resource
-                System.out.println(yamlFile.getAbsolutePath());
+                config = Configuration.fromDefaultConfig();
             } else {
-                try {
-                    System.out.println(
-                            BenchmarkScore.class.getClassLoader().getResource(args[1]).toURI());
-                } catch (URISyntaxException e) {
-                    // This should never happen
-                    System.out.println(
-                            "Couldn't determine URI of existing resource: '"
-                                    + args[1]
-                                    + "' for some reason.");
-                    e.printStackTrace();
-                }
-            }
-        } else { // just load the default file
-            yamlConfig = yaml.load(defYamlFileStream);
-            System.out.println(
-                    "default YAML Scoring config file found and loaded. File used was: ");
-            try {
-                System.out.println(
-                        BenchmarkScore.class
-                                .getClassLoader()
-                                .getResource(DEFAULTCONFIGFILE)
-                                .toURI());
-            } catch (URISyntaxException e) {
-                // This should never happen
-                System.out.println(
-                        "Couldn't determine URI of existing resource: '"
-                                + DEFAULTCONFIGFILE
-                                + "' for some reason.");
-                e.printStackTrace();
+                // pom settings for crawler forces creation of 2 args, but if none are provided,
+                // they are null
+                System.out.println(USAGE_MSG);
+                throw new IllegalArgumentException();
             }
         }
 
-        // Normally you'd do the following, but Yaml.load() prints out its own error messages in a
-        // prettier format and stops everything anyway.
-        // } catch (ScannerException e) {
-        // e.printStackTrace();
-        // }
+        // TODO: move to html class (once this has been extracted, too)
+        if (!config.includeProjectLink) {
+            PROJECTLINKENTRY = "";
+        }
 
-        boolean allParamsOK = true;
-        if (yamlConfig != null) {
-
-            // Now that the YAML config is loaded, set all the values that could be configured
-            expectedResultsFileName = (String) yamlConfig.get("expectedresults");
-            focus = (String) yamlConfig.get("focustool");
-            anonymousMode = ((Boolean) yamlConfig.get("anonymousmode")).booleanValue();
-            mixedMode = ((Boolean) yamlConfig.get("mixedmode")).booleanValue();
-            showAveOnlyMode = ((Boolean) yamlConfig.get("averageonlymode")).booleanValue();
-            resultsFileOrDirName = (String) yamlConfig.get("resultsfileordir");
-            CWECATEGORYNAME = (String) yamlConfig.get("cwecategoryname");
-            TPRLABEL = (String) yamlConfig.get("tprlabel");
-            includeProjectLink = ((Boolean) yamlConfig.get("includeprojectlink")).booleanValue();
-            if (!includeProjectLink) PROJECTLINKENTRY = "";
-            includePrecision = ((Boolean) yamlConfig.get("includeprecision")).booleanValue();
-            if (!includePrecision) {
-                // This two values are both included or not included together (currently)
-                PRECISIONKEYENTRY = "";
-                FSCOREKEYENTRY = "";
-            }
-        } else allParamsOK = false;
-
-        return allParamsOK;
+        if (!config.includePrecision) {
+            // These two values are both included or not included together (currently)
+            PRECISIONKEYENTRY = "";
+            FSCOREKEYENTRY = "";
+        }
     }
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() {
         // The Maven plugin invocation of this can have configFile be null, so we check for that
         // specifically
         if (null == scoringConfigFile) {
@@ -317,7 +192,9 @@ public class BenchmarkScore extends AbstractMojo {
      * @param args - The command line arguments.
      */
     public static void main(String[] args) {
-        if (!processCommandLineArgs(args)) {
+        try {
+            loadConfigFromCommandLineArguments(args);
+        } catch (RuntimeException e) {
             System.out.println("Error processing configuration for Scoring. Aborting.");
             System.exit(-1);
         }
@@ -334,7 +211,7 @@ public class BenchmarkScore extends AbstractMojo {
         }
 
         // Step 0: Make sure the results file or directory exists before doing anything.
-        File resultsFileOrDir = new File(resultsFileOrDirName);
+        File resultsFileOrDir = new File(config.resultsFileOrDirName);
         if (!resultsFileOrDir.exists()) {
             System.out.println(
                     "Error! - results file or directory: '"
@@ -387,7 +264,7 @@ public class BenchmarkScore extends AbstractMojo {
         // tool's results file. a) is for 'mixed' mode, and b) is for normal mode
         try {
 
-            if (mixedMode) {
+            if (config.mixedMode) {
 
                 if (!resultsFileOrDir.isDirectory()) {
                     System.out.println(
@@ -465,7 +342,7 @@ public class BenchmarkScore extends AbstractMojo {
 
                         // Step 5a: Go through each result file, score the tool, and generate a
                         // scorecard for that tool
-                        if (!anonymousMode) {
+                        if (!config.anonymousMode) {
                             for (File actual : rootDirFile.listFiles()) {
                                 // Don't confuse the expected results file as an actual results file
                                 // if its in the same directory
@@ -505,7 +382,7 @@ public class BenchmarkScore extends AbstractMojo {
             } else { // Not "mixed" - i.e., the 'Normal' way
 
                 // Step 4b: Read the expected results so we know what each tool 'should do'
-                File expected = new File(expectedResultsFileName);
+                File expected = new File(config.expectedResultsFileName);
                 TestSuiteResults expectedResults = readExpectedResults(expected);
                 if (expectedResults == null) {
                     System.out.println("Couldn't read expected results file: " + expected);
@@ -525,7 +402,7 @@ public class BenchmarkScore extends AbstractMojo {
 
                 // Step 5b: Go through each result file and generate a scorecard for that tool.
                 if (resultsFileOrDir.isDirectory()) {
-                    if (!anonymousMode) {
+                    if (!config.anonymousMode) {
                         boolean processedAtLeastOneResultsFile = false;
                         for (File actual : resultsFileOrDir.listFiles()) {
                             // Don't confuse the expected results file as an actual results file if
@@ -610,7 +487,7 @@ public class BenchmarkScore extends AbstractMojo {
         updateMenus(tools, catSet, scoreCardDir);
 
         // Step 9: Generate the overall comparison chart for all the tools in this test
-        ScatterHome.generateComparisonChart(tools, focus, scoreCardDir);
+        ScatterHome.generateComparisonChart(tools, config.focus, scoreCardDir);
 
         // Step 10: Generate the results table across all the tools in this test
         String table = generateOverallStatsTable(tools);
@@ -619,7 +496,7 @@ public class BenchmarkScore extends AbstractMojo {
             String html = new String(Files.readAllBytes(homeFilePath));
             html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
             html = html.replace("${table}", table);
-            html = html.replace("${tprlabel}", BenchmarkScore.TPRLABEL);
+            html = html.replace("${tprlabel}", config.tprLabel);
             html =
                     html.replace(
                             "${precisionkey}",
@@ -685,7 +562,7 @@ public class BenchmarkScore extends AbstractMojo {
                 // Produce a .csv results file of the actual results, except if its a commercial
                 // tool, and we are in showAveOnly mode.
                 String actualResultsFileName = "notProduced";
-                if (!(showAveOnlyMode && rawToolResults.isCommercial)) {
+                if (!(config.showAveOnlyMode && rawToolResults.isCommercial)) {
                     actualResultsFileName = produceResultsFile(actualResults, scoreCardDir);
                 }
 
@@ -909,9 +786,9 @@ public class BenchmarkScore extends AbstractMojo {
 
         // If in anonymous mode, anonymize the tool name if its a commercial tool before its used to
         // compute anything, unless its the tool of 'focus'.
-        if (BenchmarkScore.anonymousMode
+        if (config.anonymousMode
                 && rawToolResults.isCommercial
-                && !rawToolResults.getToolName().replace(' ', '_').equalsIgnoreCase(focus)) {
+                && !rawToolResults.getToolName().replace(' ', '_').equalsIgnoreCase(config.focus)) {
             rawToolResults.setAnonymous();
         }
 
@@ -992,7 +869,7 @@ public class BenchmarkScore extends AbstractMojo {
     private static TestSuiteResults readExpectedResults(File file) {
         TestSuiteResults tr = new TestSuiteResults("Expected", true, null);
 
-        try (final BufferedReader fr = new BufferedReader(new FileReader(file)); ) {
+        try (final BufferedReader fr = new BufferedReader(new FileReader(file))) {
             // Read the 1st line. Parse out the test suite name and version #, which looks like:
             // # test name, category, real vulnerability, cwe, TESTSUITENAME version: x.y,
             // YYYY-MM-DD
@@ -1177,7 +1054,8 @@ public class BenchmarkScore extends AbstractMojo {
                 // constructed, scatter contains the Overall, Non-commercial, and Commercial stats
                 // for this category across all tools.
                 ScatterVulns scatter =
-                        ScatterVulns.generateComparisonChart(cat, tools, focus, scoreCardDir);
+                        ScatterVulns.generateComparisonChart(
+                                cat, tools, config.focus, scoreCardDir);
 
                 // Before creating html for this vuln category, save the category level results into
                 // averageCommercialToolResults, averageNonCommerciaToolResults,
@@ -1226,7 +1104,7 @@ public class BenchmarkScore extends AbstractMojo {
 
                 String table = generateVulnStatsTable(tools, cat);
                 html = html.replace("${table}", table);
-                html = html.replace("${tprlabel}", BenchmarkScore.TPRLABEL);
+                html = html.replace("${tprlabel}", config.tprLabel);
                 html =
                         html.replace(
                                 "${precisionkey}",
@@ -1335,7 +1213,7 @@ public class BenchmarkScore extends AbstractMojo {
 
                 String table = htmlForCommercialAverages.toString();
                 html = html.replace("${table}", table);
-                html = html.replace("${tprlabel}", BenchmarkScore.TPRLABEL);
+                html = html.replace("${tprlabel}", config.tprLabel);
                 html =
                         html.replace(
                                 "${precisionkey}",
@@ -1364,13 +1242,13 @@ public class BenchmarkScore extends AbstractMojo {
         sb.append("<tr>");
         sb.append("<th>Tool</th>");
         sb.append("<th>Type</th>");
-        if (mixedMode) sb.append("<th>" + TESTSUITE + " Version</th>");
+        if (config.mixedMode) sb.append("<th>" + TESTSUITE + " Version</th>");
         sb.append("<th>TP</th>");
         sb.append("<th>FN</th>");
         sb.append("<th>TN</th>");
         sb.append("<th>FP</th>");
         sb.append("<th>Total</th>");
-        if (BenchmarkScore.includePrecision) sb.append("<th>Precision</th><th>F-score</th>");
+        if (config.includePrecision) sb.append("<th>Precision</th><th>F-score</th>");
         sb.append("<th>${tprlabel}</th>");
         sb.append("<th>FPR</th>");
         sb.append("<th>Score</th>");
@@ -1378,7 +1256,7 @@ public class BenchmarkScore extends AbstractMojo {
 
         for (Tool tool : tools) {
 
-            if (!(showAveOnlyMode && tool.isCommercial())) {
+            if (!(config.showAveOnlyMode && tool.isCommercial())) {
                 ToolResults or = tool.getOverallResults();
                 Map<String, TP_FN_TN_FP_Counts> scores = tool.getScores();
                 TP_FN_TN_FP_Counts c = scores.get(category);
@@ -1392,13 +1270,13 @@ public class BenchmarkScore extends AbstractMojo {
                 sb.append("<tr " + style + ">");
                 sb.append("<td>" + tool.getToolNameAndVersion() + "</td>");
                 sb.append("<td>" + tool.getToolType() + "</td>");
-                if (mixedMode) sb.append("<td>" + tool.getTestSuiteVersion() + "</td>");
+                if (config.mixedMode) sb.append("<td>" + tool.getTestSuiteVersion() + "</td>");
                 sb.append("<td>" + c.tp + "</td>");
                 sb.append("<td>" + c.fn + "</td>");
                 sb.append("<td>" + c.tn + "</td>");
                 sb.append("<td>" + c.fp + "</td>");
                 sb.append("<td>" + r.totalTestCases + "</td>");
-                if (BenchmarkScore.includePrecision) {
+                if (config.includePrecision) {
                     sb.append("<td>" + new DecimalFormat("#0.00%").format(r.precision) + "</td>");
                     sb.append("<td>" + new DecimalFormat("#0.0000").format(r.fscore) + "</td>");
                 }
@@ -1426,9 +1304,9 @@ public class BenchmarkScore extends AbstractMojo {
         sb.append("<table class=\"table\">\n");
         sb.append("<tr>");
         sb.append("<th>Tool</th>");
-        if (mixedMode) sb.append("<th>" + TESTSUITE + " Version</th>");
+        if (config.mixedMode) sb.append("<th>" + TESTSUITE + " Version</th>");
         sb.append("<th>Type</th>");
-        if (BenchmarkScore.includePrecision) sb.append("<th>Precision*</th><th>F-score*</th>");
+        if (config.includePrecision) sb.append("<th>Precision*</th><th>F-score*</th>");
         sb.append("<th>${tprlabel}*</th>");
         sb.append("<th>FPR*</th>");
         sb.append("<th>Score*</th>");
@@ -1436,7 +1314,7 @@ public class BenchmarkScore extends AbstractMojo {
 
         for (Tool tool : tools) {
 
-            if (!(showAveOnlyMode && tool.isCommercial())) {
+            if (!(config.showAveOnlyMode && tool.isCommercial())) {
                 ToolResults or = tool.getOverallResults();
                 String style = "";
 
@@ -1446,9 +1324,9 @@ public class BenchmarkScore extends AbstractMojo {
                     style = "class=\"success\"";
                 sb.append("<tr " + style + ">");
                 sb.append("<td>" + tool.getToolNameAndVersion() + "</td>");
-                if (mixedMode) sb.append("<td>" + tool.getTestSuiteVersion() + "</td>");
+                if (config.mixedMode) sb.append("<td>" + tool.getTestSuiteVersion() + "</td>");
                 sb.append("<td>" + tool.getToolType() + "</td>");
-                if (BenchmarkScore.includePrecision) {
+                if (config.includePrecision) {
                     sb.append(
                             "<td>"
                                     + new DecimalFormat("#0.00%").format(or.getPrecision())
@@ -1493,7 +1371,7 @@ public class BenchmarkScore extends AbstractMojo {
         // Create tool menu
         StringBuffer sb = new StringBuffer();
         for (Tool tool : tools) {
-            if (!(showAveOnlyMode && tool.isCommercial())) {
+            if (!(config.showAveOnlyMode && tool.isCommercial())) {
                 sb.append("<li><a href=\"");
                 sb.append(tool.getScorecardFilename());
                 sb.append(".html\">");
@@ -1551,7 +1429,7 @@ public class BenchmarkScore extends AbstractMojo {
                                     BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE));
                     html = html.replace("${version}", TESTSUITEVERSION);
                     html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
-                    html = html.replace("${cwecategoryname}", BenchmarkScore.CWECATEGORYNAME);
+                    html = html.replace("${cwecategoryname}", config.cweCategoryName);
                     html =
                             html.replace(
                                     "${precisionkey}",

@@ -136,7 +136,7 @@ public class ScatterVulns extends ScatterPlot {
             if (tool.isCommercial()) {
                 CategoryResults overallResult =
                         tool.getOverallResults().getCategoryResults(category);
-                if (!BenchmarkScore.showAveOnlyMode) {
+                if (!BenchmarkScore.config.showAveOnlyMode) {
                     if (Double.isNaN(overallResult.falsePositiveRate)) {
                         System.out.println(
                                 "ERROR: false positive rate for category: " + category + " is NaN");
@@ -166,7 +166,7 @@ public class ScatterVulns extends ScatterPlot {
         this.aveTruePosRates = this.aveTruePosRates / averageTrueRates.size();
 
         if (commercialToolQuantity > 1
-                || (BenchmarkScore.showAveOnlyMode && commercialToolQuantity == 1)) {
+                || (BenchmarkScore.config.showAveOnlyMode && commercialToolQuantity == 1)) {
             if (Double.isNaN(this.aveFalsePosRates)) {
                 System.out.println(
                         "ERROR: average false positive rate for category: " + category + " is NaN");
@@ -248,7 +248,7 @@ public class ScatterVulns extends ScatterPlot {
         for (Tool tool : toolResults) {
             if (tool.isCommercial()) {
                 commercialToolQuantity++;
-                if (!BenchmarkScore.showAveOnlyMode) {
+                if (!BenchmarkScore.config.showAveOnlyMode) {
                     CategoryResults or = tool.getOverallResults().getCategoryResults(category);
                     // this puts the label just below the point
                     double x = or.falsePositiveRate * 100 + sr.nextDouble() * .000001;
@@ -264,7 +264,7 @@ public class ScatterVulns extends ScatterPlot {
         }
 
         if (commercialToolQuantity > 1
-                || (BenchmarkScore.showAveOnlyMode && commercialToolQuantity == 1)) {
+                || (BenchmarkScore.config.showAveOnlyMode && commercialToolQuantity == 1)) {
             Point2D ap =
                     new Point2D.Double(
                             aveFalsePosRates * 100 + sr.nextDouble() * .000001,
@@ -410,7 +410,7 @@ public class ScatterVulns extends ScatterPlot {
                 double tpr = or.getCategoryResults(category).truePositiveRate * 100;
                 double fpr = or.getCategoryResults(category).falsePositiveRate * 100;
                 // don't show the commercial tool results if in 'show ave only mode'
-                if (!BenchmarkScore.showAveOnlyMode) {
+                if (!BenchmarkScore.config.showAveOnlyMode) {
                     // Special hack to make it line up better if the letter is an 'I' or 'i'
                     String label = (ch == 'I' || ch == 'i' ? ch + ":   " : ch + ": ");
                     // Another hack to make it line up better if the letter is a 'J' or 'j'
@@ -485,7 +485,7 @@ public class ScatterVulns extends ScatterPlot {
                         -1);
 
         if (this.commercialToolCount > 1
-                || (BenchmarkScore.showAveOnlyMode && this.commercialToolCount == 1)) {
+                || (BenchmarkScore.config.showAveOnlyMode && this.commercialToolCount == 1)) {
 
             // The last two params need to be from 0 - 1, not 0 - 100, so we divide each by 100
             addEntryToKey(
@@ -535,7 +535,7 @@ public class ScatterVulns extends ScatterPlot {
         try {
             String scatterTitle =
                     BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE)
-                            + (BenchmarkScore.mixedMode
+                            + (BenchmarkScore.config.mixedMode
                                     ? " -"
                                     : " v" + BenchmarkScore.TESTSUITEVERSION)
                             + " "
