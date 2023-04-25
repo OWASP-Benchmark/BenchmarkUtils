@@ -162,4 +162,7 @@ public class CweNumber {
 
     /** CWE-1004: Sensitive Cookie Without 'HttpOnly' Flag */
     public static int COOKIE_WITHOUT_HTTPONLY = 1004;
+
+    /** CWE-1336: Improper Neutralization of Special Elements Used in a Template Engine */
+    public static int SSTI = 1336;
 }
