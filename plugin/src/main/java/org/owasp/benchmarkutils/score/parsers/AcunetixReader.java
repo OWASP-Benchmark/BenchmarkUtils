@@ -146,30 +146,21 @@ public class AcunetixReader extends Reader {
             testfile = testfile.substring(0, testfile.indexOf("?"));
         }
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno = testfile.substring(BenchmarkScore.TESTCASENAME.length());
-            if (testno.endsWith(".html")) {
-                testno = testno.substring(0, testno.length() - 5);
-            }
-            try {
-                tcr.setNumber(Integer.parseInt(testno));
-                String cat = getNamedChild("type", vuln).getTextContent();
-                tcr.setCategory(cat);
+            tcr.setNumber(testNumber(testfile));
+            String cat = getNamedChild("type", vuln).getTextContent();
+            tcr.setCategory(cat);
 
-                Node classification = getNamedChild("classification", vuln);
-                Node vulnId = getNamedChild("cwe", classification);
-                if (vulnId != null) {
-                    String cweNum = vulnId.getTextContent();
-                    int cwe = cweLookup(cweNum);
-                    tcr.setCWE(cwe);
-                    // System.out.println("Found CWE: " + cwe + " in test case: " +
-                    // tcr.getNumber());
-                    tcr.setConfidence(
-                            Integer.parseInt(getNamedChild("certainty", vuln).getTextContent()));
-                    return tcr;
-                }
-
-            } catch (NumberFormatException e) {
-                System.out.println("> Parse error " + testfile + ":: " + testno);
+            Node classification = getNamedChild("classification", vuln);
+            Node vulnId = getNamedChild("cwe", classification);
+            if (vulnId != null) {
+                String cweNum = vulnId.getTextContent();
+                int cwe = cweLookup(cweNum);
+                tcr.setCWE(cwe);
+                // System.out.println("Found CWE: " + cwe + " in test case: " +
+                // tcr.getNumber());
+                tcr.setConfidence(
+                        Integer.parseInt(getNamedChild("certainty", vuln).getTextContent()));
+                return tcr;
             }
         }
 
@@ -187,6 +178,10 @@ public class AcunetixReader extends Reader {
     //    <IsFalsePositive><![CDATA[False]]></IsFalsePositive>
     //    <Severity><![CDATA[medium]]></Severity>
     //    <CWE id="352"><![CDATA[CWE-352]]></CWE>
+    //  This is the newer <ReportItem> format
+    //    <CWEList>
+    //      <CWE id="352"><![CDATA[CWE-352]]></CWE>
+    //    </CWEList>
 
     private TestCaseResult parseAcunetixReportItem(Node flaw) throws Exception {
         TestCaseResult tcr = new TestCaseResult();
@@ -195,10 +190,11 @@ public class AcunetixReader extends Reader {
         tcr.setCategory(cat);
         tcr.setEvidence(cat);
 
-        Node vulnId = getNamedChild("CWE", flaw);
+        Node cweList = getNamedChild("CWEList", flaw);
+        Node vulnId = getNamedChild("CWE", cweList != null ? cweList : flaw);
         if (vulnId != null) {
             String cweNum = getAttributeValue("id", vulnId);
-            int cwe = cweLookup(cweNum);
+            int cwe = cweLookup(cweNum, cat);
             tcr.setCWE(cwe);
         }
 
@@ -216,21 +212,21 @@ public class AcunetixReader extends Reader {
         }
 
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno = testfile.substring(BenchmarkScore.TESTCASENAME.length());
-            if (testno.endsWith(".html")) {
-                testno = testno.substring(0, testno.length() - 5);
-            }
-            try {
-                tcr.setNumber(Integer.parseInt(testno));
-                return tcr;
-            } catch (NumberFormatException e) {
-                System.out.println("> Parse error " + testfile + ":: " + testno);
-            }
+            tcr.setNumber(testNumber(testfile));
+            return tcr;
         }
         return null;
     }
 
     private int cweLookup(String cweNum) {
+        if (cweNum == null || cweNum.isEmpty()) {
+            System.out.println("ERROR: No CWE number supplied");
+            return 0000;
+        }
+        return cweLookup(cweNum, null);
+    }
+
+    private int cweLookup(String cweNum, String name) {
         if (cweNum == null || cweNum.isEmpty()) {
             System.out.println("ERROR: No CWE number supplied");
             return 0000;
@@ -246,6 +242,14 @@ public class AcunetixReader extends Reader {
                 return CweNumber.SQL_INJECTION;
             case "614":
                 return CweNumber.INSECURE_COOKIE;
+            case "20":
+                switch (name) {
+                    case "LDAP injection":
+                        return CweNumber.LDAP_INJECTION;
+                    case "Server-side template injection":
+                        return CweNumber.SSTI;
+                }
+                break;
 
                 // switch left in case we ever need to map a reported cwe to the one expected by
                 // Benchmark
@@ -260,6 +264,12 @@ public class AcunetixReader extends Reader {
                 //        case "crypto-bad-ciphers"        :  return 327;  // weak encryption
                 //        case "trust-boundary-violation"  :  return 501;  // trust boundary
                 //        case "xxe"                       :  return 611;  // xml entity
+            case "209": // Application error messages
+                return CweNumber.DONTCARE;
+            case "310": // TLS/SSL LOGJAM attack
+                return CweNumber.DONTCARE;
+            case "937": // Vulnerable JavaScript libraries
+                return CweNumber.DONTCARE;
         }
 
         // Add any 'new' CWEs ever found to switch above so we know they are mapped properly.

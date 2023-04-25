@@ -116,11 +116,7 @@ public class SonarQubeReader extends Reader {
         // System.out.println("Found in component: " + testfile);
         testfile = testfile.substring(testfile.lastIndexOf('/') + 1);
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno =
-                    testfile.substring(
-                            BenchmarkScore.TESTCASENAME.length(), testfile.lastIndexOf('.'));
-            // System.out.println("Which is determined to be test #: " + testno);
-            tcr.setNumber(Integer.parseInt(testno));
+            tcr.setNumber(testNumber(testfile));
             return tcr;
         }
         return null;
@@ -139,10 +135,7 @@ public class SonarQubeReader extends Reader {
         String testfile = getNamedChild("component", flaw).getTextContent().trim();
         testfile = testfile.substring(testfile.lastIndexOf('/') + 1);
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno =
-                    testfile.substring(
-                            BenchmarkScore.TESTCASENAME.length(), testfile.lastIndexOf('.'));
-            tcr.setNumber(Integer.parseInt(testno));
+            tcr.setNumber(testNumber(testfile));
             return tcr;
         }
         return null;

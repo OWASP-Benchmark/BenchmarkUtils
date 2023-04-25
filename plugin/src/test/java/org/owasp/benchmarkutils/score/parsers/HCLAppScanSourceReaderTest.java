@@ -13,7 +13,7 @@
  * PURPOSE. See the GNU General Public License for more details.
  *
  * @author Sascha Knoop
- * @created 2021
+ * @created 2023
  */
 package org.owasp.benchmarkutils.score.parsers;
 
@@ -28,49 +28,33 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-public class AcunetixReaderTest extends ReaderTestBase {
+public class HCLAppScanSourceReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile_360, resultFile_WVS;
+    private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile_360 = TestHelper.resultFileOf("testfiles/Benchmark_Acunetix-v1.4.1.xml");
-        resultFile_WVS = TestHelper.resultFileOf("testfiles/Benchmark_Acunetix-v15.3.xml");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_HCLAppScanSource-2.4.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyAcunetixReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile_360, AcunetixReader.class);
-        assertOnlyMatcherClassIs(this.resultFile_WVS, AcunetixReader.class);
+    public void onlyHCLAppScanSourceReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, HCLAppScanSourceReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        // For Acunetix 360
-        AcunetixReader reader = new AcunetixReader();
-        TestSuiteResults result = reader.parse(resultFile_360);
+        HCLAppScanSourceReader reader = new HCLAppScanSourceReader();
+        TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("Acunetix 360", result.getToolName());
+        assertEquals("HCL AppScan Cloud", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
-
-        // For Acunetix WVS
-        reader = new AcunetixReader();
-        result = reader.parse(resultFile_WVS);
-
-        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
-        assertTrue(result.isCommercial());
-        assertEquals("Acunetix WVS", result.getToolName());
-
-        assertEquals(2, result.getTotalResults());
-
-        assertEquals(CweNumber.LDAP_INJECTION, result.get(44).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2629).get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
     }
 }

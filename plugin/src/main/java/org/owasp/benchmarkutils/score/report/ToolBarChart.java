@@ -221,7 +221,7 @@ public class ToolBarChart extends ScatterPlot {
     public static void generateComparisonCharts(
             Tool tool, Map<String, CategoryResults> overallAveToolResults, File scoreCardDir) {
 
-        if (BenchmarkScore.includePrecision) {
+        if (BenchmarkScore.config.includePrecision) {
 
             // Generate Precision Chart
             // First create the Dataset required for the chart

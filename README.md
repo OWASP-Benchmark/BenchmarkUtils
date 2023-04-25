@@ -43,7 +43,7 @@ source "scripts/verifyBenchmarkPluginAvailable.sh"
 
 All use of these utilities should be through scripts already rovided with each Benchmark style test suite. To use this, simply clone, navigate and install the plugin: 
 ```  
-git clone https://github.com/OWASP-Benchmark/BenchmarkUtils.git`  
+git clone https://github.com/OWASP-Benchmark/BenchmarkUtils.git 
 cd BenchmarkUtils
 mvn install
 ```  

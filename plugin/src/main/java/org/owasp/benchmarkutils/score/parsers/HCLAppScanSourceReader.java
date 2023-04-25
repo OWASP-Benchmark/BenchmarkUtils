@@ -17,7 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.FileInputStream;
+import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -49,16 +49,15 @@ public class HCLAppScanSourceReader extends Reader {
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new FileInputStream(resultFile.file()));
+        InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
         Node root = doc.getDocumentElement();
         Node scanInfo = getNamedChild("scan-information", root);
         TestSuiteResults tr =
-                new TestSuiteResults("IBM AppScan Cloud", true, TestSuiteResults.ToolType.SAST);
+                new TestSuiteResults("HCL AppScan Cloud", true, TestSuiteResults.ToolType.SAST);
 
         Node version = getNamedChild("product-version", scanInfo);
-        //    System.out.println("Product version is: " + version.getTextContent());
         tr.setToolVersion(version.getTextContent());
 
         // If the fliename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml) set the
@@ -70,75 +69,42 @@ public class HCLAppScanSourceReader extends Reader {
 
         // Loop through all the vulnerabilities
         for (Node vulnerability : vulnerabilities) {
-
             // First get the type of vuln, and if we don't care about that type, move on
             String issueType =
                     getNamedChild("ref", getNamedChild("issue-type", vulnerability))
                             .getTextContent();
 
             int vtype = cweLookup(issueType);
-            //	System.out.println("Vuln type: " + issueType + " has CWE of: " + vtype);
-
-            // Then get the filename containing the vuln. And if not in a test case, skip it.
-            Node itemNode = getNamedChild("item", getNamedChild("variant-group", vulnerability));
-            Node methodSigNode =
-                    getNamedChild(
-                            "method-signature2", getNamedChild("issue-information", itemNode));
             int tn = -1; // -1 means vuln not found in a Benchmark test case
-            if (methodSigNode != null) {
+            String filename = getAttributeValue("filename", vulnerability);
 
-                String filename = getAttributeValue("filename", methodSigNode);
-
-                // Some method signatures have a filename attribute, others do not, depending on the
-                // vuln type.
-                if (filename != null) {
-                    // Parse out test number from: BenchmarkTest02603:99
-                    if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                        filename = filename.substring(0, filename.indexOf(":"));
-                        String testnum = filename.substring(BenchmarkScore.TESTCASENAME.length());
-                        tn = Integer.parseInt(testnum);
-                        // System.out.println("Found a result in filename for test: " + tn);
+            if (filename != null) {
+                // Parse out test number from: BenchmarkTest02603:99
+                try {
+                    if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+                        tn = testNumber(filename);
+                        if (tn < 0) {
+                            throw new Exception("Failed to get test number from file: " + filename);
+                        }
                     }
-                } else {
-                    // Parse out test # from:
-                    // org.owasp.benchmark.testcode.BenchmarkTest01484.doPost(HttpServletRequest;HttpServletResponse):void
-                    String methodSig = methodSigNode.getTextContent();
-                    if (methodSig != null && methodSig.contains(BenchmarkScore.TESTCASENAME)) {
-                        String s =
-                                methodSig.substring(
-                                        methodSig.indexOf(BenchmarkScore.TESTCASENAME)
-                                                + BenchmarkScore.TESTCASENAME.length());
-                        String testnum = s.substring(0, s.indexOf("."));
-                        tn = Integer.parseInt(testnum);
-                        // System.out.println("Found a result in method location2 for test: " + tn);
-                    }
-                    // else System.out.println("Didn't find Benchmark test case in method
-                    // signature2: " + methodSig);
-                    else if (methodSig == null)
-                        System.out.println("itemNode: " + itemNode + " has no method signature2");
+                } catch (Exception e) {
+                    reportWarning(e.getMessage());
                 }
-            } else System.out.println("itemNode: " + itemNode + " has no method signature node");
-
-            //			if (tn == -1) System.out.println("Found vuln outside of test case of type: " +
-            // issueType);
+            }
 
             // Add the vuln found in a test case to the results for this tool
-            TestCaseResult tcr = new TestCaseResult();
-            tcr.setNumber(tn);
-            tcr.setCategory(issueType); // TODO: Is this right?
-            tcr.setCWE(vtype);
-            tcr.setEvidence(issueType);
-            //				tcr.setConfidence( confidence );
-
-            // Exclude Confidence 3 - apparently these are "scan coverage"
-            // We tried excluding Confidence 2 as well - as these are "suspect", but AppScan's score
-            // actually
-            // went down because it excludes ALL of the weak randomness findings.
-            // Confidence 1 - are "definitive" findings
-            //				if ( confidence < 3 ) {
-            tr.put(tcr);
-            //				}
+            if (tn <= 0) {
+                reportWarning("TestCase Number is bad for file: " + filename);
+            } else {
+                TestCaseResult tcr = new TestCaseResult();
+                tcr.setNumber(tn);
+                tcr.setCategory(issueType); // TODO: Is this right?
+                tcr.setCWE(vtype);
+                tcr.setEvidence(issueType);
+                tr.put(tcr);
+            }
         }
+
         return tr;
     }
 
@@ -156,21 +122,21 @@ public class HCLAppScanSourceReader extends Reader {
     */
     private int cweLookup(String vtype) {
         switch (vtype) {
-                //			case "AppDOS" : return 00;
-                //			case "Authentication.Entity" : return 00;
-
-            case "CrossSiteScripting":
-            case "Validation.EncodingRequired":
-                return CweNumber.XSS;
+            case "AccessControl.InsecureFilePermissions":
+                return CweNumber.IMPROPER_ACCESS_CONTROL;
+            case "Authentication.Entity":
+            case "Authentication.Credentials.Unprotected":
+                return CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT;
             case "Cryptography.InsecureAlgorithm":
                 return CweNumber.WEAK_CRYPTO_ALGO;
             case "Cryptography.PoorEntropy":
                 return CweNumber.WEAK_RANDOM;
-                //			case "Cryptography.????WeakHash" : return 328;  // They don't have a weak
-                // hashing rule
-
-                //			case "ErrorHandling.RevealDetails.Message" : return 00;
-                //			case "ErrorHandling.RevealDetails.StackTrace" : return 00;
+            case "Cryptography":
+                return CweNumber.WEAK_HASH_ALGO;
+            case "CrossSiteScripting.Reflected":
+            case "CrossSiteScripting":
+            case "Validation.EncodingRequired":
+                return CweNumber.XSS;
             case "Injection.HttpResponseSplitting":
                 return CweNumber.HTTP_RESPONSE_SPLITTING;
             case "Injection.LDAP":
@@ -180,25 +146,29 @@ public class HCLAppScanSourceReader extends Reader {
             case "Injection.SQL":
                 return CweNumber.SQL_INJECTION;
             case "Injection.XPath":
+            case "Injection.XML":
                 return CweNumber.XPATH_INJECTION;
-                //			case "Malicious.DynamicCode" : return 00;
-                //			case "Malicious.DynamicCode.Execution" : return 00;
             case "OpenSource":
                 return 00; // Known vuln in open source lib.
             case "PathTraversal":
                 return CweNumber.PATH_TRAVERSAL;
-                //			case "Quality.TestCode" : return 00;
-                //			case "Quality.Unsupported" : return 00;
             case "SessionManagement.Cookies":
                 return CweNumber.INSECURE_COOKIE;
             case "Validation.Required":
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
             case "Validation.Required.WriteToStream":
                 return CweNumber.INSECURE_DESERIALIZATION;
-
+            case "ErrorHandling.RevealDetails.StackTrace":
+                return CweNumber.SENSITIVE_LOGFILE;
             default:
-                System.out.println(
-                        "WARNING: HCL AppScan Source-Unrecognized finding type: " + vtype);
+                reportWarning("WARNING: HCL AppScan Source-Unrecognized finding type: " + vtype);
         }
         return 0;
+    }
+
+    private void reportWarning(String message) {
+        if (System.getProperty("DEBUG") != null) {
+            System.out.println(message);
+        }
     }
 }
