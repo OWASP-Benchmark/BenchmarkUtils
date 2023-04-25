@@ -79,6 +79,8 @@ public class BenchmarkScore extends AbstractMojo {
     public static final String TEST = "Test";
     public static String TESTCASENAME; // Set w/TESTSUITE. i.e., TESTSUITE + TEST;
 
+    public static String TESTPACKAGE = "org.owasp.benchmark.testcode.";
+
     // The # of numbers in a test case name. Must match what is actually generated.
     public static final int TESTIDLENGTH = 5;
 
@@ -1042,8 +1044,7 @@ public class BenchmarkScore extends AbstractMojo {
                         tcr.setReal(Boolean.parseBoolean(parts[2]));
                         tcr.setCWE(Integer.parseInt(parts[3]));
 
-                        String tcname = parts[0].substring(TESTCASENAME.length());
-                        tcr.setNumber(Integer.parseInt(tcname));
+                        tcr.setNumber(Reader.testNumber(parts[0]));
 
                         // Handle situation where expected results has full details
                         // Sometimes, it also has: source, data flow, data flow filename, sink

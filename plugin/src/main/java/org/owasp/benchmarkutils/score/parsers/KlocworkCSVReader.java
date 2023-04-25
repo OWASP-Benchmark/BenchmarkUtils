@@ -55,7 +55,6 @@ public class KlocworkCSVReader extends Reader {
         CSVBuilder.setHeader(header.split(","));
         Iterable<CSVRecord> records = CSVBuilder.build().parse(inReader);
 
-        int count = 1;
         for (CSVRecord record : records) {
             String category = record.get("Code"); // e.g., RLK.SQLOBJ
             String filename = record.get("File"); // e.g., BenchmarkTest00001
@@ -63,17 +62,8 @@ public class KlocworkCSVReader extends Reader {
             TestCaseResult tcr = new TestCaseResult();
             tcr.setCategory(category);
             tcr.setCWE(cweLookup(category));
-            try {
-                if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    int testCaseNumStart = BenchmarkScore.TESTCASENAME.length();
-                    tcr.setNumber(
-                            Integer.parseInt(
-                                    filename.substring(
-                                            testCaseNumStart,
-                                            testCaseNumStart + BenchmarkScore.TESTIDLENGTH)));
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("> Parse error: " + record.toString());
+            if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
+                tcr.setNumber(testNumber(filename));
             }
 
             if (tcr.getCWE() != 0) {

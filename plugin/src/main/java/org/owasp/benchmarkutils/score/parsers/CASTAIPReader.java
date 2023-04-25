@@ -90,11 +90,8 @@ public class CASTAIPReader extends Reader {
         filename = filename.replaceAll("\\\\", "/");
         filename = filename.substring(filename.lastIndexOf('/') + 1);
         if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int testcasenum = testNumber(filename);
-            if (testcasenum > 0) {
-                tcr.setNumber(testcasenum);
-                return tcr;
-            }
+            tcr.setNumber(testNumber(filename));
+            return tcr;
         }
         return null;
     }

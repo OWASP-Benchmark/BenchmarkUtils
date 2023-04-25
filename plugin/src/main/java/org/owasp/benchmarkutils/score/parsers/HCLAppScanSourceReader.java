@@ -82,15 +82,7 @@ public class HCLAppScanSourceReader extends Reader {
                 // Parse out test number from: BenchmarkTest02603:99
                 try {
                     if (filename.contains(BenchmarkScore.TESTCASENAME)) {
-                        int index = filename.lastIndexOf(BenchmarkScore.TESTCASENAME);
-                        String testnum =
-                                filename.substring(index + BenchmarkScore.TESTCASENAME.length());
-
-                        if (testnum.endsWith(".java")) {
-                            testnum = testnum.substring(0, testnum.lastIndexOf(".java"));
-                        }
-
-                        tn = Integer.parseInt(testnum);
+                        tn = testNumber(filename);
                         if (tn < 0) {
                             throw new Exception("Failed to get test number from file: " + filename);
                         }

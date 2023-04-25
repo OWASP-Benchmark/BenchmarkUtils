@@ -111,10 +111,7 @@ public class ParasoftReader extends Reader {
             String testcase = getAttributeValue("locFile", flaw);
             testcase = testcase.substring(testcase.lastIndexOf('/'));
             if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-                String testno =
-                        testcase.substring(
-                                BenchmarkScore.TESTCASENAME.length(), testcase.length() - 5);
-                tcr.setNumber(Integer.parseInt(testno));
+                tcr.setNumber(testNumber(testcase));
                 return tcr;
             }
         }
@@ -149,9 +146,7 @@ public class ParasoftReader extends Reader {
         String testcase = getAttributeValue("locFile", flaw);
         testcase = testcase.substring(testcase.lastIndexOf('/') + 1);
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno =
-                    testcase.substring(BenchmarkScore.TESTCASENAME.length(), testcase.length() - 5);
-            tcr.setNumber(Integer.parseInt(testno));
+            tcr.setNumber(testNumber(testcase));
             return tcr;
         }
         return null;

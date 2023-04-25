@@ -125,7 +125,10 @@ public class HdivReader extends Reader {
             String fname = "/" + BenchmarkScore.TESTCASENAME;
             int idx = line.indexOf(fname);
             if (idx != -1) {
-                testNumber = line.substring(idx + fname.length(), idx + fname.length() + 5);
+                tcr.setNumber(testNumber(line));
+                // testNumber = line.substring(idx + fname.length(), idx + fname.length() + 5);
+            } else {
+                tcr.setNumber(-1);
             }
 
             String type =
@@ -136,12 +139,6 @@ public class HdivReader extends Reader {
                 Type t = Type.valueOf(type);
                 tcr.setCWE(t.number);
                 tcr.setCategory(t.id);
-
-                try {
-                    tcr.setNumber(Integer.parseInt(testNumber));
-                } catch (NumberFormatException e) {
-                    System.out.println("> Parse error: " + line);
-                }
 
                 if (tcr.getCWE() != 0) {
                     tr.put(tcr);
