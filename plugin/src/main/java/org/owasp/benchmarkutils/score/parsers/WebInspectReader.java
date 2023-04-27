@@ -100,7 +100,7 @@ public class WebInspectReader extends Reader {
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
             tcr.setNumber(testNumber(testfile));
         }
-        return null;
+        return tcr;
     }
 
     private int cweLookup(String rule) {
