@@ -79,13 +79,14 @@ public class CodeQLReader extends Reader {
             // Rules are reported in the "extensions" section of the tool, one ruleset for each
             // query pack.
             JSONArray extensions = run.getJSONObject("tool").getJSONArray("extensions");
+            HashMap<String, Integer> rulesUsed = new HashMap<String, Integer>();
             for (int j = 0; j < extensions.length(); j++) {
                 JSONObject extension = extensions.getJSONObject(j);
                 // System.out.println("Found extension: " + extension.getString("name"));
                 if (extension.has("rules")) {
                     JSONArray rules = extension.getJSONArray("rules");
                     // System.out.println("Found: " + rules.length() + " rules.");
-                    HashMap<String, Integer> rulesUsed = parseLGTMRules(rules);
+                    rulesUsed = parseLGTMRules(rules);
                     // System.out.println("Parsed: " + rulesUsed.size() + " rules.");
                 }
             }
