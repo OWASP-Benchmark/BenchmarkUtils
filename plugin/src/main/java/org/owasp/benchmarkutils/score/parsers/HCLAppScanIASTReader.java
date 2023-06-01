@@ -55,6 +55,7 @@ public class HCLAppScanIASTReader extends Reader {
     private void createVulnerabilitiesMap() {
         vulnerabilityToCweNumber = new HashMap<>();
         vulnerabilityToCweNumber.put("attRespCookieNotSecureSSL", CweNumber.INSECURE_COOKIE);
+        vulnerabilityToCweNumber.put("SessionManagement.Cookies", CweNumber.INSECURE_COOKIE);
         vulnerabilityToCweNumber.put("Injection.SQL", CweNumber.SQL_INJECTION);
         vulnerabilityToCweNumber.put("Injection.OS", CweNumber.COMMAND_INJECTION);
         vulnerabilityToCweNumber.put("Injection.LDAP", CweNumber.LDAP_INJECTION);
@@ -62,8 +63,10 @@ public class HCLAppScanIASTReader extends Reader {
         vulnerabilityToCweNumber.put("Injection.XPath", CweNumber.XPATH_INJECTION);
         vulnerabilityToCweNumber.put("PathTraversal", CweNumber.PATH_TRAVERSAL);
         vulnerabilityToCweNumber.put("Cryptography.InsecureAlgorithm", CweNumber.WEAK_HASH_ALGO);
+        vulnerabilityToCweNumber.put("Cryptography.Mac", CweNumber.WEAK_HASH_ALGO);
         vulnerabilityToCweNumber.put("Cryptography.PoorEntropy", CweNumber.WEAK_RANDOM);
         vulnerabilityToCweNumber.put("Cryptography.NonStandard", CweNumber.WEAK_CRYPTO_ALGO);
+        vulnerabilityToCweNumber.put("Cryptography.Ciphers", CweNumber.WEAK_CRYPTO_ALGO);
         vulnerabilityToCweNumber.put("Validation.Required", CweNumber.TRUST_BOUNDARY_VIOLATION);
         vulnerabilityToCweNumber.put("attLoginNotOverSSL", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
         vulnerabilityToCweNumber.put("attFileUploadXXE", CweNumber.XXE);
