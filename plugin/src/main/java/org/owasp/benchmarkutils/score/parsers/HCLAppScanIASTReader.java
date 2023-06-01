@@ -96,8 +96,8 @@ public class HCLAppScanIASTReader extends Reader {
                 if (line != null) {
                     if (line.contains("writeVulnerabilityToFile")) {
                         parseFindings(tr, line);
-                    } else if (line.contains("Agent Version:")) {
-                        String version = line.substring(line.indexOf("Version:") + 8);
+                    } else if (line.contains("Loading agent")) {
+                        String version = line.split("Loading agent ")[1];
                         tr.setToolVersion(version.trim());
                     } else if (line.contains("[checking URL:")
                             && line.contains(FIRSTLINEINDICATOR)) {
