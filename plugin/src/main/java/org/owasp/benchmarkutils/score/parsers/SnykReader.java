@@ -22,7 +22,7 @@ public class SnykReader extends Reader {
                     put("Sqli", CweNumber.SQL_INJECTION);
                     put("PT", CweNumber.PATH_TRAVERSAL);
                     put("HardcodedPassword", 0);
-                    put("WebCookieMissesCallToSetHttpOnly", CweNumber.INSECURE_COOKIE);
+                    put("WebCookieMissesCallToSetHttpOnly", CweNumber.COOKIE_WITHOUT_HTTPONLY);
                     put("ServerInformationExposure", 0);
                     put("UserControlledFormatString", CweNumber.EXTERNALLY_CONTROLLED_STRING);
                     put("SpringCSRF", CweNumber.CSRF);
