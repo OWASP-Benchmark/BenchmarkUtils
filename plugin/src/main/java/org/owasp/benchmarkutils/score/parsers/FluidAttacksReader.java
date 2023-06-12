@@ -29,7 +29,8 @@ public class FluidAttacksReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
-        return resultFile.line(0).contains("cwe") && resultFile.line(0).contains("what");
+        return resultFile.filename().endsWith("csv")
+                && resultFile.line(0).trim().equals("title,what,where,cwe");
     }
 
     @Override

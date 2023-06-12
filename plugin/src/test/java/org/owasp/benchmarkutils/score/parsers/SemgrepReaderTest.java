@@ -36,7 +36,9 @@ public class SemgrepReaderTest extends ReaderTestBase {
     @BeforeEach
     void setUp() {
         resultFileV65 = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-v0.65.0.json");
-        resultFileV121 = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-v0.121.0.json");
+        resultFileV121 =
+                TestHelper.resultFileWithoutLineBreaksOf(
+                        "testfiles/Benchmark_semgrep-v0.121.0.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
