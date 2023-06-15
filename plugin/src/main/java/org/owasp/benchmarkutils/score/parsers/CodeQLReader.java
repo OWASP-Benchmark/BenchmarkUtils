@@ -203,6 +203,7 @@ public class CodeQLReader extends Reader {
         switch (cweNumber) {
                 // These are properly mapped by default
             case 22: // java/path-injection and zipslip
+            case 73: // java/file-path-injection
             case 78: // java & js/command-line-injection
             case 79: // java/xss & js/reflected-xss
             case 89: // java & js/sql-injection and similar sqli rules
@@ -232,6 +233,7 @@ public class CodeQLReader extends Reader {
                     case 94: // java/insecure-bean-validation and many others
                     case 190: // java/implicit-cast-in-compound-assignment
                     case 197: // java/tainted-numeric-cast
+                    case
                     case 297: // java/unsafe-hostname-verification
                     case 300: // java/maven/non-https-url
                     case 315: // java/cleartext-storage-in-cookie
