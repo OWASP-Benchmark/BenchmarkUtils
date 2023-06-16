@@ -71,25 +71,44 @@ public class CodeQLReader extends Reader {
             // JavaScript, etc.)
             JSONObject run = runs.getJSONObject(i);
 
-            // First, set the version of LGTM used to do the scan
+            // First, set the version of CodeQL used to do the scan
             JSONObject driver = run.getJSONObject("tool").getJSONObject("driver");
             tr.setToolVersion(driver.getString("semanticVersion"));
 
             // Then, identify all the rules that  report results and which CWEs they map to
-            // Rules are reported in the "extensions" section of the tool, one ruleset for each
-            // query pack.
-            JSONArray extensions = run.getJSONObject("tool").getJSONArray("extensions");
-            HashMap<String, Integer> rulesUsed = new HashMap<String, Integer>();
-            for (int j = 0; j < extensions.length(); j++) {
-                JSONObject extension = extensions.getJSONObject(j);
-                // System.out.println("Found extension: " + extension.getString("name"));
-                if (extension.has("rules")) {
-                    JSONArray rules = extension.getJSONArray("rules");
-                    // System.out.println("Found: " + rules.length() + " rules.");
-                    rulesUsed = parseLGTMRules(rules);
-                    // System.out.println("Parsed: " + rulesUsed.size() + " rules.");
+
+            // Rules are reported in the two possible sections of the SARIF output
+            // tool.driver.rules and tool.extensions.*.rules
+
+            // Get all tool.driver.rules rules first
+            JSONArray rules = driver.getJSONArray("rules");
+            // System.out.println("Found: " + rules.length() + " rules.");
+
+            // Then get all tool.extensions.*.rules rules
+            // loop through all the extensions, and get the rules from each one
+            // append these rules to our rules array
+            if (run.getJSONObject("tool").has("extensions")) {
+                JSONArray extensions = run.getJSONObject("tool").getJSONArray("extensions");
+                for (int j = 0; j < extensions.length(); j++) {
+                    JSONObject extension = extensions.getJSONObject(j);
+                    // System.out.println("Found extension: " + extension.getString("name"));
+                    if (extension.has("rules")) {
+                        JSONArray extensionrules = extension.getJSONArray("rules");
+                        // System.out.println(
+                        //        "Found: "
+                        //                + extensionrules.length()
+                        //                + " rules in "
+                        //                + extension.getString("name"));
+                        for (int itr = 0; itr < extensionrules.length(); itr++) {
+                            rules.put(extensionrules.getJSONObject(itr));
+                        }
+                    }
                 }
             }
+
+            // Now that we have all the rules, parse them out
+            HashMap<String, Integer> rulesUsed = parseLGTMRules(rules);
+            // System.out.println("Parsed: " + rulesUsed.size() + " rules.");
 
             // Finally, parse out all the results
             JSONArray results = run.getJSONArray("results");

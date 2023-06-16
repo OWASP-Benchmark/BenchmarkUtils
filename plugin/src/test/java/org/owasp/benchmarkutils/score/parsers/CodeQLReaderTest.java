@@ -48,7 +48,23 @@ public class CodeQLReaderTest extends ReaderTestBase {
         TestSuiteResults result = reader.parse(resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
-        
+
+        assertEquals("CodeQL", result.getToolName());
+
+        assertEquals(2, result.getTotalResults());
+
+        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+    }
+
+    @Test
+    void readerHandlesAlternativeResultFile() throws Exception {
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CodeQL-v2.13.alternative.sarif");
+        CodeQLReader reader = new CodeQLReader();
+        TestSuiteResults result = reader.parse(resultFile);
+
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+
         assertEquals("CodeQL", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
