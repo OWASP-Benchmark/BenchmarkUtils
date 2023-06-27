@@ -14,6 +14,7 @@
  *
  * @author Dave Wichers
  * @author Nipuna Weerasekara
+ * @author Nicolas Couraud
  * @created 2021
  */
 package org.owasp.benchmarkutils.score.parsers;
@@ -70,13 +71,42 @@ public class CodeQLReader extends Reader {
             // JavaScript, etc.)
             JSONObject run = runs.getJSONObject(i);
 
-            // First, set the version of LGTM used to do the scan
+            // First, set the version of CodeQL used to do the scan
             JSONObject driver = run.getJSONObject("tool").getJSONObject("driver");
             tr.setToolVersion(driver.getString("semanticVersion"));
 
-            // Then, identify all the rules that report results and which CWEs they map to
+            // Then, identify all the rules that  report results and which CWEs they map to
+
+            // Rules are reported in the two possible sections of the SARIF output
+            // tool.driver.rules and tool.extensions.*.rules
+
+            // Get all tool.driver.rules rules first
             JSONArray rules = driver.getJSONArray("rules");
             // System.out.println("Found: " + rules.length() + " rules.");
+
+            // Then get all tool.extensions.*.rules rules
+            // loop through all the extensions, and get the rules from each one
+            // append these rules to our rules array
+            if (run.getJSONObject("tool").has("extensions")) {
+                JSONArray extensions = run.getJSONObject("tool").getJSONArray("extensions");
+                for (int j = 0; j < extensions.length(); j++) {
+                    JSONObject extension = extensions.getJSONObject(j);
+                    // System.out.println("Found extension: " + extension.getString("name"));
+                    if (extension.has("rules")) {
+                        JSONArray extensionrules = extension.getJSONArray("rules");
+                        // System.out.println(
+                        //        "Found: "
+                        //                + extensionrules.length()
+                        //                + " rules in "
+                        //                + extension.getString("name"));
+                        for (int itr = 0; itr < extensionrules.length(); itr++) {
+                            rules.put(extensionrules.getJSONObject(itr));
+                        }
+                    }
+                }
+            }
+
+            // Now that we have all the rules, parse them out
             HashMap<String, Integer> rulesUsed = parseLGTMRules(rules);
             // System.out.println("Parsed: " + rulesUsed.size() + " rules.");
 
@@ -111,6 +141,7 @@ public class CodeQLReader extends Reader {
                         // NOTE: If you try to map the rules here, you have to map EVERY rule in the
                         // current ruleset, even though many of those rules won't have results. So
                         // instead we map them later when there is actually a finding by that rule.
+                        // System.out.println("Mapped Rule " + ruleName + " to CWE" + val);
                         rulesUsed.put(
                                 ruleName, Integer.parseInt(val.substring(LGTMCWEPREFIXLENGTH)));
                         break; // Break out of for loop because we only want to use the first CWE it
@@ -191,6 +222,7 @@ public class CodeQLReader extends Reader {
         switch (cweNumber) {
                 // These are properly mapped by default
             case 22: // java/path-injection and zipslip
+            case 73: // java/file-path-injection
             case 78: // java & js/command-line-injection
             case 79: // java/xss & js/reflected-xss
             case 89: // java & js/sql-injection and similar sqli rules
@@ -220,6 +252,7 @@ public class CodeQLReader extends Reader {
                     case 94: // java/insecure-bean-validation and many others
                     case 190: // java/implicit-cast-in-compound-assignment
                     case 197: // java/tainted-numeric-cast
+                    case
                     case 297: // java/unsafe-hostname-verification
                     case 300: // java/maven/non-https-url
                     case 315: // java/cleartext-storage-in-cookie
