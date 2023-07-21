@@ -23,10 +23,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.owasp.benchmarkutils.score.BenchmarkScore;
@@ -80,7 +79,7 @@ public class DatadogReader extends Reader {
         if (line.contains("_dd.iast.json")) {
             // ok, we're starting a new URL, so process this one and start the next
             // chunk
-            process(tr, testNumber, Arrays.asList(line));
+            process(tr, testNumber, Collections.singletonList(line));
             chunk.clear();
             testNumber = "00000";
             String fname = "/" + BenchmarkScore.TESTCASENAME;
@@ -135,22 +134,27 @@ public class DatadogReader extends Reader {
                 testNumber = line.substring(idx + fname.length(), idx + fname.length() + 5);
             }
 
-            int pos = line.indexOf(TYPE) + TYPE.length();
-            String type = line.substring(pos, line.indexOf('"', pos + 1));
+            int originalPos = 0;
+            int indexPos = 0;
+            while((indexPos=line.indexOf(TYPE, originalPos))!=-1) {
+                int pos = indexPos + TYPE.length();
+                originalPos = pos;
+                String type = line.substring(pos, line.indexOf('"', pos + 1));
 
-            Type t = Type.secureValueOf(type);
-            if (t != null) {
-                tcr.setCWE(t.number);
-                tcr.setCategory(t.id);
+                Type t = Type.secureValueOf(type);
+                if (t != null) {
+                    tcr.setCWE(t.number);
+                    tcr.setCategory(t.id);
 
-                try {
-                    tcr.setNumber(Integer.parseInt(testNumber));
-                } catch (NumberFormatException e) {
-                    System.out.println("> Parse error: " + line);
-                }
+                    try {
+                        tcr.setNumber(Integer.parseInt(testNumber));
+                    } catch (NumberFormatException e) {
+                        System.out.println("> Parse error: " + line);
+                    }
 
-                if (tcr.getCWE() != 0) {
-                    tr.put(tcr);
+                    if (tcr.getCWE() != 0) {
+                        tr.put(tcr);
+                    }
                 }
             }
         }
@@ -163,7 +167,6 @@ public class DatadogReader extends Reader {
         HEADER_INJECTION(113),
         INSECURE_COOKIE("cookie-flags-missing", 614),
         LDAP_INJECTION(90),
-        NO_HTTPONLY_COOKIE(1004),
         PATH_TRAVERSAL(22),
         REFLECTION_INJECTION(0),
         SQL_INJECTION(89),
