@@ -28,14 +28,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class DatadogReader extends Reader {
-
-    private final Set<String> invalid = new HashSet<>();
 
     private static final String VERSION_LINE = "DATADOG TRACER CONFIGURATION {\"version\":\"";
 
@@ -139,8 +138,8 @@ public class DatadogReader extends Reader {
             int pos = line.indexOf(TYPE) + TYPE.length();
             String type = line.substring(pos, line.indexOf('"', pos + 1));
 
-            try {
-                Type t = Type.valueOf(type);
+            Type t = Type.secureValueOf(type);
+            if (t != null) {
                 tcr.setCWE(t.number);
                 tcr.setCategory(t.id);
 
@@ -153,10 +152,6 @@ public class DatadogReader extends Reader {
                 if (tcr.getCWE() != 0) {
                     tr.put(tcr);
                 }
-            } catch (Exception e) {
-                if (invalid.add(type)) {
-                    System.out.println("Invalid type:" + type);
-                }
             }
         }
     }
@@ -168,7 +163,7 @@ public class DatadogReader extends Reader {
         HEADER_INJECTION(113),
         INSECURE_COOKIE("cookie-flags-missing", 614),
         LDAP_INJECTION(90),
-        NO_HTTP_ONLY_COOKIE(1004),
+        NO_HTTPONLY_COOKIE(1004),
         PATH_TRAVERSAL(22),
         REFLECTION_INJECTION(0),
         SQL_INJECTION(89),
@@ -190,6 +185,15 @@ public class DatadogReader extends Reader {
         private Type(final String id, final int number) {
             this.number = number;
             this.id = id;
+        }
+
+        private static Type secureValueOf(String value) {
+            for (Type type : values()) {
+                if (type.name().equals(value)) {
+                    return type;
+                }
+            }
+            return null;
         }
     }
 }
