@@ -19,23 +19,18 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class DatadogReader extends Reader {
-
-    private final Set<String> invalid = new HashSet<>();
 
     private static final String VERSION_LINE = "DATADOG TRACER CONFIGURATION {\"version\":\"";
 
@@ -73,22 +68,15 @@ public class DatadogReader extends Reader {
         return tr;
     }
 
-    private void processChunk(List<String> chunk, TestSuiteResults tr, String[] lastLine)
-            throws Exception {
+    private void processChunk(List<String> chunk, TestSuiteResults tr, String[] lastLine) {
         String testNumber = "00001";
 
-        String line = chunk.stream().collect(Collectors.joining(""));
+        String line = String.join("", chunk);
         if (line.contains("_dd.iast.json")) {
             // ok, we're starting a new URL, so process this one and start the next
             // chunk
-            process(tr, testNumber, Arrays.asList(line));
+            process(tr, testNumber, Collections.singletonList(line));
             chunk.clear();
-            testNumber = "00000";
-            String fname = "/" + BenchmarkScore.TESTCASENAME;
-            int idx = line.indexOf(fname);
-            if (idx != -1) {
-                testNumber = line.substring(idx + fname.length(), idx + fname.length() + 5);
-            }
             lastLine[0] = line;
         } else if (line.contains(VERSION_LINE)) {
             int pos = line.indexOf(VERSION_LINE) + VERSION_LINE.length();
@@ -100,19 +88,8 @@ public class DatadogReader extends Reader {
 
     private String calculateTime(final String firstLine, final String lastLine) {
         try {
-            return calculateTime(firstLine, lastLine, 2);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private String calculateTime(
-            final String firstLine, final String lastLine, final int timeColumn)
-            throws ParseException {
-        try {
-            String start = firstLine.split(" ")[timeColumn];
-            String stop = lastLine.split(" ")[timeColumn];
+            String start = firstLine.split(" ")[2];
+            String stop = lastLine.split(" ")[2];
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss:SSS");
             Date startTime = sdf.parse(start);
             Date stopTime = sdf.parse(stop);
@@ -125,8 +102,7 @@ public class DatadogReader extends Reader {
         }
     }
 
-    private void process(final TestSuiteResults tr, String testNumber, final List<String> chunk)
-            throws Exception {
+    private void process(final TestSuiteResults tr, String testNumber, final List<String> chunk) {
         for (String line : chunk) {
             TestCaseResult tcr = new TestCaseResult();
 
@@ -136,26 +112,27 @@ public class DatadogReader extends Reader {
                 testNumber = line.substring(idx + fname.length(), idx + fname.length() + 5);
             }
 
-            int pos = line.indexOf(TYPE) + TYPE.length();
-            String type = line.substring(pos, line.indexOf('"', pos + 1));
+            int originalPos = 0;
+            int indexPos;
+            while((indexPos=line.indexOf(TYPE, originalPos))!=-1) {
+                int pos = indexPos + TYPE.length();
+                originalPos = pos;
+                String type = line.substring(pos, line.indexOf('"', pos + 1));
 
-            try {
-                Type t = Type.valueOf(type);
-                tcr.setCWE(t.number);
-                tcr.setCategory(t.id);
+                Type t = Type.secureValueOf(type);
+                if (t != null) {
+                    tcr.setCWE(t.number);
+                    tcr.setCategory(t.id);
 
-                try {
-                    tcr.setNumber(Integer.parseInt(testNumber));
-                } catch (NumberFormatException e) {
-                    System.out.println("> Parse error: " + line);
-                }
+                    try {
+                        tcr.setNumber(Integer.parseInt(testNumber));
+                    } catch (NumberFormatException e) {
+                        System.out.println("> Parse error: " + line);
+                    }
 
-                if (tcr.getCWE() != 0) {
-                    tr.put(tcr);
-                }
-            } catch (Exception e) {
-                if (invalid.add(type)) {
-                    System.out.println("Invalid type:" + type);
+                    if (tcr.getCWE() != 0) {
+                        tr.put(tcr);
+                    }
                 }
             }
         }
@@ -168,7 +145,6 @@ public class DatadogReader extends Reader {
         HEADER_INJECTION(113),
         INSECURE_COOKIE("cookie-flags-missing", 614),
         LDAP_INJECTION(90),
-        NO_HTTP_ONLY_COOKIE(1004),
         PATH_TRAVERSAL(22),
         REFLECTION_INJECTION(0),
         SQL_INJECTION(89),
@@ -182,14 +158,23 @@ public class DatadogReader extends Reader {
 
         private final String id;
 
-        private Type(final int number) {
+        Type(final int number) {
             this.number = number;
             id = name().toLowerCase().replaceAll("_", "-");
         }
 
-        private Type(final String id, final int number) {
+        Type(final String id, final int number) {
             this.number = number;
             this.id = id;
+        }
+
+        private static Type secureValueOf(String value) {
+            for (Type type : values()) {
+                if (type.name().equals(value)) {
+                    return type;
+                }
+            }
+            return null;
         }
     }
 }
