@@ -30,7 +30,11 @@ public class FluidAttacksReader extends Reader {
     @Override
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith("csv")
-                && resultFile.line(0).trim().equals("title,what,where,cwe");
+                && resultFile
+                        .line(0)
+                        .trim()
+                        .equals(
+                                "title,cwe,description,cvss,finding,stream,kind,where,snippet,method");
     }
 
     @Override
@@ -43,10 +47,12 @@ public class FluidAttacksReader extends Reader {
 
         for (CSVRecord record : records) {
             TestCaseResult testCaseResult = new TestCaseResult();
-
-            // Columns in the CSV
-            String what = record.get("what");
-            String cwe = record.get("cwe").split(" [+] ")[0];
+            // Read only useful rows of the csv results
+            if (record.get("description").split("OWASP").length < 2) {
+                continue;
+            }
+            String what = record.get("description").split("OWASP")[1];
+            String cwe = record.get("cwe").split("-")[1];
 
             // Parse columns into the correct types
             String category = cweToCategory(cwe);
