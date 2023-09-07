@@ -41,6 +41,7 @@ public class ConfigurationTest {
     private Yaml yaml;
     private final ClassLoader classLoader = Configuration.class.getClassLoader();
     private ByteArrayOutputStream out;
+    private static final String SEP = System.getProperty("line.separator");
 
     @BeforeEach
     public void setUp() {
@@ -78,8 +79,8 @@ public class ConfigurationTest {
     @Test
     void informsAboutDefaultConfig() {
         Configuration.fromDefaultConfig();
-
-        assertEquals("INFO: Default YAML Scoring config file found and loaded.\n", out.toString());
+        assertEquals(
+                "INFO: Default YAML Scoring config file found and loaded." + SEP, out.toString());
     }
 
     @Test
@@ -92,7 +93,7 @@ public class ConfigurationTest {
     void informsAboutResourceConfig() {
         Configuration.fromResourceFile(Configuration.DEFAULT_CONFIG);
 
-        assertEquals("INFO: YAML Scoring config file found and loaded.\n", out.toString());
+        assertEquals("INFO: YAML Scoring config file found and loaded." + SEP, out.toString());
     }
 
     @Test
@@ -143,7 +144,7 @@ public class ConfigurationTest {
     void informsAboutFileConfig() throws Exception {
         Configuration.fromFile(provideEmptyConfig().getAbsolutePath());
 
-        assertEquals("INFO: YAML Scoring config file found and loaded.\n", out.toString());
+        assertEquals("INFO: YAML Scoring config file found and loaded." + SEP, out.toString());
     }
 
     @Test
