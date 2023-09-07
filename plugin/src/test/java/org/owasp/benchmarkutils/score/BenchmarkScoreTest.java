@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 public class BenchmarkScoreTest {
 
+    private static final String SEP = System.getProperty("line.separator");
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final PrintStream originalOut = System.out;
 
@@ -32,7 +33,7 @@ public class BenchmarkScoreTest {
     }
 
     private void expectDefaultConfigAndUsageMessage() {
-        String[] resultLines = outContent.toString().split("\n");
+        String[] resultLines = outContent.toString().split(SEP);
 
         assertEquals(2, resultLines.length);
         assertEquals(BenchmarkScore.USAGE_MSG, resultLines[0]);
@@ -77,7 +78,7 @@ public class BenchmarkScoreTest {
     }
 
     private void expectUsageMessage() {
-        String[] resultLines = outContent.toString().split("\n");
+        String[] resultLines = outContent.toString().split(SEP);
 
         assertEquals(1, resultLines.length);
         assertEquals(BenchmarkScore.USAGE_MSG, resultLines[0]);
