@@ -20,6 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.StringReader;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -64,11 +65,14 @@ public class HCLAppScanIASTReader extends Reader {
         vulnerabilityToCweNumber.put("PathTraversal", CweNumber.PATH_TRAVERSAL);
         vulnerabilityToCweNumber.put("Cryptography.InsecureAlgorithm", CweNumber.WEAK_HASH_ALGO);
         vulnerabilityToCweNumber.put("Cryptography.Mac", CweNumber.WEAK_HASH_ALGO);
+        vulnerabilityToCweNumber.put("Cryptography.WeakHash", CweNumber.WEAK_HASH_ALGO);
         vulnerabilityToCweNumber.put("Cryptography.PoorEntropy", CweNumber.WEAK_RANDOM);
         vulnerabilityToCweNumber.put("Cryptography.NonStandard", CweNumber.WEAK_CRYPTO_ALGO);
         vulnerabilityToCweNumber.put("Cryptography.Ciphers", CweNumber.WEAK_CRYPTO_ALGO);
         vulnerabilityToCweNumber.put("Validation.Required", CweNumber.TRUST_BOUNDARY_VIOLATION);
-        vulnerabilityToCweNumber.put("attLoginNotOverSSL", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
+        vulnerabilityToCweNumber.put("TrustBoundaryViolation", CweNumber.TRUST_BOUNDARY_VIOLATION);
+        vulnerabilityToCweNumber.put(
+                "attLoginNotOverSSL", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
         vulnerabilityToCweNumber.put("attFileUploadXXE", CweNumber.XXE);
         vulnerabilityToCweNumber.put("attCrossSiteRequestForgery", CweNumber.CSRF);
         vulnerabilityToCweNumber.put("passParamGET", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
@@ -156,11 +160,21 @@ public class HCLAppScanIASTReader extends Reader {
 
     private String calculateTime(String firstLine, String lastLine) {
         try {
-            String start = firstLine.split(" ")[0];
-            String stop = lastLine.split(" ")[0];
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
-            Date startTime = sdf.parse(start);
-            Date stopTime = sdf.parse(stop);
+            String start = firstLine.split(" \\[")[0];
+            String stop = lastLine.split(" \\[")[0];
+            SimpleDateFormat dateAndTimeParser = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            SimpleDateFormat timeParser = new SimpleDateFormat("HH:mm:ss.SSS");
+            Date startTime;
+            Date stopTime;
+            try {
+                // try parse date and time
+                startTime = dateAndTimeParser.parse(start);
+                stopTime = dateAndTimeParser.parse(stop);
+            } catch (ParseException e) {
+                // try parse time only (for older versions)
+                startTime = timeParser.parse(start);
+                stopTime = timeParser.parse(stop);
+            }
             long startMillis = startTime.getTime();
             long stopMillis = stopTime.getTime();
             long seconds = (stopMillis - startMillis) / 1000;
