@@ -71,8 +71,7 @@ public class HCLAppScanIASTReader extends Reader {
         vulnerabilityToCweNumber.put("Cryptography.Ciphers", CweNumber.WEAK_CRYPTO_ALGO);
         vulnerabilityToCweNumber.put("Validation.Required", CweNumber.TRUST_BOUNDARY_VIOLATION);
         vulnerabilityToCweNumber.put("TrustBoundaryViolation", CweNumber.TRUST_BOUNDARY_VIOLATION);
-        vulnerabilityToCweNumber.put(
-                "attLoginNotOverSSL", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
+        vulnerabilityToCweNumber.put("attLoginNotOverSSL", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
         vulnerabilityToCweNumber.put("attFileUploadXXE", CweNumber.XXE);
         vulnerabilityToCweNumber.put("attCrossSiteRequestForgery", CweNumber.CSRF);
         vulnerabilityToCweNumber.put("passParamGET", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
