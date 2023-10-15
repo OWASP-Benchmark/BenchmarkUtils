@@ -24,7 +24,8 @@ import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class MendReader extends Reader {
 
@@ -36,7 +37,7 @@ public class MendReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr = new TestSuiteResults("Mend", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Mend", true, ToolType.SAST);
 
         Report report = xmlMapper.readValue(resultFile.content(), Report.class);
 
@@ -56,7 +57,7 @@ public class MendReader extends Reader {
                             tcr.setCWE(result.type.cwe.asNumber());
                             tcr.setNumber(testNumber(testfile));
 
-                            tr.put(tcr);
+                            tr.add(tcr);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();

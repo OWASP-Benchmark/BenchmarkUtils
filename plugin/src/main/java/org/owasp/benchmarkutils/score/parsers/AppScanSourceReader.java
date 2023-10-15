@@ -29,7 +29,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -66,8 +67,7 @@ public class AppScanSourceReader extends Reader {
         // Map<Integer,String> sev = parsePool( root, "FindingDataPool", "id", "sev", "" );
         Map<Integer, Set<Integer>> assess = parseAssessments(root);
 
-        TestSuiteResults tr =
-                new TestSuiteResults("IBM AppScan Source", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("IBM AppScan Source", true, ToolType.SAST);
 
         // <AssessmentRun name="webgoat-benchmark_3 - 5/18/15 12:01AM" version="9.0.1.0">
         String version = getAttributeValue("version", root);
@@ -118,7 +118,7 @@ public class AppScanSourceReader extends Reader {
                 // went down because it excludes ALL of the weak randomness findings.
                 // Confidence 1 - are "definitive" findings
                 if (confidence < 3) {
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             }
         }

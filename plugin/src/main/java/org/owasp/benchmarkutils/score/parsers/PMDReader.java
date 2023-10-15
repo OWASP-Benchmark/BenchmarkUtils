@@ -25,11 +25,14 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class PMDReader extends Reader {
 
@@ -47,11 +50,11 @@ public class PMDReader extends Reader {
         InputSource is = new InputSource(new FileInputStream(resultFile.file()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr = new TestSuiteResults("PMD", false, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("PMD", false, ToolType.SAST);
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml), set the
         // compute time on the scorecard.
-        tr.setTime(resultFile.file());
+        tr.setTime(formatTime(extractTimeFromFilename(resultFile)));
 
         Node root = doc.getDocumentElement();
         String version = getAttributeValue("version", root);
@@ -64,7 +67,7 @@ public class PMDReader extends Reader {
         for (Node file : fileList) {
             List<TestCaseResult> tcrs = parsePMDItem(file);
             for (TestCaseResult tcr : tcrs) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
 

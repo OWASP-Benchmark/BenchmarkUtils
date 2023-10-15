@@ -17,18 +17,22 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.StringReader;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class VisualCodeGrepperReader extends Reader {
 
@@ -47,19 +51,22 @@ public class VisualCodeGrepperReader extends Reader {
         InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr =
-                new TestSuiteResults("VisualCodeGrepper", false, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("VisualCodeGrepper", false, ToolType.SAST);
 
-        // If the filename includes an elapsed time in seconds (e.g.,
-        // TOOLNAME-seconds.xml), set the compute time on the scorecard.
-        tr.setTime(resultFile.file());
+        long time = extractTimeFromFilename(resultFile);
+        if (time > -1) {
+            tr.setTime(formatTime(time));
+        } else {
+            tr.setTime("Time not specified");
+        }
+
         NodeList nl = doc.getDocumentElement().getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
             if (n.getNodeName().equals("CodeIssue")) {
                 TestCaseResult tcr = parseVisualCodeGrepperIssue(n);
                 if (tcr != null) {
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             }
         }
@@ -120,41 +127,41 @@ public class VisualCodeGrepperReader extends Reader {
         }
 
         switch (cat) {
-                // Cookies
+            // Cookies
             case "Poor Input Validation":
                 return CweNumber.INSECURE_COOKIE;
 
-                // Injections
+            // Injections
             case "Potential SQL Injection":
                 return CweNumber.SQL_INJECTION;
-                // case "Operation on Primitive Data Type" : return 89;
+            // case "Operation on Primitive Data Type" : return 89;
 
-                // Command injection
+            // Command injection
             case "java.lang.Runtime.exec Gets Path from Variable":
                 return CweNumber.COMMAND_INJECTION;
 
-                // XPath Injection
+            // XPath Injection
             case "FileInputStream":
             case "java.io.FileWriter":
             case "java.io.FileReader":
             case "FileStream Opened Without Exception Handling":
                 return CweNumber.XPATH_INJECTION;
 
-                // Weak random
+            // Weak random
             case "java.util.Random":
                 return CweNumber.WEAK_RANDOM;
 
-                // Path traversal
+            // Path traversal
             case "java.io.File":
             case "java.io.FileOutputStream":
             case "getResourceAsStream":
                 return CweNumber.PATH_TRAVERSAL;
 
-                // XSS
+            // XSS
             case "Potential XSS":
                 return CweNumber.XSS;
 
-                // Trust Boundary Violation
+            // Trust Boundary Violation
             case "getParameterValues":
             case "getParameterNames":
             case "getParameter":
@@ -162,7 +169,7 @@ public class VisualCodeGrepperReader extends Reader {
 
             default:
                 return 00; // System.out.println( "Unknown vuln category for VisualCodeGrepper: " +
-                // cat );
+            // cat );
         }
     }
 }

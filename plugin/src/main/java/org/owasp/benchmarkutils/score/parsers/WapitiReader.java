@@ -25,7 +25,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -46,7 +47,7 @@ public class WapitiReader extends Reader {
         InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr = new TestSuiteResults("Wapiti", false, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("Wapiti", false, ToolType.DAST);
 
         // Get the version of Wapiti out of the generatorVersion <info> element.
         Node root = doc.getDocumentElement();
@@ -91,7 +92,7 @@ public class WapitiReader extends Reader {
                     tcr.setCategory(getAttributeValue("name", vuln));
                     tcr.setEvidence(getNamedChild("curl_command", entry).getTextContent());
                     tcr.setNumber(testNumber(path));
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             }
         }

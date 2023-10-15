@@ -52,6 +52,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.Utils;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.owasp.benchmarkutils.score.parsers.Reader;
 import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
@@ -562,7 +564,7 @@ public class BenchmarkScore extends AbstractMojo {
                 // Produce a .csv results file of the actual results, except if its a commercial
                 // tool, and we are in showAveOnly mode.
                 String actualResultsFileName = "notProduced";
-                if (!(config.showAveOnlyMode && rawToolResults.isCommercial)) {
+                if (!(config.showAveOnlyMode && rawToolResults.isCommercial())) {
                     actualResultsFileName = produceResultsFile(actualResults, scoreCardDir);
                 }
 
@@ -605,16 +607,16 @@ public class BenchmarkScore extends AbstractMojo {
     private static void printExtraCWE(
             TestSuiteResults expectedResults, TestSuiteResults actualResults) {
         Set<Integer> expectedCWE = new HashSet<Integer>();
-        for (int i : expectedResults.keySet()) {
-            List<TestCaseResult> list = expectedResults.get(i);
+        for (int i : expectedResults.testNumbers()) {
+            List<TestCaseResult> list = expectedResults.resultsFor(i);
             for (TestCaseResult t : list) {
                 expectedCWE.add(t.getCWE());
             }
         }
 
         Set<Integer> actualCWE = new HashSet<Integer>();
-        for (int i : actualResults.keySet()) {
-            List<TestCaseResult> list = actualResults.get(i);
+        for (int i : actualResults.testNumbers()) {
+            List<TestCaseResult> list = actualResults.resultsFor(i);
             if (list != null) {
                 for (TestCaseResult t : list) {
                     actualCWE.add(t.getCWE());
@@ -712,8 +714,8 @@ public class BenchmarkScore extends AbstractMojo {
     private static Map<String, TP_FN_TN_FP_Counts> calculateScores(TestSuiteResults actualResults) {
         Map<String, TP_FN_TN_FP_Counts> map = new TreeMap<String, TP_FN_TN_FP_Counts>();
 
-        for (Integer tn : actualResults.keySet()) {
-            TestCaseResult tcr = actualResults.get(tn).get(0); // only one
+        for (Integer tn : actualResults.testNumbers()) {
+            TestCaseResult tcr = actualResults.resultsFor(tn).get(0); // only one
             String cat = Categories.getById(tcr.getCategory()).getName();
 
             TP_FN_TN_FP_Counts c = map.get(cat);
@@ -787,16 +789,16 @@ public class BenchmarkScore extends AbstractMojo {
         // If in anonymous mode, anonymize the tool name if its a commercial tool before its used to
         // compute anything, unless its the tool of 'focus'.
         if (config.anonymousMode
-                && rawToolResults.isCommercial
+                && rawToolResults.isCommercial()
                 && !rawToolResults.getToolName().replace(' ', '_').equalsIgnoreCase(config.focus)) {
             rawToolResults.setAnonymous();
         }
 
         boolean pass = false;
-        for (int tc : expected.keySet()) {
-            TestCaseResult exp = expected.get(tc).get(0); // always only one!
+        for (int tc : expected.testNumbers()) {
+            TestCaseResult exp = expected.resultsFor(tc).get(0); // always only one!
             List<TestCaseResult> act =
-                    rawToolResults.get(tc); // could be lots of results for this test
+                    rawToolResults.resultsFor(tc); // could be lots of results for this test
 
             pass = compare(exp, act, rawToolResults.getToolName());
 
@@ -810,7 +812,7 @@ public class BenchmarkScore extends AbstractMojo {
 
         // Record the name and version of the tool whose pass/fail values were recorded in
         // 'expected' results
-        expected.setTool(rawToolResults.getToolName());
+        expected.setToolName(rawToolResults.getToolName());
         expected.setToolVersion(rawToolResults.getToolVersion());
 
         // Return the modified expected as the actual.  Beware of the side effect!
@@ -867,7 +869,7 @@ public class BenchmarkScore extends AbstractMojo {
     // Create a TestResults object that contains the expected results for this version
     // of the test suite.
     private static TestSuiteResults readExpectedResults(File file) {
-        TestSuiteResults tr = new TestSuiteResults("Expected", true, null);
+        TestSuiteResults tr = new TestSuiteResults("Expected", true, ToolType.Unknown);
 
         try (final BufferedReader fr = new BufferedReader(new FileReader(file))) {
             // Read the 1st line. Parse out the test suite name and version #, which looks like:
@@ -883,7 +885,6 @@ public class BenchmarkScore extends AbstractMojo {
                 if (startOfVersionStringLocation != -1) {
                     final String TESTSUITENAME =
                             firstLineElements[4].substring(0, startOfVersionStringLocation);
-                    tr.setTestSuiteName(TESTSUITENAME);
                     BenchmarkScore.TESTSUITE = TESTSUITENAME; // Set classwide variable
                     BenchmarkScore.TESTCASENAME = // Set classwide variable;
                             TESTSUITENAME + TEST;
@@ -933,7 +934,7 @@ public class BenchmarkScore extends AbstractMojo {
                             tcr.setSink(parts[6]);
                         }
 
-                        tr.put(tcr);
+                        tr.add(tcr);
                     }
                 }
             }
@@ -966,16 +967,16 @@ public class BenchmarkScore extends AbstractMojo {
                         + "_v"
                         + testSuiteVersion
                         + "_Scorecard_for_"
-                        + actual.getToolNameAndVersion().replace(' ', '_')
+                        + actual.getDisplayName(config.anonymousMode).replace(' ', '_')
                         + ".csv";
         File resultsFile = new File(resultsFileName);
         try (FileOutputStream fos = new FileOutputStream(resultsFile, false);
                 PrintStream ps = new PrintStream(fos); ) {
 
-            Set<Integer> testCaseKeys = actual.keySet();
+            Set<Integer> testCaseKeys = actual.testNumbers();
 
-            boolean fulldetails =
-                    (actual.get(testCaseKeys.iterator().next()).get(0).getSource() != null);
+            int tn = testCaseKeys.iterator().next();
+            boolean fulldetails = (actual.resultsFor(tn).get(0).getSource() != null);
 
             // Write actual results header
             ps.print("# test name, category, CWE, ");
@@ -993,7 +994,8 @@ public class BenchmarkScore extends AbstractMojo {
 
             for (Integer expectedResultsKey : testCaseKeys) {
                 // Write meta data to file here.
-                TestCaseResult actualResult = actual.get(expectedResultsKey.intValue()).get(0);
+                TestCaseResult actualResult =
+                        actual.resultsFor(expectedResultsKey.intValue()).get(0);
                 ps.print(actualResult.getName());
                 ps.print(", " + actualResult.getCategory());
                 ps.print(", " + actualResult.getCWE());

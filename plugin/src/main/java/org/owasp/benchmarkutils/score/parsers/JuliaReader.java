@@ -23,7 +23,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -52,7 +53,7 @@ public class JuliaReader extends Reader {
         InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr = new TestSuiteResults("Julia", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Julia", true, ToolType.SAST);
 
         Node root = doc.getDocumentElement();
 
@@ -68,7 +69,7 @@ public class JuliaReader extends Reader {
         NodeList nl = root.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
-            if (n.getNodeName().equals("warning")) tr.put(parseJuliaBug(n));
+            if (n.getNodeName().equals("warning")) tr.add(parseJuliaBug(n));
         }
 
         return tr;

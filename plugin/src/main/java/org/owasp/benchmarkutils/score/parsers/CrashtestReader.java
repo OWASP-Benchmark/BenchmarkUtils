@@ -26,7 +26,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -55,8 +56,7 @@ public class CrashtestReader extends Reader {
         InputSource is = new InputSource(new FileInputStream(resultFile.file()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr =
-                new TestSuiteResults("Crashtest Security", false, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("Crashtest Security", false, ToolType.DAST);
 
         Node crashtest = doc.getDocumentElement();
         String time = crashtest.getAttributes().getNamedItem("time").getNodeValue();
@@ -71,7 +71,7 @@ public class CrashtestReader extends Reader {
             try {
                 TestCaseResult tcr = parseCrashtestIssue(issue);
                 if (tcr != null) {
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             } catch (Exception e) {
                 // print and continue

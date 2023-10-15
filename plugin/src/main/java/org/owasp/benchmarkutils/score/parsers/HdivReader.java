@@ -31,7 +31,8 @@ import java.util.Set;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class HdivReader extends Reader {
 
@@ -51,7 +52,7 @@ public class HdivReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr = new TestSuiteResults("Hdiv", true, TestSuiteResults.ToolType.IAST);
+        TestSuiteResults tr = new TestSuiteResults("Hdiv", true, ToolType.IAST);
 
         BufferedReader reader = new BufferedReader(new StringReader(resultFile.content()));
         String firstLine = reader.readLine();
@@ -141,7 +142,7 @@ public class HdivReader extends Reader {
                 tcr.setCategory(t.id);
 
                 if (tcr.getCWE() != 0) {
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             } catch (Exception e) {
                 if (invalid.add(type)) {

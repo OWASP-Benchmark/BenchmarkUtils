@@ -22,11 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
-import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestHelper;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class SemgrepReaderTest extends ReaderTestBase {
 
@@ -57,14 +55,14 @@ public class SemgrepReaderTest extends ReaderTestBase {
         SemgrepReader reader = new SemgrepReader();
         TestSuiteResults result = reader.parse(resultFileV65);
 
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertEquals(ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());
         assertEquals("Semgrep", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.resultsFor(1).get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.resultsFor(2).get(0).getCWE());
     }
 
     @Test
@@ -72,13 +70,13 @@ public class SemgrepReaderTest extends ReaderTestBase {
         SemgrepReader reader = new SemgrepReader();
         TestSuiteResults result = reader.parse(resultFileV121);
 
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertEquals(ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());
         assertEquals("Semgrep", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(3).get(0).getCWE());
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(4).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.resultsFor(3).get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.resultsFor(4).get(0).getCWE());
     }
 }

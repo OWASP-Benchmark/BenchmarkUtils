@@ -24,7 +24,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class KlocworkCSVReader extends Reader {
 
@@ -37,8 +38,7 @@ public class KlocworkCSVReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("Klocwork", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Klocwork", true, ToolType.SAST);
 
         /* The start of a Klocwork .csv results file looks like this (where I've added the line #'s in front):
 
@@ -67,7 +67,7 @@ public class KlocworkCSVReader extends Reader {
             }
 
             if (tcr.getCWE() != 0) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
 

@@ -17,19 +17,15 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
-import org.w3c.dom.Document;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 public class VeracodeReader extends Reader {
 
@@ -46,9 +42,7 @@ public class VeracodeReader extends Reader {
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
 
-
-        TestSuiteResults tr =
-                new TestSuiteResults("Veracode SAST", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Veracode SAST", true, ToolType.SAST);
 
         // <static-analysis rating="F" score="24" submitted_date="2015-05-23 00:04:57 UTC"
         // published_date="2015-05-28 15:28:35 UTC" next_scan_due="2015-08-28 15:28:35 UTC"
@@ -76,7 +70,7 @@ public class VeracodeReader extends Reader {
         for (Node flaw : flawList) {
             TestCaseResult tcr = parseVeracodeVulnerability(flaw);
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
         return tr;

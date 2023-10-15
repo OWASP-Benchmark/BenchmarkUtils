@@ -21,7 +21,8 @@ import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Node;
 
 public class WebInspectReader extends Reader {
@@ -34,8 +35,7 @@ public class WebInspectReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("HP WebInspect", true, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("HP WebInspect", true, ToolType.DAST);
 
         // <Scan><Name>Site:
         // https://10.240.28.203:8443/benchmark/</Name><PolicyName>Standard</PolicyName>
@@ -53,7 +53,7 @@ public class WebInspectReader extends Reader {
             try {
                 TestCaseResult tcr = parseWebInspectIssue(issue);
                 if (tcr != null) {
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

@@ -31,7 +31,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class HCLAppScanIASTReader extends Reader {
 
@@ -71,7 +72,8 @@ public class HCLAppScanIASTReader extends Reader {
         vulnerabilityToCweNumber.put("Cryptography.Ciphers", CweNumber.WEAK_CRYPTO_ALGO);
         vulnerabilityToCweNumber.put("Validation.Required", CweNumber.TRUST_BOUNDARY_VIOLATION);
         vulnerabilityToCweNumber.put("TrustBoundaryViolation", CweNumber.TRUST_BOUNDARY_VIOLATION);
-        vulnerabilityToCweNumber.put("attLoginNotOverSSL", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
+        vulnerabilityToCweNumber.put(
+                "attLoginNotOverSSL", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
         vulnerabilityToCweNumber.put("attFileUploadXXE", CweNumber.XXE);
         vulnerabilityToCweNumber.put("attCrossSiteRequestForgery", CweNumber.CSRF);
         vulnerabilityToCweNumber.put("passParamGET", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
@@ -81,8 +83,7 @@ public class HCLAppScanIASTReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("HCL AppScan IAST", true, TestSuiteResults.ToolType.IAST);
+        TestSuiteResults tr = new TestSuiteResults("HCL AppScan IAST", true, ToolType.IAST);
 
         BufferedReader reader = new BufferedReader(new StringReader(resultFile.content()));
         String FIRSTLINEINDICATOR =
@@ -139,7 +140,7 @@ public class HCLAppScanIASTReader extends Reader {
                 if (tcr.getCWE() != 0) {
                     // System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                     // tcr.getCategory() );
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             }
         } catch (Exception e) {

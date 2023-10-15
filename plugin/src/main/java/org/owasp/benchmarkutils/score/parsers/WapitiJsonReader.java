@@ -28,7 +28,8 @@ import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class WapitiJsonReader extends Reader {
 
@@ -47,7 +48,7 @@ public class WapitiJsonReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr = new TestSuiteResults("Wapiti", false, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("Wapiti", false, ToolType.DAST);
 
         JSONObject vulnerabilities = resultFile.json().getJSONObject("vulnerabilities");
 
@@ -92,7 +93,7 @@ public class WapitiJsonReader extends Reader {
                 for (int i = 0; i < arr.length(); i++) {
                     TestCaseResult tcr = parseTestCaseResult(arr.getJSONObject(i), cwe);
                     if (tcr != null) {
-                        tr.put(tcr);
+                        tr.add(tcr);
                     }
                 }
             }

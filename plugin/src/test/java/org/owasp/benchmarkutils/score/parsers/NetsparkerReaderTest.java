@@ -22,11 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
-import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestHelper;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class NetsparkerReaderTest extends ReaderTestBase {
 
@@ -48,13 +46,13 @@ public class NetsparkerReaderTest extends ReaderTestBase {
         NetsparkerReader reader = new NetsparkerReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
+        assertEquals(ToolType.DAST, result.getToolType());
         assertTrue(result.isCommercial());
         assertEquals("Netsparker", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.resultsFor(1).get(0).getCWE());
+        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.resultsFor(2).get(0).getCWE());
     }
 }

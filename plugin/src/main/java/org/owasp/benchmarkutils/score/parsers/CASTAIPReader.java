@@ -25,7 +25,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -47,8 +48,7 @@ public class CASTAIPReader extends Reader {
         InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr =
-                new TestSuiteResults("CAST AIP", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("CAST AIP", true, ToolType.SAST);
         Node root = doc.getDocumentElement();
 
         String version = getAttributeValue("version", root);
@@ -62,7 +62,7 @@ public class CASTAIPReader extends Reader {
             try {
                 TestCaseResult tcr = parseCASTAIPIssue(issue);
                 if (tcr != null) {
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

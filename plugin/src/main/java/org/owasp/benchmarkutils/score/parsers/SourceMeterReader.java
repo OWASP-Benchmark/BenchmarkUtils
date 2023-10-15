@@ -19,7 +19,8 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class SourceMeterReader extends Reader {
 
@@ -40,8 +41,7 @@ public class SourceMeterReader extends Reader {
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults tr =
-                new TestSuiteResults(
-                        "SourceMeter VulnerabilityHunter", true, TestSuiteResults.ToolType.SAST);
+                new TestSuiteResults("SourceMeter VulnerabilityHunter", true, ToolType.SAST);
 
         String vuln = null;
         String file = null;
@@ -63,7 +63,7 @@ public class SourceMeterReader extends Reader {
                     int idx = line.indexOf(".java");
                     file = line.substring(0, idx);
                     TestCaseResult tcr = parseSourceMeterItem(vuln, file);
-                    tr.put(tcr);
+                    tr.add(tcr);
                     // System.out.println(tcr.getNumber() + ", " + tcr.getCWE() + ", " +
                     // tcr.getEvidence());
                     nextLine = false;

@@ -24,7 +24,8 @@ import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class FaastReader extends Reader {
 
@@ -38,12 +39,11 @@ public class FaastReader extends Reader {
         String content = new String(Files.readAllBytes(Paths.get(resultFile.file().getPath())));
         JSONArray obj = new JSONArray(content);
         TestSuiteResults tr =
-                new TestSuiteResults(
-                        "Faast - Telefonica Cyber Security", true, TestSuiteResults.ToolType.DAST);
-        tr.setTime(resultFile.file());
+                new TestSuiteResults("Faast - Telefonica Cyber Security", true, ToolType.DAST);
+        tr.setTime(TestSuiteResults.formatTime(extractTimeFromFilename(resultFile)));;
         for (int i = 0; i < obj.length(); i++) {
             TestCaseResult tcr = parseFaastFinding(obj.getJSONObject(i));
-            tr.put(tcr);
+            tr.add(tcr);
         }
         return tr;
     }

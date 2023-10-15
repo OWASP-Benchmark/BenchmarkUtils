@@ -23,7 +23,8 @@ import java.util.Map;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Node;
 
 public class AppScanDynamicReader extends Reader {
@@ -36,8 +37,7 @@ public class AppScanDynamicReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("HCL AppScan", true, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("HCL AppScan", true, ToolType.DAST);
 
         //      <AppScanInfo>
         //        <Version>9.0.1.1</Version>
@@ -119,7 +119,7 @@ public class AppScanDynamicReader extends Reader {
             if (tcr != null) {
                 // System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                 // tcr.getEvidence() );
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
         return tr;

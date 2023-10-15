@@ -21,7 +21,8 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class SeekerReader extends Reader {
 
@@ -34,7 +35,7 @@ public class SeekerReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr = new TestSuiteResults("Seeker", true, TestSuiteResults.ToolType.IAST);
+        TestSuiteResults tr = new TestSuiteResults("Seeker", true, ToolType.IAST);
 
         java.io.Reader inReader = new java.io.StringReader(resultFile.content());
         Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(inReader);
@@ -47,7 +48,7 @@ public class SeekerReader extends Reader {
             tcr.setCWE(cweLookup(checkerKey));
             tcr.setNumber(testNumber(url));
             if (tcr.getCWE() != 0) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
 

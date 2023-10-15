@@ -22,11 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
-import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestHelper;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class ZapJsonReaderTest extends ReaderTestBase {
 
@@ -56,14 +54,14 @@ public class ZapJsonReaderTest extends ReaderTestBase {
         ZapJsonReader reader = new ZapJsonReader();
         TestSuiteResults result = reader.parse(resultFileOldFormat);
 
-        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
+        assertEquals(ToolType.DAST, result.getToolType());
         assertFalse(result.isCommercial());
         assertEquals("OWASP ZAP", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.resultsFor(1).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.resultsFor(2).get(0).getCWE());
     }
 
     @Test
@@ -71,14 +69,14 @@ public class ZapJsonReaderTest extends ReaderTestBase {
         ZapJsonReader reader = new ZapJsonReader();
         TestSuiteResults result = reader.parse(resultFileNewFormat);
 
-        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
+        assertEquals(ToolType.DAST, result.getToolType());
         assertFalse(result.isCommercial());
         assertEquals("OWASP ZAP", result.getToolName());
         assertEquals("2.11.1", result.getToolVersion());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.CSRF, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.CSRF, result.resultsFor(1).get(0).getCWE());
+        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.resultsFor(2).get(0).getCWE());
     }
 }

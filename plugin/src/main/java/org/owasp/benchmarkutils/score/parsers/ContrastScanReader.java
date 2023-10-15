@@ -28,7 +28,8 @@ import java.util.regex.Pattern;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class ContrastScanReader extends Reader {
 
@@ -60,8 +61,7 @@ public class ContrastScanReader extends Reader {
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         Report report = jsonMapper.readValue(resultFile.content(), Report.class);
 
-        TestSuiteResults tr =
-                new TestSuiteResults("Contrast Scan", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Contrast Scan", true, ToolType.SAST);
 
         try {
             // Parse using SARIF format to get start/end time. And in the future, the tool name
@@ -123,7 +123,7 @@ public class ContrastScanReader extends Reader {
                         tcr.setCWE(cwe);
                         tcr.setNumber(testNumber(testfile));
 
-                        tr.put(tcr);
+                        tr.add(tcr);
                     }
                 }
             }

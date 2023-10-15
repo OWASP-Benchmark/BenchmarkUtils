@@ -22,7 +22,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Node;
 
 public class AcunetixReader extends Reader {
@@ -51,8 +52,7 @@ public class AcunetixReader extends Reader {
             				<LookupId>cf5644f1-31ee-4092-0e15-ab6e04af7f51</LookupId>
             				...
             */
-            TestSuiteResults tr =
-                    new TestSuiteResults("Acunetix 360", true, TestSuiteResults.ToolType.DAST);
+            TestSuiteResults tr = new TestSuiteResults("Acunetix 360", true, ToolType.DAST);
 
             Node target = getNamedChild("target", resultFile.xmlRootNode());
             String duration = getNamedChild("duration", target).getTextContent();
@@ -66,7 +66,7 @@ public class AcunetixReader extends Reader {
                 try {
                     TestCaseResult tcr = parseAcunetixVulnerability(issue);
                     if (tcr != null) {
-                        tr.put(tcr);
+                        tr.add(tcr);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -94,8 +94,7 @@ public class AcunetixReader extends Reader {
                   </Scan>
                 </ScanGroup>
             */
-            TestSuiteResults tr =
-                    new TestSuiteResults("Acunetix WVS", true, TestSuiteResults.ToolType.DAST);
+            TestSuiteResults tr = new TestSuiteResults("Acunetix WVS", true, ToolType.DAST);
             Node scan = getNamedChild("Scan", resultFile.xmlRootNode());
 
             String duration = getNamedChild("ScanTime", scan).getTextContent();
@@ -108,7 +107,7 @@ public class AcunetixReader extends Reader {
                 try {
                     TestCaseResult tcr = parseAcunetixReportItem(issue);
                     if (tcr != null) {
-                        tr.put(tcr);
+                        tr.add(tcr);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

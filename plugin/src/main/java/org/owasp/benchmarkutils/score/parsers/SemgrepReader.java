@@ -23,7 +23,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class SemgrepReader extends Reader {
 
@@ -36,8 +37,7 @@ public class SemgrepReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("Semgrep", false, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Semgrep", false, ToolType.SAST);
 
         JSONArray results = resultFile.json().getJSONArray("results");
 
@@ -48,7 +48,7 @@ public class SemgrepReader extends Reader {
         for (int i = 0; i < results.length(); i++) {
             TestCaseResult tcr = parseSemgrepFindings(results.getJSONObject(i));
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
         return tr;

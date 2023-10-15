@@ -21,8 +21,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
-import org.owasp.benchmarkutils.score.TestSuiteResults.ToolType;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 /*
  * This Reader was contributed by ShiftLeft and is used to parse a custom .csv file their custom scripts
@@ -59,7 +59,7 @@ public class ShiftLeftReader extends Reader {
                 testCaseResult.setCWE(categoryToCWE(category));
                 testCaseResult.setEvidence(line);
 
-                tr.put(testCaseResult);
+                tr.add(testCaseResult);
             }
         }
 

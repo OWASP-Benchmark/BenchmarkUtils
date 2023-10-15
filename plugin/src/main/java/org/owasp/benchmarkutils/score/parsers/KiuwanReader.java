@@ -23,7 +23,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class KiuwanReader extends Reader {
 
@@ -49,7 +50,7 @@ public class KiuwanReader extends Reader {
 
         String source = obj.getString("source");
 
-        TestSuiteResults tr = new TestSuiteResults(source, true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults(source, true, ToolType.SAST);
 
         // Scan time is included in the threadfix schema: "metadata/Kiuwan-AnalysisDuration"
         if (null != metadata) {
@@ -73,7 +74,7 @@ public class KiuwanReader extends Reader {
 
             TestCaseResult tcr = parseKiuwanFinding(finding);
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
 

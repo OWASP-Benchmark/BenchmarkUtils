@@ -23,7 +23,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class FluidAttacksReader extends Reader {
 
@@ -39,8 +40,7 @@ public class FluidAttacksReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("Fluid Attacks", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Fluid Attacks", true, ToolType.SAST);
 
         java.io.Reader inReader = new java.io.StringReader(resultFile.content());
         Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(inReader);
@@ -68,7 +68,7 @@ public class FluidAttacksReader extends Reader {
                                         testCaseName.length() - BenchmarkScore.TESTIDLENGTH,
                                         testCaseName.length())));
                 testCaseResult.setTestCaseName(testCaseName);
-                tr.put(testCaseResult);
+                tr.add(testCaseResult);
             }
         }
 

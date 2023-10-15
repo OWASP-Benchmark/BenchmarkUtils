@@ -23,7 +23,10 @@ import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class LGTMReader extends Reader {
 
@@ -57,10 +60,10 @@ public class LGTMReader extends Reader {
 
         JSONArray runs = resultFile.json().getJSONArray("runs");
 
-        TestSuiteResults tr = new TestSuiteResults("LGTM", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("LGTM", true, ToolType.SAST);
         // Scan time is not included in the sarif-schema. But scan time is provided on their web
         // site next to results
-        tr.setTime(resultFile.file()); // This grabs the scan time out of the filename, if provided
+        tr.setTime(formatTime(extractTimeFromFilename(resultFile))); // This grabs the scan time out of the filename, if provided
         // e.g., Benchmark_1.2_LGTM-660.sarif, means the scan took 660 seconds.
 
         for (int i = 0; i < runs.length(); i++) {
@@ -91,7 +94,7 @@ public class LGTMReader extends Reader {
                     TestCaseResult tcr =
                             parseLGTMFinding(results.getJSONObject(j), rulesUsed); // , version );
                     if (tcr != null) {
-                        tr.put(tcr);
+                        tr.add(tcr);
                     }
                 }
             }

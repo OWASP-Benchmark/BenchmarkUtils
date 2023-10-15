@@ -27,7 +27,8 @@ import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class ShiftLeftScanReader extends Reader {
 
@@ -42,8 +43,7 @@ public class ShiftLeftScanReader extends Reader {
         JSONObject classFileAnalyzer = new JSONObject(resultFile.line(1));
 
         // false indicates this is an open source/free tool.
-        TestSuiteResults tr =
-                new TestSuiteResults("ShiftLeft Scan", false, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("ShiftLeft Scan", false, ToolType.SAST);
 
         parseAndAddResults(tr, javaSourceAnalyzer);
         parseAndAddResults(tr, classFileAnalyzer);
@@ -68,7 +68,7 @@ public class ShiftLeftScanReader extends Reader {
             TestCaseResult tcr = parseTestCaseResult(arr.getJSONObject(i));
 
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
     }

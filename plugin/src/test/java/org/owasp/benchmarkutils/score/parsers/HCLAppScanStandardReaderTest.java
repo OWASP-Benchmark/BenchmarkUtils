@@ -22,11 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
-import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestHelper;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class HCLAppScanStandardReaderTest extends ReaderTestBase {
 
@@ -49,16 +47,16 @@ public class HCLAppScanStandardReaderTest extends ReaderTestBase {
         HCLAppScanStandardReader reader = new HCLAppScanStandardReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
+        assertEquals(ToolType.DAST, result.getToolType());
         assertTrue(result.isCommercial());
         assertEquals("HCL AppScan Standard", result.getToolName());
         assertEquals("10.0.6", result.getToolVersion());
 
         assertEquals(4, result.getTotalResults());
 
-        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(300).get(0).getCWE());
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(348).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.resultsFor(1).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.resultsFor(2).get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.resultsFor(300).get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.resultsFor(348).get(0).getCWE());
     }
 }

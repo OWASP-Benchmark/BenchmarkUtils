@@ -22,8 +22,11 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Node;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class BurpReader extends Reader {
 
@@ -37,8 +40,7 @@ public class BurpReader extends Reader {
     // root of XML doc passed in so we can parse the results
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("Burp Suite Pro", true, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("Burp Suite Pro", true, ToolType.DAST);
 
         // <issues burpVersion="1.6.24"
         // exportTime="Wed Aug 19 23:27:54 EDT 2015">
@@ -48,8 +50,12 @@ public class BurpReader extends Reader {
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml) set the
         // compute time on the scorecard.
-        tr.setTime(resultFile.file());
-
+        long time = extractTimeFromFilename(resultFile);
+        if (time > -1) {
+            tr.setTime(formatTime(time));
+        } else {
+            tr.setTime("Time not specified");
+        }
         List<Node> issueList = getNamedChildren("issue", resultFile.xmlRootNode());
 
         for (Node issue : issueList) {
@@ -57,7 +63,7 @@ public class BurpReader extends Reader {
             if (tcr != null) {
                 //                System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                 // tcr.getEvidence() );
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
         return tr;

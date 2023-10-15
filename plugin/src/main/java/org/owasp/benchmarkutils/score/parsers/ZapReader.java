@@ -17,17 +17,21 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.StringReader;
-import java.net.URISyntaxException;
-import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+import java.net.URISyntaxException;
+import java.util.List;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class ZapReader extends Reader {
 
@@ -35,8 +39,8 @@ public class ZapReader extends Reader {
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".xml")
                 && (resultFile.line(0).contains("<OWASPZAPReport")
-                        || (resultFile.filename().endsWith(".xml")
-                                && resultFile.line(1).contains("<OWASPZAPReport")));
+                || (resultFile.filename().endsWith(".xml")
+                && resultFile.line(1).contains("<OWASPZAPReport")));
     }
 
     @Override
@@ -48,12 +52,17 @@ public class ZapReader extends Reader {
         InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr =
-                new TestSuiteResults("OWASP ZAP", false, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("OWASP ZAP", false, ToolType.DAST);
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml), set the
         // compute time on the score card.
-        tr.setTime(resultFile.file());
+
+        long time = extractTimeFromFilename(resultFile);
+        if (time > -1) {
+            tr.setTime(formatTime(time));
+        } else {
+            tr.setTime("Time not specified");
+        }
 
         Node zap = doc.getDocumentElement();
         String version = getAttributeValue("version", zap);
@@ -147,7 +156,7 @@ public class ZapReader extends Reader {
             Node alertData, TestSuiteResults tr, int cwe, String category, int confidence) {
         int testNumber = testNumber(getNamedChild("uri", alertData).getTextContent());
         if (testNumber > 0) {
-            tr.put(createTestCaseResult(cwe, category, confidence, testNumber));
+            tr.add(createTestCaseResult(cwe, category, confidence, testNumber));
         }
     }
 

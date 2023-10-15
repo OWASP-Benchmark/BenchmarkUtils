@@ -37,9 +37,9 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CategoryResults;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.Tool;
 import org.owasp.benchmarkutils.score.ToolResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class ScatterVulns extends ScatterPlot {
 
@@ -53,9 +53,9 @@ public class ScatterVulns extends ScatterPlot {
     private CategoryResults noncommercialCategResults;
     private int noncommercialToolCount = 0;
     private double noncommercialLow = 100;
-    private TestSuiteResults.ToolType noncommercialLowToolType = null;
+    private ToolType noncommercialLowToolType = null;
     private double noncommercialHigh = 0;
-    private TestSuiteResults.ToolType noncommercialHighToolType = null;
+    private ToolType noncommercialHighToolType = null;
     private double noncommercialAveScore = 0;
     private double noncommercialAvePrecision = 0;
     private double noncommercialAveTPR = 0;
@@ -65,9 +65,9 @@ public class ScatterVulns extends ScatterPlot {
     private CategoryResults commercialCategResults;
     private int commercialToolCount = 0;
     private double commercialLow = 100;
-    private TestSuiteResults.ToolType commercialLowToolType = null;
+    private ToolType commercialLowToolType = null;
     private double commercialHigh = 0;
-    private TestSuiteResults.ToolType commercialHighToolType = null;
+    private ToolType commercialHighToolType = null;
     private double commercialAveScore = 0;
     private double commercialAvePrecision = 0;
     private double commercialAveTPR = 0;
@@ -77,9 +77,9 @@ public class ScatterVulns extends ScatterPlot {
     private CategoryResults overallCategResults;
     private int overallToolCount = 0;
     private double overallLow = 100;
-    private TestSuiteResults.ToolType overallLowToolType = null;
+    private ToolType overallLowToolType = null;
     private double overallHigh = 0;
-    private TestSuiteResults.ToolType overallHighToolType = null;
+    private ToolType overallHighToolType = null;
     private double overallAveScore = 0;
     private double overallAvePrecision = 0;
     private double overallAveTPR = 0;
@@ -577,7 +577,7 @@ public class ScatterVulns extends ScatterPlot {
         return (int) Math.round(this.commercialLow);
     }
 
-    public TestSuiteResults.ToolType getCommercialLowToolType() {
+    public ToolType getCommercialLowToolType() {
         return this.commercialLowToolType;
     }
 
@@ -589,7 +589,7 @@ public class ScatterVulns extends ScatterPlot {
         return (int) Math.round(this.commercialHigh);
     }
 
-    public TestSuiteResults.ToolType getCommercialHighToolType() {
+    public ToolType getCommercialHighToolType() {
         return this.commercialHighToolType;
     }
 
@@ -605,7 +605,7 @@ public class ScatterVulns extends ScatterPlot {
         return (int) Math.round(this.noncommercialLow);
     }
 
-    public TestSuiteResults.ToolType getNonCommercialLowToolType() {
+    public ToolType getNonCommercialLowToolType() {
         return this.noncommercialLowToolType;
     }
 
@@ -617,7 +617,7 @@ public class ScatterVulns extends ScatterPlot {
         return (int) Math.round(this.noncommercialHigh);
     }
 
-    public TestSuiteResults.ToolType getNonCommercialHighToolType() {
+    public ToolType getNonCommercialHighToolType() {
         return this.noncommercialHighToolType;
     }
 
@@ -633,7 +633,7 @@ public class ScatterVulns extends ScatterPlot {
         return (int) Math.round(this.overallLow);
     }
 
-    public TestSuiteResults.ToolType getOverallLowToolType() {
+    public ToolType getOverallLowToolType() {
         return this.overallLowToolType;
     }
 
@@ -645,7 +645,7 @@ public class ScatterVulns extends ScatterPlot {
         return (int) Math.round(this.overallHigh);
     }
 
-    public TestSuiteResults.ToolType getOverallHighToolType() {
+    public ToolType getOverallHighToolType() {
         return this.overallHighToolType;
     }
 }

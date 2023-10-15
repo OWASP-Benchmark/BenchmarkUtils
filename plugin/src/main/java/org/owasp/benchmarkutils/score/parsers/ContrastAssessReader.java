@@ -27,7 +27,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class ContrastAssessReader extends Reader {
 
@@ -50,8 +51,7 @@ public class ContrastAssessReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("Contrast Assess", true, TestSuiteResults.ToolType.IAST);
+        TestSuiteResults tr = new TestSuiteResults("Contrast Assess", true, ToolType.IAST);
 
         BufferedReader reader = new BufferedReader(new FileReader(resultFile.file()));
         String FIRSTLINEINDICATOR = BenchmarkScore.TESTCASENAME;
@@ -133,7 +133,7 @@ public class ContrastAssessReader extends Reader {
 
         if (tcr.getCWE() != 0 && elements[1].contains(BenchmarkScore.TESTCASENAME)) {
             tcr.setNumber(testNumber(elements[1]));
-            tr.put(tcr);
+            tr.add(tcr);
         }
     }
 
@@ -161,7 +161,7 @@ public class ContrastAssessReader extends Reader {
                 tcr.setNumber(testNumber(uri));
                 // System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                 // tcr.getCategory() );
-                tr.put(tcr);
+                tr.add(tcr);
             }
         } catch (Exception e) {
             // There are a few crypto related findings not associated with

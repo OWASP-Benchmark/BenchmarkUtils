@@ -23,7 +23,10 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class SonarQubeJsonReader extends Reader {
 
@@ -39,12 +42,16 @@ public class SonarQubeJsonReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("SonarQube", false, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("SonarQube", false, ToolType.SAST);
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml),
         // set the compute time on the score card.
-        tr.setTime(resultFile.file());
+        long time = extractTimeFromFilename(resultFile);
+        if (time > -1) {
+            tr.setTime(formatTime(time));
+        } else {
+            tr.setTime("Time not specified");
+        }
 
         parseIssues(tr, resultFile.json());
         parseHotspots(tr, resultFile.json());
@@ -83,7 +90,7 @@ public class SonarQubeJsonReader extends Reader {
                                     + "' to test case num 0: "
                                     + arr.getJSONObject(i));
                 }
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
     }

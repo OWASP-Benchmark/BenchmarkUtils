@@ -17,18 +17,22 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.StringReader;
-import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+import java.util.List;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 // This is the new HCL AppScan Source reader, where they generate ".xml" files.
 // The 'old' reader is AppScanSourceReader, which supports the previous .ozasmt format from IBM.
@@ -54,15 +58,17 @@ public class HCLAppScanSourceReader extends Reader {
 
         Node root = doc.getDocumentElement();
         Node scanInfo = getNamedChild("scan-information", root);
-        TestSuiteResults tr =
-                new TestSuiteResults("HCL AppScan Cloud", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("HCL AppScan Cloud", true, ToolType.SAST);
 
         Node version = getNamedChild("product-version", scanInfo);
         tr.setToolVersion(version.getTextContent());
 
-        // If the fliename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml) set the
-        // compute time on the scorecard.
-        tr.setTime(resultFile.file());
+        long time = extractTimeFromFilename(resultFile);
+        if (time > -1) {
+            tr.setTime(formatTime(time));
+        } else {
+            tr.setTime("Time not specified");
+        }
 
         Node allIssues = getNamedChild("issue-group", root);
         List<Node> vulnerabilities = getNamedChildren("item", allIssues);
@@ -101,7 +107,7 @@ public class HCLAppScanSourceReader extends Reader {
                 tcr.setCategory(issueType); // TODO: Is this right?
                 tcr.setCWE(vtype);
                 tcr.setEvidence(issueType);
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
 

@@ -25,11 +25,14 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class SonarQubeReader extends Reader {
 
@@ -66,7 +69,7 @@ public class SonarQubeReader extends Reader {
         TestSuiteResults tr = null;
         if (fixed.startsWith("<sonar><p>")) {
             // Handle the new XML format
-            tr = new TestSuiteResults("SonarQube", false, TestSuiteResults.ToolType.SAST);
+            tr = new TestSuiteResults("SonarQube", false, ToolType.SAST);
 
             NodeList rootList = doc.getDocumentElement().getChildNodes();
 
@@ -74,15 +77,13 @@ public class SonarQubeReader extends Reader {
             for (Node flaw : issueList) {
                 TestCaseResult tcr = parseSonarIssue(flaw);
                 if (tcr != null) {
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             }
 
         } else {
             // Handle the legacy XML format
-            tr =
-                    new TestSuiteResults(
-                            "SonarQube Java Plugin", false, TestSuiteResults.ToolType.SAST);
+            tr = new TestSuiteResults("SonarQube Java Plugin", false, ToolType.SAST);
 
             NodeList rootList = doc.getDocumentElement().getChildNodes();
 
@@ -91,14 +92,14 @@ public class SonarQubeReader extends Reader {
             for (Node flaw : issueList) {
                 TestCaseResult tcr = parseSonarPluginIssue(flaw);
                 if (tcr != null) {
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             }
         }
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml),
         // set the compute time on the score card. TODO: Move this to BenchmarkScore for ALL tools?
-        tr.setTime(resultFile.file());
+        tr.setTime(formatTime(extractTimeFromFilename(resultFile)));
 
         return tr;
     }

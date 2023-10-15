@@ -227,17 +227,16 @@ public class ToolBarChart extends ScatterPlot {
             // First create the Dataset required for the chart
             DefaultCategoryDataset toolPrecisionData =
                     ToolBarChart.createToolDataSet(
-                            tool, overallAveToolResults, ToolBarChart.BarChartType.Precision);
+                            tool, overallAveToolResults, BarChartType.Precision);
             // Then create the chart
             ToolBarChart.createBarChart(
-                    tool, toolPrecisionData, ToolBarChart.BarChartType.Precision, scoreCardDir);
+                    tool, toolPrecisionData, BarChartType.Precision, scoreCardDir);
 
             // Generate Recall Chart
             DefaultCategoryDataset toolRecallData =
                     ToolBarChart.createToolDataSet(
-                            tool, overallAveToolResults, ToolBarChart.BarChartType.Recall);
-            ToolBarChart.createBarChart(
-                    tool, toolRecallData, ToolBarChart.BarChartType.Recall, scoreCardDir);
+                            tool, overallAveToolResults, BarChartType.Recall);
+            ToolBarChart.createBarChart(tool, toolRecallData, BarChartType.Recall, scoreCardDir);
         }
     }
 }

@@ -26,7 +26,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class ThunderScanReader extends Reader {
 
@@ -41,8 +42,7 @@ public class ThunderScanReader extends Reader {
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         Report report = xmlMapper.readValue(resultFile.content(), Report.class);
 
-        TestSuiteResults testResults =
-                new TestSuiteResults("ThunderScan", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults testResults = new TestSuiteResults("ThunderScan", true, ToolType.SAST);
 
         report.vulnerabilityTypes.stream()
                 .flatMap(
@@ -50,7 +50,7 @@ public class ThunderScanReader extends Reader {
                                 vulnerabilityType.vulnerabilities.stream()
                                         .filter(v -> createsTestCaseResult(vulnerabilityType, v))
                                         .map(v -> toTestCaseResult(vulnerabilityType, v)))
-                .forEach(testResults::put);
+                .forEach(tcr -> testResults.add(tcr));
 
         return testResults;
     }

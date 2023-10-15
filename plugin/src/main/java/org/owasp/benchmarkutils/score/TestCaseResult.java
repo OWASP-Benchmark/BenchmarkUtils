@@ -37,6 +37,13 @@ public class TestCaseResult {
     private String dataflow = null;
     private String sink = null;
 
+    public TestCaseResult() {}
+
+    public TestCaseResult(int number, int cweNumber) {
+        this.setCWE(cweNumber);
+        this.setNumber(number);
+    }
+
     /*
      *  Set the name of the test case (E.g., BenchmarkTest00001). This is frequently only used for
      *  expected results, not actual results. Expected to actual can be correlated by the test number.

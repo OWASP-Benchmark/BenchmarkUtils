@@ -29,7 +29,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -52,8 +53,7 @@ public class FusionLiteInsightReader extends Reader {
         Document doc = docBuilder.parse(is);
 
         // Fusion Lite Insight specific changes by Parthi Shah
-        TestSuiteResults tr =
-                new TestSuiteResults("Fusion Lite Insight", true, TestSuiteResults.ToolType.Hybrid);
+        TestSuiteResults tr = new TestSuiteResults("Fusion Lite Insight", true, ToolType.Hybrid);
 
         Node root = doc.getDocumentElement();
         String version = getAttributeValue("version", root);
@@ -84,7 +84,7 @@ public class FusionLiteInsightReader extends Reader {
                             tcr.setCWE(findingCWE);
                             tcr.setEvidence(findingName);
                             tcr.setNumber(testNumber);
-                            tr.put(tcr);
+                            tr.add(tcr);
                         }
                     }
                 }

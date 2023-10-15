@@ -20,7 +20,11 @@ package org.owasp.benchmarkutils.score;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.apache.commons.io.IOUtils;
 
 public class TestHelper {
@@ -64,5 +68,13 @@ public class TestHelper {
             System.out.println("TEST ERROR: Test file: " + filename + " does not exist");
         }
         return Objects.requireNonNull(stream);
+    }
+
+    public static Set<Integer> setOf(Integer... numbers) {
+        return new HashSet<>(Arrays.asList(numbers));
+    }
+
+    public static List<TestCaseResult> listOf(TestCaseResult... entries) {
+        return Arrays.asList(entries);
     }
 }

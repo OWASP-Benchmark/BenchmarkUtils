@@ -22,7 +22,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Map;
-import org.owasp.benchmarkutils.score.TestSuiteResults.ToolType;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.owasp.benchmarkutils.score.report.ScatterTools;
 import org.owasp.benchmarkutils.score.report.ToolBarChart;
 import org.owasp.benchmarkutils.score.report.ToolReport;
@@ -57,9 +58,9 @@ public class Tool implements Comparable<Tool> {
             throws IOException, URISyntaxException {
 
         this.isCommercial = isCommercial;
-        this.toolType = actualResults.toolType;
+        this.toolType = actualResults.getToolType();
         this.toolName = actualResults.getToolName();
-        this.toolNameAndVersion = actualResults.getToolNameAndVersion();
+        this.toolNameAndVersion = actualResults.getDisplayName(BenchmarkScore.config.anonymousMode);
         this.testSuiteVersion = actualResults.getTestSuiteVersion();
 
         this.scores = scores;

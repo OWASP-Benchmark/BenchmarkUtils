@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -284,5 +284,16 @@ public abstract class Reader {
             path = new URL(path).getPath();
         }
         return path;
+    }
+
+    public long extractTimeFromFilename(ResultFile resultFile) {
+        try {
+            String filename = resultFile.filename();
+            String time = filename.substring(filename.lastIndexOf('-') + 1, filename.lastIndexOf('.'));
+
+            return Integer.parseInt(time) * 1000L;
+        } catch (Exception ignored) {
+            return -1;
+        }
     }
 }

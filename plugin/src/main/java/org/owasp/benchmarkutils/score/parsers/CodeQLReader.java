@@ -25,7 +25,10 @@ import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class CodeQLReader extends Reader {
 
@@ -60,11 +63,15 @@ public class CodeQLReader extends Reader {
 
         JSONArray runs = resultFile.json().getJSONArray("runs");
 
-        TestSuiteResults tr = new TestSuiteResults("CodeQL", false, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("CodeQL", false, ToolType.SAST);
         // Scan time is not included in the sarif-schema. But scan time is provided on their web
         // site next to results
-        tr.setTime(resultFile.file()); // This grabs the scan time out of the filename, if provided
-        // e.g., Benchmark_1.2-CodeQL-v2.4.1-840.sarif, means the scan took 840 seconds.
+        long time = extractTimeFromFilename(resultFile);
+        if (time > -1) {
+            tr.setTime(formatTime(time));
+        } else {
+            tr.setTime("Time not specified");
+        }
 
         for (int i = 0; i < runs.length(); i++) {
             // There are 1 or more runs in each results file, one per language found (Java,
@@ -118,7 +125,7 @@ public class CodeQLReader extends Reader {
                 TestCaseResult tcr =
                         parseLGTMFinding(results.getJSONObject(j), rulesUsed); // , version );
                 if (tcr != null) {
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             }
         }

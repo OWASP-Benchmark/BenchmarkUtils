@@ -5,11 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
-import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestHelper;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class SnykReaderTest extends ReaderTestBase {
 
@@ -31,12 +29,12 @@ public class SnykReaderTest extends ReaderTestBase {
         SnykReader reader = new SnykReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertEquals(ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
         assertEquals("Snyk", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
-        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.resultsFor(1).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.resultsFor(2).get(0).getCWE());
     }
 }

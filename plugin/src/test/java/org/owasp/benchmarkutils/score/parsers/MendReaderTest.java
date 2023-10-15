@@ -22,11 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
-import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestHelper;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class MendReaderTest extends ReaderTestBase {
 
@@ -48,14 +46,14 @@ public class MendReaderTest extends ReaderTestBase {
         MendReader reader = new MendReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertEquals(ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
         assertEquals("Mend", result.getToolName());
         assertEquals("01:23:45", result.getTime());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.resultsFor(1).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.resultsFor(2).get(0).getCWE());
     }
 }

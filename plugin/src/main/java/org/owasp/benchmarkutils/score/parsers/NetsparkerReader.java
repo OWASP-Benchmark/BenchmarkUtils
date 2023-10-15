@@ -22,7 +22,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Node;
 
 public class NetsparkerReader extends Reader {
@@ -35,8 +36,7 @@ public class NetsparkerReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("Netsparker", true, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("Netsparker", true, ToolType.DAST);
 
         Node target = getNamedChild("target", resultFile.xmlRootNode());
 
@@ -54,7 +54,7 @@ public class NetsparkerReader extends Reader {
             try {
                 TestCaseResult tcr = parseNetsparkerIssue(issue);
                 if (tcr != null) {
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

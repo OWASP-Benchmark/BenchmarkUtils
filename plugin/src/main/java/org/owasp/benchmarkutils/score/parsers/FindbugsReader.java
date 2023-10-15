@@ -23,12 +23,15 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 // This reader supports both FindBugs and FindSecBugs, since the later is simply a FindBugs plugin.
 public class FindbugsReader extends Reader {
@@ -48,12 +51,11 @@ public class FindbugsReader extends Reader {
         InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr =
-                new TestSuiteResults("FindBugs", false, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("FindBugs", false, ToolType.SAST);
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml), set the
         // compute time on the scorecard.
-        tr.setTime(resultFile.file());
+        tr.setTime(formatTime(extractTimeFromFilename(resultFile)));
 
         // <BugCollection timestamp='1434663265000' analysisTimestamp='1434663273732' sequence='0'
         // release='' version='3.0.1>
@@ -63,7 +65,7 @@ public class FindbugsReader extends Reader {
 
         // If the findbugs version is greater than v3.0.x, it is actually SpotBugs
         if (!(version.startsWith("2") || version.startsWith("3.0"))) {
-            tr.setTool("SpotBugs");
+            tr.setToolName("SpotBugs");
         }
 
         NodeList nl = root.getChildNodes();
@@ -72,7 +74,7 @@ public class FindbugsReader extends Reader {
             if (n.getNodeName().equals("BugInstance")) {
                 TestCaseResult tcr = parseFindBugsBug(n);
                 if (tcr != null) {
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             }
         }
@@ -80,9 +82,9 @@ public class FindbugsReader extends Reader {
         // change the name of the tool if the filename contains findsecbugs
         if (resultFile.filename().contains("findsecbugs")) {
             if (tr.getToolName().startsWith("Find")) {
-                tr.setTool("FBwFindSecBugs");
+                tr.setToolName("FBwFindSecBugs");
             } else {
-                tr.setTool("SBwFindSecBugs");
+                tr.setToolName("SBwFindSecBugs");
             }
         }
 

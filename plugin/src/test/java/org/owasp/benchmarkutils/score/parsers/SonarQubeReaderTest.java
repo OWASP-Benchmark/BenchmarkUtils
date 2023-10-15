@@ -22,11 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
-import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestHelper;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class SonarQubeReaderTest extends ReaderTestBase {
 
@@ -49,14 +47,14 @@ public class SonarQubeReaderTest extends ReaderTestBase {
         SonarQubeReader reader = new SonarQubeReader();
         TestSuiteResults result = reader.parse(pluginResultFile);
 
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertEquals(ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());
         assertEquals("SonarQube Java Plugin", result.getToolName());
         assertEquals("0:20:34", result.getTime());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.WEAK_RANDOM, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.resultsFor(1).get(0).getCWE());
+        assertEquals(CweNumber.WEAK_RANDOM, result.resultsFor(2).get(0).getCWE());
     }
 }

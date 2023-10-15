@@ -29,7 +29,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class HorusecReader extends Reader {
 
@@ -54,15 +55,14 @@ public class HorusecReader extends Reader {
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         JSONObject json = resultFile.json();
 
-        TestSuiteResults tr =
-                new TestSuiteResults("Horusec", false, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Horusec", false, ToolType.SAST);
 
         JSONArray arr = json.getJSONArray("analysisVulnerabilities");
 
         for (int i = 0; i < arr.length(); i++) {
             TestCaseResult tcr = parseTestCaseResult(arr.getJSONObject(i));
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
 

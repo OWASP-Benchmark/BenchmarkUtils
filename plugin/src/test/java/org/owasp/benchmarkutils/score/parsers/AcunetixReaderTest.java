@@ -22,11 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
-import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestHelper;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class AcunetixReaderTest extends ReaderTestBase {
 
@@ -51,26 +49,26 @@ public class AcunetixReaderTest extends ReaderTestBase {
         AcunetixReader reader = new AcunetixReader();
         TestSuiteResults result = reader.parse(resultFile_360);
 
-        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
+        assertEquals(ToolType.DAST, result.getToolType());
         assertTrue(result.isCommercial());
         assertEquals("Acunetix 360", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.resultsFor(1).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.resultsFor(2).get(0).getCWE());
 
         // For Acunetix WVS
         reader = new AcunetixReader();
         result = reader.parse(resultFile_WVS);
 
-        assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
+        assertEquals(ToolType.DAST, result.getToolType());
         assertTrue(result.isCommercial());
         assertEquals("Acunetix WVS", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.LDAP_INJECTION, result.get(44).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2629).get(0).getCWE());
+        assertEquals(CweNumber.LDAP_INJECTION, result.resultsFor(44).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.resultsFor(2629).get(0).getCWE());
     }
 }

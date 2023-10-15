@@ -80,8 +80,7 @@ public class ScatterPlot {
 
     public static StandardChartTheme initializeTheme() {
         String fontName = "Arial";
-        StandardChartTheme theme =
-                (StandardChartTheme) org.jfree.chart.StandardChartTheme.createJFreeTheme();
+        StandardChartTheme theme = (StandardChartTheme) StandardChartTheme.createJFreeTheme();
         theme.setExtraLargeFont(new Font(fontName, Font.PLAIN, 24)); // title
         theme.setLargeFont(new Font(fontName, Font.PLAIN, 20)); // axis-title
         theme.setRegularFont(new Font(fontName, Font.PLAIN, 16));

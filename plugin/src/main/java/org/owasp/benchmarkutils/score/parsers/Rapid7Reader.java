@@ -25,7 +25,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class Rapid7Reader extends Reader {
 
@@ -37,8 +38,7 @@ public class Rapid7Reader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("Rapid7 AppSpider", true, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("Rapid7 AppSpider", true, ToolType.DAST);
 
         Report report = xmlMapper.readValue(resultFile.content(), Report.class);
 
@@ -57,7 +57,7 @@ public class Rapid7Reader extends Reader {
                     tcr.setCWE(cweLookup(vulnerability.cwe, vulnerability.attackType));
                     tcr.setNumber(testNumber(testfile));
 
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

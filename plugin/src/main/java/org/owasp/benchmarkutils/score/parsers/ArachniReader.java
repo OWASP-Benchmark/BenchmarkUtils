@@ -27,7 +27,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -62,8 +63,7 @@ public class ArachniReader extends Reader {
         InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr =
-                new TestSuiteResults("Arachni", false, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("Arachni", false, ToolType.DAST);
 
         Node arachni = doc.getDocumentElement();
         String version = getNamedChild("version", arachni).getTextContent();
@@ -82,7 +82,7 @@ public class ArachniReader extends Reader {
                 if (tcr != null) {
                     //                 System.out.println( tcr.getNumber() + " " + tcr.getName() + "
                     // -> " + tcr.getCWE() + "\t" + tcr.getEvidence() );
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             } catch (Exception e) {
                 // print and continue

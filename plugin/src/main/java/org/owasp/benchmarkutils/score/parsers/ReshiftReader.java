@@ -23,7 +23,8 @@ import org.apache.commons.csv.CSVRecord;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class ReshiftReader extends Reader {
 
@@ -77,7 +78,7 @@ public class ReshiftReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr = new TestSuiteResults("Reshift", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Reshift", true, ToolType.SAST);
 
         /* The start of a Reshift .csv results file looks like this (where I've added the line #'s in front):
 
@@ -116,7 +117,7 @@ public class ReshiftReader extends Reader {
                     tcr.setCWE(cweLookup(category));
                     tcr.setNumber(testNumber(url));
                     if (tcr.getCWE() != 0) {
-                        tr.put(tcr);
+                        tr.add(tcr);
                     }
                 }
             } catch (NumberFormatException e) {

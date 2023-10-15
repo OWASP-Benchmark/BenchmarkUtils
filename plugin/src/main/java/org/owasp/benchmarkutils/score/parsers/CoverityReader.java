@@ -22,7 +22,10 @@ import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class CoverityReader extends Reader {
 
@@ -45,17 +48,21 @@ public class CoverityReader extends Reader {
                 new TestSuiteResults(
                         "Coverity Code Advisor",
                         true,
-                        TestSuiteResults.ToolType
-                                .SAST); // Coverity's tool is called Code Advisor or Code Advisor On
+                        ToolType.SAST); // Coverity's tool is called Code Advisor or Code Advisor On
 
         // Demand
         // Fixme: See if we can figure this out from some of the files they provide
-        tr.setTime(resultFile.file());
+        long time = extractTimeFromFilename(resultFile);
+        if (time > -1) {
+            tr.setTime(formatTime(time));
+        } else {
+            tr.setTime("Time not specified");
+        }
 
         for (int i = 0; i < arr.length(); i++) {
             TestCaseResult tcr = parseCoverityFinding(arr.getJSONObject(i), version);
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
 

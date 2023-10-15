@@ -5,11 +5,9 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
-import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class SnykReader extends Reader {
 
@@ -48,7 +46,7 @@ public class SnykReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr = new TestSuiteResults("Snyk", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Snyk", true, ToolType.SAST);
 
         JSONArray results =
                 resultFile.json().getJSONArray("runs").getJSONObject(0).getJSONArray("results");
@@ -56,7 +54,7 @@ public class SnykReader extends Reader {
         for (int result = 0; result < results.length(); result++) {
             TestCaseResult tcr = parseSnykFindings(results.getJSONObject(result));
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
         return tr;

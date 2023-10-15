@@ -21,8 +21,11 @@ import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Node;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class QualysWASReader extends Reader {
 
@@ -34,12 +37,11 @@ public class QualysWASReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("Qualys WAS", true, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("Qualys WAS", true, ToolType.DAST);
 
         // If the fliename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml) set the
         // compute time on the scorecard.
-        tr.setTime(resultFile.file());
+        tr.setTime(formatTime(extractTimeFromFilename(resultFile)));
         // TODO: Parse out start/end time to calculate scan time from results file.
 
         // <APPENDIX>
@@ -105,7 +107,7 @@ public class QualysWASReader extends Reader {
         for (Node issue : issueList) {
             TestCaseResult tcr = parseQualysVulnerability(issue);
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
         return tr;

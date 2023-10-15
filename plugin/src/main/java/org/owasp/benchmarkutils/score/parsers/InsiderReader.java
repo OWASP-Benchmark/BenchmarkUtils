@@ -26,7 +26,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class InsiderReader extends Reader {
 
@@ -56,15 +57,14 @@ public class InsiderReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("Insider", false, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Insider", false, ToolType.SAST);
 
         JSONArray arr = resultFile.json().getJSONArray("vulnerabilities");
 
         for (int i = 0; i < arr.length(); i++) {
             TestCaseResult tcr = parseTestCaseResult(arr.getJSONObject(i));
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
 

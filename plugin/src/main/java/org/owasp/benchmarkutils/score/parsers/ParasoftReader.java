@@ -25,7 +25,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -48,8 +49,7 @@ public class ParasoftReader extends Reader {
         InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr =
-                new TestSuiteResults("Parasoft Jtest", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Parasoft Jtest", true, ToolType.SAST);
 
         Node root = doc.getDocumentElement();
 
@@ -72,14 +72,14 @@ public class ParasoftReader extends Reader {
         for (Node flaw : stdList) {
             TestCaseResult tcr = parseStdViol(flaw);
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
 
         for (Node flaw : flowList) {
             TestCaseResult tcr = parseFlowViol(flaw);
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
         return tr;

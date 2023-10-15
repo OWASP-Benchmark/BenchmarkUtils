@@ -23,7 +23,10 @@ import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
+
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class BurpJsonReader extends Reader {
 
@@ -36,18 +39,17 @@ public class BurpJsonReader extends Reader {
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         JSONArray arr = resultFile.json().getJSONArray("issue_events");
 
-        TestSuiteResults tr =
-                new TestSuiteResults("Burp Suite Enterprise", true, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("Burp Suite Enterprise", true, ToolType.DAST);
 
         // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml),
         // set the compute time on the score card.
-        tr.setTime(resultFile.file());
+        tr.setTime(formatTime(extractTimeFromFilename(resultFile)));
 
         int numIssues = arr.length();
         for (int i = 0; i < numIssues; i++) {
             TestCaseResult tcr = parseBurpJSONFinding(arr.getJSONObject(i));
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
 

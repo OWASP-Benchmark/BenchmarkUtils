@@ -24,7 +24,8 @@ import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Node;
 
 public class SnappyTickReader extends Reader {
@@ -42,7 +43,7 @@ public class SnappyTickReader extends Reader {
         Node toolInfo = getNamedChild("ToolInfo", resultFile.xmlRootNode());
         Node tool = getNamedChild("Tool", toolInfo);
         String toolName = getAttributeValue("Name", tool);
-        TestSuiteResults tr = new TestSuiteResults(toolName, true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults(toolName, true, ToolType.SAST);
 
         String version = getAttributeValue("Version", tool);
         tr.setToolVersion(version);
@@ -91,7 +92,7 @@ public class SnappyTickReader extends Reader {
                         tcr.setCWE(findingCWE);
                         tcr.setEvidence(findingName);
                         tcr.setNumber(extractTestNumber(findingName));
-                        tr.put(tcr);
+                        tr.add(tcr);
                     }
                 }
             }

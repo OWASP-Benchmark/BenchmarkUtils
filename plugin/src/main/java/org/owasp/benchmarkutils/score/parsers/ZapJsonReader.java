@@ -33,7 +33,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class ZapJsonReader extends Reader {
 
@@ -77,8 +78,7 @@ public class ZapJsonReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("OWASP ZAP", false, TestSuiteResults.ToolType.DAST);
+        TestSuiteResults tr = new TestSuiteResults("OWASP ZAP", false, ToolType.DAST);
 
         if (isOldZapJson(resultFile)) {
             handleOldReportFormat(resultFile, tr);
@@ -103,7 +103,7 @@ public class ZapJsonReader extends Reader {
                     tcr.setNumber(testNumber(testName));
                     tcr.setCWE(figureCwe(finding));
 
-                    tr.put(tcr);
+                    tr.add(tcr);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -134,7 +134,7 @@ public class ZapJsonReader extends Reader {
                                                         tcr.setNumber(testNumber(testName));
                                                         tcr.setCWE(cwe);
 
-                                                        tr.put(tcr);
+                                                        tr.add(tcr);
                                                     }
                                                 });
                                     }));

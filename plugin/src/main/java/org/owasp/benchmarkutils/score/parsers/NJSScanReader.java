@@ -23,7 +23,8 @@ import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 /**
  * Class with methods to read from the results of njsscan and place them in the conforming
@@ -58,8 +59,7 @@ public class NJSScanReader extends Reader {
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         JSONObject cwe_object;
 
-        TestSuiteResults tsrs =
-                new TestSuiteResults("njsscan", false, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tsrs = new TestSuiteResults("njsscan", false, ToolType.SAST);
 
         try {
             // "njsscan_version" holds the version of the program
@@ -78,7 +78,7 @@ public class NJSScanReader extends Reader {
                 if (results != null) {
                     // Place each result in the full results mapping
                     for (TestCaseResult tcr : results) {
-                        tsrs.put(tcr);
+                        tsrs.add(tcr);
                     }
                 }
             }

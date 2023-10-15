@@ -24,11 +24,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class DatadogReader extends Reader {
 
@@ -43,7 +43,7 @@ public class DatadogReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr = new TestSuiteResults("Datadog", true, TestSuiteResults.ToolType.IAST);
+        TestSuiteResults tr = new TestSuiteResults("Datadog", true, ToolType.IAST);
 
         try (BufferedReader reader = new BufferedReader(new StringReader(resultFile.content()))) {
             String firstLine = reader.readLine();
@@ -114,7 +114,7 @@ public class DatadogReader extends Reader {
 
             int originalPos = 0;
             int indexPos;
-            while((indexPos=line.indexOf(TYPE, originalPos))!=-1) {
+            while ((indexPos = line.indexOf(TYPE, originalPos)) != -1) {
                 int pos = indexPos + TYPE.length();
                 originalPos = pos;
                 String type = line.substring(pos, line.indexOf('"', pos + 1));
@@ -131,7 +131,7 @@ public class DatadogReader extends Reader {
                     }
 
                     if (tcr.getCWE() != 0) {
-                        tr.put(tcr);
+                        tr.add(tcr);
                     }
                 }
             }

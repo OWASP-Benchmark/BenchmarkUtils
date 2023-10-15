@@ -20,7 +20,8 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.util.List;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Node;
 
 public class NoisyCricketReader extends Reader {
@@ -33,8 +34,7 @@ public class NoisyCricketReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        TestSuiteResults tr =
-                new TestSuiteResults("NoisyCricket", false, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("NoisyCricket", false, ToolType.SAST);
         tr.setTime("1 minute");
         Node meta = getNamedChild("meta", resultFile.xmlRootNode());
         tr.setToolVersion(getAttributeValue("version", meta));
@@ -64,7 +64,7 @@ public class NoisyCricketReader extends Reader {
                 TestCaseResult tcr = new TestCaseResult();
                 tcr.setNumber(testNumber(testcase));
                 tcr.setCWE(Integer.parseInt(cwe));
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
     }

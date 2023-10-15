@@ -22,11 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
-import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestHelper;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 
 public class HorusecReaderTest extends ReaderTestBase {
 
@@ -48,7 +46,7 @@ public class HorusecReaderTest extends ReaderTestBase {
         HorusecReader reader = new HorusecReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertEquals(ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());
         assertEquals("Horusec", result.getToolName());
         assertEquals("1:23:45", result.getTime());
@@ -56,7 +54,7 @@ public class HorusecReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.resultsFor(1).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.resultsFor(2).get(0).getCWE());
     }
 }

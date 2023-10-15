@@ -17,7 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import static org.owasp.benchmarkutils.score.TestSuiteResults.formatTime;
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 import java.io.StringReader;
 import java.util.List;
@@ -27,7 +27,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -51,15 +52,20 @@ public class FortifyReader extends Reader {
         InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr = new TestSuiteResults("Fortify", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Fortify", true, ToolType.SAST);
 
         // FIXME: Is there any way to get the time from Fortify itself?
-        tr.setTime(resultZip.file());
+        long time = extractTimeFromFilename(resultZip);
+        if (time > -1) {
+            tr.setTime(formatTime(time));
+        } else {
+            tr.setTime("Time not specified");
+        }
 
         Node root = doc.getDocumentElement();
 
         if (isFortifyOnDemand(root)) {
-            tr.setTool(tr.getToolName() + "-OnDemand");
+            tr.setToolName(tr.getToolName() + "-OnDemand");
         }
 
         // get engine build version and rulepack version
@@ -72,7 +78,7 @@ public class FortifyReader extends Reader {
         for (Node flaw : vulns) {
             TestCaseResult tcr = parseFortifyVulnerability(flaw);
             if (tcr != null) {
-                tr.put(tcr);
+                tr.add(tcr);
             }
         }
 

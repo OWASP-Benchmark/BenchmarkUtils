@@ -25,7 +25,8 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -47,8 +48,7 @@ public class CheckmarxReader extends Reader {
         InputSource is = new InputSource(new StringReader(resultFile.content()));
         Document doc = docBuilder.parse(is);
 
-        TestSuiteResults tr =
-                new TestSuiteResults("Checkmarx CxSAST", true, TestSuiteResults.ToolType.SAST);
+        TestSuiteResults tr = new TestSuiteResults("Checkmarx CxSAST", true, ToolType.SAST);
 
         // <CxXMLResults
         // DeepLink="http://CHECKMARX2/CxWebClient/ViewerMain.aspx?scanid=52869&amp;projectid=30265"
@@ -73,7 +73,7 @@ public class CheckmarxReader extends Reader {
                 try {
                     TestCaseResult tcr = parseCheckmarxVulnerability(query, result);
                     if (tcr != null) {
-                        tr.put(tcr);
+                        tr.add(tcr);
                     }
                 } catch (Exception e) {
                     System.out.println(">> Error detected. Attempting to continue parsing");
