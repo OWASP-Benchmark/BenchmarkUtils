@@ -17,6 +17,8 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
@@ -25,8 +27,6 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
 import org.owasp.benchmarkutils.score.domain.ToolType;
-
-import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class SonarQubeJsonReader extends Reader {
 

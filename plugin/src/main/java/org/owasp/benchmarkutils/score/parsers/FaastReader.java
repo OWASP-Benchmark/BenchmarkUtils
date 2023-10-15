@@ -40,7 +40,8 @@ public class FaastReader extends Reader {
         JSONArray obj = new JSONArray(content);
         TestSuiteResults tr =
                 new TestSuiteResults("Faast - Telefonica Cyber Security", true, ToolType.DAST);
-        tr.setTime(TestSuiteResults.formatTime(extractTimeFromFilename(resultFile)));;
+        tr.setTime(TestSuiteResults.formatTime(extractTimeFromFilename(resultFile)));
+        ;
         for (int i = 0; i < obj.length(); i++) {
             TestCaseResult tcr = parseFaastFinding(obj.getJSONObject(i));
             tr.add(tcr);

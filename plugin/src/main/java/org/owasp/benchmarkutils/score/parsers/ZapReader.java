@@ -17,6 +17,13 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
+
+import java.io.StringReader;
+import java.net.URISyntaxException;
+import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
@@ -25,22 +32,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-import java.net.URISyntaxException;
-import java.util.List;
-
-import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
-
 public class ZapReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".xml")
                 && (resultFile.line(0).contains("<OWASPZAPReport")
-                || (resultFile.filename().endsWith(".xml")
-                && resultFile.line(1).contains("<OWASPZAPReport")));
+                        || (resultFile.filename().endsWith(".xml")
+                                && resultFile.line(1).contains("<OWASPZAPReport")));
     }
 
     @Override

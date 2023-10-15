@@ -17,6 +17,8 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
+
 import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,8 +27,6 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.domain.TestSuiteResults;
 import org.owasp.benchmarkutils.score.domain.ToolType;
-
-import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class LGTMReader extends Reader {
 
@@ -63,7 +63,11 @@ public class LGTMReader extends Reader {
         TestSuiteResults tr = new TestSuiteResults("LGTM", true, ToolType.SAST);
         // Scan time is not included in the sarif-schema. But scan time is provided on their web
         // site next to results
-        tr.setTime(formatTime(extractTimeFromFilename(resultFile))); // This grabs the scan time out of the filename, if provided
+        tr.setTime(
+                formatTime(
+                        extractTimeFromFilename(
+                                resultFile))); // This grabs the scan time out of the filename, if
+        // provided
         // e.g., Benchmark_1.2_LGTM-660.sarif, means the scan took 660 seconds.
 
         for (int i = 0; i < runs.length(); i++) {

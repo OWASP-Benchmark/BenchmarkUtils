@@ -289,7 +289,8 @@ public abstract class Reader {
     public long extractTimeFromFilename(ResultFile resultFile) {
         try {
             String filename = resultFile.filename();
-            String time = filename.substring(filename.lastIndexOf('-') + 1, filename.lastIndexOf('.'));
+            String time =
+                    filename.substring(filename.lastIndexOf('-') + 1, filename.lastIndexOf('.'));
 
             return Integer.parseInt(time) * 1000L;
         } catch (Exception ignored) {

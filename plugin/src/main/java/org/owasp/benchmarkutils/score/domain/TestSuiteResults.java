@@ -17,9 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.domain;
 
-import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.domain.exception.NoToolNameProvided;
-import org.owasp.benchmarkutils.score.domain.exception.NoToolTypeProvided;
+import static java.lang.Long.parseLong;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +25,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-
-import static java.lang.Long.parseLong;
+import org.owasp.benchmarkutils.score.TestCaseResult;
+import org.owasp.benchmarkutils.score.domain.exception.NoToolNameProvided;
+import org.owasp.benchmarkutils.score.domain.exception.NoToolTypeProvided;
 
 /**
  * TestSuiteResults contains the expected results for each test case in a test suite, if its
@@ -46,9 +45,7 @@ public class TestSuiteResults {
 
     private final Map<Integer, List<TestCaseResult>> testCaseResults = new TreeMap<>();
 
-    /**
-     * Used to track if this tool has been anonymized
-     */
+    /** Used to track if this tool has been anonymized */
     private boolean anonymous;
 
     // TODO: Refactor to generation class
@@ -79,9 +76,7 @@ public class TestSuiteResults {
         }
     }
 
-    /**
-     * Set the version number for this specific set of TestResults
-     */
+    /** Set the version number for this specific set of TestResults */
     public void setTestSuiteVersion(String version) {
         this.testSuiteVersion = version;
     }
@@ -220,37 +215,41 @@ public class TestSuiteResults {
         this.anonymous = true;
 
         switch (getToolType()) {
-            case SAST: {
-                if (nextCommercialSAST_ToolNumber < 10) {
-                    setToolName("SAST-0" + nextCommercialSAST_ToolNumber++);
-                } else {
-                    setToolName("SAST-" + nextCommercialSAST_ToolNumber++);
+            case SAST:
+                {
+                    if (nextCommercialSAST_ToolNumber < 10) {
+                        setToolName("SAST-0" + nextCommercialSAST_ToolNumber++);
+                    } else {
+                        setToolName("SAST-" + nextCommercialSAST_ToolNumber++);
+                    }
+                    break;
                 }
-                break;
-            }
-            case DAST: {
-                if (nextCommercialDAST_ToolNumber < 10) {
-                    setToolName("DAST-0" + nextCommercialDAST_ToolNumber++);
-                } else {
-                    setToolName("DAST-" + nextCommercialDAST_ToolNumber++);
+            case DAST:
+                {
+                    if (nextCommercialDAST_ToolNumber < 10) {
+                        setToolName("DAST-0" + nextCommercialDAST_ToolNumber++);
+                    } else {
+                        setToolName("DAST-" + nextCommercialDAST_ToolNumber++);
+                    }
+                    break;
                 }
-                break;
-            }
-            case IAST: {
-                if (nextCommercialIAST_ToolNumber < 10) {
-                    setToolName("IAST-0" + nextCommercialIAST_ToolNumber++);
-                } else {
-                    setToolName("IAST-" + nextCommercialIAST_ToolNumber++);
+            case IAST:
+                {
+                    if (nextCommercialIAST_ToolNumber < 10) {
+                        setToolName("IAST-0" + nextCommercialIAST_ToolNumber++);
+                    } else {
+                        setToolName("IAST-" + nextCommercialIAST_ToolNumber++);
+                    }
+                    break;
                 }
-                break;
-            }
-            case Hybrid: {
-                if (nextCommercialHybrid_ToolNumber < 10) {
-                    setToolName("HYBR-0" + nextCommercialHybrid_ToolNumber++);
-                } else {
-                    setToolName("HYBR-" + nextCommercialHybrid_ToolNumber++);
+            case Hybrid:
+                {
+                    if (nextCommercialHybrid_ToolNumber < 10) {
+                        setToolName("HYBR-0" + nextCommercialHybrid_ToolNumber++);
+                    } else {
+                        setToolName("HYBR-" + nextCommercialHybrid_ToolNumber++);
+                    }
                 }
-            }
         }
     }
 
