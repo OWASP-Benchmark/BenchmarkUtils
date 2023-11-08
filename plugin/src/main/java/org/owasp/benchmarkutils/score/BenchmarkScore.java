@@ -848,8 +848,11 @@ public class BenchmarkScore extends AbstractMojo {
                 match = (actualCWE == 89);
             }
 
-            // special hack since IBM/Veracode don't distinguish different kinds of weak algorithm
-            if (tool.startsWith("AppScan") || tool.startsWith("Vera")) {
+            // special hack since IBM/Veracode and CodeQL don't distinguish different kinds of weak
+            // algorithm
+            if (tool.startsWith("AppScan")
+                    || tool.startsWith("Vera")
+                    || tool.startsWith("CodeQL")) {
                 if (expectedCWE == 328 && actualCWE == 327) {
                     match = true;
                 }
