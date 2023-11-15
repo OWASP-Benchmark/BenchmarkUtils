@@ -37,8 +37,10 @@ public abstract class Reader {
     protected final ObjectMapper jsonMapper = new ObjectMapper();
     protected final XmlMapper xmlMapper = new XmlMapper();
 
-    // TODO: Figure out how to dynamically add all readers here without listing them out manually
-    // NOTE: There is a unit test that at least automatically verifies that any reader with a unit
+    // TODO: Figure out how to dynamically add all readers here without listing them
+    // out manually
+    // NOTE: There is a unit test that at least automatically verifies that any
+    // reader with a unit
     // test is in this list
     public static List<Reader> allReaders() {
         return Arrays.asList(
@@ -46,6 +48,7 @@ public abstract class Reader {
                 new AppScanDynamicReader(),
                 new AppScanSourceReader(),
                 new ArachniReader(),
+                new BearerReader(),
                 new BurpJsonReader(),
                 new BurpReader(),
                 new CASTAIPReader(),
@@ -115,11 +118,13 @@ public abstract class Reader {
         }
         return null;
     }
-    // Returns the node inside this nodelist whose name matches 'name', that also has an attribute
+    // Returns the node inside this nodelist whose name matches 'name', that also
+    // has an attribute
     // called 'key' whose value matches 'keyvalue'
 
     public static Node getNamedNode(String name, String keyValue, NodeList list) {
-        if ((name == null) || (keyValue == null) || (list == null)) return null;
+        if ((name == null) || (keyValue == null) || (list == null))
+            return null;
         for (int i = 0; i < list.getLength(); i++) {
             Node n = list.item(i);
             if (n.getNodeName().equals(name)) {
@@ -168,7 +173,8 @@ public abstract class Reader {
     }
 
     public static String getAttributeValue(String name, Node node) {
-        if (node == null) return null;
+        if (node == null)
+            return null;
         NamedNodeMap nnm = node.getAttributes();
         if (nnm != null) {
             Node attrnode = nnm.getNamedItem(name);
@@ -210,18 +216,16 @@ public abstract class Reader {
             if (path.indexOf(BenchmarkScore.TESTCASENAME) < 0) {
                 return -1;
             }
-            int numberStart =
-                    path.indexOf(BenchmarkScore.TESTCASENAME)
-                            + BenchmarkScore.TESTCASENAME.length()
-                            + 1;
+            int numberStart = path.indexOf(BenchmarkScore.TESTCASENAME)
+                    + BenchmarkScore.TESTCASENAME.length()
+                    + 1;
             path = path.substring(numberStart);
             // System.out.println("After length: " + path);
             path = path.replaceAll("\\?.*", "");
             path = path.replaceAll(",.*", "");
 
-            path =
-                    path.replaceAll(
-                            BenchmarkScore.TESTCASENAME + "v[0-9]*", BenchmarkScore.TESTCASENAME);
+            path = path.replaceAll(
+                    BenchmarkScore.TESTCASENAME + "v[0-9]*", BenchmarkScore.TESTCASENAME);
 
             path = path.replaceAll("/send", "");
             if (path.contains(":")) {
