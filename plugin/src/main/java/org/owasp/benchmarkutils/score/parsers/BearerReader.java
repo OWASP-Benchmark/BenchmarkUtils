@@ -55,6 +55,8 @@ public class BearerReader extends Reader {
 
     private int translate(int cwe) {
         switch (cwe) {
+            case 326:
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case 327:
                 return CweNumber.WEAK_HASH_ALGO;
             default:

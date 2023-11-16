@@ -69,6 +69,40 @@
       "old_fingerprint": "1bff95a3cb3020fab82cd9495bf9010c_12",
       "code_extract": "            javax.crypto.Cipher c = javax.crypto.Cipher.getInstance(\"DES/CBC/PKCS5Padding\");",
       "severity": "medium"
+    },
+    {
+      "cwe_ids": ["326", "327"],
+      "id": "java_lang_weak_encryption_des",
+      "title": "Weak encryption algorithm (DES) detected.",
+      "description": "## Description\n\nA weak encryption library can lead to data breaches and greater security risk.\n\n## Remediations\nAccording to [OWASP](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/09-Testing_for_Weak_Cryptography/04-Testing_for_Weak_Encryption), DES (Data Encryption Standard) is considered a weak encryption algorithm and therefore shouldn't be used.\n\n✅ Use stronger encryption algorithms when storing data.\n\n```java\n  Cipher c = Cipher.getInstance(\"AES/CBC/PKCS5Padding\");\n```\n\n## Resources\n- [Java Cipher class](https://docs.oracle.com/en/java/javase/20/docs/api/java.base/javax/crypto/Cipher.html)\n",
+      "documentation_url": "https://docs.bearer.com/reference/rules/java_lang_weak_encryption_des",
+      "line_number": 87,
+      "full_filename": "../../OWASP/BenchmarkJava/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00035.java",
+      "filename": "java/org/owasp/benchmark/testcode/BenchmarkTest00035.java",
+      "category_groups": ["PII", "Personal Data"],
+      "source": {
+        "start": 87,
+        "end": 87,
+        "column": {
+          "start": 29,
+          "end": 45
+        }
+      },
+      "sink": {
+        "start": 87,
+        "end": 87,
+        "column": {
+          "start": 29,
+          "end": 45
+        },
+        "content": "c.doFinal(input)"
+      },
+      "parent_line_number": 87,
+      "snippet": "c.doFinal(input)",
+      "fingerprint": "9163934a23bdb461be27983fa49e0695_0",
+      "old_fingerprint": "47611adbe4c6acbdd6d00c66b06db103_57",
+      "code_extract": "            byte[] result = c.doFinal(input);",
+      "severity": "medium"
     }
   ]
 }
