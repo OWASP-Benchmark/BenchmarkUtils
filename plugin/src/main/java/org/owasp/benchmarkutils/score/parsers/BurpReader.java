@@ -169,6 +169,8 @@ public class BurpReader extends Reader {
                 return CweNumber.DONTCARE; // Incorrect Content Type - Map to nothing right now.
             case "8389888":
                 return 16; // Content type is not specified
+            case "16777472":
+                return CweNumber.DONTCARE; // TLS Certificate Problem
         } // end switch(id)
         System.out.println("Unknown Burp rule id: " + id);
         return -1;
