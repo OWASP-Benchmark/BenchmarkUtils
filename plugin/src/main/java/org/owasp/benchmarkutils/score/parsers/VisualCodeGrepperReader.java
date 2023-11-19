@@ -17,6 +17,11 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
+
+import java.io.StringReader;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -27,12 +32,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-
-import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 public class VisualCodeGrepperReader extends Reader {
 
@@ -127,41 +126,41 @@ public class VisualCodeGrepperReader extends Reader {
         }
 
         switch (cat) {
-            // Cookies
+                // Cookies
             case "Poor Input Validation":
                 return CweNumber.INSECURE_COOKIE;
 
-            // Injections
+                // Injections
             case "Potential SQL Injection":
                 return CweNumber.SQL_INJECTION;
-            // case "Operation on Primitive Data Type" : return 89;
+                // case "Operation on Primitive Data Type" : return 89;
 
-            // Command injection
+                // Command injection
             case "java.lang.Runtime.exec Gets Path from Variable":
                 return CweNumber.COMMAND_INJECTION;
 
-            // XPath Injection
+                // XPath Injection
             case "FileInputStream":
             case "java.io.FileWriter":
             case "java.io.FileReader":
             case "FileStream Opened Without Exception Handling":
                 return CweNumber.XPATH_INJECTION;
 
-            // Weak random
+                // Weak random
             case "java.util.Random":
                 return CweNumber.WEAK_RANDOM;
 
-            // Path traversal
+                // Path traversal
             case "java.io.File":
             case "java.io.FileOutputStream":
             case "getResourceAsStream":
                 return CweNumber.PATH_TRAVERSAL;
 
-            // XSS
+                // XSS
             case "Potential XSS":
                 return CweNumber.XSS;
 
-            // Trust Boundary Violation
+                // Trust Boundary Violation
             case "getParameterValues":
             case "getParameterNames":
             case "getParameter":
@@ -169,7 +168,7 @@ public class VisualCodeGrepperReader extends Reader {
 
             default:
                 return 00; // System.out.println( "Unknown vuln category for VisualCodeGrepper: " +
-            // cat );
+                // cat );
         }
     }
 }

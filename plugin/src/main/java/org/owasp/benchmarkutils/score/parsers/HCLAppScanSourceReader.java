@@ -17,6 +17,12 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
+
+import java.io.StringReader;
+import java.util.List;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -26,13 +32,6 @@ import org.owasp.benchmarkutils.score.domain.ToolType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-import java.util.List;
-
-import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 // This is the new HCL AppScan Source reader, where they generate ".xml" files.
 // The 'old' reader is AppScanSourceReader, which supports the previous .ozasmt format from IBM.

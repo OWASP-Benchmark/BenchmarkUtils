@@ -17,6 +17,8 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
+
 import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -30,8 +32,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
-import static org.owasp.benchmarkutils.score.domain.TestSuiteResults.formatTime;
 
 // This reader supports both FindBugs and FindSecBugs, since the later is simply a FindBugs plugin.
 public class FindbugsReader extends Reader {
