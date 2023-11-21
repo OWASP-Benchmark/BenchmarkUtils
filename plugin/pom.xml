@@ -199,7 +199,7 @@
 
     <properties>
         <version.exec.maven>1.6.0</version.exec.maven>
-        <version.fasterxml.jackson>2.15.3</version.fasterxml.jackson>
+        <version.fasterxml.jackson>2.16.0</version.fasterxml.jackson>
         <version.httpcomponents>5.2.1</version.httpcomponents>
         <!-- jaxb 4.0.0-M4 requires Java 11. But seems to compile/pass tests fine. -->
         <version.jaxb>3.1.0-M1</version.jaxb>
