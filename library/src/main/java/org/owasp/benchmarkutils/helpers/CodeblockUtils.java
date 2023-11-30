@@ -30,11 +30,6 @@ import org.xml.sax.SAXException;
 
 public class CodeblockUtils {
 
-    // from: https://stackoverflow.com/questions/1386809/copy-directory-from-a-jar-file
-    // answer by: lpiepiora.  Example usage:
-    // copyFromJar("/path/to/the/dir/in/jar", Paths.get("/tmp/from-jar"))
-    // Modified by DRW to handle individual source files, not just directories
-
     /**
      * This method opens the specified source XML file and returns the 1st element in it. This
      * method expects there to be only one element in the file and the element is named
