@@ -228,6 +228,7 @@ public class CodeQLReader extends Reader {
             case 89: // java & js/sql-injection and similar sqli rules
             case 90: // java/ldap-injection
             case 327: // java/weak-cryptographic-algorithm
+            case 330: // java/insecure-randomness
             case 501: // java/trust-boundary-violation
             case 611: // java & js/xxe
             case 614: // java/insecure-cookie
