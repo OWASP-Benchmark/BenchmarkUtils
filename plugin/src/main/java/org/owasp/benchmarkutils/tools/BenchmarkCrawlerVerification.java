@@ -64,11 +64,6 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     SimpleFileLogger eLogger;
     SimpleFileLogger uLogger;
 
-    BenchmarkCrawlerVerification() {
-        // A default constructor required to support Maven plugin API.
-        // The theCrawlerFile has to be instantiated before a crawl can be done.
-    }
-
     /**
      * Overload the base crawl() method to send both attack and safe requests, and verify whether
      * the test exploit worked or not based on the results that came back in both the attack
@@ -283,11 +278,15 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
      * @param args - args passed to main().
      * @return specified crawler file if valid command line arguments provided. Null otherwise.
      */
-    private void processCommandLineArgs(String[] args) {
+    @Override
+    protected void processCommandLineArgs(String[] args) {
 
-        // Set default attack crawler file
-        String crawlerFileName = new File(Utils.DATA_DIR, "benchmark-attack-http.xml").getPath();
-        this.theCrawlerFile = new File(crawlerFileName);
+        // Set default attack crawler file, if it exists
+        // This value can be changed by the -f parameter for other test suites with different names
+        File defaultAttackCrawlerFile = new File(Utils.DATA_DIR, "benchmark-attack-http.xml");
+        if (defaultAttackCrawlerFile.exists()) {
+            setCrawlerFile(defaultAttackCrawlerFile.getPath());
+        }
 
         RegressionTesting.isTestingEnabled = true;
 
@@ -301,7 +300,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         options.addOption(
                 Option.builder("f")
                         .longOpt("file")
-                        .desc("a TESTSUITE-crawler-http.xml file")
+                        .desc("a TESTSUITE-attack-http.xml file")
                         .hasArg()
                         .required()
                         .build());
@@ -325,16 +324,10 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             CommandLine line = parser.parse(options, args);
 
             if (line.hasOption("f")) {
-                this.crawlerFile = line.getOptionValue("f");
-                File targetFile = new File(this.crawlerFile);
-                if (targetFile.exists()) {
-                    setCrawlerFile(targetFile);
-                    // Crawler output files go into the same directory as the crawler config file
-                    CRAWLER_DATA_DIR = targetFile.getParent() + File.separator;
-                } else {
-                    throw new RuntimeException(
-                            "Could not find crawler configuration file '" + this.crawlerFile + "'");
-                }
+                // Following throws a RuntimeException if the target file doesn't exist
+                setCrawlerFile(line.getOptionValue("f"));
+                // Crawler output files go into the same directory as the crawler config file
+                CRAWLER_DATA_DIR = this.theCrawlerFile.getParent() + File.separator;
             }
             if (line.hasOption("h")) {
                 formatter.printHelp("BenchmarkCrawlerVerification", options, true);
@@ -353,19 +346,24 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (null == this.pluginFilenameParam) {
-            System.out.println("ERROR: A crawlerFile parameter must be specified.");
+        if (thisInstance == null) thisInstance = this;
+
+        if (null == this.crawlerFile) {
+            System.out.println("ERROR: An attack crawlerFile parameter must be specified.");
         } else {
-            String[] mainArgs = {"-f", this.pluginFilenameParam};
+            String[] mainArgs = {"-f", this.crawlerFile};
             main(mainArgs);
         }
     }
 
     public static void main(String[] args) {
-
-        BenchmarkCrawlerVerification crawler = new BenchmarkCrawlerVerification();
-        crawler.processCommandLineArgs(args);
-        crawler.load();
-        crawler.run();
+        // thisInstance can be set from execute() or here, depending on how this class is invoked
+        // (via maven or commmand line)
+        if (thisInstance == null) {
+            thisInstance = new BenchmarkCrawlerVerification();
+        }
+        thisInstance.processCommandLineArgs(args);
+        thisInstance.load();
+        thisInstance.run();
     }
 }

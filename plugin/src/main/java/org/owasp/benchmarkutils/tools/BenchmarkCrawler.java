@@ -68,43 +68,22 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 @Mojo(name = "run-crawler", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
 public class BenchmarkCrawler extends AbstractMojo {
 
+    // Intended to be a Singleton. So when instantiated, put it here:
+    static BenchmarkCrawler thisInstance = null;
+
     static final long MAX_NETWORK_TIMEOUT = 15; // seconds
     public static String proxyHost, proxyPort;
 
-    @Parameter(property = "crawlerFile")
-    String pluginFilenameParam;
-
     /*
-     * Attaching the @Parameter property to the crawlerFile variable directly didn't work for some
-     * reason. So I attached it to a new String variable, and set it later. No clue why it doesn't
-     * work. But for now, leaving it this way because it works.
-     *
-     * If you run the mvn command with -X, when invoking this plugin, you'd see something like
-     * this at the end:
-     *
-     * [DEBUG] (s) crawlerFile = /Users/PATH/TO/BenchmarkJava/data/benchmark-crawler-http.xml
-     * [DEBUG] -- end configuration --
-     * but the crawlerFile variable would be null.
-     *
-     * When it should be:
-     * [DEBUG] (f) crawlerFile = data/benchmark-crawler-http.xml
-     * [DEBUG] -- end configuration --
-     *
-     * So after changing this, I now get:
-     * [DEBUG] (f) pluginFilenameParam = data/benchmark-crawler-http.xml
-     * [DEBUG] -- end configuration --
-     * and the pluginFilenameParam variable value is set properly.
+     * Attaching the @Parameter property to the crawlerFile variable allows you to set the value directly when invoking via maven.
+     * For example: -DcrawlerFile=data/benchmark-crawler-http.xml
      */
-    String crawlerFile;
+    @Parameter(property = "crawlerFile")
+    String crawlerFile = null;
 
     File theCrawlerFile;
     String selectedTestCaseName = null;
     TestSuite testSuite;
-
-    BenchmarkCrawler() {
-        // A default constructor required to support Maven plugin API.
-        // The theCrawlerFile has to be instantiated before a crawl can be done.
-    }
 
     /** Crawl the target test suite. */
     protected void run() {
@@ -148,8 +127,22 @@ public class BenchmarkCrawler extends AbstractMojo {
         }
     }
 
-    public void setCrawlerFile(File theCrawlerFile) {
-        this.theCrawlerFile = theCrawlerFile;
+    /**
+     * Load the crawler file that defines all the test cases, including their endpoints, and how to
+     * crawl them.
+     *
+     * @param targetFileName The crawler file name
+     * @throws RuntimeException If the file doesn't exist or can't be opened for some reason.
+     */
+    public void setCrawlerFile(String targetFileName) throws RuntimeException {
+        File targetFile = new File(targetFileName);
+        if (targetFile.exists()) {
+            this.crawlerFile = targetFileName;
+            this.theCrawlerFile = targetFile;
+        } else {
+            throw new RuntimeException(
+                    "Could not find crawler configuration file: '" + targetFileName + "'");
+        }
     }
 
     /**
@@ -309,7 +302,7 @@ public class BenchmarkCrawler extends AbstractMojo {
      * @param args - args passed to main().
      * @return specified crawler file if valid command line arguments provided. Null otherwise.
      */
-    private void processCommandLineArgs(String[] args) {
+    protected void processCommandLineArgs(String[] args) {
 
         // Create the command line parser
         CommandLineParser parser = new DefaultParser();
@@ -336,14 +329,7 @@ public class BenchmarkCrawler extends AbstractMojo {
             CommandLine line = parser.parse(options, args);
 
             if (line.hasOption("f")) {
-                this.crawlerFile = line.getOptionValue("f");
-                File targetFile = new File(this.crawlerFile);
-                if (targetFile.exists()) {
-                    setCrawlerFile(targetFile);
-                } else {
-                    throw new RuntimeException(
-                            "Could not find crawler configuration file '" + this.crawlerFile + "'");
-                }
+                setCrawlerFile(line.getOptionValue("f"));
             }
             if (line.hasOption("h")) {
                 formatter.printHelp("BenchmarkCrawlerVerification", options, true);
@@ -359,19 +345,24 @@ public class BenchmarkCrawler extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (null == this.pluginFilenameParam) {
+        if (thisInstance == null) thisInstance = this;
+
+        if (null == this.crawlerFile) {
             System.out.println("ERROR: A crawlerFile parameter must be specified.");
         } else {
-            String[] mainArgs = {"-f", this.pluginFilenameParam};
+            String[] mainArgs = {"-f", this.crawlerFile};
             main(mainArgs);
         }
     }
 
     public static void main(String[] args) {
-
-        BenchmarkCrawler crawler = new BenchmarkCrawler();
-        crawler.processCommandLineArgs(args);
-        crawler.load();
-        crawler.run();
+        // thisInstance can be set from execute() or here, depending on how this class is invoked
+        // (via maven or commmand line)
+        if (thisInstance == null) {
+            thisInstance = new BenchmarkCrawler();
+        }
+        thisInstance.processCommandLineArgs(args);
+        thisInstance.load();
+        thisInstance.run();
     }
 }

@@ -722,12 +722,12 @@ public class BenchmarkScore extends AbstractMojo {
                 map.put(cat, c);
             }
             // real vulnerabilities
-            if (tcr.isReal() && tcr.isPassed()) c.tp++; // tp
-            else if (tcr.isReal() && !tcr.isPassed()) c.fn++; // fn
+            if (tcr.isTruePositive() && tcr.isPassed()) c.tp++; // tp
+            else if (tcr.isTruePositive() && !tcr.isPassed()) c.fn++; // fn
 
             // fake vulnerabilities
-            else if (!tcr.isReal() && tcr.isPassed()) c.tn++; // tn
-            else if (!tcr.isReal() && !tcr.isPassed()) c.fp++; // fp
+            else if (!tcr.isTruePositive() && tcr.isPassed()) c.tn++; // tn
+            else if (!tcr.isTruePositive() && !tcr.isPassed()) c.fp++; // fp
         }
         return map;
     }
@@ -801,7 +801,8 @@ public class BenchmarkScore extends AbstractMojo {
             pass = compare(exp, act, rawToolResults.getToolName());
 
             // helpful in debugging
-            // System.out.println( tc + ", " + exp.getCategory() + ", " + exp.isReal() + ", " +
+            // System.out.println( tc + ", " + exp.getCategory() + ", " + exp.isTruePositive() + ",
+            // " +
             // exp.getCWE() + ", " + pass + "\n");
 
             // fill the result into the "expected" results in case we need it later
@@ -828,7 +829,7 @@ public class BenchmarkScore extends AbstractMojo {
     private static boolean compare(TestCaseResult exp, List<TestCaseResult> actList, String tool) {
         // return true if there are no actual results and this was a false positive test
         if (actList == null || actList.isEmpty()) {
-            return !exp.isReal();
+            return !exp.isTruePositive();
         }
 
         // otherwise check actual results
@@ -860,11 +861,11 @@ public class BenchmarkScore extends AbstractMojo {
 
             // return true if we find an exact match for a True Positive test
             if (match) {
-                return exp.isReal();
+                return exp.isTruePositive();
             }
         }
         // if we couldn't find a match, then return true if it's a False Positive test
-        return !exp.isReal();
+        return !exp.isTruePositive();
     }
 
     // Create a TestResults object that contains the expected results for this version
@@ -921,7 +922,7 @@ public class BenchmarkScore extends AbstractMojo {
                         TestCaseResult tcr = new TestCaseResult();
                         tcr.setTestCaseName(parts[0]);
                         tcr.setCategory(parts[1]);
-                        tcr.setReal(Boolean.parseBoolean(parts[2]));
+                        tcr.setTruePositive(Boolean.parseBoolean(parts[2]));
                         tcr.setCWE(Integer.parseInt(parts[3]));
 
                         tcr.setNumber(Reader.testNumber(parts[0]));
@@ -1005,7 +1006,7 @@ public class BenchmarkScore extends AbstractMojo {
                     ps.print("," + actualResult.getDataFlow());
                     ps.print("," + actualResult.getSink());
                 }
-                boolean isreal = actualResult.isReal();
+                boolean isreal = actualResult.isTruePositive();
                 ps.print(", " + isreal);
                 boolean passed = actualResult.isPassed();
                 boolean toolresult = !(isreal ^ passed);
