@@ -20,6 +20,6 @@ package org.owasp.benchmarkutils.helpers;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 
 @XmlDiscriminatorValue("SPRINGWS")
-public class SpringTestCase extends TestCase {
+public class SpringTestCase extends TestCaseInput {
     public SpringTestCase() {}
 }

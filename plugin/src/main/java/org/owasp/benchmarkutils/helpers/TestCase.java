@@ -1,35 +1,17 @@
-/**
- * OWASP Benchmark Project
- *
- * <p>This file is part of the Open Web Application Security Project (OWASP) Benchmark Project For
- * details, please see <a
- * href="https://owasp.org/www-project-benchmark/">https:/owasp.org/www-project-benchmark/</a>.
- *
- * <p>The OWASP Benchmark is free software: you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation, version 2.
- *
- * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU General Public License for more details.
- *
- * @author David Anderson
- * @created 2021
- */
 package org.owasp.benchmarkutils.helpers;
 
-import java.util.List;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.XmlElements;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;
+import org.eclipse.persistence.oxm.annotations.XmlPath;
+import org.eclipse.persistence.oxm.annotations.XmlPaths;
+import org.eclipse.persistence.oxm.annotations.XmlReadOnly;
 
-@XmlSeeAlso({ServletTestCase.class, JerseyTestCase.class, SpringTestCase.class})
-@XmlDiscriminatorNode("@tcType")
-public abstract class TestCase {
-
-    private String url;
+@XmlRootElement
+public class TestCase {
 
     private Category category;
 
@@ -47,23 +29,29 @@ public abstract class TestCase {
 
     private String templateFile;
 
+    private String type;
+
     private String UITemplateFile;
 
     private boolean isVulnerable;
 
-    private List<RequestVariable> formParameters;
+    private TestCaseInput testCaseInput;
 
-    private List<RequestVariable> getParameters;
+    @XmlElements({
+        @XmlElement(type = HttpClientConfig.class),
+        @XmlElement(type = FileCopyConfig.class),
+        @XmlElement(type = Sqlite3Config.class)
+    })
+    @XmlPaths({
+        @XmlPath("fee[@type='HttpClientConfig']"),
+        @XmlPath("fee[@type='FileCopyConfig']"),
+        @XmlPath("fee[@type='Sqlite3Config']")
+    })
+    private TestCaseSetup testCaseSetup;
 
-    private List<RequestVariable> cookies;
+    private TestCaseRequest attackTestCaseRequest;
 
-    private List<RequestVariable> headers;
-
-    @XmlAttribute(name = "URL", required = true)
-    @NotNull
-    public String getUrl() {
-        return url;
-    }
+    private TestCaseRequest safeTestCaseRequest;
 
     @XmlAttribute(name = "tcCategory", required = true)
     @XmlJavaTypeAdapter(CategoryAdapter.class)
@@ -119,56 +107,52 @@ public abstract class TestCase {
         return UITemplateFile;
     }
 
+    @XmlAttribute(name = "tcType", required = true)
+    @XmlReadOnly
+    @NotNull
+    public String getType() {
+        return type;
+    }
+
     @XmlAttribute(name = "tcVulnerable", required = true)
     public boolean isVulnerable() {
         return isVulnerable;
     }
 
-    @XmlElement(name = "formparam")
-    @NotNull
-    public List<RequestVariable> getFormParameters() {
-        return formParameters;
+    @XmlElement(name = "input", required = true)
+    public TestCaseInput getTestCaseInput() {
+        return testCaseInput;
     }
 
-    @XmlElement(name = "getparam")
-    @NotNull
-    public List<RequestVariable> getGetParameters() {
-        return getParameters;
+    public TestCaseRequest getAttackTestCaseRequest() {
+        return attackTestCaseRequest;
     }
 
-    @XmlElement(name = "cookie")
-    @NotNull
-    public List<RequestVariable> getCookies() {
-        return cookies;
+    public void setAttackTestCaseRequest(TestCaseRequest attackTestCaseRequest) {
+        this.attackTestCaseRequest = attackTestCaseRequest;
     }
 
-    @XmlElement(name = "header")
-    @NotNull
-    public List<RequestVariable> getHeaders() {
-        return headers;
+    public TestCaseRequest getSafeTestCaseRequest() {
+        return safeTestCaseRequest;
     }
 
-    public void setFormParameters(List<RequestVariable> formParameters) {
-        this.formParameters = formParameters;
+    public void setSafeTestCaseRequest(TestCaseRequest safeTestCaseRequest) {
+        this.safeTestCaseRequest = safeTestCaseRequest;
     }
 
-    public void setGetParameters(List<RequestVariable> getParameters) {
-        this.getParameters = getParameters;
+    public void setTestCaseInput(TestCaseInput testCaseInput) {
+        this.testCaseInput = testCaseInput;
     }
 
-    public void setCookies(List<RequestVariable> cookies) {
-        this.cookies = cookies;
-    }
+    public void execute() {
 
-    public void setHeaders(List<RequestVariable> headers) {
-        this.headers = headers;
+        this.getTestCaseInput().execute(this.getName());
     }
 
     @Override
     public String toString() {
-        return "TestCase [url="
-                + url
-                + ", category="
+        return "TestCase ["
+                + "category="
                 + category
                 + ", dataflowFile="
                 + dataflowFile
@@ -188,14 +172,8 @@ public abstract class TestCase {
                 + UITemplateFile
                 + ", isVulnerable="
                 + isVulnerable
-                + ", formParameters="
-                + formParameters
-                + ", getParameters="
-                + getParameters
-                + ", cookies="
-                + cookies
-                + ", headers="
-                + headers
+                + ", "
+                + testCaseInput
                 + "]";
     }
 }

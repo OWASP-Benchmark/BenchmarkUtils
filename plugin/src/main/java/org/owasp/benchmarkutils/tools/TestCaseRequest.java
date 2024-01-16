@@ -24,24 +24,17 @@ import java.util.List;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;
 import org.eclipse.persistence.oxm.annotations.XmlReadOnly;
 import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.CategoryAdapter;
 import org.owasp.benchmarkutils.helpers.RequestVariable;
+import org.owasp.benchmarkutils.helpers.TestCaseInput;
 
-@XmlSeeAlso({
-    ServletTestCaseRequest.class,
-    JerseyTestCaseRequest.class,
-    SpringTestCaseRequest.class
-})
-@XmlDiscriminatorNode("@tcType")
-public abstract class AbstractTestCaseRequest {
+public class TestCaseRequest {
 
     /*
      * The 1st three are Java.
@@ -53,17 +46,18 @@ public abstract class AbstractTestCaseRequest {
         NODEEXPRESS
     }
 
-    public static Comparator<AbstractTestCaseRequest> getNameComparator() {
-        return new Comparator<AbstractTestCaseRequest>() {
+    public static Comparator<TestCaseRequest> getNameComparator() {
+        return new Comparator<TestCaseRequest>() {
 
             @Override
-            public int compare(AbstractTestCaseRequest o1, AbstractTestCaseRequest o2) {
+            public int compare(TestCaseRequest o1, TestCaseRequest o2) {
                 if (!o1.name.equalsIgnoreCase(o2.name)) return o1.name.compareTo(o2.name);
                 return 0;
             }
         };
     }
 
+    private TestCaseInput testCaseInput;
     private Category category;
     private List<RequestVariable> cookies = new ArrayList<RequestVariable>();
     private String dataflowFile;
@@ -84,7 +78,7 @@ public abstract class AbstractTestCaseRequest {
     private String templateFile;
     private String uiTemplateFile;
 
-    public AbstractTestCaseRequest() {}
+    public TestCaseRequest() {}
 
     //    /**
     //     * This class contains enough information to generate an HttpUriRequest for a generated
@@ -169,16 +163,24 @@ public abstract class AbstractTestCaseRequest {
     //    }
 
     /** Defines what parameters in the body will be sent. */
-    abstract void buildBodyParameters(HttpRequestBase request);
+    public void buildBodyParameters(HttpRequestBase request) {
+        testCaseInput.buildBodyParameters(request);
+    }
 
     /** Defines what cookies will be sent. */
-    abstract void buildCookies(HttpRequestBase request);
+    public void buildCookies(HttpRequestBase request) {
+        testCaseInput.buildCookies(request);
+    }
 
     /** Defines what headers will be sent. */
-    abstract void buildHeaders(HttpRequestBase request);
+    public void buildHeaders(HttpRequestBase request) {
+        testCaseInput.buildHeaders(request);
+    }
 
     /** Defines how to construct URL query string. */
-    abstract void buildQueryString();
+    public void buildQueryString() {
+        testCaseInput.buildQueryString();
+    }
 
     /**
      * TODO: Make this class a POJO TestCase and pass it as an arg to another class TestCaseRequest

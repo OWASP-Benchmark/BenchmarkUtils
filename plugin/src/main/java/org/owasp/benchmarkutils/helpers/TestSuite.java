@@ -21,15 +21,18 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
 
 @XmlRootElement(name = "benchmarkSuite")
 public class TestSuite {
     private List<AbstractTestCaseRequest> testCases;
 
-    private String name; // Name of the test suite, e.g., benchmark (Which is BenchmarkJava)
+    private String name;
 
     private String version;
+
+    CloseableHttpClient httpclient = null;
 
     @XmlElement(name = "benchmarkTest")
     public List<AbstractTestCaseRequest> getTestCases() {
@@ -58,13 +61,26 @@ public class TestSuite {
         this.version = version;
     }
 
-    /**
-     * Dump out some basic details from the Crawler file to the command line to verify it was read
-     * in properly. Used for debugging.
-     */
-    public void dumpBasicDetails() {
-        System.out.println("Test suite name and version: " + name + " v" + version);
-        System.out.println("Total test cases: " + this.getTestCases().size());
+    public void execute() {
+
+        // TODO: Maybe create a TestCaseContext class to hold the httpclient, and setup tasks like
+        // starting the DB server and app server.  Pass this object as the argument to execute().
+        // It is annoying that the httpclient field of the class will be null if there are no Http
+        // test cases in the test suite.  It would be better if we had a context class for each
+        // TestCaseInput class.
+        // The XML doc that defines the testcases could specify the config class by class name.  The
+        // testcase class would need to instantiate the named class accessible via a singleton map.
+        // Then, each testcase can call a shared setup method and access shared state via its own
+        // config field.  I think this means that the DB server would be started in the middle of
+        // parsing the XML doc, though.
+
+        TestCaseContext context = TestCase.getContext(testCase);
+        testCase.execute(context);
+
+        // Execute all of the test cases
+        for (TestCase testCase : this.getTestCases()) {
+            testCase.execute();
+        }
     }
 
     @Override

@@ -48,8 +48,13 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.sax.SAXSource;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.persistence.jaxb.JAXBContextFactory;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 public class Utils {
 
@@ -59,7 +64,9 @@ public class Utils {
 
     public static final String DATA_DIR = USERDIR + "data" + File.separator;
 
-    public static final DocumentBuilderFactory safeDocBuilderFactory =
+    public static final String CRAWLER_CONFIG_FILE = "benchmark-attack-http.xml";
+
+    private static final DocumentBuilderFactory safeDocBuilderFactory =
             DocumentBuilderFactory.newInstance();
 
     static {
@@ -72,6 +79,10 @@ public class Utils {
                     "ERROR: couldn't set http://apache.org/xml/features/disallow-doctype-decl");
             e.printStackTrace();
         }
+    }
+
+    public static DocumentBuilderFactory getSafeDocBuilderFactory() {
+        return safeDocBuilderFactory;
     }
 
     /**
@@ -95,7 +106,10 @@ public class Utils {
                 System.out.printf(
                         "getFileFromClasspath() url.toURI() is: %s and external form is: %s%n",
                         resourceURI, externalFormURI);
-
+                //                String filePath = resourceURI.getPath();
+                //                System.out.println("getFileFromClasspath() url.toURI().getPath()
+                // is: " + filePath);
+                //                if (resourceURI != null) return new File(resourceURI);
                 if (externalFormURI != null) return new File(externalFormURI);
                 else {
                     System.out.printf(
@@ -174,14 +188,32 @@ public class Utils {
      * @return A list of requests
      * @throws JAXBException
      * @throws FileNotFoundException
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws TestCaseRequestFileParseException
      */
-    public static TestSuite parseHttpFile(File file) throws JAXBException, FileNotFoundException {
+    public static TestSuite parseHttpFile(File file)
+            throws JAXBException, FileNotFoundException, SAXException,
+                    ParserConfigurationException {
 
         TestSuite testSuite = null;
+
+        // Disable XXE
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+
+        // Do unmarshall operation
+        String crawlerFileName = new File(Utils.DATA_DIR, CRAWLER_CONFIG_FILE).getPath();
+        Source xmlSource =
+                new SAXSource(
+                        spf.newSAXParser().getXMLReader(),
+                        new InputSource(new FileReader(crawlerFileName)));
         JAXBContext context = JAXBContextFactory.createContext(new Class[] {TestSuite.class}, null);
         Unmarshaller unmarshaller = context.createUnmarshaller();
         unmarshaller.setEventHandler(new javax.xml.bind.helpers.DefaultValidationEventHandler());
-        testSuite = (TestSuite) unmarshaller.unmarshal(new FileReader(file));
+        testSuite = (TestSuite) unmarshaller.unmarshal(xmlSource);
 
         return testSuite;
     }

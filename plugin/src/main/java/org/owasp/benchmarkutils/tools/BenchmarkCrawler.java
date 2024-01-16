@@ -20,7 +20,6 @@ package org.owasp.benchmarkutils.tools;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -28,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.cli.CommandLine;
@@ -39,21 +37,17 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.time.StopWatch;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
-import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.util.EntityUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -61,6 +55,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.owasp.benchmarkutils.helpers.Categories;
+import org.owasp.benchmarkutils.helpers.TestCase;
 import org.owasp.benchmarkutils.helpers.TestSuite;
 import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
@@ -68,22 +63,40 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 @Mojo(name = "run-crawler", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
 public class BenchmarkCrawler extends AbstractMojo {
 
-    // Intended to be a Singleton. So when instantiated, put it here:
-    static BenchmarkCrawler thisInstance = null;
-
-    static final long MAX_NETWORK_TIMEOUT = 15; // seconds
-    public static String proxyHost, proxyPort;
+    @Parameter(property = "crawlerFile")
+    String pluginFilenameParam;
 
     /*
-     * Attaching the @Parameter property to the crawlerFile variable allows you to set the value directly when invoking via maven.
-     * For example: -DcrawlerFile=data/benchmark-crawler-http.xml
+     * Attaching the @Parameter property to the crawlerFile variable directly didn't work for some
+     * reason. So I attached it to a new String variable, and set it later. No clue why it doesn't
+     * work. But for now, leaving it this way because it works.
+     *
+     * If you run the mvn command with -X, when invoking this plugin, you'd see something like
+     * this at the end:
+     *
+     * [DEBUG] (s) crawlerFile = /Users/PATH/TO/BenchmarkJava/data/benchmark-crawler-http.xml
+     * [DEBUG] -- end configuration --
+     * but the crawlerFile variable would be null.
+     *
+     * When it should be:
+     * [DEBUG] (f) crawlerFile = data/benchmark-crawler-http.xml
+     * [DEBUG] -- end configuration --
+     *
+     * So after changing this, I now get:
+     * [DEBUG] (f) pluginFilenameParam = data/benchmark-crawler-http.xml
+     * [DEBUG] -- end configuration --
+     * and the pluginFilenameParam variable value is set properly.
      */
-    @Parameter(property = "crawlerFile")
-    String crawlerFile = null;
+    String crawlerFile;
 
     File theCrawlerFile;
     String selectedTestCaseName = null;
     TestSuite testSuite;
+
+    BenchmarkCrawler() {
+        // A default constructor required to support Maven plugin API.
+        // The theCrawlerFile has to be instantiated before a crawl can be done.
+    }
 
     /** Crawl the target test suite. */
     protected void run() {
@@ -127,43 +140,45 @@ public class BenchmarkCrawler extends AbstractMojo {
         }
     }
 
-    /**
-     * Load the crawler file that defines all the test cases, including their endpoints, and how to
-     * crawl them.
-     *
-     * @param targetFileName The crawler file name
-     * @throws RuntimeException If the file doesn't exist or can't be opened for some reason.
-     */
-    public void setCrawlerFile(String targetFileName) throws RuntimeException {
-        File targetFile = new File(targetFileName);
-        if (targetFile.exists()) {
-            this.crawlerFile = targetFileName;
-            this.theCrawlerFile = targetFile;
-        } else {
-            throw new RuntimeException(
-                    "Could not find crawler configuration file: '" + targetFileName + "'");
-        }
+    public void setCrawlerFile(File theCrawlerFile) {
+        this.theCrawlerFile = theCrawlerFile;
     }
 
     /**
      * This method could be static, but needs to be an instance method so Verification crawler can
-     * overload this method.
+     * override this method.
      *
      * @param testSuite The TestSuite to crawl.
-     * @throws Exception If crawler configuration is messed up somehow.
+     * @throws Exception
      */
     protected void crawl(TestSuite testSuite) throws Exception {
-        CloseableHttpClient httpclient =
-                createAcceptSelfSignedCertificateClient(
-                        MAX_NETWORK_TIMEOUT); // Max 15 seconds for timeouts
+        // FIXME: Use try-with-resources to close this resource before returning
+        CloseableHttpClient httpclient = createAcceptSelfSignedCertificateClient();
         long start = System.currentTimeMillis();
 
-        for (AbstractTestCaseRequest requestTemplate : testSuite.getTestCases()) {
+        // Iterate through TestCase objects instead.
+        // Execution of the test case depends on the type of TestCase.getTestCaseInput()
+        // Where should the code that executes the test case go?
+        // Maybe I need a TestCaseExecuter that takes a TestCaseInput to initialize.
+        //      for (TestCase testCase : testSuite.getTestCases()) {
+        //    	if (testCase.getTestCaseInput() instanceof HttpTestCaseInput) {
+        //    		HttpUriRequest request = testCase.getAttackTestCaseRequest().buildAttackRequest();
+        //    		sendRequest(httpclient, request);
+        //    	} else if (testCase.getTestCaseInput() instanceof ExecutableTestCaseInput) {
+        //    		// Execute the testCase using exec()
+        //    	}
+        //    }
 
-            HttpUriRequest request = requestTemplate.buildSafeRequest();
+        // FIXME: If there are any HttpTestCaseInput, create a CloseableHttpClient
+        for (TestCase testCase : testSuite.getTestCases()) {
+            testCase.getTestCaseExecutor().execute();
 
-            // Send the next test case request
-            sendRequest(httpclient, request);
+            //        for (AbstractTestCaseRequest requestTemplate : testSuite.getTestCases()) {
+            //
+            //            HttpUriRequest request = requestTemplate.buildAttackRequest();
+            //
+            //            // Send the next test case request
+            //            sendRequest(httpclient, request);
         }
 
         // Log the elapsed time for all test cases
@@ -179,7 +194,7 @@ public class BenchmarkCrawler extends AbstractMojo {
 
     // This method taken directly from:
     // https://memorynotfound.com/ignore-certificate-errors-apache-httpclient/
-    static CloseableHttpClient createAcceptSelfSignedCertificateClient(long timeout)
+    static CloseableHttpClient createAcceptSelfSignedCertificateClient()
             throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
 
         // use the TrustSelfSignedStrategy to allow Self Signed Certificates
@@ -195,37 +210,9 @@ public class BenchmarkCrawler extends AbstractMojo {
         SSLConnectionSocketFactory connectionFactory =
                 new SSLConnectionSocketFactory(sslContext, allowAllHosts);
 
-        HttpClientConnectionManager cm =
-                PoolingHttpClientConnectionManagerBuilder.create()
-                        .setSSLSocketFactory(connectionFactory)
-                        .build();
-
-        // Set Proxy settings
-        HttpHost httpHost = null;
-        RequestConfig config =
-                RequestConfig.custom()
-                        .setConnectTimeout(timeout, TimeUnit.SECONDS)
-                        .setConnectionRequestTimeout(timeout, TimeUnit.SECONDS)
-                        .setResponseTimeout(timeout, TimeUnit.SECONDS)
-                        .build();
-        if ((proxyHost = System.getProperty("proxyHost")) != null
-                && (proxyPort = System.getProperty("proxyPort")) != null) {
-            httpHost = new HttpHost(proxyHost, Integer.parseInt(proxyPort));
-            // finally create the HttpClient using HttpClient factory methods and assign the SSL
-            // Socket Factory and assign the setProxy
-            return HttpClients.custom()
-                    .setDefaultRequestConfig(config)
-                    .setConnectionManager(cm)
-                    .setProxy(httpHost)
-                    .build();
-        } else {
-            // finally create the HttpClient using HttpClient factory methods and assign the SSL
-            // Socket Factory
-            return HttpClients.custom()
-                    .setDefaultRequestConfig(config)
-                    .setConnectionManager(cm)
-                    .build();
-        }
+        // finally create the HttpClient using HttpClient factory methods and assign the SSL Socket
+        // Factory
+        return HttpClients.custom().setSSLSocketFactory(connectionFactory).build();
     }
 
     /**
@@ -242,48 +229,30 @@ public class BenchmarkCrawler extends AbstractMojo {
         CloseableHttpResponse response = null;
 
         boolean isPost = request instanceof HttpPost;
-        try {
-            System.out.println((isPost ? "POST " : "GET ") + request.getUri());
-        } catch (URISyntaxException e1) {
-            System.out.println(
-                    (isPost ? "POST " : "GET ") + "COULDN'T LOG Uri because of URISyntaxException");
-            e1.printStackTrace();
-        }
+        System.out.println((isPost ? "POST " : "GET ") + request.getURI());
         StopWatch watch = new StopWatch();
 
         watch.start();
         try {
             response = httpclient.execute(request);
         } catch (IOException e) {
-            // When this occurs, a null pointer exception happens later on, so we need to do
-            // something so we can continue crawling.
             e.printStackTrace();
         }
         watch.stop();
 
         try {
+            HttpEntity entity = response.getEntity();
+            int statusCode = response.getStatusLine().getStatusCode();
+            responseInfo.setStatusCode(statusCode);
             int seconds = (int) watch.getTime() / 1000;
             responseInfo.setTimeInSeconds(seconds);
-            if (response != null) {
-                HttpEntity entity = response.getEntity();
-                int statusCode = response.getCode();
-                responseInfo.setStatusCode(statusCode);
-                System.out.printf("--> (%d : %d sec)%n", statusCode, seconds);
+            System.out.printf("--> (%d : %d sec)%n", statusCode, seconds);
 
-                try {
-                    if (entity != null) {
-                        responseInfo.setResponseString(EntityUtils.toString(entity));
-                        EntityUtils.consume(entity);
-                    } else
-                        // Can occur when there is a 204 No Content response
-                        responseInfo.setResponseString("");
-                } catch (IOException | org.apache.hc.core5.http.ParseException e) {
-                    e.printStackTrace();
-                }
-            } else { // This can occur when the test case never responds, throwing an exception.
-                responseInfo.setStatusCode(-1); // since no response at all
-                System.out.printf("--> (%d : %d sec)%n", -1, seconds);
-                responseInfo.setResponseString("NONE!");
+            try {
+                responseInfo.setResponseString(EntityUtils.toString(entity));
+                EntityUtils.consume(entity);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         } finally {
             if (response != null)
@@ -302,7 +271,7 @@ public class BenchmarkCrawler extends AbstractMojo {
      * @param args - args passed to main().
      * @return specified crawler file if valid command line arguments provided. Null otherwise.
      */
-    protected void processCommandLineArgs(String[] args) {
+    private void processCommandLineArgs(String[] args) {
 
         // Create the command line parser
         CommandLineParser parser = new DefaultParser();
@@ -329,7 +298,14 @@ public class BenchmarkCrawler extends AbstractMojo {
             CommandLine line = parser.parse(options, args);
 
             if (line.hasOption("f")) {
-                setCrawlerFile(line.getOptionValue("f"));
+                this.crawlerFile = line.getOptionValue("f");
+                File targetFile = new File(this.crawlerFile);
+                if (targetFile.exists()) {
+                    setCrawlerFile(targetFile);
+                } else {
+                    throw new RuntimeException(
+                            "Could not find crawler configuration file '" + this.crawlerFile + "'");
+                }
             }
             if (line.hasOption("h")) {
                 formatter.printHelp("BenchmarkCrawlerVerification", options, true);
@@ -345,24 +321,19 @@ public class BenchmarkCrawler extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (thisInstance == null) thisInstance = this;
-
-        if (null == this.crawlerFile) {
+        if (null == this.pluginFilenameParam) {
             System.out.println("ERROR: A crawlerFile parameter must be specified.");
         } else {
-            String[] mainArgs = {"-f", this.crawlerFile};
+            String[] mainArgs = {"-f", this.pluginFilenameParam};
             main(mainArgs);
         }
     }
 
     public static void main(String[] args) {
-        // thisInstance can be set from execute() or here, depending on how this class is invoked
-        // (via maven or commmand line)
-        if (thisInstance == null) {
-            thisInstance = new BenchmarkCrawler();
-        }
-        thisInstance.processCommandLineArgs(args);
-        thisInstance.load();
-        thisInstance.run();
+
+        BenchmarkCrawler crawler = new BenchmarkCrawler();
+        crawler.processCommandLineArgs(args);
+        crawler.load();
+        crawler.run();
     }
 }

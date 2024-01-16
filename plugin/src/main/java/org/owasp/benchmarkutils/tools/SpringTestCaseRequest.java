@@ -17,9 +17,11 @@
  */
 package org.owasp.benchmarkutils.tools;
 
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.http.io.entity.StringEntity;
+import java.io.UnsupportedEncodingException;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.StringEntity;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 import org.owasp.benchmarkutils.helpers.RequestVariable;
 
@@ -34,7 +36,7 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
     }
 
     @Override
-    HttpUriRequestBase createRequestInstance(String URL) {
+    HttpRequestBase createRequestInstance(String URL) {
         // Apparently all Spring Requests are POSTS. Never any query string params per buildQuery()
         // above.
         HttpPost httpPost = new HttpPost(URL);
@@ -42,10 +44,8 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
     }
 
     @Override
-    void buildHeaders(HttpUriRequestBase request) {
-        request.addHeader("Content-type", "application/json"); // Should this add ;charset=utf-8?
-        // No: "Designating the encoding is somewhat redundant for JSON, since the default encoding
-        // for JSON is UTF-8."
+    void buildHeaders(HttpRequestBase request) {
+        request.addHeader("Content-type", "application/json");
         for (RequestVariable header : getHeaders()) {
             String name = header.getName();
             String value = header.getValue();
@@ -55,7 +55,7 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
     }
 
     @Override
-    void buildCookies(HttpUriRequestBase request) {
+    void buildCookies(HttpRequestBase request) {
         for (RequestVariable cookie : getCookies()) {
             String name = cookie.getName();
             String value = cookie.getValue();
@@ -65,7 +65,7 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
     }
 
     @Override
-    void buildBodyParameters(HttpUriRequestBase request) {
+    void buildBodyParameters(HttpRequestBase request) {
         boolean first = true;
         String params = "{";
         for (RequestVariable field : getFormParams()) {
@@ -80,7 +80,11 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
             params = params + String.format("\"%s\":\"%s\"", name, value.replace("\"", "\\\""));
         }
         params += "}";
-        StringEntity paramsEnt = new StringEntity(params);
-        request.setEntity(paramsEnt);
+        try {
+            StringEntity paramsEnt = new StringEntity(params);
+            ((HttpEntityEnclosingRequestBase) request).setEntity(paramsEnt);
+        } catch (UnsupportedEncodingException e) {
+            System.out.println("Error encoding URL: " + e.getMessage());
+        }
     }
 }

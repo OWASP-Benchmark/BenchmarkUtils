@@ -30,10 +30,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpMessage;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpMessage;
+import org.apache.http.ParseException;
+import org.apache.http.client.methods.HttpPost;
 
 /**
  * Test all supported test cases to verify that the results are as expected and write the report to
@@ -180,7 +181,7 @@ public class RegressionTesting {
 
     private static void printHttpRequest(HttpMessage request, Logger out) {
         out.println(request.toString());
-        for (Header header : request.getHeaders()) {
+        for (Header header : request.getAllHeaders()) {
             out.printf("%s:%s%n", header.getName(), header.getValue());
         }
         if (request instanceof HttpPost) {
@@ -191,7 +192,7 @@ public class RegressionTesting {
                 if (entity != null) {
                     out.println(IOUtils.toString(entity.getContent(), StandardCharsets.UTF_8));
                 }
-            } catch (IOException e) {
+            } catch (ParseException | IOException e) {
                 System.out.println("ERROR: Could not parse HttpPost entities");
                 e.printStackTrace();
             }
@@ -222,11 +223,8 @@ public class RegressionTesting {
         out.printf("Safe response: [%d]:%n", attackResponseInfo.getStatusCode());
         out.println(safeResponseInfo == null ? "null" : safeResponseInfo.getResponseString());
         out.println();
-        String negatedAttackSuccessString =
-                (requestTemplate.getAttackSuccessStringPresent() ? "" : "Failure ");
         out.printf(
-                "Attack success %sindicator: -->%s<--%n",
-                negatedAttackSuccessString, requestTemplate.getAttackSuccessString());
+                "Attack success indicator: -->%s<--%n", requestTemplate.getAttackSuccessString());
         out.printf("-----------------------------------------------------------%n%n");
     }
 
@@ -342,17 +340,14 @@ public class RegressionTesting {
         }
 
         if (!result.isUnverifiable()) {
-            AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
             boolean isAttackValueVerified =
                     verifyResponse(
                             result.getResponseToAttackValue().getResponseString(),
-                            requestTemplate.getAttackSuccessString(),
-                            requestTemplate.getAttackSuccessStringPresent());
+                            result.getRequestTemplate().getAttackSuccessString());
             boolean isSafeValueVerified =
                     verifyResponse(
                             result.getResponseToSafeValue().getResponseString(),
-                            requestTemplate.getAttackSuccessString(),
-                            requestTemplate.getAttackSuccessStringPresent());
+                            result.getRequestTemplate().getAttackSuccessString());
             if (result.getRequestTemplate().isVulnerability()) {
                 // True positive success?
                 if (isAttackValueVerified) {
@@ -442,17 +437,14 @@ public class RegressionTesting {
      * @param response - The response from this test case.
      * @param attackSuccessIndicator - The value to look for in the response to determine if the
      *     attack was successful.
-     * @param attackSuccessStringPresent - boolean indicating if attack success indicator must be
-     *     present (or absent) to pass.
      * @return true if the response passes the described checks. False otherwise.
      */
-    public static boolean verifyResponse(
-            String response, String attackSuccessIndicator, boolean attackSuccessStringPresent) {
+    public static boolean verifyResponse(String response, String attackSuccessIndicator) {
 
         // Rip out any REFERER values
         attackSuccessIndicator = attackSuccessIndicator.replace("REFERER", "");
 
-        return (response.contains(attackSuccessIndicator) == attackSuccessStringPresent);
+        return response.contains(attackSuccessIndicator);
     }
 
     private static boolean isIncludedInTest(AbstractTestCaseRequest testCaseRequestTemplate) {
