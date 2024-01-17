@@ -10,14 +10,16 @@ import javax.net.ssl.SSLContext;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContextBuilder;
+
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 
 public abstract class HttpTestCaseInput extends TestCaseInput {
 
@@ -101,10 +103,10 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
     }
 
     /** Defines what parameters in the body will be sent. */
-    abstract void buildBodyParameters(HttpRequestBase request);
+    abstract void buildBodyParameters(HttpUriRequestBase request);
 
     /** Defines what cookies will be sent. */
-    void buildCookies(HttpRequestBase request) {
+    void buildCookies(HttpUriRequestBase request) {
         for (RequestVariable cookie : getCookies()) {
             String name = cookie.getName();
             String value = cookie.getValue();
@@ -116,7 +118,7 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
     }
 
     /** Defines what headers will be sent. */
-    void buildHeaders(HttpRequestBase request) {
+    void buildHeaders(HttpUriRequestBase request) {
         for (RequestVariable header : getHeaders()) {
             String name = header.getName();
             String value = header.getValue();
@@ -141,7 +143,7 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
             httpclient = createAcceptSelfSignedCertificateClient();
         }
 
-        HttpUriRequest request = buildAttackRequest();
+        HttpUriRequestBase request = buildAttackRequest();
 
         // Send the next test case request
         sendRequest(httpclient, request);
@@ -153,21 +155,21 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
      *
      * @return
      */
-    public HttpUriRequest buildRequest() {
+    public HttpUriRequestBase buildRequest() {
         buildQueryString();
-        HttpRequestBase request = createRequestInstance(fullURL + query);
+        HttpUriRequestBase request = createRequestInstance(fullURL + query);
         buildHeaders(request);
         buildCookies(request);
         buildBodyParameters(request);
         return request;
     }
 
-    public HttpUriRequest buildAttackRequest() {
+    public HttpUriRequestBase buildAttackRequest() {
         setSafe(false);
         return buildRequest();
     }
 
-    public HttpUriRequest buildSafeRequest() {
+    public HttpUriRequestBase buildSafeRequest() {
         setSafe(true);
         return buildRequest();
     }
@@ -197,8 +199,10 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
 
         // use the TrustSelfSignedStrategy to allow Self Signed Certificates
         SSLContext sslContext =
-                SSLContextBuilder.create().loadTrustMaterial(new TrustSelfSignedStrategy()).build();
-
+                SSLContextBuilder.create()
+                        .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
+                        .build();
+        
         // we can optionally disable hostname verification.
         // if you don't want to further weaken the security, you don't have to include this.
         HostnameVerifier allowAllHosts = new NoopHostnameVerifier();
@@ -207,10 +211,12 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
         // strategy and allow all hosts verifier.
         SSLConnectionSocketFactory connectionFactory =
                 new SSLConnectionSocketFactory(sslContext, allowAllHosts);
+        HttpClientConnectionManager connectionManager = 
+        		PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(connectionFactory).build();
 
         // finally create the HttpClient using HttpClient factory methods and assign the SSL Socket
         // Factory
-        return HttpClients.custom().setSSLSocketFactory(connectionFactory).build();
+        return HttpClients.custom().setConnectionManager(connectionManager).build();
     }
 
     @Override

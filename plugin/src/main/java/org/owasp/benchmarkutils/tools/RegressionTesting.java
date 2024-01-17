@@ -30,11 +30,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpMessage;
-import org.apache.http.ParseException;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpMessage;
+import org.apache.hc.core5.http.ParseException;
 
 /**
  * Test all supported test cases to verify that the results are as expected and write the report to
@@ -181,7 +181,7 @@ public class RegressionTesting {
 
     private static void printHttpRequest(HttpMessage request, Logger out) {
         out.println(request.toString());
-        for (Header header : request.getAllHeaders()) {
+        for (Header header : request.getHeaders()) {
             out.printf("%s:%s%n", header.getName(), header.getValue());
         }
         if (request instanceof HttpPost) {
@@ -192,7 +192,7 @@ public class RegressionTesting {
                 if (entity != null) {
                     out.println(IOUtils.toString(entity.getContent(), StandardCharsets.UTF_8));
                 }
-            } catch (ParseException | IOException e) {
+            } catch (IOException e) {
                 System.out.println("ERROR: Could not parse HttpPost entities");
                 e.printStackTrace();
             }
