@@ -102,9 +102,8 @@ public class AcunetixReader extends Reader {
             tr.setTime(duration);
 
             Node issues = getNamedChild("ReportItems", scan);
-            List<Node> issueList = getNamedChildren("ReportItem", issues);
 
-            for (Node issue : issueList) {
+            for (Node issue : getNamedChildren("ReportItem", issues)) {
                 try {
                     TestCaseResult tcr = parseAcunetixReportItem(issue);
                     if (tcr != null) {

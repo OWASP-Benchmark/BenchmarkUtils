@@ -85,6 +85,7 @@ public abstract class Reader {
                 new QualysWASReader(),
                 new Rapid7Reader(),
                 new ReshiftReader(),
+                new ScnrReader(),
                 new SeekerReader(),
                 new SemgrepReader(),
                 new ShiftLeftReader(),
@@ -112,10 +113,12 @@ public abstract class Reader {
     public static Node getNamedNode(String name, NodeList list) {
         for (int i = 0; i < list.getLength(); i++) {
             Node n = list.item(i);
+
             if (n.getNodeName().equals(name)) {
                 return n;
             }
         }
+
         return null;
     }
     // Returns the node inside this nodelist whose name matches 'name', that also
@@ -123,8 +126,7 @@ public abstract class Reader {
     // called 'key' whose value matches 'keyvalue'
 
     public static Node getNamedNode(String name, String keyValue, NodeList list) {
-        if ((name == null) || (keyValue == null) || (list == null))
-            return null;
+        if ((name == null) || (keyValue == null) || (list == null)) return null;
         for (int i = 0; i < list.getLength(); i++) {
             Node n = list.item(i);
             if (n.getNodeName().equals(name)) {
@@ -139,6 +141,11 @@ public abstract class Reader {
     public static Node getNamedChild(String name, Node parent) {
         NodeList children = parent.getChildNodes();
         return getNamedNode(name, children);
+    }
+
+    public static boolean hasNamedChild(String name, Node parent) {
+        NodeList children = parent.getChildNodes();
+        return getNamedNode(name, children) != null;
     }
 
     public static List<Node> getNamedChildren(String name, List<Node> list) {
@@ -173,8 +180,7 @@ public abstract class Reader {
     }
 
     public static String getAttributeValue(String name, Node node) {
-        if (node == null)
-            return null;
+        if (node == null) return null;
         NamedNodeMap nnm = node.getAttributes();
         if (nnm != null) {
             Node attrnode = nnm.getNamedItem(name);
@@ -216,16 +222,18 @@ public abstract class Reader {
             if (path.indexOf(BenchmarkScore.TESTCASENAME) < 0) {
                 return -1;
             }
-            int numberStart = path.indexOf(BenchmarkScore.TESTCASENAME)
-                    + BenchmarkScore.TESTCASENAME.length()
-                    + 1;
+            int numberStart =
+                    path.indexOf(BenchmarkScore.TESTCASENAME)
+                            + BenchmarkScore.TESTCASENAME.length()
+                            + 1;
             path = path.substring(numberStart);
             // System.out.println("After length: " + path);
             path = path.replaceAll("\\?.*", "");
             path = path.replaceAll(",.*", "");
 
-            path = path.replaceAll(
-                    BenchmarkScore.TESTCASENAME + "v[0-9]*", BenchmarkScore.TESTCASENAME);
+            path =
+                    path.replaceAll(
+                            BenchmarkScore.TESTCASENAME + "v[0-9]*", BenchmarkScore.TESTCASENAME);
 
             path = path.replaceAll("/send", "");
             if (path.contains(":")) {
