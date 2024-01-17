@@ -33,7 +33,13 @@ public class SonarQubeJsonReader extends Reader {
         // another for 'hotspots' which are security issues. Both are handled by
         // the same parser for SonarQube.
         return resultFile.isJson()
-                && (resultFile.json().has("hotspots") || resultFile.json().has("issues"))
+                && (resultFile.json().has("hotspots")
+                        || (resultFile.json().has("issues")
+                                && resultFile
+                                        .json()
+                                        .getJSONArray("issues")
+                                        .getJSONObject(0)
+                                        .has("component")))
                 && !resultFile.json().has("type"); // Ignore Coverity results
     }
 
@@ -107,6 +113,7 @@ public class SonarQubeJsonReader extends Reader {
     // Quality Issues are normal SonarQube findings that are mostly not relevant to security
     // However, there are a small number of security issues that do show up this way so we have
     // to support both
+
     /**
      * Parse the SonarQube Quality results to see if there is a finding in Benchmark test case.
      *
@@ -155,6 +162,7 @@ public class SonarQubeJsonReader extends Reader {
      */
 
     // Hotspot Issues are SonarQube security findings.
+
     /**
      * Parse the SonarQube HotSpot results to see if there is a finding in Benchmark test case.
      *
