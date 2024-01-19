@@ -1,6 +1,6 @@
 package org.owasp.benchmarkutils.tools;
 
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
 /** Not a great class name. */
 public class TestCaseVerificationResults {
@@ -15,15 +15,15 @@ public class TestCaseVerificationResults {
 
     private boolean isPassed;
 
-    private HttpUriRequest attackRequest;
+    private HttpUriRequestBase attackRequest;
 
-    private HttpUriRequest safeRequest;
+    private HttpUriRequestBase safeRequest;
 
     private AbstractTestCaseRequest requestTemplate;
 
     public TestCaseVerificationResults(
-            HttpUriRequest attackRequest,
-            HttpUriRequest safeRequest,
+    		HttpUriRequestBase attackRequest,
+            HttpUriRequestBase safeRequest,
             AbstractTestCaseRequest requestTemplate,
             ResponseInfo responseToAttackValue,
             ResponseInfo responseToSafeValue) {
@@ -39,8 +39,8 @@ public class TestCaseVerificationResults {
     }
 
     public TestCaseVerificationResults(
-            HttpUriRequest attackRequest,
-            HttpUriRequest safeRequest,
+    		HttpUriRequestBase attackRequest,
+    		HttpUriRequestBase safeRequest,
             AbstractTestCaseRequest requestTemplate,
             ResponseInfo responseToAttackValue,
             ResponseInfo responseToSafeValue,
@@ -98,19 +98,19 @@ public class TestCaseVerificationResults {
         return isPassed;
     }
 
-    public HttpUriRequest getAttackRequest() {
+    public HttpUriRequestBase getAttackRequest() {
         return attackRequest;
     }
 
-    public void setAttackRequest(HttpUriRequest attackRequest) {
+    public void setAttackRequest(HttpUriRequestBase attackRequest) {
         this.attackRequest = attackRequest;
     }
 
-    public HttpUriRequest getSafeRequest() {
+    public HttpUriRequestBase getSafeRequest() {
         return safeRequest;
     }
 
-    public void setSafeRequest(HttpUriRequest safeRequest) {
+    public void setSafeRequest(HttpUriRequestBase safeRequest) {
         this.safeRequest = safeRequest;
     }
 

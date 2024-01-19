@@ -21,7 +21,8 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.apache.http.impl.client.CloseableHttpClient;
+
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
 
 @XmlRootElement(name = "benchmarkSuite")

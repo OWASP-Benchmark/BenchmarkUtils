@@ -1,6 +1,6 @@
 package org.owasp.benchmarkutils.helpers;
 
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 
 public class HttpGetTestCaseInput extends HttpTestCaseInput {
     void buildQueryString() {
@@ -20,7 +20,7 @@ public class HttpGetTestCaseInput extends HttpTestCaseInput {
         }
     }
 
-    void buildBodyParameters(HttpRequestBase request) {
+    void buildBodyParameters(HttpUriRequestBase request) {
         // No request body
     }
 }

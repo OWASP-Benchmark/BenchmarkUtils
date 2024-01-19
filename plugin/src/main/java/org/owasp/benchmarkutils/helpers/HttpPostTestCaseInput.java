@@ -1,9 +1,10 @@
 package org.owasp.benchmarkutils.helpers;
 
 import java.io.UnsupportedEncodingException;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
+
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 
 public class HttpPostTestCaseInput extends HttpTestCaseInput {
     @Override
@@ -25,7 +26,7 @@ public class HttpPostTestCaseInput extends HttpTestCaseInput {
     }
 
     @Override
-    void buildBodyParameters(HttpRequestBase request) {
+    void buildBodyParameters(HttpUriRequestBase request) {
         boolean first = true;
         String params = "{";
         for (RequestVariable field : getFormParameters()) {
@@ -40,11 +41,8 @@ public class HttpPostTestCaseInput extends HttpTestCaseInput {
             params = params + String.format("\"%s\":\"%s\"", name, value.replace("\"", "\\\""));
         }
         params += "}";
-        try {
-            StringEntity paramsEnt = new StringEntity(params);
-            ((HttpEntityEnclosingRequestBase) request).setEntity(paramsEnt);
-        } catch (UnsupportedEncodingException e) {
-            System.out.println("Error encoding URL: " + e.getMessage());
-        }
+        StringEntity paramsEnt = new StringEntity(params);
+        ((BasicClassicHttpRequest) request).setEntity(paramsEnt);
+
     }
 }

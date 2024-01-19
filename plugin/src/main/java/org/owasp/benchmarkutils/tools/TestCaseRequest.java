@@ -26,8 +26,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
+
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.eclipse.persistence.oxm.annotations.XmlReadOnly;
 import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.CategoryAdapter;
@@ -163,17 +164,17 @@ public class TestCaseRequest {
     //    }
 
     /** Defines what parameters in the body will be sent. */
-    public void buildBodyParameters(HttpRequestBase request) {
+    public void buildBodyParameters(HttpUriRequestBase request) {
         testCaseInput.buildBodyParameters(request);
     }
 
     /** Defines what cookies will be sent. */
-    public void buildCookies(HttpRequestBase request) {
+    public void buildCookies(HttpUriRequestBase request) {
         testCaseInput.buildCookies(request);
     }
 
     /** Defines what headers will be sent. */
-    public void buildHeaders(HttpRequestBase request) {
+    public void buildHeaders(HttpUriRequestBase request) {
         testCaseInput.buildHeaders(request);
     }
 
@@ -188,21 +189,21 @@ public class TestCaseRequest {
      *
      * @return
      */
-    public HttpUriRequest buildRequest() {
+    public HttpUriRequestBase buildRequest() {
         buildQueryString();
-        HttpRequestBase request = createRequestInstance(fullURL + query);
+        HttpUriRequestBase request = createRequestInstance(fullURL + query);
         buildHeaders(request);
         buildCookies(request);
         buildBodyParameters(request);
         return request;
     }
 
-    public HttpUriRequest buildAttackRequest() {
+    public HttpUriRequestBase buildAttackRequest() {
         setSafe(false);
         return buildRequest();
     }
 
-    public HttpUriRequest buildSafeRequest() {
+    public HttpUriRequestBase buildSafeRequest() {
         setSafe(true);
         return buildRequest();
     }
@@ -210,9 +211,9 @@ public class TestCaseRequest {
     /**
      * Method to create a POST, GET, DELETE, HEAD, OPTIONS, TRACE request object.
      *
-     * @return an instance of a subclass of HttpRequestBase
+     * @return an instance of a subclass of HttpUriRequestBase
      */
-    abstract HttpRequestBase createRequestInstance(String URL);
+    abstract HttpUriRequestBase createRequestInstance(String URL);
 
     @XmlAttribute(name = "tcAttackSuccess")
     public String getAttackSuccessString() {

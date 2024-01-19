@@ -1,5 +1,7 @@
 package org.owasp.benchmarkutils.helpers;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -16,9 +18,16 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.owasp.benchmarkutils.tools.ResponseInfo;
+import org.apache.commons.lang.time.StopWatch;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 
 public abstract class HttpTestCaseInput extends TestCaseInput {
@@ -147,6 +156,60 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
 
         // Send the next test case request
         sendRequest(httpclient, request);
+    }
+    
+    /**
+     * Issue the requested request, measure the time required to execute, then output both to stdout
+     * and the global variable timeString the URL tested, the time required to execute and the
+     * response code.
+     *
+     * @param httpclient - The HTTP client to use to make the request
+     * @param request - THe HTTP request to issue
+     */
+    static ResponseInfo sendRequest(CloseableHttpClient httpclient, HttpUriRequest request) {
+        ResponseInfo responseInfo = new ResponseInfo();
+        responseInfo.setRequestBase(request);
+        CloseableHttpResponse response = null;
+
+        boolean isPost = request instanceof HttpPost;
+        try {
+			System.out.println((isPost ? "POST " : "GET ") + request.getUri());
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+        StopWatch watch = new StopWatch();
+
+        watch.start();
+        try {
+            response = httpclient.execute(request);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        watch.stop();
+
+        try {
+            HttpEntity entity = response.getEntity();
+            int statusCode = response.getCode();
+            responseInfo.setStatusCode(statusCode);
+            int seconds = (int) watch.getTime() / 1000;
+            responseInfo.setTimeInSeconds(seconds);
+            System.out.printf("--> (%d : %d sec)%n", statusCode, seconds);
+
+            try {
+                responseInfo.setResponseString(EntityUtils.toString(entity));
+                EntityUtils.consume(entity);
+            } catch (IOException | org.apache.hc.core5.http.ParseException e) {
+                e.printStackTrace();
+            }
+        } finally {
+            if (response != null)
+                try {
+                    response.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+        }
+        return responseInfo;
     }
 
     /**
