@@ -1,4 +1,4 @@
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.entities;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -6,13 +6,22 @@ import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlElement;
-
+import javax.xml.bind.annotation.XmlElementWrapper;
+import org.apache.commons.lang.time.StopWatch;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
@@ -21,20 +30,11 @@ import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
-import org.owasp.benchmarkutils.tools.ResponseInfo;
-import org.apache.commons.lang.time.StopWatch;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
 
 public abstract class HttpTestCaseInput extends TestCaseInput {
 
     private String url;
 
-    @XmlElement(required = true)
     protected ContentFormatEnum contentFormat;
 
     private String queryString;
@@ -47,9 +47,25 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
 
     private List<RequestVariable> headers;
 
-    private static CloseableHttpClient httpclient;
+    private static CloseableHttpClient httpClient;
 
-    @XmlAttribute(name = "URL", required = true)
+    void beforeMarshal(Marshaller marshaller) {
+        //        System.out.println("Before marshal");
+        if (formParameters != null && formParameters.isEmpty()) formParameters = null;
+        if (getParameters != null && getParameters.isEmpty()) getParameters = null;
+        if (cookies != null && cookies.isEmpty()) cookies = null;
+        if (headers != null && headers.isEmpty()) headers = null;
+    }
+
+    void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {
+        //        System.out.println("After unmarshal");
+        if (formParameters == null) formParameters = new ArrayList<RequestVariable>();
+        if (getParameters == null) getParameters = new ArrayList<RequestVariable>();
+        if (cookies == null) cookies = new ArrayList<RequestVariable>();
+        if (headers == null) headers = new ArrayList<RequestVariable>();
+    }
+
+    @XmlElement(name = "url", required = true)
     @NotNull
     public String getUrl() {
         return url;
@@ -59,28 +75,36 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
         return queryString;
     }
 
-    @XmlElement(name = "formparam")
+    @XmlElementWrapper(name = "formParams", required = false)
+    @XmlElement(name = "formParam", required = false)
     @NotNull
     public List<RequestVariable> getFormParameters() {
         return formParameters;
     }
 
-    @XmlElement(name = "getparam")
+    @XmlElementWrapper(name = "getParams", required = false)
+    @XmlElement(name = "getParam", required = false)
     @NotNull
     public List<RequestVariable> getGetParameters() {
         return getParameters;
     }
 
-    @XmlElement(name = "cookie")
+    @XmlElementWrapper(name = "cookies", required = false)
+    @XmlElement(name = "cookie", required = false)
     @NotNull
     public List<RequestVariable> getCookies() {
         return cookies;
     }
 
-    @XmlElement(name = "header")
+    @XmlElementWrapper(name = "headers", required = false)
+    @XmlElement(name = "header", required = false)
     @NotNull
     public List<RequestVariable> getHeaders() {
         return headers;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public void setQueryString(String queryString) {
@@ -103,6 +127,35 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
         this.headers = headers;
     }
 
+    public void addFormParameter(RequestVariable formParameter) {
+        if (this.formParameters == null) {
+            this.formParameters = new ArrayList<>();
+        }
+        this.formParameters.add(formParameter);
+    }
+
+    public void addGetParameter(RequestVariable getParameter) {
+        if (this.getParameters == null) {
+            this.getParameters = new ArrayList<>();
+        }
+        this.getParameters.add(getParameter);
+    }
+
+    public void addCookie(RequestVariable cookie) {
+        if (this.cookies == null) {
+            this.cookies = new ArrayList<>();
+        }
+        this.cookies.add(cookie);
+    }
+
+    public void addHeader(RequestVariable header) {
+        if (this.headers == null) {
+            this.headers = new ArrayList<>();
+        }
+        this.headers.add(header);
+    }
+
+    @XmlElement
     public ContentFormatEnum getContentFormat() {
         return contentFormat;
     }
@@ -144,20 +197,20 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
     /** Defines how to construct URL query string. */
     abstract void buildQueryString();
 
-    public void execute() {
-        // TODO: Not thread-safe
-        // TODO: We never close this resource, which is poor form
-        // TODO: What about other setup tasks, like starting a DB server or app server?
-        if (httpclient == null) {
-            httpclient = createAcceptSelfSignedCertificateClient();
-        }
+    //    public void execute() {
+    //        // TODO: Not thread-safe
+    //        // TODO: We never close this resource, which is poor form
+    //        // TODO: What about other setup tasks, like starting a DB server or app server?
+    //        if (httpclient == null) {
+    //            httpclient = createAcceptSelfSignedCertificateClient();
+    //        }
+    //
+    //        HttpUriRequestBase request = buildAttackRequest();
+    //
+    //        // Send the next test case request
+    //        sendRequest(httpclient, request);
+    //    }
 
-        HttpUriRequestBase request = buildAttackRequest();
-
-        // Send the next test case request
-        sendRequest(httpclient, request);
-    }
-    
     /**
      * Issue the requested request, measure the time required to execute, then output both to stdout
      * and the global variable timeString the URL tested, the time required to execute and the
@@ -173,10 +226,10 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
 
         boolean isPost = request instanceof HttpPost;
         try {
-			System.out.println((isPost ? "POST " : "GET ") + request.getUri());
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
+            System.out.println((isPost ? "POST " : "GET ") + request.getUri());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
         StopWatch watch = new StopWatch();
 
         watch.start();
@@ -220,12 +273,14 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
      */
     public HttpUriRequestBase buildRequest() {
         buildQueryString();
-        HttpUriRequestBase request = createRequestInstance(fullURL + query);
+        HttpUriRequestBase request = createRequestInstance(getUrl() + getQueryString());
         buildHeaders(request);
         buildCookies(request);
         buildBodyParameters(request);
         return request;
     }
+
+    abstract HttpUriRequestBase createRequestInstance(String url);
 
     public HttpUriRequestBase buildAttackRequest() {
         setSafe(false);
@@ -247,10 +302,10 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
         for (RequestVariable cookie : getCookies()) {
             cookie.setSafe(isSafe);
         }
-        for (RequestVariable getParam : getGetParams()) {
+        for (RequestVariable getParam : getGetParameters()) {
             getParam.setSafe(isSafe);
         }
-        for (RequestVariable formParam : getFormParams()) {
+        for (RequestVariable formParam : getFormParameters()) {
             formParam.setSafe(isSafe);
         }
     }
@@ -265,7 +320,7 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
                 SSLContextBuilder.create()
                         .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
                         .build();
-        
+
         // we can optionally disable hostname verification.
         // if you don't want to further weaken the security, you don't have to include this.
         HostnameVerifier allowAllHosts = new NoopHostnameVerifier();
@@ -274,8 +329,10 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
         // strategy and allow all hosts verifier.
         SSLConnectionSocketFactory connectionFactory =
                 new SSLConnectionSocketFactory(sslContext, allowAllHosts);
-        HttpClientConnectionManager connectionManager = 
-        		PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(connectionFactory).build();
+        HttpClientConnectionManager connectionManager =
+                PoolingHttpClientConnectionManagerBuilder.create()
+                        .setSSLSocketFactory(connectionFactory)
+                        .build();
 
         // finally create the HttpClient using HttpClient factory methods and assign the SSL Socket
         // Factory

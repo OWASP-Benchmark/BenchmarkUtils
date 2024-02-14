@@ -15,11 +15,11 @@
  * @author David Anderson
  * @created 2021
  */
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.entities;
 
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 
 @XmlDiscriminatorValue("SERVLET")
-public class ServletTestCase extends TestCaseInput {
+public class ServletTestCase extends TestCase {
     public ServletTestCase() {}
 }

@@ -37,7 +37,14 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.owasp.benchmarkutils.helpers.TestSuite;
+import org.owasp.benchmarkutils.entities.CliRequest;
+import org.owasp.benchmarkutils.entities.ExecutableTestCaseInput;
+import org.owasp.benchmarkutils.entities.HttpTestCaseInput;
+import org.owasp.benchmarkutils.entities.ResponseInfo;
+import org.owasp.benchmarkutils.entities.TestCase;
+import org.owasp.benchmarkutils.entities.TestCaseSetup;
+import org.owasp.benchmarkutils.entities.TestCaseSetupException;
+import org.owasp.benchmarkutils.entities.TestSuite;
 import org.owasp.benchmarkutils.helpers.Utils;
 
 /**
@@ -71,155 +78,274 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
     @Override
     protected void crawl(TestSuite testSuite) throws Exception {
-        CloseableHttpClient httpclient = createAcceptSelfSignedCertificateClient();
-        long start = System.currentTimeMillis();
-        List<ResponseInfo> responseInfoList = new ArrayList<ResponseInfo>();
-        List<TestCaseVerificationResults> results = new ArrayList<TestCaseVerificationResults>();
 
-        final File FILE_NON_DISCRIMINATORY_LOG =
-                new File(CRAWLER_DATA_DIR, FILENAME_NON_DISCRIMINATORY_LOG);
-        final File FILE_ERRORS_LOG = new File(CRAWLER_DATA_DIR, FILENAME_ERRORS_LOG);
-        final File FILE_TIMES_LOG;
-        if (isTimingEnabled) {
-            FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES);
-        } else {
-            FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES_ALL);
-        }
-        final File FILE_UNVERIFIABLE_LOG = new File(CRAWLER_DATA_DIR, FILENAME_UNVERIFIABLE_LOG);
-        SimpleFileLogger.setFile("TIMES", FILE_TIMES_LOG);
-        SimpleFileLogger.setFile("NONDISCRIMINATORY", FILE_NON_DISCRIMINATORY_LOG);
-        SimpleFileLogger.setFile("ERRORS", FILE_ERRORS_LOG);
-        SimpleFileLogger.setFile("UNVERIFIABLE", FILE_UNVERIFIABLE_LOG);
+        // FIXME: Initialize all setup resources that are required
+        // List<TestCaseSetup> setups = getTestCaseSetups(testSuite);
+        // initializeSetups(setups);
+        try (CloseableHttpClient httpClient = createAcceptSelfSignedCertificateClient()) {
 
-        String completionMessage = null;
+            long start = System.currentTimeMillis();
+            List<ResponseInfo> responseInfoList = new ArrayList<ResponseInfo>();
+            List<TestCaseVerificationResults> results =
+                    new ArrayList<TestCaseVerificationResults>();
 
-        try (SimpleFileLogger nl = SimpleFileLogger.getLogger("NONDISCRIMINATORY");
-                SimpleFileLogger el = SimpleFileLogger.getLogger("ERRORS");
-                SimpleFileLogger ul = SimpleFileLogger.getLogger("UNVERIFIABLE");
-                SimpleFileLogger tl = SimpleFileLogger.getLogger("TIMES")) {
-
-            ndLogger = nl;
-            eLogger = el;
-            uLogger = ul;
-            tLogger = tl;
-
-            for (AbstractTestCaseRequest requestTemplate : testSuite.getTestCases()) {
-
-                HttpUriRequest attackRequest = requestTemplate.buildAttackRequest();
-                HttpUriRequest safeRequest = requestTemplate.buildSafeRequest();
-
-                // Send the next test case request with its attack payload
-                ResponseInfo attackPayloadResponseInfo = sendRequest(httpclient, attackRequest);
-                responseInfoList.add(attackPayloadResponseInfo);
-
-                // Log the response
-                log(attackPayloadResponseInfo);
-
-                ResponseInfo safePayloadResponseInfo = null;
-                if (!requestTemplate.isUnverifiable()) {
-                    // Send the next test case request with its safe payload
-                    safePayloadResponseInfo = sendRequest(httpclient, safeRequest);
-                    responseInfoList.add(safePayloadResponseInfo);
-
-                    // Log the response
-                    log(safePayloadResponseInfo);
-                }
-
-                TestCaseVerificationResults result =
-                        new TestCaseVerificationResults(
-                                attackRequest,
-                                safeRequest,
-                                requestTemplate,
-                                attackPayloadResponseInfo,
-                                safePayloadResponseInfo);
-                results.add(result);
-
-                // Verify the response
-                if (RegressionTesting.isTestingEnabled) {
-                    handleResponse(result);
-                }
+            final File FILE_NON_DISCRIMINATORY_LOG =
+                    new File(CRAWLER_DATA_DIR, FILENAME_NON_DISCRIMINATORY_LOG);
+            final File FILE_ERRORS_LOG = new File(CRAWLER_DATA_DIR, FILENAME_ERRORS_LOG);
+            final File FILE_TIMES_LOG;
+            if (isTimingEnabled) {
+                FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES);
+            } else {
+                FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES_ALL);
             }
+            final File FILE_UNVERIFIABLE_LOG =
+                    new File(CRAWLER_DATA_DIR, FILENAME_UNVERIFIABLE_LOG);
+            SimpleFileLogger.setFile("TIMES", FILE_TIMES_LOG);
+            SimpleFileLogger.setFile("NONDISCRIMINATORY", FILE_NON_DISCRIMINATORY_LOG);
+            SimpleFileLogger.setFile("ERRORS", FILE_ERRORS_LOG);
+            SimpleFileLogger.setFile("UNVERIFIABLE", FILE_UNVERIFIABLE_LOG);
 
-            // Log the elapsed time for all test cases
-            long stop = System.currentTimeMillis();
-            int seconds = (int) (stop - start) / 1000;
+            String completionMessage = null;
 
-            Date now = new Date();
+            try (SimpleFileLogger nl = SimpleFileLogger.getLogger("NONDISCRIMINATORY");
+                    SimpleFileLogger el = SimpleFileLogger.getLogger("ERRORS");
+                    SimpleFileLogger ul = SimpleFileLogger.getLogger("UNVERIFIABLE");
+                    SimpleFileLogger tl = SimpleFileLogger.getLogger("TIMES")) {
 
-            completionMessage =
-                    String.format(
-                            "Verification crawl ran on %tF %<tT for %s v%s took %d seconds%n",
-                            now, testSuite.getName(), testSuite.getVersion(), seconds);
-            tLogger.println(completionMessage);
+                ndLogger = nl;
+                eLogger = el;
+                uLogger = ul;
+                tLogger = tl;
 
-            // Report the verified results
-            if (RegressionTesting.isTestingEnabled) {
-                RegressionTesting.genFailedTCFile(results, CRAWLER_DATA_DIR);
+                for (TestCase testCase : testSuite.getTestCases()) {
 
-                if (!RegressionTesting.failedTruePositivesList.isEmpty()
-                        || !RegressionTesting.failedFalsePositivesList.isEmpty()) {
-                    eLogger.println();
-                    eLogger.println("== Errors report ==");
-                    eLogger.println();
-                }
+                    // TestCaseVerificationResults result = testCase.execute();
+                    // results.add(result);
 
-                if (!RegressionTesting.failedTruePositivesList.isEmpty()) {
-                    eLogger.printf(
-                            "== True Positive Test Cases with Errors [%d of %d] ==%n",
-                            +RegressionTesting.failedTruePositives,
-                            +RegressionTesting.truePositives);
-                    eLogger.println();
+                    TestExecutor attackExecutor = null;
+                    TestExecutor safeExecutor = null;
+                    ResponseInfo attackPayloadResponseInfo = null;
+                    ResponseInfo safePayloadResponseInfo = null;
+                    if (testCase.getTestCaseInput() instanceof HttpTestCaseInput) {
+                        HttpTestCaseInput httpTestCaseInput =
+                                (HttpTestCaseInput) testCase.getTestCaseInput();
 
-                    for (AbstractTestCaseRequest request :
-                            RegressionTesting.failedTruePositivesList.keySet()) {
-                        eLogger.printf(
-                                "%s: %s%n",
-                                request.getName(),
-                                RegressionTesting.failedTruePositivesList.get(request));
+                        // TestExecutor attackTestExecutor =
+                        // httpTestCase.getTestCaseInput().buildAttackExecutor();
+                        // TestExecutor safeTestExecutor =
+                        // httpTestCase.getTestCaseInput().buildSafeExecutor();
+
+                        // FIXME: What would the executable testcase's attackRequest look like?
+                        HttpUriRequest attackRequest = httpTestCaseInput.buildAttackRequest();
+                        HttpUriRequest safeRequest = httpTestCaseInput.buildSafeRequest();
+                        attackExecutor = new HttpExecutor(attackRequest);
+                        safeExecutor = new HttpExecutor(safeRequest);
+
+                        // Send the next test case request with its attack payload
+                        attackPayloadResponseInfo = sendRequest(httpClient, attackRequest);
+                        responseInfoList.add(attackPayloadResponseInfo);
+
+                        // Log the response
+                        log(attackPayloadResponseInfo);
+
+                        safePayloadResponseInfo = null;
+                        if (!testCase.isUnverifiable()) {
+                            // Send the next test case request with its safe payload
+                            safePayloadResponseInfo = sendRequest(httpClient, safeRequest);
+                            responseInfoList.add(safePayloadResponseInfo);
+
+                            // Log the response
+                            log(safePayloadResponseInfo);
+                        }
+
+                        //		                TestCaseVerificationResults result =
+                        //		                        new TestCaseVerificationResults(
+                        //		                        		attackExecutor,
+                        //		                        		safeExecutor,
+                        //		                                httpTestCase,
+                        //		                                attackPayloadResponseInfo,
+                        //		                                safePayloadResponseInfo);
+                        //		                results.add(result);
+                        //
+                        //		                // Verify the response
+                        //		                if (RegressionTesting.isTestingEnabled) {
+                        //		                    handleResponse(result);
+                        //		                }
+                    } else if (testCase.getTestCaseInput() instanceof ExecutableTestCaseInput) {
+                        ExecutableTestCaseInput executableTestCaseInput =
+                                (ExecutableTestCaseInput) testCase.getTestCaseInput();
+
+                        // FIXME: A bit of a hack
+                        CliRequest attackRequest = executableTestCaseInput.buildAttackRequest();
+                        CliRequest safeRequest = executableTestCaseInput.buildSafeRequest();
+                        //		                attackExecutor = new CliExecutor(attackRequest);
+                        //		                safeExecutor = new CliExecutor(safeRequest);
+
+                        // Send the next test case request with its attack payload
+                        attackPayloadResponseInfo = execute(attackRequest);
+                        ////		                executeArgs.add(payload);
+                        //		                ProcessBuilder builder = new
+                        // ProcessBuilder(executeArgs);
+                        //		                final Process process = builder.start();
+                        //		                int exitValue = process.waitFor();
+                        //		                attackPayloadResponseInfo = new ResponseInfo();
+                        //		                System.out.printf("Program terminated with return code:
+                        // %s%n", exitValue);
+                        responseInfoList.add(attackPayloadResponseInfo);
+
+                        // Log the response
+                        log(attackPayloadResponseInfo);
+
+                        safePayloadResponseInfo = null;
+                        if (!testCase.isUnverifiable()) {
+                            // Send the next test case request with its safe payload
+                            safePayloadResponseInfo = execute(safeRequest);
+                            responseInfoList.add(safePayloadResponseInfo);
+
+                            // Log the response
+                            log(safePayloadResponseInfo);
+                        }
+
+                        //		                TestCaseVerificationResults result =
+                        //		                        new TestCaseVerificationResults(
+                        //		                                attackRequest,
+                        //		                                safeRequest,
+                        //		                                cliTestCase,
+                        //		                                attackPayloadResponseInfo,
+                        //		                                safePayloadResponseInfo);
+                        //		                results.add(result);
+                        //
+                        //		                // Verify the response
+                        //		                if (RegressionTesting.isTestingEnabled) {
+                        //		                    handleResponse(result);
+                        //		                }
+                    }
+                    TestCaseVerificationResults result =
+                            new TestCaseVerificationResults(
+                                    attackExecutor,
+                                    safeExecutor,
+                                    testCase,
+                                    attackPayloadResponseInfo,
+                                    safePayloadResponseInfo);
+                    results.add(result);
+
+                    // Verify the response
+                    if (RegressionTesting.isTestingEnabled) {
+                        handleResponse(result);
                     }
                 }
 
-                if (!RegressionTesting.failedFalsePositivesList.isEmpty()) {
-                    if (!RegressionTesting.failedTruePositivesList.isEmpty()) {
+                // Log the elapsed time for all test cases
+                long stop = System.currentTimeMillis();
+                int seconds = (int) (stop - start) / 1000;
+
+                Date now = new Date();
+
+                completionMessage =
+                        String.format(
+                                "Verification crawl ran on %tF %<tT for %s v%s took %d seconds%n",
+                                now, testSuite.getName(), testSuite.getVersion(), seconds);
+                tLogger.println(completionMessage);
+
+                // Report the verified results
+                if (RegressionTesting.isTestingEnabled) {
+                    RegressionTesting.genFailedTCFile(results, CRAWLER_DATA_DIR);
+
+                    if (!RegressionTesting.failedTruePositivesList.isEmpty()
+                            || !RegressionTesting.failedFalsePositivesList.isEmpty()) {
+                        eLogger.println();
+                        eLogger.println("== Errors report ==");
                         eLogger.println();
                     }
 
-                    eLogger.printf(
-                            "== False Positive Test Cases with Errors [%d of %d] ==%n",
-                            RegressionTesting.failedFalsePositives,
-                            RegressionTesting.falsePositives);
-                    eLogger.println();
-
-                    for (AbstractTestCaseRequest request :
-                            RegressionTesting.failedFalsePositivesList.keySet()) {
+                    if (!RegressionTesting.failedTruePositivesList.isEmpty()) {
                         eLogger.printf(
-                                "%s: %s%n",
-                                request.getName(),
-                                RegressionTesting.failedFalsePositivesList.get(request));
+                                "== True Positive Test Cases with Errors [%d of %d] ==%n",
+                                +RegressionTesting.failedTruePositives,
+                                +RegressionTesting.truePositives);
+                        eLogger.println();
+
+                        for (TestCase request :
+                                RegressionTesting.failedTruePositivesList.keySet()) {
+                            eLogger.printf(
+                                    "%s: %s%n",
+                                    request.getName(),
+                                    RegressionTesting.failedTruePositivesList.get(request));
+                        }
+                    }
+
+                    if (!RegressionTesting.failedFalsePositivesList.isEmpty()) {
+                        if (!RegressionTesting.failedTruePositivesList.isEmpty()) {
+                            eLogger.println();
+                        }
+
+                        eLogger.printf(
+                                "== False Positive Test Cases with Errors [%d of %d] ==%n",
+                                RegressionTesting.failedFalsePositives,
+                                RegressionTesting.falsePositives);
+                        eLogger.println();
+
+                        for (TestCase request :
+                                RegressionTesting.failedFalsePositivesList.keySet()) {
+                            eLogger.printf(
+                                    "%s: %s%n",
+                                    request.getName(),
+                                    RegressionTesting.failedFalsePositivesList.get(request));
+                        }
                     }
                 }
             }
+
+            if (FILE_NON_DISCRIMINATORY_LOG.length() > 0) {
+                System.out.printf(
+                        "Details of non-discriminatory test cases written to: %s%n",
+                        FILE_NON_DISCRIMINATORY_LOG);
+            }
+            if (FILE_ERRORS_LOG.length() > 0) {
+                System.out.printf(
+                        "Details of errors/exceptions in test cases written to: %s%n",
+                        FILE_ERRORS_LOG);
+            }
+            if (FILE_UNVERIFIABLE_LOG.length() > 0) {
+                System.out.printf(
+                        "Details of unverifiable test cases written to: %s%n",
+                        FILE_UNVERIFIABLE_LOG);
+            }
+
+            System.out.printf("Test case time measurements written to: %s%n", FILE_TIMES_LOG);
+
+            RegressionTesting.printCrawlSummary(results);
+            System.out.println();
+            System.out.println(completionMessage);
         }
 
-        if (FILE_NON_DISCRIMINATORY_LOG.length() > 0) {
-            System.out.printf(
-                    "Details of non-discriminatory test cases written to: %s%n",
-                    FILE_NON_DISCRIMINATORY_LOG);
-        }
-        if (FILE_ERRORS_LOG.length() > 0) {
-            System.out.printf(
-                    "Details of errors/exceptions in test cases written to: %s%n", FILE_ERRORS_LOG);
-        }
-        if (FILE_UNVERIFIABLE_LOG.length() > 0) {
-            System.out.printf(
-                    "Details of unverifiable test cases written to: %s%n", FILE_UNVERIFIABLE_LOG);
+        // FIXME: Use a finally to cleanup all setup resources that were required
+        // cleanupSetups(setups);
+    }
+
+    private List<TestCaseSetup> getTestCaseSetups(TestSuite testSuite) {
+        List<TestCaseSetup> testCaseSetups = new ArrayList<TestCaseSetup>();
+        for (TestCase testCase : testSuite.getTestCases()) {
+            TestCaseSetup testCaseSetup = testCase.getTestCaseSetup();
+            if (testCaseSetup != null) {
+                testCaseSetups.add(testCaseSetup);
+            }
         }
 
-        System.out.printf("Test case time measurements written to: %s%n", FILE_TIMES_LOG);
+        return testCaseSetups;
+    }
 
-        RegressionTesting.printCrawlSummary(results);
-        System.out.println();
-        System.out.println(completionMessage);
+    private void initializeSetups(List<TestCaseSetup> testCaseSetups)
+            throws TestCaseSetupException {
+        for (TestCaseSetup testCaseSetup : testCaseSetups) {
+            testCaseSetup.setup();
+        }
+    }
+
+    private void cleanupSetups(List<TestCaseSetup> testCaseSetups) throws TestCaseSetupException {
+        for (TestCaseSetup testCaseSetup : testCaseSetups) {
+            testCaseSetup.close();
+        }
     }
 
     private void log(ResponseInfo responseInfo) throws IOException {
@@ -230,19 +356,19 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         "--> (%d : %d sec)%n",
                         responseInfo.getStatusCode(), responseInfo.getTimeInSeconds());
         try {
-	        if (isTimingEnabled) {
-	            if (responseInfo.getTimeInSeconds() >= maxTimeInSeconds) {
-					tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
-	                tLogger.println(outputString);
-	            }
-	        } else {
-	            tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
-	            tLogger.println(outputString);
-	        }
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            if (isTimingEnabled) {
+                if (responseInfo.getTimeInSeconds() >= maxTimeInSeconds) {
+                    tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
+                    tLogger.println(outputString);
+                }
+            } else {
+                tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
+                tLogger.println(outputString);
+            }
+        } catch (URISyntaxException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -271,7 +397,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
      * @param args - args passed to main().
      * @return specified crawler file if valid command line arguments provided. Null otherwise.
      */
-    private void processCommandLineArgs(String[] args) {
+    protected void processCommandLineArgs(String[] args) {
 
         // Set default attack crawler file
         String crawlerFileName = new File(Utils.DATA_DIR, "benchmark-attack-http.xml").getPath();
@@ -350,10 +476,13 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     }
 
     public static void main(String[] args) {
-
-        BenchmarkCrawlerVerification crawler = new BenchmarkCrawlerVerification();
-        crawler.processCommandLineArgs(args);
-        crawler.load();
-        crawler.run();
+        // thisInstance can be set from execute() or here, depending on how this class is invoked
+        // (via maven or command line)
+        if (thisInstance == null) {
+            thisInstance = new BenchmarkCrawler();
+        }
+        thisInstance.processCommandLineArgs(args);
+        thisInstance.load();
+        thisInstance.run();
     }
 }

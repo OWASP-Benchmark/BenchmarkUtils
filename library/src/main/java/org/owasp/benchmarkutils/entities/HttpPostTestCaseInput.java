@@ -1,11 +1,13 @@
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.entities;
 
-import java.io.UnsupportedEncodingException;
-
+import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
+import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 
+@XmlDiscriminatorValue("HttpPost")
+// @XmlType(name = "HttpPostTestCaseInput")
 public class HttpPostTestCaseInput extends HttpTestCaseInput {
     @Override
     void buildQueryString() {
@@ -43,6 +45,11 @@ public class HttpPostTestCaseInput extends HttpTestCaseInput {
         params += "}";
         StringEntity paramsEnt = new StringEntity(params);
         ((BasicClassicHttpRequest) request).setEntity(paramsEnt);
+    }
 
+    @Override
+    HttpUriRequestBase createRequestInstance(String url) {
+        HttpPost httpPost = new HttpPost(url);
+        return httpPost;
     }
 }

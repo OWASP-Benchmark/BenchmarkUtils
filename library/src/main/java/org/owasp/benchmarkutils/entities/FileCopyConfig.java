@@ -1,4 +1,4 @@
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.entities;
 
 import com.google.common.io.Files;
 import java.io.File;
@@ -18,6 +18,10 @@ public class FileCopyConfig extends TestCaseSetup {
         } catch (IOException e) {
             throw new TestCaseSetupException("Could not setup HttpClientConfig for test case", e);
         }
+    }
+
+    public void close() throws TestCaseSetupException {
+        // Do nothing
     }
 
     @XmlAttribute(name = "source", required = true)

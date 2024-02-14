@@ -25,6 +25,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -57,14 +58,22 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.owasp.benchmarkutils.entities.CliRequest;
+import org.owasp.benchmarkutils.entities.ExecutableTestCaseInput;
+import org.owasp.benchmarkutils.entities.HttpTestCaseInput;
+import org.owasp.benchmarkutils.entities.RequestVariable;
+import org.owasp.benchmarkutils.entities.ResponseInfo;
+import org.owasp.benchmarkutils.entities.TestCase;
+import org.owasp.benchmarkutils.entities.TestSuite;
 import org.owasp.benchmarkutils.helpers.Categories;
-import org.owasp.benchmarkutils.helpers.TestCase;
-import org.owasp.benchmarkutils.helpers.TestSuite;
 import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 
 @Mojo(name = "run-crawler", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
 public class BenchmarkCrawler extends AbstractMojo {
+
+    // Intended to be a Singleton. So when instantiated, put it here:
+    static BenchmarkCrawler thisInstance = null;
 
     @Parameter(property = "crawlerFile")
     String pluginFilenameParam;
@@ -119,15 +128,16 @@ public class BenchmarkCrawler extends AbstractMojo {
             new Categories(categoriesFileStream);
 
             this.testSuite = Utils.parseHttpFile(this.theCrawlerFile);
+            System.out.println("Test suite: " + this.testSuite);
             Collections.sort(
                     this.testSuite.getTestCases(),
-                    AbstractTestCaseRequest.getNameComparator()); // Probably not necessary
+                    TestCase.getNameComparator()); // Probably not necessary
 
             // This allows a single test case to be tested, rather than all of them.
             if (selectedTestCaseName != null) {
-                for (AbstractTestCaseRequest request : this.testSuite.getTestCases()) {
+                for (TestCase request : this.testSuite.getTestCases()) {
                     if (request.getName().equals(selectedTestCaseName)) {
-                        List<AbstractTestCaseRequest> requests = new ArrayList<>();
+                        List<TestCase> requests = new ArrayList<>();
                         requests.add(request);
                         this.testSuite = new TestSuite();
                         this.testSuite.setTestCases(requests);
@@ -155,44 +165,55 @@ public class BenchmarkCrawler extends AbstractMojo {
      * @throws Exception
      */
     protected void crawl(TestSuite testSuite) throws Exception {
-        // FIXME: Use try-with-resources to close this resource before returning
-        CloseableHttpClient httpclient = createAcceptSelfSignedCertificateClient();
-        long start = System.currentTimeMillis();
+        // Use try-with-resources to close this resource before returning
+        try (CloseableHttpClient httpClient = createAcceptSelfSignedCertificateClient()) {
+            long start = System.currentTimeMillis();
 
-        // Iterate through TestCase objects instead.
-        // Execution of the test case depends on the type of TestCase.getTestCaseInput()
-        // Where should the code that executes the test case go?
-        // Maybe I need a TestCaseExecuter that takes a TestCaseInput to initialize.
-        //      for (TestCase testCase : testSuite.getTestCases()) {
-        //    	if (testCase.getTestCaseInput() instanceof HttpTestCaseInput) {
-        //    		HttpUriRequest request = testCase.getAttackTestCaseRequest().buildAttackRequest();
-        //    		sendRequest(httpclient, request);
-        //    	} else if (testCase.getTestCaseInput() instanceof ExecutableTestCaseInput) {
-        //    		// Execute the testCase using exec()
-        //    	}
-        //    }
+            // Iterate through TestCase objects instead.
+            // Execution of the test case depends on the type of TestCase.getTestCaseInput()
+            // Where should the code that executes the test case go?
+            // Maybe I need a TestCaseExecuter that takes a TestCaseInput to initialize.
+            //      for (TestCase testCase : testSuite.getTestCases()) {
+            //    	if (testCase.getTestCaseInput() instanceof HttpTestCaseInput) {
+            //    		HttpUriRequest request =
+            // testCase.getAttackTestCaseRequest().buildAttackRequest();
+            //    		sendRequest(httpclient, request);
+            //    	} else if (testCase.getTestCaseInput() instanceof ExecutableTestCaseInput) {
+            //    		// Execute the testCase using exec()
+            //    	}
+            //    }
 
-        // FIXME: If there are any HttpTestCaseInput, create a CloseableHttpClient
-        for (TestCase testCase : testSuite.getTestCases()) {
-            testCase.getTestCaseExecutor().execute();
+            for (TestCase testCase : testSuite.getTestCases()) {
+                System.out.println("Executing test case: " + testCase.getName()); // DEBUG
+                if (testCase.getTestCaseInput() instanceof HttpTestCaseInput) {
+                    HttpTestCaseInput httpTestCaseInput =
+                            (HttpTestCaseInput) testCase.getTestCaseInput();
 
-            //        for (AbstractTestCaseRequest requestTemplate : testSuite.getTestCases()) {
-            //
-            //            HttpUriRequest request = requestTemplate.buildAttackRequest();
-            //
-            //            // Send the next test case request
-            //            sendRequest(httpclient, request);
+                    HttpUriRequest attackRequest = httpTestCaseInput.buildAttackRequest();
+
+                    // Send the next test case request with its attack payload
+                    sendRequest(httpClient, attackRequest);
+                } else if (testCase.getTestCaseInput() instanceof ExecutableTestCaseInput) {
+                    ExecutableTestCaseInput executableTestCaseInput =
+                            (ExecutableTestCaseInput) testCase.getTestCaseInput();
+
+                    CliRequest attackRequest = executableTestCaseInput.buildAttackRequest();
+
+                    // Send the next test case request with its attack payload
+                    execute(attackRequest);
+                }
+            }
+
+            // Log the elapsed time for all test cases
+            long stop = System.currentTimeMillis();
+            int seconds = (int) (stop - start) / 1000;
+
+            Date now = new Date();
+
+            System.out.printf(
+                    "Crawl ran on %tF %<tT for %s v%s took %d seconds%n",
+                    now, testSuite.getName(), testSuite.getVersion(), seconds);
         }
-
-        // Log the elapsed time for all test cases
-        long stop = System.currentTimeMillis();
-        int seconds = (int) (stop - start) / 1000;
-
-        Date now = new Date();
-
-        System.out.printf(
-                "Crawl ran on %tF %<tT for %s v%s took %d seconds%n",
-                now, testSuite.getName(), testSuite.getVersion(), seconds);
     }
 
     // This method taken directly from:
@@ -214,9 +235,11 @@ public class BenchmarkCrawler extends AbstractMojo {
         // strategy and allow all hosts verifier.
         SSLConnectionSocketFactory connectionFactory =
                 new SSLConnectionSocketFactory(sslContext, allowAllHosts);
-        HttpClientConnectionManager connectionManager = 
-        		PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(connectionFactory).build();
-        
+        HttpClientConnectionManager connectionManager =
+                PoolingHttpClientConnectionManagerBuilder.create()
+                        .setSSLSocketFactory(connectionFactory)
+                        .build();
+
         // finally create the HttpClient using HttpClient factory methods and assign the SSL Socket
         // Factory
         return HttpClients.custom().setConnectionManager(connectionManager).build();
@@ -237,10 +260,10 @@ public class BenchmarkCrawler extends AbstractMojo {
 
         boolean isPost = request instanceof HttpPost;
         try {
-			System.out.println((isPost ? "POST " : "GET ") + request.getUri());
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
+            System.out.println((isPost ? "POST " : "GET ") + request.getUri());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
         StopWatch watch = new StopWatch();
 
         watch.start();
@@ -277,12 +300,73 @@ public class BenchmarkCrawler extends AbstractMojo {
     }
 
     /**
+     * Issue the requested request, measure the time required to execute, then output both to stdout
+     * and the global variable timeString the URL tested, the time required to execute and the
+     * response code.
+     *
+     * @param httpclient - The HTTP client to use to make the request
+     * @param request - THe HTTP request to issue
+     */
+    static ResponseInfo execute(CliRequest request) {
+        ResponseInfo responseInfo = new ResponseInfo();
+        //        responseInfo.setRequestBase(request);
+        CloseableHttpResponse response = null;
+
+        List<String> executeArgs = Arrays.asList(request.getCommand().split(" "));
+        for (RequestVariable arg : request.getArgs()) {
+            executeArgs.add(arg.getName());
+            executeArgs.add(arg.getValue());
+        }
+        //    	executeArgs.addAll(request.getArgs());
+        System.out.println(String.join(" ", executeArgs));
+
+        StopWatch watch = new StopWatch();
+
+        watch.start();
+        try {
+            //            response = httpclient.execute(request);
+            ProcessBuilder builder = new ProcessBuilder(executeArgs);
+            final Process process = builder.start();
+            int exitValue = process.waitFor();
+            //            attackPayloadResponseInfo = new ResponseInfo();
+            //            System.out.printf("Program terminated with return code: %s%n", exitValue);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        watch.stop();
+
+        //        try {
+        //            HttpEntity entity = response.getEntity();
+        //            int statusCode = response.getCode();
+        //            responseInfo.setStatusCode(statusCode);
+        //            int seconds = (int) watch.getTime() / 1000;
+        //            responseInfo.setTimeInSeconds(seconds);
+        //            System.out.printf("--> (%d : %d sec)%n", statusCode, seconds);
+        //
+        //            try {
+        //                responseInfo.setResponseString(EntityUtils.toString(entity));
+        //                EntityUtils.consume(entity);
+        //            } catch (IOException | org.apache.hc.core5.http.ParseException e) {
+        //                e.printStackTrace();
+        //            }
+        //        } finally {
+        //            if (response != null)
+        //                try {
+        //                    response.close();
+        //                } catch (IOException e) {
+        //                    e.printStackTrace();
+        //                }
+        //        }
+        return responseInfo;
+    }
+
+    /**
      * Process the command line arguments that make any configuration changes.
      *
      * @param args - args passed to main().
      * @return specified crawler file if valid command line arguments provided. Null otherwise.
      */
-    private void processCommandLineArgs(String[] args) {
+    protected void processCommandLineArgs(String[] args) {
 
         // Create the command line parser
         CommandLineParser parser = new DefaultParser();
@@ -341,10 +425,13 @@ public class BenchmarkCrawler extends AbstractMojo {
     }
 
     public static void main(String[] args) {
-
-        BenchmarkCrawler crawler = new BenchmarkCrawler();
-        crawler.processCommandLineArgs(args);
-        crawler.load();
-        crawler.run();
+        // thisInstance can be set from execute() or here, depending on how this class is invoked
+        // (via maven or command line)
+        if (thisInstance == null) {
+            thisInstance = new BenchmarkCrawler();
+        }
+        thisInstance.processCommandLineArgs(args);
+        thisInstance.load();
+        thisInstance.run();
     }
 }

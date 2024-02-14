@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -53,6 +54,8 @@ import javax.xml.transform.Source;
 import javax.xml.transform.sax.SAXSource;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.persistence.jaxb.JAXBContextFactory;
+import org.owasp.benchmarkutils.entities.TestSuite;
+import org.owasp.benchmarkutils.tools.TestCaseRequestFileParseException;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -196,8 +199,6 @@ public class Utils {
             throws JAXBException, FileNotFoundException, SAXException,
                     ParserConfigurationException {
 
-        TestSuite testSuite = null;
-
         // Disable XXE
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
@@ -213,9 +214,10 @@ public class Utils {
         JAXBContext context = JAXBContextFactory.createContext(new Class[] {TestSuite.class}, null);
         Unmarshaller unmarshaller = context.createUnmarshaller();
         unmarshaller.setEventHandler(new javax.xml.bind.helpers.DefaultValidationEventHandler());
-        testSuite = (TestSuite) unmarshaller.unmarshal(xmlSource);
+        JAXBElement<TestSuite> testSuite =
+                (JAXBElement<TestSuite>) unmarshaller.unmarshal(xmlSource);
 
-        return testSuite;
+        return testSuite.getValue();
     }
 
     /**

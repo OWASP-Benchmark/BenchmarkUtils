@@ -1,4 +1,4 @@
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.entities;
 
 import javax.xml.bind.annotation.*;
 

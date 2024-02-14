@@ -34,7 +34,9 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpMessage;
-import org.apache.hc.core5.http.ParseException;
+import org.owasp.benchmarkutils.entities.HttpTestCaseInput;
+import org.owasp.benchmarkutils.entities.ResponseInfo;
+import org.owasp.benchmarkutils.entities.TestCase;
 
 /**
  * Test all supported test cases to verify that the results are as expected and write the report to
@@ -64,10 +66,8 @@ public class RegressionTesting {
     static SortedMultiset<String> nonDiscriminatorySinks = TreeMultiset.create();
     static SortedMultiset<String> failSinks = TreeMultiset.create();
 
-    static Map<AbstractTestCaseRequest, String> failedTruePositivesList =
-            new LinkedHashMap<AbstractTestCaseRequest, String>();
-    static Map<AbstractTestCaseRequest, String> failedFalsePositivesList =
-            new LinkedHashMap<AbstractTestCaseRequest, String>();
+    static Map<TestCase, String> failedTruePositivesList = new LinkedHashMap<>();
+    static Map<TestCase, String> failedFalsePositivesList = new LinkedHashMap<>();
 
     // TODO: Make this flag configurable via command line parameter
     private static boolean isVerbosityOn = false;
@@ -101,10 +101,12 @@ public class RegressionTesting {
             totalCount = results.size();
 
             for (TestCaseVerificationResults result : results) {
-                AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
+                //                AbstractTestCaseRequest requestTemplate =
+                // result.getRequestTemplate();
+                TestCase testCase = result.getTestCase();
 
                 String sink = null;
-                String sinkMetaDataFilePath = requestTemplate.getSinkFile();
+                String sinkMetaDataFilePath = testCase.getSinkFile();
                 if (sinkMetaDataFilePath != null) {
                     String sinkMetaDataFilename = new File(sinkMetaDataFilePath).getName();
                     sink = sinkMetaDataFilename.substring(0, sinkMetaDataFilename.indexOf('.'));
@@ -117,17 +119,17 @@ public class RegressionTesting {
                         undeclaredUnverifiable++;
                         if (sink == null) {
                             System.out.printf(
-                                    "ERROR: No sink for request %s%n", requestTemplate.getName());
+                                    "ERROR: No sink for request %s%n", testCase.getName());
                         } else {
                             undeclaredUnverifiableSinks.add(sink);
                         }
                     }
                 } else {
                     if (result.isPassed()) {
-                        if (requestTemplate.isVulnerability()) truePositivePassedCount++;
+                        if (testCase.isVulnerability()) truePositivePassedCount++;
                         else falsePositivePassedCount++;
                     } else {
-                        if (requestTemplate.isVulnerability()) truePositiveFailedCount++;
+                        if (testCase.isVulnerability()) truePositiveFailedCount++;
                         else falsePositiveFailedCount++;
                     }
                     verifiedCount++;
@@ -136,26 +138,30 @@ public class RegressionTesting {
 
             if (truePositiveFailedCount + falsePositiveFailedCount > 0) {
                 for (TestCaseVerificationResults result : results) {
-                    AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
-                    if (isIncludedInTest(requestTemplate)) {
+                    //                    AbstractTestCaseRequest requestTemplate =
+                    // result.getRequestTemplate();
+                    TestCase testCase = result.getTestCase();
+                    if (isIncludedInTest(testCase)) {
                         if (isVerbosityOn) {
                             System.out.println();
                             System.out.printf(
                                     "Test case request %s (category: %s, isVulnerability: %b, isNonverifiable: %b, isPassed: %b)%n",
-                                    requestTemplate.getName(),
-                                    requestTemplate.getCategory().toString(),
-                                    requestTemplate.isVulnerability(),
+                                    testCase.getName(),
+                                    testCase.getCategory().toString(),
+                                    testCase.isVulnerability(),
                                     result.isUnverifiable(),
                                     result.isPassed());
-                            System.out.println(requestTemplate.getFullURL());
+                            HttpTestCaseInput httpTestCaseInput =
+                                    (HttpTestCaseInput) testCase.getTestCaseInput();
+                            System.out.println(httpTestCaseInput.getUrl());
                         }
 
                         if (!result.isUnverifiable() && !result.isPassed()) {
                             System.out.printf(
                                     "FAILURE: %s positive %s test case request %s%n",
-                                    requestTemplate.isVulnerability() ? "True" : "False",
-                                    requestTemplate.getCategory().toString(),
-                                    requestTemplate.getName());
+                                    testCase.isVulnerability() ? "True" : "False",
+                                    testCase.getCategory().toString(),
+                                    testCase.getName());
                         }
                     }
                 }
@@ -163,8 +169,10 @@ public class RegressionTesting {
 
             if (truePositiveFailedCount + falsePositiveFailedCount > 0) {
                 for (TestCaseVerificationResults result : results) {
-                    AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
-                    if (isIncludedInTest(requestTemplate)) {
+                    //                    AbstractTestCaseRequest requestTemplate =
+                    // result.getRequestTemplate();
+                    TestCase testCase = result.getTestCase();
+                    if (isIncludedInTest(testCase)) {
                         if (!result.isUnverifiable() && !result.isPassed()) {
                             ftcLogger.print("FAILURE: ");
                             printTestCaseDetails(result, ftcLogger);
@@ -200,31 +208,31 @@ public class RegressionTesting {
     }
 
     private static void printTestCaseDetails(TestCaseVerificationResults result, Logger out) {
-        AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
+        //        AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
+        TestCase testCase = result.getTestCase();
         ResponseInfo attackResponseInfo = result.getResponseToAttackValue();
         ResponseInfo safeResponseInfo = result.getResponseToSafeValue();
         out.printf(
                 "%s positive %s test case request %s%n",
-                requestTemplate.isVulnerability() ? "True" : "False",
-                requestTemplate.getCategory().toString(),
-                requestTemplate.getName());
+                testCase.isVulnerability() ? "True" : "False",
+                testCase.getCategory().toString(),
+                testCase.getName());
         // Print out all the attributes of the request, including the templates used to create it
-        out.println(requestTemplate.toString());
+        out.println(testCase.toString());
         out.println();
         out.println("Attack request:");
-        printHttpRequest(result.getAttackRequest(), out);
+        out.printf(result.getAttackTestExecutor().getExecutorDescription(), out);
         out.println();
         out.printf("Attack response: [%d]:%n", attackResponseInfo.getStatusCode());
         out.println(attackResponseInfo == null ? "null" : attackResponseInfo.getResponseString());
         out.println();
         out.println("Safe request:");
-        printHttpRequest(result.getSafeRequest(), out);
+        out.printf(result.getSafeTestExecutor().getExecutorDescription(), out);
         out.println();
         out.printf("Safe response: [%d]:%n", attackResponseInfo.getStatusCode());
         out.println(safeResponseInfo == null ? "null" : safeResponseInfo.getResponseString());
         out.println();
-        out.printf(
-                "Attack success indicator: -->%s<--%n", requestTemplate.getAttackSuccessString());
+        out.printf("Attack success indicator: -->%s<--%n", testCase.getAttackSuccessString());
         out.printf("-----------------------------------------------------------%n%n");
     }
 
@@ -318,11 +326,12 @@ public class RegressionTesting {
 
         result.setUnverifiable(false); // Default
         result.setDeclaredUnverifiable(false); // Default
-        if (result.getRequestTemplate().isUnverifiable()) {
+        TestCase testCase = result.getTestCase();
+        if (testCase.isUnverifiable()) {
             // Count this as "declared unverifiable" and return
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(true);
-        } else if (result.getRequestTemplate().getAttackSuccessString() == null) {
+        } else if (testCase.getAttackSuccessString() == null) {
             // Count this as "undeclared unverifiable" and return
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(false);
@@ -333,7 +342,7 @@ public class RegressionTesting {
         List<String> reasons = new ArrayList<>();
 
         String sink = null;
-        String sinkMetaDataFilePath = result.getRequestTemplate().getSinkFile();
+        String sinkMetaDataFilePath = testCase.getSinkFile();
         if (sinkMetaDataFilePath != null) {
             String sinkMetaDataFilename = new File(sinkMetaDataFilePath).getName();
             sink = sinkMetaDataFilename.substring(0, sinkMetaDataFilename.indexOf('.'));
@@ -343,12 +352,12 @@ public class RegressionTesting {
             boolean isAttackValueVerified =
                     verifyResponse(
                             result.getResponseToAttackValue().getResponseString(),
-                            result.getRequestTemplate().getAttackSuccessString());
+                            testCase.getAttackSuccessString());
             boolean isSafeValueVerified =
                     verifyResponse(
                             result.getResponseToSafeValue().getResponseString(),
-                            result.getRequestTemplate().getAttackSuccessString());
-            if (result.getRequestTemplate().isVulnerability()) {
+                            testCase.getAttackSuccessString());
+            if (testCase.isVulnerability()) {
                 // True positive success?
                 if (isAttackValueVerified) {
                     result.setPassed(true);
@@ -356,8 +365,7 @@ public class RegressionTesting {
                         ndLogger.printf(
                                 "Non-discriminatory true positive test %s: The attack-success-string: \"%s\" was found in the response to both the safe and attack requests.%n"
                                         + "\tTo verify that a test case is a true positive, the attack-success-string should be in the attack response, and not%n\tthe safe response. Please change the attack-success-string and/or the test case sink itself to ensure that the%n\tattack-success-string response is present only in a response to a successful attack.%n",
-                                result.getRequestTemplate().getName(),
-                                result.getRequestTemplate().getAttackSuccessString());
+                                testCase.getName(), testCase.getAttackSuccessString());
                         printTestCaseDetails(result, ndLogger);
                         nonDiscriminatorySinks.add(sink);
                     }
@@ -376,8 +384,7 @@ public class RegressionTesting {
                         ndLogger.printf(
                                 "Non-discriminatory false positive test %s: The attack-success-string: \"%s\" was found in the response to the safe request.%n"
                                         + "\tTo verify that a test case is a false positive, the attack-success-string should not be in any response to this test%n\tcase. Please change the attack-success-string and/or the test case sink itself to ensure that the%n\tattack-success-string response is present only in a response to a successful attack.%n",
-                                result.getRequestTemplate().getName(),
-                                result.getRequestTemplate().getAttackSuccessString());
+                                testCase.getName(), testCase.getAttackSuccessString());
                         printTestCaseDetails(result, ndLogger);
                         nonDiscriminatorySinks.add(sink);
                     }
@@ -390,17 +397,17 @@ public class RegressionTesting {
 
         String compositeReason = "\t- " + String.join(", ", reasons);
 
-        if (result.getRequestTemplate().isVulnerability()) {
+        if (testCase.isVulnerability()) {
             truePositives++;
             if (hasErrors) {
                 failedTruePositives++;
-                failedTruePositivesList.put(result.getRequestTemplate(), compositeReason);
+                failedTruePositivesList.put(testCase, compositeReason);
             }
         } else {
             falsePositives++;
             if (hasErrors) {
                 failedFalsePositives++;
-                failedFalsePositivesList.put(result.getRequestTemplate(), compositeReason);
+                failedFalsePositivesList.put(testCase, compositeReason);
             }
         }
     }
@@ -447,8 +454,8 @@ public class RegressionTesting {
         return response.contains(attackSuccessIndicator);
     }
 
-    private static boolean isIncludedInTest(AbstractTestCaseRequest testCaseRequestTemplate) {
-        return CATEGORIES_INCLUDED_IN_TEST.contains(testCaseRequestTemplate.getCategory().getId())
-                || (testCaseRequestTemplate.getAttackSuccessString() != null);
+    private static boolean isIncludedInTest(TestCase testCase) {
+        return CATEGORIES_INCLUDED_IN_TEST.contains(testCase.getCategory().getId())
+                || (testCase.getAttackSuccessString() != null);
     }
 }

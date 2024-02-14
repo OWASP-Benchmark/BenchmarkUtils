@@ -1,8 +1,9 @@
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.entities;
 
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 
@@ -104,6 +105,7 @@ public class RequestVariable {
         return new BasicNameValuePair(name, value);
     }
 
+    @XmlTransient
     public boolean isSafe() {
         return isSafe;
     }

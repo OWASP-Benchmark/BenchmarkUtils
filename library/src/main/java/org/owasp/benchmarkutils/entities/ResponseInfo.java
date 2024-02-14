@@ -1,8 +1,8 @@
-package org.owasp.benchmarkutils.tools;
+package org.owasp.benchmarkutils.entities;
 
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 
-class ResponseInfo {
+public class ResponseInfo {
     private String responseString;
     private int seconds;
     private int statusCode;

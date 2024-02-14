@@ -1,4 +1,4 @@
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.entities;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -58,6 +58,10 @@ public class Sqlite3Config extends TestCaseSetup {
         } catch (IOException e) {
             throw new TestCaseSetupException("Could not setup Sqlite3Config for test case", e);
         }
+    }
+
+    public void close() throws TestCaseSetupException {
+        // Do nothing
     }
 
     @XmlAttribute(name = "script")

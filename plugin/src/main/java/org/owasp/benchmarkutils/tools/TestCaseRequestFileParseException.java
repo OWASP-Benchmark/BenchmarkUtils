@@ -15,11 +15,15 @@
  * @author David Anderson
  * @created 2021
  */
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.tools;
 
-import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
+public class TestCaseRequestFileParseException extends Exception {
 
-@XmlDiscriminatorValue("SPRINGWS")
-public class SpringTestCase extends TestCaseInput {
-    public SpringTestCase() {}
+    public TestCaseRequestFileParseException(String message) {
+        super(message);
+    }
+
+    public TestCaseRequestFileParseException(String message, Exception e) {
+        super(message, e);
+    }
 }

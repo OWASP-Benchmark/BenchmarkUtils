@@ -15,11 +15,11 @@
  * @author David Anderson
  * @created 2021
  */
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.entities;
 
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 
-@XmlDiscriminatorValue("JERSEYWS")
-public class JerseyTestCase extends TestCaseInput {
-    public JerseyTestCase() {}
+@XmlDiscriminatorValue("SPRINGWS")
+public class SpringTestCase extends TestCase {
+    public SpringTestCase() {}
 }

@@ -1,6 +1,7 @@
 package org.owasp.benchmarkutils.tools;
 
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.owasp.benchmarkutils.entities.ResponseInfo;
+import org.owasp.benchmarkutils.entities.TestCase;
 
 /** Not a great class name. */
 public class TestCaseVerificationResults {
@@ -15,22 +16,22 @@ public class TestCaseVerificationResults {
 
     private boolean isPassed;
 
-    private HttpUriRequestBase attackRequest;
+    private TestExecutor attackTestExecutor;
 
-    private HttpUriRequestBase safeRequest;
+    private TestExecutor safeTestExecutor;
 
-    private AbstractTestCaseRequest requestTemplate;
+    private TestCase testCase;
 
     public TestCaseVerificationResults(
-    		HttpUriRequestBase attackRequest,
-            HttpUriRequestBase safeRequest,
-            AbstractTestCaseRequest requestTemplate,
+            TestExecutor attackTestExecutor,
+            TestExecutor safeTestExecutor,
+            TestCase testCase,
             ResponseInfo responseToAttackValue,
             ResponseInfo responseToSafeValue) {
         this(
-                attackRequest,
-                safeRequest,
-                requestTemplate,
+                attackTestExecutor,
+                safeTestExecutor,
+                testCase,
                 responseToAttackValue,
                 responseToSafeValue,
                 true,
@@ -39,18 +40,18 @@ public class TestCaseVerificationResults {
     }
 
     public TestCaseVerificationResults(
-    		HttpUriRequestBase attackRequest,
-    		HttpUriRequestBase safeRequest,
-            AbstractTestCaseRequest requestTemplate,
+            TestExecutor attackTestExecutor,
+            TestExecutor safeTestExecutor,
+            TestCase testCase,
             ResponseInfo responseToAttackValue,
             ResponseInfo responseToSafeValue,
             boolean isUnverifiable,
             boolean isDeclaredVerifiable,
             boolean isPassed) {
         super();
-        this.attackRequest = attackRequest;
-        this.safeRequest = safeRequest;
-        this.requestTemplate = requestTemplate;
+        this.attackTestExecutor = attackTestExecutor;
+        this.safeTestExecutor = safeTestExecutor;
+        this.testCase = testCase;
         this.responseToAttackValue = responseToAttackValue;
         this.responseToSafeValue = responseToSafeValue;
         this.isUnverifiable = isUnverifiable;
@@ -98,27 +99,27 @@ public class TestCaseVerificationResults {
         return isPassed;
     }
 
-    public HttpUriRequestBase getAttackRequest() {
-        return attackRequest;
+    public TestExecutor getAttackTestExecutor() {
+        return attackTestExecutor;
     }
 
-    public void setAttackRequest(HttpUriRequestBase attackRequest) {
-        this.attackRequest = attackRequest;
+    public void setAttackTestExecutor(TestExecutor attackTestExecutor) {
+        this.attackTestExecutor = attackTestExecutor;
     }
 
-    public HttpUriRequestBase getSafeRequest() {
-        return safeRequest;
+    public TestExecutor getSafeTestExecutor() {
+        return safeTestExecutor;
     }
 
-    public void setSafeRequest(HttpUriRequestBase safeRequest) {
-        this.safeRequest = safeRequest;
+    public void setSafeTestExecutor(TestExecutor safeTestExecutor) {
+        this.safeTestExecutor = safeTestExecutor;
     }
 
-    public AbstractTestCaseRequest getRequestTemplate() {
-        return requestTemplate;
+    public TestCase getTestCase() {
+        return testCase;
     }
 
-    public void setRequestTemplate(AbstractTestCaseRequest requestTemplate) {
-        this.requestTemplate = requestTemplate;
+    public void setTestCase(TestCase testCase) {
+        this.testCase = testCase;
     }
 }
