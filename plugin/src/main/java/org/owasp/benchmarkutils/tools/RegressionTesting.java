@@ -221,13 +221,13 @@ public class RegressionTesting {
         out.println(testCase.toString());
         out.println();
         out.println("Attack request:");
-        out.printf(result.getAttackTestExecutor().getExecutorDescription(), out);
+        out.println(result.getAttackTestExecutor().getExecutorDescription());
         out.println();
         out.printf("Attack response: [%d]:%n", attackResponseInfo.getStatusCode());
         out.println(attackResponseInfo == null ? "null" : attackResponseInfo.getResponseString());
         out.println();
         out.println("Safe request:");
-        out.printf(result.getSafeTestExecutor().getExecutorDescription(), out);
+        out.println(result.getSafeTestExecutor().getExecutorDescription());
         out.println();
         out.printf("Safe response: [%d]:%n", attackResponseInfo.getStatusCode());
         out.println(safeResponseInfo == null ? "null" : safeResponseInfo.getResponseString());

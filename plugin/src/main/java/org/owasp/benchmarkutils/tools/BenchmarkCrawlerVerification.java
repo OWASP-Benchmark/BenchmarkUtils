@@ -178,8 +178,8 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         // FIXME: A bit of a hack
                         CliRequest attackRequest = executableTestCaseInput.buildAttackRequest();
                         CliRequest safeRequest = executableTestCaseInput.buildSafeRequest();
-                        //		                attackExecutor = new CliExecutor(attackRequest);
-                        //		                safeExecutor = new CliExecutor(safeRequest);
+                        attackExecutor = new CliExecutor(attackRequest);
+                        safeExecutor = new CliExecutor(safeRequest);
 
                         // Send the next test case request with its attack payload
                         attackPayloadResponseInfo = execute(attackRequest);
@@ -479,7 +479,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         // thisInstance can be set from execute() or here, depending on how this class is invoked
         // (via maven or command line)
         if (thisInstance == null) {
-            thisInstance = new BenchmarkCrawler();
+            thisInstance = new BenchmarkCrawlerVerification();
         }
         thisInstance.processCommandLineArgs(args);
         thisInstance.load();

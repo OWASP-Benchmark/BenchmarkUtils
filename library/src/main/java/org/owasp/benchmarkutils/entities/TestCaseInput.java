@@ -8,8 +8,9 @@ import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;
     CliFileExecutableTestCaseInput.class,
     ExecutableTestCaseInput.class,
     HttpTestCaseInput.class,
-    HttpGetTestCaseInput.class,
-    HttpPostTestCaseInput.class,
+    JerseyTestCaseInput.class,
+    ServletTestCaseInput.class,
+    SpringTestCaseInput.class,
     StdinExecutableTestCaseInput.class,
     TcpSocketTestCaseInput.class
 })
