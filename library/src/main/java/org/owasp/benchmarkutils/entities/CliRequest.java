@@ -12,12 +12,14 @@ public class CliRequest {
     public CliRequest(String command, List<RequestVariable> args) {
         super();
         this.command = command;
-        this.args = args;
+        this.args = new ArrayList<RequestVariable>(args);
     }
 
     public CliRequest(String command, RequestVariable arg) {
         super();
         this.command = command;
+        // Make a copy of the given args list so that when setSafe() changes elements, the changes
+        // do not affect other CliRequest objects.
         this.args = new ArrayList<RequestVariable>(Arrays.asList(arg));
     }
 
@@ -34,7 +36,7 @@ public class CliRequest {
     }
 
     public void setArgs(List<RequestVariable> args) {
-        this.args = args;
+        this.args = new ArrayList<RequestVariable>(args);
     }
 
     //	public List<String> getExecuteArgs() {
@@ -42,4 +44,12 @@ public class CliRequest {
     //    	executeArgs.addAll(getArgs());
     //    	return executeArgs;
     //	}
+
+    public String toString() {
+        ArrayList<String> executeArgs = new ArrayList<>(Arrays.asList(command.split(" ")));
+        for (RequestVariable arg : args) {
+            executeArgs.add(arg.getValue());
+        }
+        return String.join(" ", executeArgs);
+    }
 }

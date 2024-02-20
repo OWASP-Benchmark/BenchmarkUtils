@@ -184,6 +184,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         safeExecutor = new CliExecutor(safeRequest);
 
                         // Send the next test case request with its attack payload
+                        System.out.println("Executing attack request: " + attackRequest);
                         attackPayloadResponseInfo = execute(attackRequest);
                         ////		                executeArgs.add(payload);
                         //		                ProcessBuilder builder = new
@@ -201,6 +202,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         safePayloadResponseInfo = null;
                         if (!testCase.isUnverifiable()) {
                             // Send the next test case request with its safe payload
+                            System.out.println("Executing safe request: " + safeRequest);
                             safePayloadResponseInfo = execute(safeRequest);
                             responseInfoList.add(safePayloadResponseInfo);
 

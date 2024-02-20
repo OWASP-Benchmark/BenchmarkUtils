@@ -45,6 +45,19 @@ public class RequestVariable {
         isSafe = name.equals(safeName) && value.equals(safeValue);
     }
 
+    public RequestVariable(RequestVariable otherRequestVariable) {
+        super();
+        this.name = otherRequestVariable.getName();
+        this.value = otherRequestVariable.getValue();
+        this.attackName = otherRequestVariable.getAttackName();
+        this.attackValue = otherRequestVariable.getAttackValue();
+        this.safeName = otherRequestVariable.getSafeName();
+        this.safeValue = otherRequestVariable.getSafeValue();
+        if (name == null) throw new NullPointerException("name parameter cannot be null");
+        if (value == null) throw new NullPointerException("value parameter cannot be null");
+        isSafe = name.equals(safeName) && value.equals(safeValue);
+    }
+
     @XmlAttribute
     @NotNull
     public String getName() {

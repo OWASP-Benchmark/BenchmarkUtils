@@ -33,7 +33,9 @@ public class CliArgExecutableTestCaseInput extends ExecutableTestCaseInput {
     }
 
     public void setArgs(List<RequestVariable> args) {
-        this.args = args;
+        // Copy the given list so setSafe() does not affect other CliArgExecutableTestCaseInput
+        // objects.
+        this.args = new ArrayList<>(args);
     }
 
     public void addArg(RequestVariable arg) {
@@ -48,14 +50,23 @@ public class CliArgExecutableTestCaseInput extends ExecutableTestCaseInput {
         //		// FIXME: This will break if the command string has arguments that contain spaces.
         //		executeArgs.addAll(Arrays.asList(getCommand().split(" ")));
         //		executeArgs.addAll(getArgs());
-
-        setSafe(false);
-        return new CliRequest(getCommand(), getArgs());
+        ArrayList<RequestVariable> argsCopy = new ArrayList<>();
+        for (RequestVariable arg : args) {
+            RequestVariable argCopy = new RequestVariable(arg);
+            argCopy.setSafe(false);
+            argsCopy.add(argCopy);
+        }
+        return new CliRequest(getCommand(), argsCopy);
     }
 
     public CliRequest buildSafeRequest() {
-        setSafe(true);
-        return new CliRequest(getCommand(), getArgs());
+        ArrayList<RequestVariable> argsCopy = new ArrayList<>();
+        for (RequestVariable arg : args) {
+            RequestVariable argCopy = new RequestVariable(arg);
+            argCopy.setSafe(true);
+            argsCopy.add(argCopy);
+        }
+        return new CliRequest(getCommand(), argsCopy);
     }
 
     public void setSafe(boolean isSafe) {
