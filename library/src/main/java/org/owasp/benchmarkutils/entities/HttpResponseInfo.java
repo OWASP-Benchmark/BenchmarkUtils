@@ -1,7 +1,5 @@
 package org.owasp.benchmarkutils.entities;
 
-import java.net.URISyntaxException;
-
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 
 public class HttpResponseInfo implements ResponseInfo {
@@ -10,10 +8,12 @@ public class HttpResponseInfo implements ResponseInfo {
     private int statusCode;
     private HttpUriRequest requestBase;
 
+    @Override
     public String getResponseString() {
         return responseString;
     }
 
+    @Override
     public void setResponseString(String responseString) {
         this.responseString = responseString;
     }

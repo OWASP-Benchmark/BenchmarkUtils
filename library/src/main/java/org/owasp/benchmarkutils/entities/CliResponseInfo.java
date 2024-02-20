@@ -2,16 +2,18 @@ package org.owasp.benchmarkutils.entities;
 
 public class CliResponseInfo implements ResponseInfo {
     private int seconds;
-    private String output;
+    private String responseString;
     private int returnCode;
     private CliRequest request;
 
-    public String getOutput() {
-        return output;
+    @Override
+    public String getResponseString() {
+        return responseString;
     }
 
-    public void setOutput(String output) {
-        this.output = output;
+    @Override
+    public void setResponseString(String responseString) {
+        this.responseString = responseString;
     }
 
     @Override

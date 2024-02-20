@@ -220,7 +220,7 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
      * @param request - THe HTTP request to issue
      */
     static ResponseInfo sendRequest(CloseableHttpClient httpclient, HttpUriRequest request) {
-        ResponseInfo responseInfo = new ResponseInfo();
+        HttpResponseInfo responseInfo = new HttpResponseInfo();
         responseInfo.setRequestBase(request);
         CloseableHttpResponse response = null;
 

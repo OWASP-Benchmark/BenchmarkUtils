@@ -204,12 +204,11 @@ public class Utils {
         spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
         spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
         spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        
+
         // Do unmarshall operation
         Source xmlSource =
                 new SAXSource(
-                        spf.newSAXParser().getXMLReader(),
-                        new InputSource(new FileReader(file)));
+                        spf.newSAXParser().getXMLReader(), new InputSource(new FileReader(file)));
         JAXBContext context = JAXBContextFactory.createContext(new Class[] {TestSuite.class}, null);
         Unmarshaller unmarshaller = context.createUnmarshaller();
         unmarshaller.setEventHandler(new javax.xml.bind.helpers.DefaultValidationEventHandler());

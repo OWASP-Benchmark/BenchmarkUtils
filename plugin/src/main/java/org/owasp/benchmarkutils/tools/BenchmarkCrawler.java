@@ -32,9 +32,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.cli.CommandLine;
@@ -67,6 +64,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.owasp.benchmarkutils.entities.CliRequest;
 import org.owasp.benchmarkutils.entities.CliResponseInfo;
 import org.owasp.benchmarkutils.entities.ExecutableTestCaseInput;
+import org.owasp.benchmarkutils.entities.HttpResponseInfo;
 import org.owasp.benchmarkutils.entities.HttpTestCaseInput;
 import org.owasp.benchmarkutils.entities.RequestVariable;
 import org.owasp.benchmarkutils.entities.ResponseInfo;
@@ -261,7 +259,7 @@ public class BenchmarkCrawler extends AbstractMojo {
      * @param request - THe HTTP request to issue
      */
     static ResponseInfo sendRequest(CloseableHttpClient httpclient, HttpUriRequest request) {
-    	HttpResponseInfo responseInfo = new HttpResponseInfo();
+        HttpResponseInfo responseInfo = new HttpResponseInfo();
         responseInfo.setRequestBase(request);
         CloseableHttpResponse response = null;
 
@@ -319,14 +317,15 @@ public class BenchmarkCrawler extends AbstractMojo {
         //        responseInfo.setRequestBase(request);
         CloseableHttpResponse response = null;
 
-        List<String> executeArgs = Arrays.asList(request.getCommand().split(" "));
+        ArrayList<String> executeArgs =
+                new ArrayList<>(Arrays.asList(request.getCommand().split(" ")));
         for (RequestVariable arg : request.getArgs()) {
             executeArgs.add(arg.getName());
             executeArgs.add(arg.getValue());
         }
         //    	executeArgs.addAll(request.getArgs());
         System.out.println(String.join(" ", executeArgs));
-        
+
         StopWatch watch = new StopWatch();
 
         watch.start();
@@ -335,15 +334,17 @@ public class BenchmarkCrawler extends AbstractMojo {
             ProcessBuilder builder = new ProcessBuilder(executeArgs);
             builder.inheritIO();
             final Process process = builder.start();
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            final BufferedReader reader =
+                    new BufferedReader(new InputStreamReader(process.getInputStream()));
             StringJoiner sj = new StringJoiner(System.getProperty("line.separator"));
+            reader.lines().iterator().forEachRemaining(sj::add);
             String output = sj.toString();
-            responseInfo.setOutput(output);
+            responseInfo.setResponseString(output);
             int exitValue = process.waitFor();
             //            attackPayloadResponseInfo = new ResponseInfo();
             //            System.out.printf("Program terminated with return code: %s%n", exitValue);
             responseInfo.setReturnCode(exitValue);
-            
+
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -372,14 +373,6 @@ public class BenchmarkCrawler extends AbstractMojo {
         //                }
         //        }
         return responseInfo;
-    }
-    
-    private static void handleStream(InputStream inputStream) {
-    	try (BufferedReader stdOutReader = new BufferedReader(new InputStreamReader(inputStream))) {
-    		while (stdOutReader.readLine() != null) {
-    			// 
-    		}
-    	}
     }
 
     /**

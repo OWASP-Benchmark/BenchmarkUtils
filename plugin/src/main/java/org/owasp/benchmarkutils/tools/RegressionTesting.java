@@ -34,6 +34,8 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpMessage;
+import org.owasp.benchmarkutils.entities.CliResponseInfo;
+import org.owasp.benchmarkutils.entities.HttpResponseInfo;
 import org.owasp.benchmarkutils.entities.HttpTestCaseInput;
 import org.owasp.benchmarkutils.entities.ResponseInfo;
 import org.owasp.benchmarkutils.entities.TestCase;
@@ -223,14 +225,43 @@ public class RegressionTesting {
         out.println("Attack request:");
         out.println(result.getAttackTestExecutor().getExecutorDescription());
         out.println();
-        out.printf("Attack response: [%d]:%n", attackResponseInfo.getStatusCode());
-        out.println(attackResponseInfo == null ? "null" : attackResponseInfo.getResponseString());
+        if (attackResponseInfo instanceof HttpResponseInfo) {
+            out.printf(
+                    "Attack response: [%d]:%n",
+                    ((HttpResponseInfo) attackResponseInfo).getStatusCode());
+            out.println(
+                    attackResponseInfo == null
+                            ? "null"
+                            : ((HttpResponseInfo) attackResponseInfo).getResponseString());
+        } else if (attackResponseInfo instanceof CliResponseInfo) {
+            out.printf(
+                    "Attack response: [%d]:%n",
+                    ((CliResponseInfo) attackResponseInfo).getReturnCode());
+            out.println(
+                    attackResponseInfo == null
+                            ? "null"
+                            : ((CliResponseInfo) attackResponseInfo).getResponseString());
+        }
         out.println();
         out.println("Safe request:");
         out.println(result.getSafeTestExecutor().getExecutorDescription());
         out.println();
-        out.printf("Safe response: [%d]:%n", attackResponseInfo.getStatusCode());
-        out.println(safeResponseInfo == null ? "null" : safeResponseInfo.getResponseString());
+        if (safeResponseInfo instanceof HttpResponseInfo) {
+            out.printf(
+                    "Safe response: [%d]:%n",
+                    ((HttpResponseInfo) safeResponseInfo).getStatusCode());
+            out.println(
+                    safeResponseInfo == null
+                            ? "null"
+                            : ((HttpResponseInfo) safeResponseInfo).getResponseString());
+        } else if (safeResponseInfo instanceof CliResponseInfo) {
+            out.printf(
+                    "Safe response: [%d]:%n", ((CliResponseInfo) safeResponseInfo).getReturnCode());
+            out.println(
+                    safeResponseInfo == null
+                            ? "null"
+                            : ((CliResponseInfo) safeResponseInfo).getResponseString());
+        }
         out.println();
         out.printf("Attack success indicator: -->%s<--%n", testCase.getAttackSuccessString());
         out.printf("-----------------------------------------------------------%n%n");
@@ -425,8 +456,16 @@ public class RegressionTesting {
         List<String> reasons = new ArrayList<>();
 
         if (responseInfo != null) {
-            if (responseInfo.getStatusCode() != 200) {
-                reasons.add(prefix + " response code: " + responseInfo.getStatusCode());
+            if (responseInfo instanceof HttpResponseInfo) {
+                int statusCode = ((HttpResponseInfo) responseInfo).getStatusCode();
+                if (statusCode != 200) {
+                    reasons.add(prefix + " response code: " + statusCode);
+                }
+            } else if (responseInfo instanceof CliResponseInfo) {
+                int returnCode = ((CliResponseInfo) responseInfo).getReturnCode();
+                if (returnCode != 0) {
+                    reasons.add(prefix + " response code: " + returnCode);
+                }
             }
             if (responseInfo.getResponseString().toLowerCase().contains("error")) {
                 reasons.add(prefix + " response contains: error");
