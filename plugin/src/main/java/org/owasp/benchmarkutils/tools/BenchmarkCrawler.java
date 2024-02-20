@@ -314,6 +314,7 @@ public class BenchmarkCrawler extends AbstractMojo {
      */
     static ResponseInfo execute(CliRequest request) {
         CliResponseInfo responseInfo = new CliResponseInfo();
+        responseInfo.setRequest(request);
         //        responseInfo.setRequestBase(request);
         CloseableHttpResponse response = null;
 
