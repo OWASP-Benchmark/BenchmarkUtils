@@ -38,7 +38,9 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.owasp.benchmarkutils.entities.CliRequest;
+import org.owasp.benchmarkutils.entities.CliResponseInfo;
 import org.owasp.benchmarkutils.entities.ExecutableTestCaseInput;
+import org.owasp.benchmarkutils.entities.HttpResponseInfo;
 import org.owasp.benchmarkutils.entities.HttpTestCaseInput;
 import org.owasp.benchmarkutils.entities.ResponseInfo;
 import org.owasp.benchmarkutils.entities.TestCase;
@@ -349,26 +351,49 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     }
 
     private void log(ResponseInfo responseInfo) throws IOException {
-        // Log the response
-        HttpUriRequest requestBase = responseInfo.getRequestBase();
-        String outputString =
-                String.format(
-                        "--> (%d : %d sec)%n",
-                        responseInfo.getStatusCode(), responseInfo.getTimeInSeconds());
-        try {
+    	if (responseInfo instanceof HttpResponseInfo) {
+    		HttpResponseInfo httpResponseInfo = (HttpResponseInfo) responseInfo;
+    		
+	        // Log the response
+	        HttpUriRequest requestBase = httpResponseInfo.getRequestBase();
+	        String outputString =
+	                String.format(
+	                        "--> (%d : %d sec)%n",
+	                        httpResponseInfo.getStatusCode(), httpResponseInfo.getTimeInSeconds());
+	        try {
+	            if (isTimingEnabled) {
+	                if (httpResponseInfo.getTimeInSeconds() >= maxTimeInSeconds) {
+	                    tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
+	                    tLogger.println(outputString);
+	                }
+	            } else {
+	                tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
+	                tLogger.println(outputString);
+	            }
+	        } catch (URISyntaxException e) {
+	            // TODO Auto-generated catch block
+	            e.printStackTrace();
+	        }
+    	} else if (responseInfo instanceof CliResponseInfo) {
+    		CliResponseInfo cliResponseInfo = (CliResponseInfo) responseInfo;
+    		
+	        // Log the response
+	        CliRequest request = cliResponseInfo.getRequest();
+	        String responseString =
+	                String.format(
+	                        "--> (%d : %d sec)%n",
+	                        cliResponseInfo.getReturnCode(), cliResponseInfo.getTimeInSeconds());
             if (isTimingEnabled) {
-                if (responseInfo.getTimeInSeconds() >= maxTimeInSeconds) {
-                    tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
-                    tLogger.println(outputString);
+                if (cliResponseInfo.getTimeInSeconds() >= maxTimeInSeconds) {
+                    tLogger.println(request.getCommand());
+                    tLogger.println(responseString);
                 }
             } else {
-                tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
-                tLogger.println(outputString);
+                tLogger.println(request.getCommand());
+                tLogger.println(responseString);
             }
-        } catch (URISyntaxException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+	        
+    	}
     }
 
     /**

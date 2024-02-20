@@ -17,9 +17,11 @@
  */
 package org.owasp.benchmarkutils.tools;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -29,6 +31,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import org.apache.commons.cli.CommandLine;
@@ -59,6 +65,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.owasp.benchmarkutils.entities.CliRequest;
+import org.owasp.benchmarkutils.entities.CliResponseInfo;
 import org.owasp.benchmarkutils.entities.ExecutableTestCaseInput;
 import org.owasp.benchmarkutils.entities.HttpTestCaseInput;
 import org.owasp.benchmarkutils.entities.RequestVariable;
@@ -254,7 +261,7 @@ public class BenchmarkCrawler extends AbstractMojo {
      * @param request - THe HTTP request to issue
      */
     static ResponseInfo sendRequest(CloseableHttpClient httpclient, HttpUriRequest request) {
-        ResponseInfo responseInfo = new ResponseInfo();
+    	HttpResponseInfo responseInfo = new HttpResponseInfo();
         responseInfo.setRequestBase(request);
         CloseableHttpResponse response = null;
 
@@ -308,7 +315,7 @@ public class BenchmarkCrawler extends AbstractMojo {
      * @param request - THe HTTP request to issue
      */
     static ResponseInfo execute(CliRequest request) {
-        ResponseInfo responseInfo = new ResponseInfo();
+        CliResponseInfo responseInfo = new CliResponseInfo();
         //        responseInfo.setRequestBase(request);
         CloseableHttpResponse response = null;
 
@@ -319,17 +326,24 @@ public class BenchmarkCrawler extends AbstractMojo {
         }
         //    	executeArgs.addAll(request.getArgs());
         System.out.println(String.join(" ", executeArgs));
-
+        
         StopWatch watch = new StopWatch();
 
         watch.start();
         try {
             //            response = httpclient.execute(request);
             ProcessBuilder builder = new ProcessBuilder(executeArgs);
+            builder.inheritIO();
             final Process process = builder.start();
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringJoiner sj = new StringJoiner(System.getProperty("line.separator"));
+            String output = sj.toString();
+            responseInfo.setOutput(output);
             int exitValue = process.waitFor();
             //            attackPayloadResponseInfo = new ResponseInfo();
             //            System.out.printf("Program terminated with return code: %s%n", exitValue);
+            responseInfo.setReturnCode(exitValue);
+            
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -358,6 +372,14 @@ public class BenchmarkCrawler extends AbstractMojo {
         //                }
         //        }
         return responseInfo;
+    }
+    
+    private static void handleStream(InputStream inputStream) {
+    	try (BufferedReader stdOutReader = new BufferedReader(new InputStreamReader(inputStream))) {
+    		while (stdOutReader.readLine() != null) {
+    			// 
+    		}
+    	}
     }
 
     /**
