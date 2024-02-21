@@ -309,22 +309,19 @@ public class BenchmarkCrawler extends AbstractMojo {
      * and the global variable timeString the URL tested, the time required to execute and the
      * response code.
      *
-     * @param httpclient - The HTTP client to use to make the request
-     * @param request - THe HTTP request to issue
+     * @param request - THe CLI request to issue
      */
     static ResponseInfo execute(CliRequest request) {
         CliResponseInfo responseInfo = new CliResponseInfo();
         responseInfo.setRequest(request);
         //        responseInfo.setRequestBase(request);
-        CloseableHttpResponse response = null;
 
         ArrayList<String> executeArgs =
                 new ArrayList<>(Arrays.asList(request.getCommand().split(" ")));
         for (RequestVariable arg : request.getArgs()) {
-            executeArgs.add(arg.getName());
+//            System.out.println("Adding arg: " + arg.getValue());
             executeArgs.add(arg.getValue());
         }
-        //    	executeArgs.addAll(request.getArgs());
         System.out.println(String.join(" ", executeArgs));
 
         StopWatch watch = new StopWatch();
@@ -333,6 +330,7 @@ public class BenchmarkCrawler extends AbstractMojo {
         try {
             //            response = httpclient.execute(request);
             ProcessBuilder builder = new ProcessBuilder(executeArgs);
+            builder.directory(new File("../../julietpy/testcode"));
             builder.inheritIO();
             final Process process = builder.start();
             final BufferedReader reader =
@@ -351,28 +349,6 @@ public class BenchmarkCrawler extends AbstractMojo {
         }
         watch.stop();
 
-        //        try {
-        //            HttpEntity entity = response.getEntity();
-        //            int statusCode = response.getCode();
-        //            responseInfo.setStatusCode(statusCode);
-        //            int seconds = (int) watch.getTime() / 1000;
-        //            responseInfo.setTimeInSeconds(seconds);
-        //            System.out.printf("--> (%d : %d sec)%n", statusCode, seconds);
-        //
-        //            try {
-        //                responseInfo.setResponseString(EntityUtils.toString(entity));
-        //                EntityUtils.consume(entity);
-        //            } catch (IOException | org.apache.hc.core5.http.ParseException e) {
-        //                e.printStackTrace();
-        //            }
-        //        } finally {
-        //            if (response != null)
-        //                try {
-        //                    response.close();
-        //                } catch (IOException e) {
-        //                    e.printStackTrace();
-        //                }
-        //        }
         return responseInfo;
     }
 
