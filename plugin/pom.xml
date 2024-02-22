@@ -201,7 +201,7 @@
         <version.fasterxml.jackson>2.16.1</version.fasterxml.jackson>
         <!-- 3.0.3+ version of eclipse.persistence requires jakarta.xml.bind instead of jaxb -->
         <version.eclipse.persistence>2.7.14</version.eclipse.persistence>
-        <version.junit.jupiter>5.10.1</version.junit.jupiter>
+        <version.junit.jupiter>5.10.2</version.junit.jupiter>
     </properties>
 
 </project>
