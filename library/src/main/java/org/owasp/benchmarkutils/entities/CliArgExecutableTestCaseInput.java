@@ -56,7 +56,7 @@ public class CliArgExecutableTestCaseInput extends ExecutableTestCaseInput {
             argCopy.setSafe(false);
             argsCopy.add(argCopy);
         }
-        return new CliRequest(getCommand(), argsCopy);
+        return new CliRequest(getCommand(), argsCopy, null);
     }
 
     public CliRequest buildSafeRequest() {
@@ -66,7 +66,7 @@ public class CliArgExecutableTestCaseInput extends ExecutableTestCaseInput {
             argCopy.setSafe(true);
             argsCopy.add(argCopy);
         }
-        return new CliRequest(getCommand(), argsCopy);
+        return new CliRequest(getCommand(), argsCopy, null);
     }
 
     public void setSafe(boolean isSafe) {

@@ -25,9 +25,7 @@ public class CliExecutor implements TestExecutor {
         List<String> commandTokens = new ArrayList<>();
         commandTokens.add(cliRequest.getCommand());
         for (RequestVariable requestVariable : cliRequest.getArgs()) {
-            commandTokens.add(
-                    String.format(
-                            "%s:%s%n", requestVariable.getName(), requestVariable.getValue()));
+            commandTokens.add(String.format("%s%n", requestVariable.getValue()));
         }
 
         return commandTokens.toString();

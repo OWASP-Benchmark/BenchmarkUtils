@@ -23,12 +23,12 @@ public class CliFileExecutableTestCaseInput extends ExecutableTestCaseInput {
         //		executeArgs.addAll(getArgs());
 
         setSafe(false);
-        return new CliRequest(getCommand(), getFileArgs());
+        return new CliRequest(getCommand(), getFileArgs(), null);
     }
 
     public CliRequest buildSafeRequest() {
         setSafe(true);
-        return new CliRequest(getCommand(), getFileArgs());
+        return new CliRequest(getCommand(), getFileArgs(), null);
     }
 
     public void setSafe(boolean isSafe) {

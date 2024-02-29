@@ -18,10 +18,12 @@
 package org.owasp.benchmarkutils.tools;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -319,7 +321,7 @@ public class BenchmarkCrawler extends AbstractMojo {
         ArrayList<String> executeArgs =
                 new ArrayList<>(Arrays.asList(request.getCommand().split(" ")));
         for (RequestVariable arg : request.getArgs()) {
-//            System.out.println("Adding arg: " + arg.getValue());
+            //            System.out.println("Adding arg: " + arg.getValue());
             executeArgs.add(arg.getValue());
         }
         System.out.println(String.join(" ", executeArgs));
@@ -331,18 +333,29 @@ public class BenchmarkCrawler extends AbstractMojo {
             //            response = httpclient.execute(request);
             ProcessBuilder builder = new ProcessBuilder(executeArgs);
             builder.directory(new File("../../julietpy/testcode"));
-            builder.inheritIO();
-            final Process process = builder.start();
-            final BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringJoiner sj = new StringJoiner(System.getProperty("line.separator"));
-            reader.lines().iterator().forEachRemaining(sj::add);
-            String output = sj.toString();
-            responseInfo.setResponseString(output);
-            int exitValue = process.waitFor();
-            //            attackPayloadResponseInfo = new ResponseInfo();
-            //            System.out.printf("Program terminated with return code: %s%n", exitValue);
-            responseInfo.setReturnCode(exitValue);
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+            try (BufferedReader reader =
+                            new BufferedReader(new InputStreamReader(process.getInputStream()));
+                    BufferedWriter writer =
+                            new BufferedWriter(
+                                    new OutputStreamWriter(process.getOutputStream())); ) {
+                if (request.getStdinData() != null) {
+                    writer.write(request.getStdinData().getValue());
+                    writer.flush();
+                    writer.close();
+                }
+
+                StringJoiner sj = new StringJoiner(System.getProperty("line.separator"));
+                reader.lines().iterator().forEachRemaining(sj::add);
+                String output = sj.toString();
+                responseInfo.setResponseString(output);
+                int exitValue = process.waitFor();
+                //            attackPayloadResponseInfo = new ResponseInfo();
+                //            System.out.printf("Program terminated with return code: %s%n",
+                // exitValue);
+                responseInfo.setReturnCode(exitValue);
+            }
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();

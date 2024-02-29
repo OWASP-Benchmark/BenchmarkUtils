@@ -17,12 +17,12 @@ public class TcpSocketTestCaseInput extends ExecutableTestCaseInput {
         //		executeArgs.addAll(getArgs());
 
         setSafe(false);
-        return new CliRequest(getCommand(), getTcpSocketData());
+        return new CliRequest(getCommand(), null, getTcpSocketData());
     }
 
     public CliRequest buildSafeRequest() {
         setSafe(true);
-        return new CliRequest(getCommand(), getTcpSocketData());
+        return new CliRequest(getCommand(), null, getTcpSocketData());
     }
 
     public void setSafe(boolean isSafe) {

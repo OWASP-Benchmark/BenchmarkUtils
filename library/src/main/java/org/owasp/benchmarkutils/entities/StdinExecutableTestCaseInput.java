@@ -4,9 +4,15 @@ import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 
 @XmlDiscriminatorValue("Stdin")
 public class StdinExecutableTestCaseInput extends ExecutableTestCaseInput {
+
+    RequestVariable stdinData;
+
     public RequestVariable getStdinData() {
-        // FIXME
-        return null;
+        return stdinData;
+    }
+
+    public void setStdinData(RequestVariable stdinData) {
+        this.stdinData = stdinData;
     }
 
     public CliRequest buildAttackRequest() {
@@ -15,13 +21,13 @@ public class StdinExecutableTestCaseInput extends ExecutableTestCaseInput {
         //		executeArgs.addAll(Arrays.asList(getCommand().split(" ")));
         //		executeArgs.addAll(getArgs());
 
-        setSafe(false);
-        return new CliRequest(getCommand(), getStdinData());
+        stdinData.setSafe(false);
+        return new CliRequest(getCommand(), null, getStdinData());
     }
 
     public CliRequest buildSafeRequest() {
         setSafe(true);
-        return new CliRequest(getCommand(), getStdinData());
+        return new CliRequest(getCommand(), null, getStdinData());
     }
 
     public void setSafe(boolean isSafe) {
