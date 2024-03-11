@@ -14,7 +14,11 @@ public class CliRequest {
     public CliRequest(String command, List<RequestVariable> args, RequestVariable stdinData) {
         super();
         this.command = command;
-        this.args = new ArrayList<RequestVariable>(args);
+        if (args == null) {
+            this.args = new ArrayList<RequestVariable>();
+        } else {
+            this.args = new ArrayList<RequestVariable>(args);
+        }
         this.stdinData = stdinData;
     }
 
@@ -41,7 +45,11 @@ public class CliRequest {
     }
 
     public void setArgs(List<RequestVariable> args) {
-        this.args = new ArrayList<RequestVariable>(args);
+        if (args == null) {
+            this.args = new ArrayList<RequestVariable>();
+        } else {
+            this.args = new ArrayList<RequestVariable>(args);
+        }
     }
 
     //	public List<String> getExecuteArgs() {

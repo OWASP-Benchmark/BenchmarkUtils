@@ -85,6 +85,9 @@ public class BenchmarkCrawler extends AbstractMojo {
     @Parameter(property = "crawlerFile")
     String pluginFilenameParam;
 
+    @Parameter(property = "testCaseName")
+    String pluginTestCaseNameParam;
+
     /*
      * Attaching the @Parameter property to the crawlerFile variable directly didn't work for some
      * reason. So I attached it to a new String variable, and set it later. No clue why it doesn't
@@ -324,7 +327,7 @@ public class BenchmarkCrawler extends AbstractMojo {
             //            System.out.println("Adding arg: " + arg.getValue());
             executeArgs.add(arg.getValue());
         }
-        System.out.println(String.join(" ", executeArgs));
+        //        System.out.println(String.join(" ", executeArgs));
 
         StopWatch watch = new StopWatch();
 
@@ -332,6 +335,7 @@ public class BenchmarkCrawler extends AbstractMojo {
         try {
             //            response = httpclient.execute(request);
             ProcessBuilder builder = new ProcessBuilder(executeArgs);
+            // FIXME: Do not hardcode this path
             builder.directory(new File("../../julietpy/testcode"));
             builder.redirectErrorStream(true);
             Process process = builder.start();
@@ -424,8 +428,15 @@ public class BenchmarkCrawler extends AbstractMojo {
         if (null == this.pluginFilenameParam) {
             System.out.println("ERROR: A crawlerFile parameter must be specified.");
         } else {
-            String[] mainArgs = {"-f", this.pluginFilenameParam};
-            main(mainArgs);
+            //          String[] mainArgs = {"-f", this.pluginFilenameParam};
+            List<String> mainArgs = new ArrayList<>();
+            mainArgs.add("-f");
+            mainArgs.add(this.pluginFilenameParam);
+            if (this.pluginTestCaseNameParam != null) {
+                mainArgs.add("-n");
+                mainArgs.add(this.pluginTestCaseNameParam);
+            }
+            main(mainArgs.stream().toArray(String[]::new));
         }
     }
 

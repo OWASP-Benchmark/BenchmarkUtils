@@ -1,5 +1,7 @@
 package org.owasp.benchmarkutils.entities;
 
+import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlElement;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 
 @XmlDiscriminatorValue("Stdin")
@@ -7,6 +9,8 @@ public class StdinExecutableTestCaseInput extends ExecutableTestCaseInput {
 
     RequestVariable stdinData;
 
+    @XmlElement(name = "stdinData", required = true)
+    @NotNull
     public RequestVariable getStdinData() {
         return stdinData;
     }

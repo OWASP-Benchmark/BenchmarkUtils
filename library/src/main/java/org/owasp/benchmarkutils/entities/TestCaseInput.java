@@ -12,7 +12,7 @@ import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;
     ServletTestCaseInput.class,
     SpringTestCaseInput.class,
     StdinExecutableTestCaseInput.class,
-    TcpSocketTestCaseInput.class
+    TcpSocketExecutableTestCaseInput.class
 })
 @XmlDiscriminatorNode("@type")
 public abstract class TestCaseInput {

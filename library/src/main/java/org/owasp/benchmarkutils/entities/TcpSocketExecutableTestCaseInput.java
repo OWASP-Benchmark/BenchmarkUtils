@@ -3,7 +3,7 @@ package org.owasp.benchmarkutils.entities;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 
 @XmlDiscriminatorValue("TcpSocket")
-public class TcpSocketTestCaseInput extends ExecutableTestCaseInput {
+public class TcpSocketExecutableTestCaseInput extends ExecutableTestCaseInput {
 
     public RequestVariable getTcpSocketData() {
         // FIXME

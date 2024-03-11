@@ -121,6 +121,13 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
                 for (TestCase testCase : testSuite.getTestCases()) {
 
+                    //                    if (this.selectedTestCaseName != null) {
+                    //                        if
+                    // (!testCase.getName().equals(this.selectedTestCaseName)) {
+                    //                            continue;
+                    //                        }
+                    //                    }
+
                     // TestCaseVerificationResults result = testCase.execute();
                     // results.add(result);
 
@@ -496,8 +503,14 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         if (null == this.pluginFilenameParam) {
             System.out.println("ERROR: A crawlerFile parameter must be specified.");
         } else {
-            String[] mainArgs = {"-f", this.pluginFilenameParam};
-            main(mainArgs);
+            List<String> mainArgs = new ArrayList<>();
+            mainArgs.add("-f");
+            mainArgs.add(this.pluginFilenameParam);
+            if (this.pluginTestCaseNameParam != null) {
+                mainArgs.add("-n");
+                mainArgs.add(this.pluginTestCaseNameParam);
+            }
+            main(mainArgs.stream().toArray(String[]::new));
         }
     }
 
