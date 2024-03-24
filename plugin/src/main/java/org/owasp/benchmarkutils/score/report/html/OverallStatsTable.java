@@ -83,9 +83,9 @@ public class OverallStatsTable {
     }
 
     private void appendRowTo(HtmlStringBuilder htmlBuilder, Tool tool) {
-        ToolResults or = tool.getOverallResults();
+        ToolResults results = tool.getOverallResults();
 
-        htmlBuilder.beginTr(cssClassFor(or));
+        htmlBuilder.beginTr(cssClassFor(results));
         htmlBuilder.td(tool.getToolNameAndVersion());
 
         if (config.mixedMode) {
@@ -96,33 +96,34 @@ public class OverallStatsTable {
 
         if (config.includePrecision) {
             htmlBuilder
-                    .td(twoDecimalPlacesPercentage.format(or.getPrecision()))
-                    .td(fourDecimalPlacesNumber.format(or.getFScore()));
+                    .td(twoDecimalPlacesPercentage.format(results.getPrecision()))
+                    .td(fourDecimalPlacesNumber.format(results.getFScore()));
         }
 
         htmlBuilder
-                .td(twoDecimalPlacesPercentage.format(or.getTruePositiveRate()))
-                .td(twoDecimalPlacesPercentage.format(or.getFalsePositiveRate()))
-                .td(twoDecimalPlacesPercentage.format(or.getOverallScore()))
+                .td(twoDecimalPlacesPercentage.format(results.getTruePositiveRate()))
+                .td(twoDecimalPlacesPercentage.format(results.getFalsePositiveRate()))
+                .td(twoDecimalPlacesPercentage.format(results.getOverallScore()))
                 .endTr();
     }
 
-    private String cssClassFor(ToolResults or) {
+    private String cssClassFor(ToolResults results) {
         String cssClass = null;
 
-        if (isDanger(or)) {
+        if (isDanger(results)) {
             cssClass = "danger";
-        } else if (isSuccess(or)) {
+        } else if (isSuccess(results)) {
             cssClass = "success";
         }
+
         return cssClass;
     }
 
-    private boolean isSuccess(ToolResults or) {
-        return or.getTruePositiveRate() > .7 && or.getFalsePositiveRate() < .3;
+    private boolean isSuccess(ToolResults results) {
+        return results.getTruePositiveRate() > .7 && results.getFalsePositiveRate() < .3;
     }
 
-    private boolean isDanger(ToolResults or) {
-        return Math.abs(or.getTruePositiveRate() - or.getFalsePositiveRate()) < .1;
+    private boolean isDanger(ToolResults results) {
+        return Math.abs(results.getTruePositiveRate() - results.getFalsePositiveRate()) < .1;
     }
 }
