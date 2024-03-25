@@ -72,7 +72,7 @@ class HtmlStringBuilderTest {
                         .toString();
 
         assertEquals(
-                "<table>" + "<tr>" + "<th>th</th>" + "<td>td</td>" + "</tr>" + "</table>", table);
+                "<table><tr><th>th</th><td>td</td></tr></table>", table);
     }
 
     @Test
