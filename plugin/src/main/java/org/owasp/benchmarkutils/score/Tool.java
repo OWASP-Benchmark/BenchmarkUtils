@@ -19,7 +19,6 @@ package org.owasp.benchmarkutils.score;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Map;
 import org.owasp.benchmarkutils.score.TestSuiteResults.ToolType;
@@ -53,8 +52,7 @@ public class Tool implements Comparable<Tool> {
             Map<String, TP_FN_TN_FP_Counts> scores,
             ToolResults toolResults,
             String actualCSVResultsFileName,
-            boolean isCommercial)
-            throws IOException, URISyntaxException {
+            boolean isCommercial) {
 
         this.isCommercial = isCommercial;
         this.toolType = actualResults.toolType;

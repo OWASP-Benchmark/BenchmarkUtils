@@ -56,6 +56,7 @@ import org.owasp.benchmarkutils.score.parsers.Reader;
 import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
+import org.owasp.benchmarkutils.score.report.html.OverallStatsTable;
 import org.xml.sax.SAXException;
 
 @Mojo(name = "create-scorecard", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
@@ -490,17 +491,19 @@ public class BenchmarkScore extends AbstractMojo {
         ScatterHome.generateComparisonChart(tools, config.focus, scoreCardDir);
 
         // Step 10: Generate the results table across all the tools in this test
-        String table = generateOverallStatsTable(tools);
-
         try {
-            String html = new String(Files.readAllBytes(homeFilePath));
-            html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
-            html = html.replace("${table}", table);
-            html = html.replace("${tprlabel}", config.tprLabel);
-            html =
-                    html.replace(
-                            "${precisionkey}",
-                            BenchmarkScore.PRECISIONKEYENTRY + BenchmarkScore.FSCOREKEYENTRY);
+            OverallStatsTable overallStatsTable = new OverallStatsTable(config, TESTSUITE);
+
+            String html =
+                    new String(Files.readAllBytes(homeFilePath))
+                            .replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY)
+                            .replace("${table}", overallStatsTable.generateFor(tools))
+                            .replace("${tprlabel}", config.tprLabel)
+                            .replace(
+                                    "${precisionkey}",
+                                    BenchmarkScore.PRECISIONKEYENTRY
+                                            + BenchmarkScore.FSCOREKEYENTRY);
+
             Files.write(homeFilePath, html.getBytes());
         } catch (IOException e) {
             System.out.println("Error updating results table in: " + homeFilePath.getFileName());
@@ -1294,70 +1297,6 @@ public class BenchmarkScore extends AbstractMojo {
         }
 
         sb.append("</table>");
-        return sb.toString();
-    }
-
-    /**
-     * Generate the overall stats table across all the tools for the bottom of the home page.
-     *
-     * @param tools - The set of all tools being scored. Each Tool includes it's scored results.
-     * @return The HTML of the overall stats table.
-     */
-    private static String generateOverallStatsTable(Set<Tool> tools) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<table class=\"table\">\n");
-        sb.append("<tr>");
-        sb.append("<th>Tool</th>");
-        if (config.mixedMode) sb.append("<th>" + TESTSUITE + " Version</th>");
-        sb.append("<th>Type</th>");
-        if (config.includePrecision) sb.append("<th>Precision*</th><th>F-score*</th>");
-        sb.append("<th>${tprlabel}*</th>");
-        sb.append("<th>FPR*</th>");
-        sb.append("<th>Score*</th>");
-        sb.append("</tr>\n");
-
-        for (Tool tool : tools) {
-
-            if (!(config.showAveOnlyMode && tool.isCommercial())) {
-                ToolResults or = tool.getOverallResults();
-                String style = "";
-
-                if (Math.abs(or.getTruePositiveRate() - or.getFalsePositiveRate()) < .1)
-                    style = "class=\"danger\"";
-                else if (or.getTruePositiveRate() > .7 && or.getFalsePositiveRate() < .3)
-                    style = "class=\"success\"";
-                sb.append("<tr " + style + ">");
-                sb.append("<td>" + tool.getToolNameAndVersion() + "</td>");
-                if (config.mixedMode) sb.append("<td>" + tool.getTestSuiteVersion() + "</td>");
-                sb.append("<td>" + tool.getToolType() + "</td>");
-                if (config.includePrecision) {
-                    sb.append(
-                            "<td>"
-                                    + new DecimalFormat("#0.00%").format(or.getPrecision())
-                                    + "</td>");
-                    sb.append(
-                            "<td>" + new DecimalFormat("#0.0000").format(or.getFScore()) + "</td>");
-                }
-                sb.append(
-                        "<td>"
-                                + new DecimalFormat("#0.00%").format(or.getTruePositiveRate())
-                                + "</td>");
-                sb.append(
-                        "<td>"
-                                + new DecimalFormat("#0.00%").format(or.getFalsePositiveRate())
-                                + "</td>");
-                sb.append(
-                        "<td>"
-                                + new DecimalFormat("#0.00%").format(or.getOverallScore())
-                                + "</td>");
-                sb.append("</tr>\n");
-            }
-        }
-
-        sb.append("</table>");
-        sb.append(
-                "<p>*-Please refer to each tool's scorecard for the data used to calculate these values.");
-
         return sb.toString();
     }
 
