@@ -236,6 +236,9 @@ public class CodeQLReader extends Reader {
                 return cweNumber.intValue(); // Return CWE as is
 
                 // These rules we care about, but have to map to the CWE we expect
+            case 94: // js/unsafe-dynamic-method-access & others - This mapping improves the tool's
+                // score
+                return 78; // Command Injection
             case 335: // java/predictable-seed - This mapping improves the tool's score
                 return 330; // Weak Random
 
