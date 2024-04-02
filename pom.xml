@@ -187,7 +187,7 @@
                             <rules>
                                 <enforceBytecodeVersion>
                                     <maxJdkVersion>${project.java.target}</maxJdkVersion>
-                                    <message>Dependencies shouldn't require Java 9+.</message>
+                                    <message>Dependencies shouldn't require Java 12+.</message>
                                 </enforceBytecodeVersion>
                             </rules>
                             <fail>warn</fail>
@@ -202,7 +202,7 @@
                             <rules>
                                 <requireJavaVersion>
                                     <version>${project.java.target}</version>
-                                    <message>BenchmarkUtls is currently written to support Java 8.</message>
+                                    <message>BenchmarkUtls is currently written to support Java 11.</message>
                                 </requireJavaVersion>
                             </rules>
                         </configuration>
