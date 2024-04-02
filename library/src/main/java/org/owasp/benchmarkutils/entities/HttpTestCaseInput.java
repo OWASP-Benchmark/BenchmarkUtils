@@ -1,3 +1,20 @@
+/**
+ * OWASP Benchmark Project
+ *
+ * <p>This file is part of the Open Web Application Security Project (OWASP) Benchmark Project For
+ * details, please see <a
+ * href="https://owasp.org/www-project-benchmark/">https://owasp.org/www-project-benchmark/</a>.
+ *
+ * <p>The OWASP Benchmark is free software: you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation, version 2.
+ *
+ * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
+ *
+ * @author David Anderson
+ * @created 2024
+ */
 package org.owasp.benchmarkutils.entities;
 
 import java.io.IOException;
@@ -217,10 +234,25 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
      * response code.
      *
      * @param httpclient - The HTTP client to use to make the request
-     * @param request - THe HTTP request to issue
+     * @param request - The HTTP request to issue
      */
     static ResponseInfo sendRequest(CloseableHttpClient httpclient, HttpUriRequest request) {
-        HttpResponseInfo responseInfo = new HttpResponseInfo();
+        // The default is this is a normal, non-attack request, so send false as isAttack value
+        return sendRequest(httpclient, request, false);
+    }
+
+    /**
+     * Issue the requested request, measure the time required to execute, then output both to stdout
+     * and the global variable timeString the URL tested, the time required to execute and the
+     * response code.
+     *
+     * @param httpclient - The HTTP client to use to make the request
+     * @param request - The HTTP request to issue
+     * @param attackRequest - Is the request an attack, or not
+     */
+    static ResponseInfo sendRequest(
+            CloseableHttpClient httpclient, HttpUriRequest request, boolean attackRequest) {
+        HttpResponseInfo responseInfo = new HttpResponseInfo(attackRequest);
         responseInfo.setRequestBase(request);
         CloseableHttpResponse response = null;
 

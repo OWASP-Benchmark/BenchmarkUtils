@@ -410,7 +410,7 @@
         <maven.compiler.source>${project.java.target}</maven.compiler.source>
         <maven.compiler.target>${project.java.target}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.java.target>1.8</project.java.target>
+        <project.java.target>11</project.java.target>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <log.directory>${project.build.directory}/log</log.directory>
         <version.fluido>2.0.0-M8</version.fluido>

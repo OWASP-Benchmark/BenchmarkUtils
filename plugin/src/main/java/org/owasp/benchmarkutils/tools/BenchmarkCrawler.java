@@ -202,7 +202,7 @@ public class BenchmarkCrawler extends AbstractMojo {
                     HttpUriRequest attackRequest = httpTestCaseInput.buildAttackRequest();
 
                     // Send the next test case request with its attack payload
-                    sendRequest(httpClient, attackRequest);
+                    sendRequest(httpClient, attackRequest, true);
                 } else if (testCase.getTestCaseInput() instanceof ExecutableTestCaseInput) {
                     ExecutableTestCaseInput executableTestCaseInput =
                             (ExecutableTestCaseInput) testCase.getTestCaseInput();
@@ -258,13 +258,28 @@ public class BenchmarkCrawler extends AbstractMojo {
     /**
      * Issue the requested request, measure the time required to execute, then output both to stdout
      * and the global variable timeString the URL tested, the time required to execute and the
-     * response code.
+     * response code. This is for normal, non-attack requests.
      *
      * @param httpclient - The HTTP client to use to make the request
      * @param request - THe HTTP request to issue
      */
     static ResponseInfo sendRequest(CloseableHttpClient httpclient, HttpUriRequest request) {
-        HttpResponseInfo responseInfo = new HttpResponseInfo();
+        return sendRequest(httpclient, request, false);
+    }
+
+    /**
+     * Issue the requested request, measure the time required to execute, then output both to stdout
+     * and the global variable timeString the URL tested, the time required to execute and the
+     * response code.
+     *
+     * @param httpclient - The HTTP client to use to make the request
+     * @param request - THe HTTP request to issue
+     * @param attackRequest - true if this response info is associated with an attack request, false
+     *     otherwise
+     */
+    static ResponseInfo sendRequest(
+            CloseableHttpClient httpclient, HttpUriRequest request, boolean attackRequest) {
+        HttpResponseInfo responseInfo = new HttpResponseInfo(attackRequest);
         responseInfo.setRequestBase(request);
         CloseableHttpResponse response = null;
 
@@ -312,12 +327,24 @@ public class BenchmarkCrawler extends AbstractMojo {
     /**
      * Issue the requested request, measure the time required to execute, then output both to stdout
      * and the global variable timeString the URL tested, the time required to execute and the
-     * response code.
+     * response code. By default, this assumes a normal 'safe' request.
      *
-     * @param request - THe CLI request to issue
+     * @param request - The CLI request to issue
      */
     static ResponseInfo execute(CliRequest request) {
-        CliResponseInfo responseInfo = new CliResponseInfo();
+        return execute(request, false);
+    }
+
+    /**
+     * Issue the requested request, measure the time required to execute, then output both to stdout
+     * and the global variable timeString the URL tested, the time required to execute and the
+     * response code.
+     *
+     * @param request - The CLI request to issue
+     * @param attackRequest - True if executing an attack, false otherwise
+     */
+    static ResponseInfo execute(CliRequest request, boolean attackRequest) {
+        CliResponseInfo responseInfo = new CliResponseInfo(attackRequest);
         responseInfo.setRequest(request);
         //        responseInfo.setRequestBase(request);
 
@@ -358,7 +385,7 @@ public class BenchmarkCrawler extends AbstractMojo {
                 //            attackPayloadResponseInfo = new ResponseInfo();
                 //            System.out.printf("Program terminated with return code: %s%n",
                 // exitValue);
-                responseInfo.setReturnCode(exitValue);
+                responseInfo.setStatusCode(exitValue);
             }
 
         } catch (IOException | InterruptedException e) {

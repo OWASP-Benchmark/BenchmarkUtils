@@ -1,41 +1,39 @@
+/**
+ * OWASP Benchmark Project
+ *
+ * <p>This file is part of the Open Web Application Security Project (OWASP) Benchmark Project For
+ * details, please see <a
+ * href="https://owasp.org/www-project-benchmark/">https://owasp.org/www-project-benchmark/</a>.
+ *
+ * <p>The OWASP Benchmark is free software: you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation, version 2.
+ *
+ * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
+ *
+ * @author David Anderson
+ * @created 2024
+ */
 package org.owasp.benchmarkutils.entities;
 
+import javax.xml.bind.annotation.XmlElement;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 
-public class HttpResponseInfo implements ResponseInfo {
-    private String responseString;
-    private int seconds;
-    private int statusCode;
+public class HttpResponseInfo extends ResponseInfo {
+
     private HttpUriRequest requestBase;
 
-    @Override
-    public String getResponseString() {
-        return responseString;
+    public HttpResponseInfo() {
+        // Default is this is a normal, non-attack response
+        super();
     }
 
-    @Override
-    public void setResponseString(String responseString) {
-        this.responseString = responseString;
+    public HttpResponseInfo(boolean attackRequest) {
+        super(attackRequest);
     }
 
-    @Override
-    public int getTimeInSeconds() {
-        return seconds;
-    }
-
-    @Override
-    public void setTimeInSeconds(int seconds) {
-        this.seconds = seconds;
-    }
-
-    public int getStatusCode() {
-        return statusCode;
-    }
-
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
-    }
-
+    @XmlElement(required = true)
     public HttpUriRequest getRequestBase() {
         return requestBase;
     }
