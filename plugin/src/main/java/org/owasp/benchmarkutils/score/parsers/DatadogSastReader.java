@@ -58,6 +58,12 @@ public class DatadogSastReader extends Reader {
         }
     }
 
+    /**
+     * Provide a direct mapping between a rule identifier and a CWE
+     *
+     * @param ruleId the rule identifier
+     * @return the corresponding CWE identifier
+     */
     private Type getTypeFromRuleId(String ruleId) {
         if (ruleId.equalsIgnoreCase("java-security/cookies-secure-flag")
                 || ruleId.equalsIgnoreCase("java-security/cookies-http-only")) {
@@ -85,6 +91,12 @@ public class DatadogSastReader extends Reader {
         return null;
     }
 
+    /**
+     * Try to get the CWE from the violation object in the SARIF report.
+     *
+     * @param violation the violation object from the SARIF report
+     * @return the CWE if found, 0 otherwise
+     */
     private int getCweFromProperties(JSONObject violation) {
         try {
             JSONObject properties = violation.getJSONObject("properties");
@@ -128,6 +140,8 @@ public class DatadogSastReader extends Reader {
                 String ruleId = result.getString("ruleId");
                 TestCaseResult tcr = new TestCaseResult();
 
+                // First, try to get the CWE based on the rule id. If it fails, try to get it from
+                // the property of the violation.
                 Type t = getTypeFromRuleId(ruleId);
 
                 if (t != null) {
@@ -141,9 +155,8 @@ public class DatadogSastReader extends Reader {
                     continue;
                 }
 
-                String filename = null;
                 JSONArray locations = result.getJSONArray("locations");
-                filename =
+                String filename =
                         locations
                                 .getJSONObject(0)
                                 .getJSONObject("physicalLocation")
@@ -163,6 +176,7 @@ public class DatadogSastReader extends Reader {
         return tr;
     }
 
+    // Enumeration that contains the CWE and associated category.
     private enum Type {
         COMMAND_INJECTION(78),
         WEAK_HASH("crypto-bad-mac", 328),
@@ -193,13 +207,5 @@ public class DatadogSastReader extends Reader {
             this.id = id;
         }
 
-        private static Type secureValueOf(String value) {
-            for (Type type : values()) {
-                if (type.name().equals(value)) {
-                    return type;
-                }
-            }
-            return null;
-        }
     }
 }
