@@ -43,7 +43,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.7.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -53,7 +53,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.11.0</version>
+                    <version>3.12.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -99,11 +99,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.12.1</version>
+                <version>3.13.0</version>
                 <configuration>
                     <fork>true</fork>
                     <meminitial>1000m</meminitial>
                     <maxmem>2000m</maxmem>
+                    <release>${java.target}</release>
                 </configuration>
             </plugin>
 
@@ -121,7 +122,7 @@
                     <dependency>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>extra-enforcer-rules</artifactId>
-                        <version>1.7.0</version>
+                        <version>1.8.0</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -133,8 +134,8 @@
                         <configuration>
                             <rules>
                                 <enforceBytecodeVersion>
-                                    <maxJdkVersion>${project.java.target}</maxJdkVersion>
-                                    <message>Dependencies shouldn't require Java 9+.</message>
+                                    <maxJdkVersion>${java.target}</maxJdkVersion>
+                                    <message>Dependencies shouldn't require Java 12+.</message>
                                 </enforceBytecodeVersion>
                             </rules>
                             <fail>warn</fail>
@@ -148,8 +149,8 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>${project.java.target}</version>
-                                    <message>BenchmarkUtls is currently written to support Java 8.</message>
+                                    <version>${java.target}</version>
+                                    <message>BenchmarkUtils is currently written to support Java 11.</message>
                                 </requireJavaVersion>
                             </rules>
                         </configuration>
@@ -217,8 +218,7 @@
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
-                <!-- This is the last version that supports Java 8. 2.31.0+ requires Java 11. -->
-                <version>2.30.0</version>
+                <version>2.43.0</version>
                 <configuration>
                     <!-- optional: limit format enforcement to just the files changed by this
                         feature branch -->
@@ -292,7 +292,7 @@
 
                         <!-- apply a specific flavor of google-java-format -->
                         <googleJavaFormat>
-                            <version>1.7</version>
+                            <version>1.8</version>
                             <style>AOSP</style>
                         </googleJavaFormat>
                     </java>
@@ -354,15 +354,11 @@
     </reporting>
 
     <properties>
-        <maven.compiler.source>${project.java.target}</maven.compiler.source>
-        <maven.compiler.target>${project.java.target}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.java.target>1.8</project.java.target>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.target>11</java.target>
         <log.directory>${project.build.directory}/log</log.directory>
         <version.fluido>2.0.0-M8</version.fluido>
-
-        <version.benchmarkutils>1.3</version.benchmarkutils>
     </properties>
 
 </project>
