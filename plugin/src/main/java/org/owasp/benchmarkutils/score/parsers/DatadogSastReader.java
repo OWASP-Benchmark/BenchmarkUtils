@@ -72,7 +72,7 @@ public class DatadogSastReader extends Reader {
         if (ruleId.equalsIgnoreCase("java-security/avoid-random")) {
             return Type.WEAK_RANDOMNESS;
         }
-        if (ruleId.equalsIgnoreCase("java-security/sql-string-tainted")) {
+        if (ruleId.equalsIgnoreCase("java-security/sql-injection")) {
             return Type.SQL_INJECTION;
         }
         if (ruleId.equalsIgnoreCase("java-security/keygenerator-avoid-des")) {
@@ -81,12 +81,27 @@ public class DatadogSastReader extends Reader {
         if (ruleId.equalsIgnoreCase("java-security/ldap-injection")) {
             return Type.LDAP_INJECTION;
         }
-        if (ruleId.equalsIgnoreCase("java-security/processbuilder-injection")) {
+        if (ruleId.equalsIgnoreCase("java-security/command-injection")) {
             return Type.COMMAND_INJECTION;
         }
         if (ruleId.equalsIgnoreCase("java-security/weak-message-digest-md5")
                 || ruleId.equalsIgnoreCase("java-security/weak-message-digest-sha1")) {
             return Type.WEAK_HASH;
+        }
+        if (ruleId.equalsIgnoreCase("java-security/xml-parsing-xxe-xpath")
+                || ruleId.equalsIgnoreCase("java-security/tainted-xpath")) {
+            return Type.XPATH_INJECTION;
+        }
+        if (ruleId.contains("java-security") && ruleId.contains("xss")) {
+            return Type.XSS;
+        }
+        if (ruleId.contains("java-security")
+                && ruleId.contains("trust")
+                && ruleId.contains("bound")) {
+            return Type.TRUST_BOUNDARY_VIOLATION;
+        }
+        if (ruleId.equalsIgnoreCase("java-security/path-traversal")) {
+            return Type.PATH_TRAVERSAL;
         }
         return null;
     }
@@ -148,7 +163,7 @@ public class DatadogSastReader extends Reader {
                     tcr.setCWE(t.number);
                     tcr.setCategory(t.id);
                 } else {
-                    tcr.setCWE(getCweFromProperties(result));
+                    continue;
                 }
 
                 if (tcr.getCWE() == 0) {
@@ -206,6 +221,5 @@ public class DatadogSastReader extends Reader {
             this.number = number;
             this.id = id;
         }
-
     }
 }
