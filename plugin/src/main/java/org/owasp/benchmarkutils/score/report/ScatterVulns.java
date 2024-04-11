@@ -332,8 +332,9 @@ public class ScatterVulns extends ScatterPlot {
                         i,
                         label,
                         tool.getToolNameAndVersion(),
-                        or.getTruePositiveRate(),
-                        or.getFalsePositiveRate());
+                        // For ScatterVulns, these need to be the rates for this vuln cat
+                        or.getCategoryResults(category).truePositiveRate,
+                        or.getCategoryResults(category).falsePositiveRate);
 
                 i++;
                 // Weak hack if there are more than 26 tools scored. This will only get us to 52.
@@ -365,7 +366,7 @@ public class ScatterVulns extends ScatterPlot {
                 }
             }
 
-            // noncommercial stats
+            // non-commercial stats
             if (this.noncommercialToolCount > 0) {
                 this.noncommercialAveScore = noncommercialTotalScore / this.noncommercialToolCount;
                 this.noncommercialAvePrecision =
