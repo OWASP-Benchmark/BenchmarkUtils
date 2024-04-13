@@ -12,10 +12,8 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Dave Wichers
- * @author Nipuna Weerasekara
- * @author Nicolas Couraud
- * @created 2021
+ * @author Julien Delange
+ * @created 2024
  */
 package org.owasp.benchmarkutils.score.parsers;
 
@@ -28,7 +26,8 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 /**
  * This reader is made for the datadog-static-analyzer available on
- * https://github.com/DataDog/datadog-static-analyzer It uses the SARIF file produces by the tool.
+ * <a href="https://github.com/DataDog/datadog-static-analyzer">...</a>.
+ * It uses the SARIF file produces by the tool.
  */
 public class DatadogSastReader extends Reader {
     private static final String DATADOG_TOOL_NAME = "datadog-static-analyzer";

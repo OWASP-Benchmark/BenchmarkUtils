@@ -12,8 +12,8 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Nicolas Couraud
- * @created 2023
+ * @author Julien Delange
+ * @created 2024
  */
 package org.owasp.benchmarkutils.score.parsers;
 
