@@ -34,7 +34,7 @@ class SemgrepSarifReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Semgrep-v1.67.0.sarif");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-v1.67.0.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
