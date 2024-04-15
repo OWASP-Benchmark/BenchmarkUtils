@@ -88,6 +88,7 @@ public abstract class Reader {
                 new ScnrReader(),
                 new SeekerReader(),
                 new SemgrepReader(),
+                new SemgrepSarifReader(),
                 new ShiftLeftReader(),
                 new ShiftLeftScanReader(),
                 new SnappyTickReader(),
