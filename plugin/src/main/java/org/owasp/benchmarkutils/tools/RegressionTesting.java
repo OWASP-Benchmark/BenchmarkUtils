@@ -74,6 +74,7 @@ public class RegressionTesting {
     // TODO: Make this flag configurable via command line parameter
     private static boolean isVerbosityOn = false;
     private static final String FILENAME_FAILEDTC = "failedTestCases.txt";
+    private static final String FILENAME_FAILEDTC_JSON = "failedTestCases.json";
 
     /** The list of categories that will be included in the regression test. */
     private static final List<String> CATEGORIES_INCLUDED_IN_TEST =
@@ -95,6 +96,7 @@ public class RegressionTesting {
 
         final File FILE_FAILEDTC = new File(dataDir, FILENAME_FAILEDTC);
         SimpleFileLogger.setFile("FAILEDTC", FILE_FAILEDTC);
+        final File FILE_FAILEDTC_JSON = new File(dataDir, FILENAME_FAILEDTC_JSON);
 
         try (SimpleFileLogger ftc = SimpleFileLogger.getLogger("FAILEDTC")) {
 
@@ -171,8 +173,6 @@ public class RegressionTesting {
 
             if (truePositiveFailedCount + falsePositiveFailedCount > 0) {
                 for (TestCaseVerificationResults result : results) {
-                    //                    AbstractTestCaseRequest requestTemplate =
-                    // result.getRequestTemplate();
                     TestCase testCase = result.getTestCase();
                     if (isIncludedInTest(testCase)) {
                         if (!result.isUnverifiable() && !result.isPassed()) {
@@ -225,6 +225,7 @@ public class RegressionTesting {
         out.println("Attack request:");
         out.println(result.getAttackTestExecutor().getExecutorDescription());
         out.println();
+//        out.println("DRW Request JSON: " + result.getAttackTestExecutor().toJSON());
         if (attackResponseInfo instanceof HttpResponseInfo) {
             out.printf(
                     "Attack response: [%d]:%n",
@@ -236,15 +237,18 @@ public class RegressionTesting {
         } else if (attackResponseInfo instanceof CliResponseInfo) {
             out.printf(
                     "Attack response: [%d]:%n",
-                    ((CliResponseInfo) attackResponseInfo).getReturnCode());
+                    ((CliResponseInfo) attackResponseInfo).getStatusCode());
             out.println(
                     attackResponseInfo == null
                             ? "null"
                             : ((CliResponseInfo) attackResponseInfo).getResponseString());
         }
         out.println();
+        out.println("DRW: Response JSON: " + attackResponseInfo.toJSON());
+        out.println();
         out.println("Safe request:");
         out.println(result.getSafeTestExecutor().getExecutorDescription());
+//        out.println("DRW Request JSON: " + result.getSafeTestExecutor().toJSON());
         out.println();
         if (safeResponseInfo instanceof HttpResponseInfo) {
             out.printf(
@@ -256,12 +260,14 @@ public class RegressionTesting {
                             : ((HttpResponseInfo) safeResponseInfo).getResponseString());
         } else if (safeResponseInfo instanceof CliResponseInfo) {
             out.printf(
-                    "Safe response: [%d]:%n", ((CliResponseInfo) safeResponseInfo).getReturnCode());
+                    "Safe response: [%d]:%n", ((CliResponseInfo) safeResponseInfo).getStatusCode());
             out.println(
                     safeResponseInfo == null
                             ? "null"
                             : ((CliResponseInfo) safeResponseInfo).getResponseString());
         }
+        out.println();
+        out.println("DRW: Response JSON: " + safeResponseInfo.toJSON());
         out.println();
         out.printf("Attack success indicator: -->%s<--%n", testCase.getAttackSuccessString());
         out.printf("-----------------------------------------------------------%n%n");
@@ -462,7 +468,7 @@ public class RegressionTesting {
                     reasons.add(prefix + " response code: " + statusCode);
                 }
             } else if (responseInfo instanceof CliResponseInfo) {
-                int returnCode = ((CliResponseInfo) responseInfo).getReturnCode();
+                int returnCode = ((CliResponseInfo) responseInfo).getStatusCode();
                 if (returnCode != 0) {
                     reasons.add(prefix + " response code: " + returnCode);
                 }

@@ -161,7 +161,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         safeExecutor = new HttpExecutor(safeRequest);
 
                         // Send the next test case request with its attack payload
-                        attackPayloadResponseInfo = sendRequest(httpClient, attackRequest);
+                        attackPayloadResponseInfo = sendRequest(httpClient, attackRequest, true);
                         responseInfoList.add(attackPayloadResponseInfo);
 
                         // Log the response
@@ -202,7 +202,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
                         // Send the next test case request with its attack payload
                         System.out.println("Executing attack request: " + attackRequest);
-                        attackPayloadResponseInfo = execute(attackRequest);
+                        attackPayloadResponseInfo = execute(attackRequest, true);
                         ////		                executeArgs.add(payload);
                         //		                ProcessBuilder builder = new
                         // ProcessBuilder(executeArgs);
@@ -430,7 +430,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             String responseString =
                     String.format(
                             "--> (%d : %d sec)%n",
-                            cliResponseInfo.getReturnCode(), cliResponseInfo.getTimeInSeconds());
+                            cliResponseInfo.getStatusCode(), cliResponseInfo.getTimeInSeconds());
             if (isTimingEnabled) {
                 if (cliResponseInfo.getTimeInSeconds() >= maxTimeInSeconds) {
                     tLogger.println(request.getCommand());
