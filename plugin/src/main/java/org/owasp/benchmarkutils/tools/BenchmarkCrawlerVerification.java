@@ -20,10 +20,14 @@ package org.owasp.benchmarkutils.tools;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -37,6 +41,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.eclipse.persistence.jaxb.MarshallerProperties;
+import org.eclipse.persistence.oxm.MediaType;
 import org.owasp.benchmarkutils.entities.CliRequest;
 import org.owasp.benchmarkutils.entities.CliResponseInfo;
 import org.owasp.benchmarkutils.entities.ExecutableTestCaseInput;
@@ -60,13 +66,17 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
     private static int maxTimeInSeconds = 2;
     private static boolean isTimingEnabled = false;
+    private boolean verifyFixed = false;
+    private String configurationDirectory = Utils.DATA_DIR;
+    private String outputDirectory = Utils.DATA_DIR;
+    private String beforeFixOutputDirectory = Utils.DATA_DIR;
     private static final String FILENAME_TIMES_ALL = "crawlerTimes.txt";
     private static final String FILENAME_TIMES = "crawlerSlowTimes.txt";
     private static final String FILENAME_NON_DISCRIMINATORY_LOG = "nonDiscriminatoryTestCases.txt";
     private static final String FILENAME_ERRORS_LOG = "errorTestCases.txt";
     private static final String FILENAME_UNVERIFIABLE_LOG = "unverifiableTestCases.txt";
-    // The following is reconfigurable via parameters to main()
-    private static String CRAWLER_DATA_DIR = Utils.DATA_DIR; // default data dir
+    //     The following is reconfigurable via parameters to main()
+    //    private String CRAWLER_DATA_DIR = Utils.DATA_DIR; // default data dir
 
     SimpleFileLogger tLogger;
     SimpleFileLogger ndLogger;
@@ -92,16 +102,16 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                     new ArrayList<TestCaseVerificationResults>();
 
             final File FILE_NON_DISCRIMINATORY_LOG =
-                    new File(CRAWLER_DATA_DIR, FILENAME_NON_DISCRIMINATORY_LOG);
-            final File FILE_ERRORS_LOG = new File(CRAWLER_DATA_DIR, FILENAME_ERRORS_LOG);
+                    new File(getOutputDirectory(), FILENAME_NON_DISCRIMINATORY_LOG);
+            final File FILE_ERRORS_LOG = new File(getOutputDirectory(), FILENAME_ERRORS_LOG);
             final File FILE_TIMES_LOG;
             if (isTimingEnabled) {
-                FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES);
+                FILE_TIMES_LOG = new File(getOutputDirectory(), FILENAME_TIMES);
             } else {
-                FILE_TIMES_LOG = new File(CRAWLER_DATA_DIR, FILENAME_TIMES_ALL);
+                FILE_TIMES_LOG = new File(getOutputDirectory(), FILENAME_TIMES_ALL);
             }
             final File FILE_UNVERIFIABLE_LOG =
-                    new File(CRAWLER_DATA_DIR, FILENAME_UNVERIFIABLE_LOG);
+                    new File(getOutputDirectory(), FILENAME_UNVERIFIABLE_LOG);
             SimpleFileLogger.setFile("TIMES", FILE_TIMES_LOG);
             SimpleFileLogger.setFile("NONDISCRIMINATORY", FILE_NON_DISCRIMINATORY_LOG);
             SimpleFileLogger.setFile("ERRORS", FILE_ERRORS_LOG);
@@ -246,6 +256,10 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                     }
                 }
 
+                // DEBUG
+                String output = objectToJson(testSuite);
+                System.out.println(output);
+
                 // Log the elapsed time for all test cases
                 long stop = System.currentTimeMillis();
                 int seconds = (int) (stop - start) / 1000;
@@ -260,7 +274,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
                 // Report the verified results
                 if (RegressionTesting.isTestingEnabled) {
-                    RegressionTesting.genFailedTCFile(results, CRAWLER_DATA_DIR);
+                    RegressionTesting.genFailedTCFile(results, getOutputDirectory());
 
                     if (!RegressionTesting.failedTruePositivesList.isEmpty()
                             || !RegressionTesting.failedFalsePositivesList.isEmpty()) {
@@ -334,6 +348,23 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         // cleanupSetups(setups);
     }
 
+    /**
+     * @param testSuite
+     * @throws Exception
+     */
+    protected void crawlToVerifyFix(TestSuite testSuite, String beforeFixOutputDirectory)
+            throws Exception {
+
+        // Get config directory for RUN 1 from CLI option
+        // Get output directory for RUN 1
+        // Get test case directory of RUN 2 from CLI option
+        // Get output directory for RUN 2
+        // Create a copy of TestSuite from the RUN 1 config
+        // Modify TestSuite object so that every TestCase has isVulnerability = false
+        // Call crawl(TestSuite) on the new TestSuite
+        // Compare output of RUN 1 to output of RUN 2 and report result
+    }
+
     private List<TestCaseSetup> getTestCaseSetups(TestSuite testSuite) {
         List<TestCaseSetup> testCaseSetups = new ArrayList<TestCaseSetup>();
         for (TestCase testCase : testSuite.getTestCases()) {
@@ -357,6 +388,14 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         for (TestCaseSetup testCaseSetup : testCaseSetups) {
             testCaseSetup.close();
         }
+    }
+
+    protected String getConfigurationDirectory() {
+        return configurationDirectory;
+    }
+
+    protected String getOutputDirectory() {
+        return outputDirectory;
     }
 
     private void log(ResponseInfo responseInfo) throws IOException {
@@ -414,14 +453,92 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
      * @throws FileNotFoundException
      * @throws LoggerConfigurationException
      */
-    protected static void handleResponse(TestCaseVerificationResults result)
+    protected void handleResponse(TestCaseVerificationResults results)
             throws FileNotFoundException, LoggerConfigurationException {
 
         // Check to see if this specific test case has a specified expected response value.
         // If so, run it through verification using it's specific attackSuccessIndicator.
         // Note that a specific success indicator overrides any generic category tests, if
         // specified.
-        RegressionTesting.verifyTestCase(result);
+        RegressionTesting.verifyTestCase(results);
+
+        if (verifyFixed) {
+            TestCaseVerificationResults beforeFixResults =
+                    loadTestCaseVerificationResults(beforeFixOutputDirectory);
+            verifyFix(beforeFixResults, results);
+        }
+    }
+
+    private TestCaseVerificationResults loadTestCaseVerificationResults(String directory) {
+
+        // FIXME: Replace this with code to load results from JSON data files
+        TestExecutor attackTestExecutor = new HttpExecutor(null);
+        TestExecutor safeTestExecutor = new HttpExecutor(null);
+        TestCase testCase = new TestCase();
+        ResponseInfo responseToAttackValue = new HttpResponseInfo(); // FIXME: Or CliResponseInfo
+        responseToAttackValue.setResponseString("");
+        ResponseInfo responseToSafeValue = new HttpResponseInfo();
+        responseToSafeValue.setResponseString("");
+        TestCaseVerificationResults results =
+                new TestCaseVerificationResults(
+                        attackTestExecutor,
+                        safeTestExecutor,
+                        testCase,
+                        responseToAttackValue,
+                        responseToSafeValue);
+
+        return results;
+    }
+
+    private boolean verifyFix(
+            TestCaseVerificationResults beforeFixResults,
+            TestCaseVerificationResults afterFixResults) {
+
+        boolean wasExploited =
+                afterFixResults.getTestCase().isVulnerability()
+                        && !afterFixResults.getTestCase().isUnverifiable()
+                        && afterFixResults.isPassed();
+        boolean wasBroken =
+                !beforeFixResults
+                        .getResponseToSafeValue()
+                        .getResponseString()
+                        .equals(afterFixResults.getResponseToAttackValue().getResponseString());
+        if (wasExploited) {
+            System.out.println("NOT FIXED: Vulnerability was exploited");
+        }
+        if (wasBroken) {
+            System.out.println("NOT FIXED: Functionality was broken");
+        }
+
+        try {
+            VerifyFixOutput verifyFixOutput = new VerifyFixOutput();
+            verifyFixOutput.setWasExploited(wasExploited);
+            verifyFixOutput.setWasBroken(wasBroken);
+            String output = objectToJson(verifyFixOutput);
+            System.out.println(output);
+        } catch (JAXBException e) {
+            System.out.println("ERROR: Could not marshall VerifyFixOutput to JSON");
+            e.printStackTrace();
+        }
+
+        return !wasExploited && !wasBroken;
+    }
+
+    String objectToJson(Object object) throws JAXBException {
+        // final Class[] marshallableClasses = new Class[] {VerifyFixOutput.class};
+        final Class[] marshallableClasses = new Class[] {TestSuite.class, VerifyFixOutput.class};
+        JAXBContext jaxbContext =
+                org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(
+                        marshallableClasses, null);
+        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+
+        jaxbMarshaller.setProperty(MarshallerProperties.MEDIA_TYPE, MediaType.APPLICATION_JSON);
+        jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+
+        StringWriter writer = new StringWriter();
+        jaxbMarshaller.marshal(object, writer);
+
+        return writer.toString();
     }
 
     /**
@@ -446,6 +563,18 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         // Create the Options
         Options options = new Options();
         options.addOption(
+                Option.builder("b")
+                        .longOpt("beforeFixOutputDirectory")
+                        .desc("output directory of a previous crawl before fixes")
+                        .hasArg()
+                        .build());
+        options.addOption(
+                Option.builder("d")
+                        .longOpt("outputDirectory")
+                        .desc("output directory")
+                        .hasArg()
+                        .build());
+        options.addOption(
                 Option.builder("f")
                         .longOpt("file")
                         .desc("a TESTSUITE-crawler-http.xml file")
@@ -453,6 +582,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         .required()
                         .build());
         options.addOption(Option.builder("h").longOpt("help").desc("Usage").build());
+        options.addOption("m", "", false, "verify fixed test suite");
         options.addOption(
                 Option.builder("n")
                         .longOpt("name")
@@ -471,13 +601,19 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             // Parse the command line arguments
             CommandLine line = parser.parse(options, args);
 
+            if (line.hasOption("b")) {
+                beforeFixOutputDirectory = line.getOptionValue("b");
+            }
+            if (line.hasOption("d")) {
+                outputDirectory = line.getOptionValue("d");
+            }
             if (line.hasOption("f")) {
                 this.crawlerFile = line.getOptionValue("f");
                 File targetFile = new File(this.crawlerFile);
                 if (targetFile.exists()) {
                     setCrawlerFile(targetFile);
                     // Crawler output files go into the same directory as the crawler config file
-                    CRAWLER_DATA_DIR = targetFile.getParent() + File.separator;
+                    configurationDirectory = targetFile.getParent();
                 } else {
                     throw new RuntimeException(
                             "Could not find crawler configuration file '" + this.crawlerFile + "'");
