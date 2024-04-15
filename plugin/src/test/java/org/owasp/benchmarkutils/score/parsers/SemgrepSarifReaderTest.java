@@ -10,15 +10,15 @@
  *
  * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU General Public License for more details
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Raj Barath
- * @created 2023
+ * @author Sascha Knoop
+ * @created 2024
  */
 package org.owasp.benchmarkutils.score.parsers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,34 +28,34 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-class SnykReaderTest extends ReaderTestBase {
+class SemgrepSarifReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_SnykCodeCli.sarif");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Semgrep-v1.67.0.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    void onlySnykReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, SnykReader.class);
+    public void onlySemgrepSarifReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, SemgrepSarifReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        SnykReader reader = new SnykReader();
+        SemgrepSarifReader reader = new SemgrepSarifReader();
         TestSuiteResults result = reader.parse(resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
-        assertTrue(result.isCommercial());
-        assertEquals("SnykCode", result.getToolName());
-        assertEquals("1.0.0", result.getToolVersion());
+        assertFalse(result.isCommercial());
+        assertEquals("Semgrep OSS", result.getToolName());
+        assertEquals("1.67.0", result.getToolVersion());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XPATH_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
     }
 }

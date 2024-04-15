@@ -10,10 +10,10 @@
  *
  * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU General Public License for more details
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Raj Barath
- * @created 2023
+ * @author Sascha Knoop
+ * @created 2024
  */
 package org.owasp.benchmarkutils.score.parsers;
 
@@ -24,16 +24,16 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class SnykReader extends SarifReader {
+public class SemgrepSarifReader extends SarifReader {
 
     @Override
     protected String expectedSarifToolName() {
-        return "SnykCode";
+        return "Semgrep OSS";
     }
 
     @Override
     protected boolean isCommercial() {
-        return true;
+        return false;
     }
 
     @Override
@@ -43,14 +43,17 @@ public class SnykReader extends SarifReader {
         for (int i = 0; i < rules.length(); i++) {
             JSONObject rule = rules.getJSONObject(i);
 
-            int cwe =
-                    parseInt(
-                            rule.getJSONObject("properties")
-                                    .getJSONArray("cwe")
-                                    .getString(0)
-                                    .substring(4));
+            JSONArray tags = rule.getJSONObject("properties").getJSONArray("tags");
 
-            mappings.put(rule.getString("id"), cwe);
+            for (int j = 0; j < tags.length(); j++) {
+                String tag = tags.getString(j);
+
+                if (tag.startsWith("CWE")) {
+                    int cwe = parseInt(tag.split(":")[0].substring(4));
+
+                    mappings.put(rule.getString("id"), cwe);
+                }
+            }
         }
 
         return mappings;

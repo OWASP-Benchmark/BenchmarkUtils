@@ -43,7 +43,8 @@ public class CodeQLReader extends Reader {
                             .getJSONObject(0)
                             .getJSONObject("tool")
                             .getJSONObject("driver")
-                            .has("semanticVersion");
+                            .get("name")
+                            .equals("CodeQL");
         } catch (Exception e) {
             return false;
         }
