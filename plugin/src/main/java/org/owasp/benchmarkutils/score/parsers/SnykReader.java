@@ -17,42 +17,9 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import static java.lang.Integer.parseInt;
-
-import java.util.HashMap;
-import java.util.Map;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 public class SnykReader extends SarifReader {
 
-    @Override
-    protected String expectedSarifToolName() {
-        return "SnykCode";
-    }
-
-    @Override
-    protected boolean isCommercial() {
-        return true;
-    }
-
-    @Override
-    protected Map<String, Integer> ruleCweMappings(JSONArray rules) {
-        Map<String, Integer> mappings = new HashMap<>();
-
-        for (int i = 0; i < rules.length(); i++) {
-            JSONObject rule = rules.getJSONObject(i);
-
-            int cwe =
-                    parseInt(
-                            rule.getJSONObject("properties")
-                                    .getJSONArray("cwe")
-                                    .getString(0)
-                                    .substring(4));
-
-            mappings.put(rule.getString("id"), cwe);
-        }
-
-        return mappings;
+    public SnykReader() {
+        super("SnykCode", true, CweSourceType.FIELD);
     }
 }

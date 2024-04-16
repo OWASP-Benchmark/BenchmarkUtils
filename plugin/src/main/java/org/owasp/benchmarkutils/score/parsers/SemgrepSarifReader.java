@@ -17,45 +17,9 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import static java.lang.Integer.parseInt;
-
-import java.util.HashMap;
-import java.util.Map;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 public class SemgrepSarifReader extends SarifReader {
 
-    @Override
-    protected String expectedSarifToolName() {
-        return "Semgrep OSS";
-    }
-
-    @Override
-    protected boolean isCommercial() {
-        return false;
-    }
-
-    @Override
-    protected Map<String, Integer> ruleCweMappings(JSONArray rules) {
-        Map<String, Integer> mappings = new HashMap<>();
-
-        for (int i = 0; i < rules.length(); i++) {
-            JSONObject rule = rules.getJSONObject(i);
-
-            JSONArray tags = rule.getJSONObject("properties").getJSONArray("tags");
-
-            for (int j = 0; j < tags.length(); j++) {
-                String tag = tags.getString(j);
-
-                if (tag.startsWith("CWE")) {
-                    int cwe = parseInt(tag.split(":")[0].substring(4));
-
-                    mappings.put(rule.getString("id"), cwe);
-                }
-            }
-        }
-
-        return mappings;
+    public SemgrepSarifReader() {
+        super("Semgrep OSS", false, CweSourceType.TAG);
     }
 }
