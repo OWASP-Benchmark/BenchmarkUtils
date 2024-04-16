@@ -82,6 +82,7 @@ public abstract class Reader {
                 new NJSScanReader(),
                 new NoisyCricketReader(),
                 new ParasoftReader(),
+                new PrecautionReader(),
                 new PMDReader(),
                 new QualysWASReader(),
                 new Rapid7Reader(),
