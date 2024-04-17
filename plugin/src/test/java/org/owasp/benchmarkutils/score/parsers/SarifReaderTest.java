@@ -12,7 +12,8 @@ public class SarifReaderTest {
             strings = {
                 "CWE-326",
                 "CWE-326: Inadequate Encryption Strength",
-                "external/cwe/cwe-326"
+                "external/cwe/cwe-326",
+                "CWE:326"
             })
     void extractsCweNumberFromInput(String input) {
         assertEquals(326, SarifReader.extractCwe(input));

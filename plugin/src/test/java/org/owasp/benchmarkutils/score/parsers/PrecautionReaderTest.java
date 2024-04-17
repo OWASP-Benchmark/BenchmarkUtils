@@ -52,6 +52,7 @@ class PrecautionReaderTest extends ReaderTestBase {
         assertFalse(result.isCommercial());
         assertEquals("Precaution", result.getToolName());
         assertEquals("0.5.0", result.getToolVersion());
+
         assertEquals(1, result.getTotalResults());
         assertEquals(CweNumber.WEAK_HASH_ALGO, result.get(73).get(0).getCWE());
     }

@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.lang.Integer.parseInt;
 
@@ -69,8 +71,18 @@ public abstract class SarifReader extends Reader {
         TestSuiteResults testSuiteResults = testSuiteResults(resultFile);
 
         testSuiteResults.setTime(resultFile.file()); // This grabs the scan time out of the filename (if present)
-        testSuiteResults.setToolVersion(firstToolVersion(resultFile));
 
+        JSONObject driver = toolDriver(firstRun(resultFile));
+        if(driver.has("semanticVersion")) {
+            testSuiteResults.setToolVersion(driver.getString("semanticVersion"));
+        }
+
+        parseResults(resultFile, testSuiteResults);
+
+        return testSuiteResults;
+    }
+
+    private void parseResults(ResultFile resultFile, TestSuiteResults testSuiteResults) {
         JSONArray runs = resultFile.json().getJSONArray("runs");
 
         for (int i = 0; i < runs.length(); i++) {
@@ -87,12 +99,6 @@ public abstract class SarifReader extends Reader {
                 }
             }
         }
-
-        return testSuiteResults;
-    }
-
-    private static String firstToolVersion(ResultFile resultFile) {
-        return toolDriver(firstRun(resultFile)).getString("semanticVersion");
     }
 
     protected Map<String, Integer> ruleCweMappings(JSONObject tool) {
@@ -173,7 +179,14 @@ public abstract class SarifReader extends Reader {
 
     private TestSuiteResults testSuiteResults(ResultFile resultFile) {
         return new TestSuiteResults(
-            sarifToolName(resultFile), isCommercial, TestSuiteResults.ToolType.SAST);
+            toolName(resultFile), isCommercial, TestSuiteResults.ToolType.SAST);
+    }
+
+    /*
+     * Returns display tool name (for final report). By default, the SARIF tool name will be used. Overwrite if custom name is necessary.
+     */
+    public String toolName(ResultFile resultFile) {
+        return sarifToolName(resultFile);
     }
 
     private TestCaseResult testCaseResultFor(JSONObject result, Map<String, Integer> mappings) {
@@ -219,10 +232,17 @@ public abstract class SarifReader extends Reader {
         return cwe;
     }
 
+    /*
+     * Extracts any number from given string (assuming it's a CWE number)
+     */
     public static int extractCwe(String input) {
-        // TODO: Replace with Regex
-        return parseInt(
-            input.toLowerCase().replace("external/cwe/", "").split("cwe-")[1].split(":")[0]);
+        Matcher matcher = Pattern.compile("\\d+").matcher(input);
+
+        if (matcher.find()) {
+            return parseInt(matcher.group(0));
+        } else {
+            throw new IllegalArgumentException("ERROR: Could not extract number from input '" + input + "'");
+        }
     }
 
     /*
