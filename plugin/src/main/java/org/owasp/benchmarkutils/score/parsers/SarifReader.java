@@ -70,6 +70,7 @@ public abstract class SarifReader extends Reader {
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults testSuiteResults = testSuiteResults(resultFile);
 
+        // TODO: Extract time from invocation
         testSuiteResults.setTime(resultFile.file()); // This grabs the scan time out of the filename (if present)
 
         JSONObject driver = toolDriver(firstRun(resultFile));
@@ -172,7 +173,7 @@ public abstract class SarifReader extends Reader {
         return mappings;
     }
 
-    private Map<String, Integer> customRuleCweMappings(JSONObject driver) {
+    public Map<String, Integer> customRuleCweMappings(JSONObject driver) {
         throw new IllegalArgumentException(
             "SARIF Reader using custom cwe mappings MUST overwrite mapping method.");
     }
