@@ -75,7 +75,6 @@ public abstract class Reader {
                 new JuliaReader(),
                 new KlocworkCSVReader(),
                 new KiuwanReader(),
-                new LGTMReader(),
                 new MendReader(),
                 new NetsparkerReader(),
                 new NJSScanReader(),
