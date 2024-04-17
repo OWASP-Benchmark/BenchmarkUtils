@@ -25,7 +25,9 @@ import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static java.lang.Integer.parseInt;
 
@@ -51,89 +53,72 @@ public abstract class SarifReader extends Reader {
     }
 
     private String sarifToolName(ResultFile resultFile) {
-        return toolDriver(resultFile).getString("name");
-    }
-
-    private static JSONObject toolDriver(ResultFile resultFile) {
-        return firstRun(resultFile).getJSONObject("tool").getJSONObject("driver");
+        return toolDriver(firstRun(resultFile)).getString("name");
     }
 
     private static JSONObject firstRun(ResultFile resultFile) {
         return resultFile.json().getJSONArray("runs").getJSONObject(0);
     }
 
+    private static JSONObject toolDriver(JSONObject run) {
+        return run.getJSONObject("tool").getJSONObject("driver");
+    }
+
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-        JSONObject driver = toolDriver(resultFile);
-
-        Map<String, Integer> mappings = ruleCweMappings(driver.getJSONArray("rules"));
-
         TestSuiteResults testSuiteResults = testSuiteResults(resultFile);
 
-        testSuiteResults.setToolVersion(driver.getString("semanticVersion"));
+        testSuiteResults.setTime(resultFile.file()); // This grabs the scan time out of the filename (if present)
+        testSuiteResults.setToolVersion(firstToolVersion(resultFile));
 
-        JSONArray results = firstRun(resultFile).getJSONArray("results");
+        JSONArray runs = resultFile.json().getJSONArray("runs");
 
-        for (int i = 0; i < results.length(); i++) {
-            JSONObject result = results.getJSONObject(i);
+        for (int i = 0; i < runs.length(); i++) {
+            JSONObject run = runs.getJSONObject(i);
 
-            String className = extractFilename(resultUri(result));
+            Map<String, Integer> mappings = ruleCweMappings(run.getJSONObject("tool"));
+            JSONArray results = run.getJSONArray("results");
 
-            if (!className.startsWith(BenchmarkScore.TESTCASENAME)) {
-                continue;
+            for (int j = 0; j < results.length(); j++) {
+                TestCaseResult tcr = testCaseResultFor(results.getJSONObject(j), mappings);
+
+                if (tcr != null) {
+                    testSuiteResults.put(tcr);
+                }
             }
-
-            TestCaseResult tcr = new TestCaseResult();
-
-            String ruleId = result.getString("ruleId");
-
-            int cwe = mappings.getOrDefault(ruleId, -1);
-
-            if (cwe == -1) {
-                System.out.println("No CWE # present for rule '" + ruleId + "'");
-                continue;
-            }
-
-            String evidence = result.getJSONObject("message").getString("text");
-
-            tcr.setCWE(cwe);
-            tcr.setCategory(ruleId);
-            tcr.setEvidence(evidence);
-            tcr.setConfidence(0);
-            tcr.setNumber(testNumber(className));
-
-            testSuiteResults.put(tcr);
         }
 
         return testSuiteResults;
     }
 
-    protected Map<String, Integer> ruleCweMappings(JSONArray rules) {
+    private static String firstToolVersion(ResultFile resultFile) {
+        return toolDriver(firstRun(resultFile)).getString("semanticVersion");
+    }
+
+    protected Map<String, Integer> ruleCweMappings(JSONObject tool) {
         switch (cweSourceType) {
             case TAG:
-                return ruleCweMappingsByTag(rules);
+                return ruleCweMappingsByTag(tool);
             case FIELD:
-                return ruleCweMappingsByField(rules);
+                return ruleCweMappingsByField(tool);
             case CUSTOM:
-                return customRuleCweMappings(rules);
+                return customRuleCweMappings(tool);
             default:
                 throw new IllegalArgumentException("Unknown cwe mapping source type");
         }
     }
 
-    private Map<String, Integer> ruleCweMappingsByTag(JSONArray rules) {
+    private Map<String, Integer> ruleCweMappingsByTag(JSONObject tool) {
         Map<String, Integer> mappings = new HashMap<>();
 
-        for (int i = 0; i < rules.length(); i++) {
-            JSONObject rule = rules.getJSONObject(i);
-
+        for (JSONObject rule : extractRulesFrom(tool)) {
             JSONArray tags = rule.getJSONObject("properties").getJSONArray("tags");
 
             for (int j = 0; j < tags.length(); j++) {
-                String tag = tags.getString(j);
+                String tag = tags.getString(j).toLowerCase();
 
-                if (tag.startsWith("CWE")) {
-                    mappings.put(rule.getString("id"), extractCwe(tag));
+                if (tag.contains("cwe")) {
+                    mappings.put(rule.getString("id"), mapCwe(extractCwe(tag)));
                 }
             }
         }
@@ -141,21 +126,47 @@ public abstract class SarifReader extends Reader {
         return mappings;
     }
 
-    private Map<String, Integer> ruleCweMappingsByField(JSONArray rules) {
-        Map<String, Integer> mappings = new HashMap<>();
+    private static Set<JSONObject> extractRulesFrom(JSONObject tool) {
+        Set<JSONObject> toolRules = new HashSet<>();
+
+        JSONArray rules = tool.getJSONObject("driver").getJSONArray("rules");
 
         for (int i = 0; i < rules.length(); i++) {
-            JSONObject rule = rules.getJSONObject(i);
+            toolRules.add(rules.getJSONObject(i));
+        }
 
+        if (tool.has("extensions")) {
+            JSONArray extensions = tool.getJSONArray("extensions");
+
+            for (int i = 0; i < extensions.length(); i++) {
+                JSONObject extension = extensions.getJSONObject(i);
+
+                if (extension.has("rules")) {
+                    JSONArray extensionRules = extension.getJSONArray("rules");
+
+                    for (int j = 0; j < extensionRules.length(); j++) {
+                        toolRules.add(extensionRules.getJSONObject(j));
+                    }
+                }
+            }
+        }
+
+        return toolRules;
+    }
+
+    private Map<String, Integer> ruleCweMappingsByField(JSONObject tool) {
+        Map<String, Integer> mappings = new HashMap<>();
+
+        for (JSONObject rule : extractRulesFrom(tool)) {
             int cwe = extractCwe(rule.getJSONObject("properties").getJSONArray("cwe").getString(0));
 
-            mappings.put(rule.getString("id"), cwe);
+            mappings.put(rule.getString("id"), mapCwe(cwe));
         }
 
         return mappings;
     }
 
-    private Map<String, Integer> customRuleCweMappings(JSONArray rules) {
+    private Map<String, Integer> customRuleCweMappings(JSONObject driver) {
         throw new IllegalArgumentException(
             "SARIF Reader using custom cwe mappings MUST overwrite mapping method.");
     }
@@ -165,12 +176,47 @@ public abstract class SarifReader extends Reader {
             sarifToolName(resultFile), isCommercial, TestSuiteResults.ToolType.SAST);
     }
 
+    private TestCaseResult testCaseResultFor(JSONObject result, Map<String, Integer> mappings) {
+        TestCaseResult tcr = new TestCaseResult();
+
+        String className = extractFilename(resultUri(result));
+
+        if (!className.startsWith(BenchmarkScore.TESTCASENAME)) {
+            return null;
+        }
+
+        String ruleId = result.getString("ruleId");
+
+        int cwe = mappings.getOrDefault(ruleId, -1);
+
+        if (cwe == -1) {
+            return null;
+        }
+
+        String evidence = result.getJSONObject("message").getString("text");
+
+        tcr.setCWE(cwe);
+        tcr.setCategory(ruleId);
+        tcr.setEvidence(evidence);
+        tcr.setConfidence(0);
+        tcr.setNumber(testNumber(className));
+
+        return tcr;
+    }
+
     private static String resultUri(JSONObject result) {
         return result.getJSONArray("locations")
             .getJSONObject(0)
             .getJSONObject("physicalLocation")
             .getJSONObject("artifactLocation")
             .getString("uri");
+    }
+
+    /*
+     * Allows extending classes to map/change detected cwe numbers to match Benchmark expected numbers (if required)
+     */
+    public int mapCwe(int cwe) {
+        return cwe;
     }
 
     public static int extractCwe(String input) {

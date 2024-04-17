@@ -27,6 +27,9 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
+import java.io.File;
+import java.io.IOException;
+
 public class CodeQLReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
