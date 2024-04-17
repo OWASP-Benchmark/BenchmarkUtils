@@ -70,7 +70,6 @@ public abstract class Reader {
                 new HCLAppScanIASTReader(),
                 new HCLAppScanSourceReader(),
                 new HCLAppScanStandardReader(),
-                new HdivReader(),
                 new HorusecReader(),
                 new InsiderReader(),
                 new JuliaReader(),
