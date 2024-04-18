@@ -20,14 +20,11 @@ package org.owasp.benchmarkutils.tools;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -41,8 +38,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.eclipse.persistence.jaxb.MarshallerProperties;
-import org.eclipse.persistence.oxm.MediaType;
 import org.owasp.benchmarkutils.entities.CliRequest;
 import org.owasp.benchmarkutils.entities.CliResponseInfo;
 import org.owasp.benchmarkutils.entities.ExecutableTestCaseInput;
@@ -256,10 +251,6 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                     }
                 }
 
-                // DEBUG
-                String output = objectToJson(testSuite);
-                System.out.println(output);
-
                 // Log the elapsed time for all test cases
                 long stop = System.currentTimeMillis();
                 int seconds = (int) (stop - start) / 1000;
@@ -274,6 +265,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
                 // Report the verified results
                 if (RegressionTesting.isTestingEnabled) {
+                    // Generate all the standard text file verification results to different files
                     RegressionTesting.genFailedTCFile(results, getOutputDirectory());
 
                     if (!RegressionTesting.failedTruePositivesList.isEmpty()
@@ -318,6 +310,11 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                                     RegressionTesting.failedFalsePositivesList.get(request));
                         }
                     }
+
+                    // Then generate JSON file with ALL verification results. This has to go at end
+                    // because previous methods have some side affects that file in test case
+                    // verification values.
+                    RegressionTesting.genAllTCResultsToJsonFile(results, getOutputDirectory());
                 }
             }
 
@@ -514,7 +511,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             VerifyFixOutput verifyFixOutput = new VerifyFixOutput();
             verifyFixOutput.setWasExploited(wasExploited);
             verifyFixOutput.setWasBroken(wasBroken);
-            String output = objectToJson(verifyFixOutput);
+            String output = Utils.objectToJson(verifyFixOutput);
             System.out.println(output);
         } catch (JAXBException e) {
             System.out.println("ERROR: Could not marshall VerifyFixOutput to JSON");
@@ -522,23 +519,6 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         }
 
         return !wasExploited && !wasBroken;
-    }
-
-    String objectToJson(Object object) throws JAXBException {
-        // final Class[] marshallableClasses = new Class[] {VerifyFixOutput.class};
-        final Class[] marshallableClasses = new Class[] {TestSuite.class, VerifyFixOutput.class};
-        JAXBContext jaxbContext =
-                org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(
-                        marshallableClasses, null);
-        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-
-        jaxbMarshaller.setProperty(MarshallerProperties.MEDIA_TYPE, MediaType.APPLICATION_JSON);
-        jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-
-        StringWriter writer = new StringWriter();
-        jaxbMarshaller.marshal(object, writer);
-
-        return writer.toString();
     }
 
     /**

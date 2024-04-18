@@ -17,14 +17,8 @@
  */
 package org.owasp.benchmarkutils.entities;
 
-import java.io.StringWriter;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.eclipse.persistence.jaxb.MarshallerProperties;
-import org.eclipse.persistence.oxm.MediaType;
 
 @XmlRootElement(name = "ResponseInfo")
 public abstract class ResponseInfo {
@@ -75,30 +69,5 @@ public abstract class ResponseInfo {
 
     public void setTimeInSeconds(int seconds) {
         this.seconds = seconds;
-    }
-
-    public String toJSON() {
-        try {
-            JAXBContext jaxbContext =
-                    org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(
-                            new Class[] {ResponseInfo.class}, null);
-
-            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-
-            // Set JSON type
-            jaxbMarshaller.setProperty(MarshallerProperties.MEDIA_TYPE, MediaType.APPLICATION_JSON);
-            jaxbMarshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, true);
-
-            // To format JSON
-            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-
-            // Print JSON String to Console
-            StringWriter sw = new StringWriter();
-            jaxbMarshaller.marshal(this, sw);
-            return sw.toString();
-        } catch (JAXBException e) {
-            e.printStackTrace();
-            return "";
-        }
     }
 }

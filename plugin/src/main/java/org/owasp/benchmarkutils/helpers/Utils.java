@@ -25,6 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -46,6 +47,7 @@ import java.util.jar.JarFile;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -54,8 +56,13 @@ import javax.xml.transform.Source;
 import javax.xml.transform.sax.SAXSource;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.persistence.jaxb.JAXBContextFactory;
+import org.eclipse.persistence.jaxb.MarshallerProperties;
+import org.eclipse.persistence.oxm.MediaType;
+import org.owasp.benchmarkutils.entities.ResponseInfo;
 import org.owasp.benchmarkutils.entities.TestSuite;
 import org.owasp.benchmarkutils.tools.TestCaseRequestFileParseException;
+import org.owasp.benchmarkutils.tools.TestCaseVerificationResults;
+import org.owasp.benchmarkutils.tools.VerifyFixOutput;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -400,5 +407,28 @@ public class Utils {
             System.out.println("ERROR trying to copy resources from JAR file to file system.");
             e.printStackTrace();
         }
+    }
+
+    public static String objectToJson(Object object) throws JAXBException {
+        final Class[] marshallableClasses =
+                new Class[] {
+                    ResponseInfo.class,
+                    TestSuite.class,
+                    TestCaseVerificationResults.class,
+                    VerifyFixOutput.class
+                };
+        JAXBContext jaxbContext =
+                org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(
+                        marshallableClasses, null);
+        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+
+        jaxbMarshaller.setProperty(MarshallerProperties.MEDIA_TYPE, MediaType.APPLICATION_JSON);
+        jaxbMarshaller.setProperty(MarshallerProperties.JSON_INCLUDE_ROOT, Boolean.TRUE);
+        jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+
+        StringWriter writer = new StringWriter();
+        jaxbMarshaller.marshal(object, writer);
+
+        return writer.toString();
     }
 }

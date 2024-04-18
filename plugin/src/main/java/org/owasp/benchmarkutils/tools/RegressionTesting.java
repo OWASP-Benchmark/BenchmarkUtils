@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.xml.bind.JAXBException;
 import org.apache.commons.io.IOUtils;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.core5.http.Header;
@@ -39,6 +40,7 @@ import org.owasp.benchmarkutils.entities.HttpResponseInfo;
 import org.owasp.benchmarkutils.entities.HttpTestCaseInput;
 import org.owasp.benchmarkutils.entities.ResponseInfo;
 import org.owasp.benchmarkutils.entities.TestCase;
+import org.owasp.benchmarkutils.helpers.Utils;
 
 /**
  * Test all supported test cases to verify that the results are as expected and write the report to
@@ -74,14 +76,42 @@ public class RegressionTesting {
     // TODO: Make this flag configurable via command line parameter
     private static boolean isVerbosityOn = false;
     private static final String FILENAME_FAILEDTC = "failedTestCases.txt";
-    private static final String FILENAME_FAILEDTC_JSON = "failedTestCases.json";
+    private static final String FILENAME_TC_VERIF_RESULTS_JSON = "testCaseVerificationResults.json";
 
     /** The list of categories that will be included in the regression test. */
     private static final List<String> CATEGORIES_INCLUDED_IN_TEST =
             Arrays.asList(new String[] {"xss", "xxe"});
 
-    // TODO: Since this is static, we might only be able to use (close) it once.
+    // TODO: Since these logs are static, we might only be able to use (close) it once.
+    static SimpleFileLogger tcJsonLogger;
     static SimpleFileLogger ftcLogger;
+    /**
+     * Write a log file containing the verification results of all test cases, as JSON.
+     *
+     * @param results
+     * @param dataDir
+     * @throws IOException
+     * @throws LoggerConfigurationException
+     */
+    public static void genAllTCResultsToJsonFile(
+            List<TestCaseVerificationResults> results, String dataDir)
+            throws IOException, LoggerConfigurationException {
+
+        final File FILE_TC_VERIF_RESULTS_JSON = new File(dataDir, FILENAME_TC_VERIF_RESULTS_JSON);
+        SimpleFileLogger.setFile("TC_VERIF_RESULTS_JSON", FILE_TC_VERIF_RESULTS_JSON);
+
+        try (SimpleFileLogger tcJSON = SimpleFileLogger.getLogger("TC_VERIF_RESULTS_JSON")) {
+
+            tcJsonLogger = tcJSON;
+
+            // Create JSON version of verification results for ALL test cases
+            tcJsonLogger.println(Utils.objectToJson(results));
+        } catch (JAXBException e) {
+            System.out.println("Fatal Error trying to convert verification results to JSON");
+            e.printStackTrace();
+            System.exit(-1);
+        }
+    }
 
     /**
      * Write a log file containing the details of all failed test cases.
@@ -96,7 +126,6 @@ public class RegressionTesting {
 
         final File FILE_FAILEDTC = new File(dataDir, FILENAME_FAILEDTC);
         SimpleFileLogger.setFile("FAILEDTC", FILE_FAILEDTC);
-        final File FILE_FAILEDTC_JSON = new File(dataDir, FILENAME_FAILEDTC_JSON);
 
         try (SimpleFileLogger ftc = SimpleFileLogger.getLogger("FAILEDTC")) {
 
@@ -142,8 +171,6 @@ public class RegressionTesting {
 
             if (truePositiveFailedCount + falsePositiveFailedCount > 0) {
                 for (TestCaseVerificationResults result : results) {
-                    //                    AbstractTestCaseRequest requestTemplate =
-                    // result.getRequestTemplate();
                     TestCase testCase = result.getTestCase();
                     if (isIncludedInTest(testCase)) {
                         if (isVerbosityOn) {
@@ -160,12 +187,17 @@ public class RegressionTesting {
                             System.out.println(httpTestCaseInput.getUrl());
                         }
 
-                        if (!result.isUnverifiable() && !result.isPassed()) {
-                            System.out.printf(
-                                    "FAILURE: %s positive %s test case request %s%n",
-                                    testCase.isVulnerability() ? "True" : "False",
-                                    testCase.getCategory().toString(),
-                                    testCase.getName());
+                        if (!result.isUnverifiable()) {
+                            if (result.isPassed()) {
+                                testCase.setVerificationResult("VERIFIED");
+                            } else {
+                                testCase.setVerificationResult("FAILURE");
+                                System.out.printf(
+                                        "FAILURE: %s positive %s test case request %s%n",
+                                        testCase.isVulnerability() ? "True" : "False",
+                                        testCase.getCategory().toString(),
+                                        testCase.getName());
+                            }
                         }
                     }
                 }
@@ -177,7 +209,7 @@ public class RegressionTesting {
                     if (isIncludedInTest(testCase)) {
                         if (!result.isUnverifiable() && !result.isPassed()) {
                             ftcLogger.print("FAILURE: ");
-                            printTestCaseDetails(result, ftcLogger);
+                            printTestCaseDetailsAsText(result, ftcLogger);
                         }
                     }
                 }
@@ -209,8 +241,8 @@ public class RegressionTesting {
         }
     }
 
-    private static void printTestCaseDetails(TestCaseVerificationResults result, Logger out) {
-        //        AbstractTestCaseRequest requestTemplate = result.getRequestTemplate();
+    private static void printTestCaseDetailsAsText(TestCaseVerificationResults result, Logger out) {
+
         TestCase testCase = result.getTestCase();
         ResponseInfo attackResponseInfo = result.getResponseToAttackValue();
         ResponseInfo safeResponseInfo = result.getResponseToSafeValue();
@@ -219,13 +251,11 @@ public class RegressionTesting {
                 testCase.isVulnerability() ? "True" : "False",
                 testCase.getCategory().toString(),
                 testCase.getName());
-        // Print out all the attributes of the request, including the templates used to create it
+        // Print out all attributes of the request, including the templates used to create it
         out.println(testCase.toString());
         out.println();
         out.println("Attack request:");
         out.println(result.getAttackTestExecutor().getExecutorDescription());
-        out.println();
-//        out.println("DRW Request JSON: " + result.getAttackTestExecutor().toJSON());
         if (attackResponseInfo instanceof HttpResponseInfo) {
             out.printf(
                     "Attack response: [%d]:%n",
@@ -244,12 +274,8 @@ public class RegressionTesting {
                             : ((CliResponseInfo) attackResponseInfo).getResponseString());
         }
         out.println();
-        out.println("DRW: Response JSON: " + attackResponseInfo.toJSON());
-        out.println();
         out.println("Safe request:");
         out.println(result.getSafeTestExecutor().getExecutorDescription());
-//        out.println("DRW Request JSON: " + result.getSafeTestExecutor().toJSON());
-        out.println();
         if (safeResponseInfo instanceof HttpResponseInfo) {
             out.printf(
                     "Safe response: [%d]:%n",
@@ -266,8 +292,6 @@ public class RegressionTesting {
                             ? "null"
                             : ((CliResponseInfo) safeResponseInfo).getResponseString());
         }
-        out.println();
-        out.println("DRW: Response JSON: " + safeResponseInfo.toJSON());
         out.println();
         out.printf("Attack success indicator: -->%s<--%n", testCase.getAttackSuccessString());
         out.printf("-----------------------------------------------------------%n%n");
@@ -373,7 +397,7 @@ public class RegressionTesting {
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(false);
             uLogger.print("UNVERIFIABLE: ");
-            printTestCaseDetails(result, uLogger);
+            printTestCaseDetailsAsText(result, uLogger);
         }
 
         List<String> reasons = new ArrayList<>();
@@ -403,7 +427,7 @@ public class RegressionTesting {
                                 "Non-discriminatory true positive test %s: The attack-success-string: \"%s\" was found in the response to both the safe and attack requests.%n"
                                         + "\tTo verify that a test case is a true positive, the attack-success-string should be in the attack response, and not%n\tthe safe response. Please change the attack-success-string and/or the test case sink itself to ensure that the%n\tattack-success-string response is present only in a response to a successful attack.%n",
                                 testCase.getName(), testCase.getAttackSuccessString());
-                        printTestCaseDetails(result, ndLogger);
+                        printTestCaseDetailsAsText(result, ndLogger);
                         nonDiscriminatorySinks.add(sink);
                     }
                 } else {
@@ -422,7 +446,7 @@ public class RegressionTesting {
                                 "Non-discriminatory false positive test %s: The attack-success-string: \"%s\" was found in the response to the safe request.%n"
                                         + "\tTo verify that a test case is a false positive, the attack-success-string should not be in any response to this test%n\tcase. Please change the attack-success-string and/or the test case sink itself to ensure that the%n\tattack-success-string response is present only in a response to a successful attack.%n",
                                 testCase.getName(), testCase.getAttackSuccessString());
-                        printTestCaseDetails(result, ndLogger);
+                        printTestCaseDetailsAsText(result, ndLogger);
                         nonDiscriminatorySinks.add(sink);
                     }
                 }

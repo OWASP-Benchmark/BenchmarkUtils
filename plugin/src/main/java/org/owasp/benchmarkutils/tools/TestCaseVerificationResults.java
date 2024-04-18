@@ -1,9 +1,30 @@
+/**
+ * OWASP Benchmark Project
+ *
+ * <p>This file is part of the Open Web Application Security Project (OWASP) Benchmark Project For
+ * details, please see <a
+ * href="https://owasp.org/www-project-benchmark/">https://owasp.org/www-project-benchmark/</a>.
+ *
+ * <p>The OWASP Benchmark is free software: you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation, version 2.
+ *
+ * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
+ *
+ * @author David Anderson
+ * @created 2021
+ */
 package org.owasp.benchmarkutils.tools;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import org.owasp.benchmarkutils.entities.ResponseInfo;
 import org.owasp.benchmarkutils.entities.TestCase;
 
 /** Not a great class name. */
+@XmlRootElement(name = "TestCaseVerificationResult")
 public class TestCaseVerificationResults {
 
     private ResponseInfo responseToAttackValue;
@@ -21,6 +42,10 @@ public class TestCaseVerificationResults {
     private TestExecutor safeTestExecutor;
 
     private TestCase testCase;
+
+    public TestCaseVerificationResults() {
+        super();
+    }
 
     public TestCaseVerificationResults(
             TestExecutor attackTestExecutor,
@@ -59,6 +84,7 @@ public class TestCaseVerificationResults {
         this.isPassed = isPassed;
     }
 
+    @XmlElement(name = "AttackResponseInfo")
     public ResponseInfo getResponseToAttackValue() {
         return responseToAttackValue;
     }
@@ -67,6 +93,7 @@ public class TestCaseVerificationResults {
         this.responseToAttackValue = responseToAttackValue;
     }
 
+    @XmlElement(name = "SafeResponseInfo", required = true)
     public ResponseInfo getResponseToSafeValue() {
         return responseToSafeValue;
     }
@@ -75,6 +102,7 @@ public class TestCaseVerificationResults {
         this.responseToSafeValue = responseToSafeValue;
     }
 
+    @XmlAttribute(name = "Unverifiable")
     public boolean isUnverifiable() {
         return isUnverifiable;
     }
@@ -83,6 +111,7 @@ public class TestCaseVerificationResults {
         this.isUnverifiable = isUnverifiable;
     }
 
+    @XmlAttribute(name = "DeclaredUnverifiable")
     public boolean isDeclaredUnverifiable() {
         return isDeclaredUnverifiable;
     }
@@ -91,14 +120,16 @@ public class TestCaseVerificationResults {
         this.isDeclaredUnverifiable = isDeclaredUnverifiable;
     }
 
-    public void setPassed(boolean isPassed) {
-        this.isPassed = isPassed;
-    }
-
+    @XmlAttribute(name = "Passed")
     public boolean isPassed() {
         return isPassed;
     }
 
+    public void setPassed(boolean isPassed) {
+        this.isPassed = isPassed;
+    }
+
+    @XmlElement(name = "AttackRequestInfo")
     public TestExecutor getAttackTestExecutor() {
         return attackTestExecutor;
     }
@@ -107,6 +138,7 @@ public class TestCaseVerificationResults {
         this.attackTestExecutor = attackTestExecutor;
     }
 
+    @XmlElement(name = "SafeRequestInfo")
     public TestExecutor getSafeTestExecutor() {
         return safeTestExecutor;
     }
@@ -115,6 +147,7 @@ public class TestCaseVerificationResults {
         this.safeTestExecutor = safeTestExecutor;
     }
 
+    @XmlElement(name = "TestCase")
     public TestCase getTestCase() {
         return testCase;
     }
