@@ -51,6 +51,7 @@ public class ContrastScanReaderTest extends ReaderTestBase {
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
         assertEquals("Contrast Scan", result.getToolName());
+        assertEquals("22:22:22", result.getTime());
 
         assertEquals(2, result.getTotalResults());
 

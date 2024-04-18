@@ -24,6 +24,9 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,6 +41,8 @@ public abstract class SarifReader extends Reader {
     private final String expectedToolName;
     private final boolean isCommercial;
     private final CweSourceType cweSourceType;
+
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     public SarifReader(String expectedToolName, boolean isCommercial, CweSourceType cweSourceType) {
         this.expectedToolName = expectedToolName;
@@ -70,17 +75,47 @@ public abstract class SarifReader extends Reader {
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
         TestSuiteResults testSuiteResults = testSuiteResults(resultFile);
 
-        // TODO: Extract time from invocation
-        testSuiteResults.setTime(resultFile.file()); // This grabs the scan time out of the filename (if present)
-
-        JSONObject driver = toolDriver(firstRun(resultFile));
-        if(driver.has("semanticVersion")) {
-            testSuiteResults.setToolVersion(driver.getString("semanticVersion"));
-        }
+        setTime(resultFile, testSuiteResults);
+        setVersion(resultFile, testSuiteResults);
 
         parseResults(resultFile, testSuiteResults);
 
         return testSuiteResults;
+    }
+
+    private void setTime(ResultFile resultFile, TestSuiteResults testSuiteResults) {
+        if (hasInvocationTimes(resultFile)) {
+            JSONObject invocation = firstInvocation(resultFile);
+
+            try {
+                Date start = sdf.parse(invocation.getString("startTimeUtc"));
+                Date end = sdf.parse(invocation.getString("endTimeUtc"));
+
+                testSuiteResults.setTime(TestSuiteResults.formatTime(Math.abs(end.getTime() - start.getTime())));
+            } catch (ParseException ignored) {
+            }
+        } else {
+            // This grabs the scan time out of the filename (if present)
+            testSuiteResults.setTime(resultFile.file());
+        }
+    }
+
+    private static boolean hasInvocationTimes(ResultFile resultFile) {
+        return firstRun(resultFile).has("invocations")
+            && firstInvocation(resultFile).has("startTimeUtc")
+            && firstInvocation(resultFile).has("endTimeUtc");
+    }
+
+    private static JSONObject firstInvocation(ResultFile resultFile) {
+        return firstRun(resultFile).getJSONArray("invocations").getJSONObject(0);
+    }
+
+    private static void setVersion(ResultFile resultFile, TestSuiteResults testSuiteResults) {
+        JSONObject driver = toolDriver(firstRun(resultFile));
+
+        if (driver.has("semanticVersion")) {
+            testSuiteResults.setToolVersion(driver.getString("semanticVersion"));
+        }
     }
 
     private void parseResults(ResultFile resultFile, TestSuiteResults testSuiteResults) {
