@@ -111,11 +111,16 @@ public abstract class SarifReader extends Reader {
         return firstRun(resultFile).getJSONArray("invocations").getJSONObject(0);
     }
 
-    private static void setVersion(ResultFile resultFile, TestSuiteResults testSuiteResults) {
+    /**
+     * Extracts version from result file. Prefers semanticVersion over version, if both are present.
+     */
+    public void setVersion(ResultFile resultFile, TestSuiteResults testSuiteResults) {
         JSONObject driver = toolDriver(firstRun(resultFile));
 
         if (driver.has("semanticVersion")) {
             testSuiteResults.setToolVersion(driver.getString("semanticVersion"));
+        } else if (driver.has("version")) {
+            testSuiteResults.setToolVersion(driver.getString("version"));
         }
     }
 

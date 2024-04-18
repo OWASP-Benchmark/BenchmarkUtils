@@ -51,6 +51,7 @@ public class CodeQLReaderTest extends ReaderTestBase {
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
 
         assertEquals("CodeQL", result.getToolName());
+        assertEquals("2.13.1", result.getToolVersion());
 
         assertEquals(2, result.getTotalResults());
 
@@ -67,6 +68,7 @@ public class CodeQLReaderTest extends ReaderTestBase {
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
 
         assertEquals("CodeQL", result.getToolName());
+        assertEquals("2.13.1", result.getToolVersion());
 
         assertEquals(2, result.getTotalResults());
 

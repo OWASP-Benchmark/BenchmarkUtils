@@ -18,6 +18,7 @@
 package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +53,7 @@ public class ContrastScanReaderTest extends ReaderTestBase {
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
         assertEquals("Contrast Scan", result.getToolName());
+        assertNull(result.getToolVersion());
         assertEquals("22:22:22", result.getTime());
 
         assertEquals(2, result.getTotalResults());

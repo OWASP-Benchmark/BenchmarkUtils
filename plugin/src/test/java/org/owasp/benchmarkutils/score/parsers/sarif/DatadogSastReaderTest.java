@@ -17,6 +17,9 @@
  */
 package org.owasp.benchmarkutils.score.parsers.sarif;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
@@ -25,9 +28,6 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class DatadogSastReaderTest extends ReaderTestBase {
 
@@ -51,6 +51,7 @@ public class DatadogSastReaderTest extends ReaderTestBase {
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertEquals("DatadogSast", result.getToolName());
+        assertEquals("0.2.9", result.getToolVersion());
         assertFalse(result.isCommercial());
 
         assertEquals(1, result.getTotalResults());

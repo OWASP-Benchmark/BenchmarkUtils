@@ -17,11 +17,12 @@
  */
 package org.owasp.benchmarkutils.score.parsers.sarif;
 
-import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.CweNumber;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.json.JSONObject;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
+import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class ContrastScanReader extends SarifReader {
 
@@ -53,4 +54,8 @@ public class ContrastScanReader extends SarifReader {
         return ruleCweMap;
     }
 
+    @Override
+    public void setVersion(ResultFile resultFile, TestSuiteResults testSuiteResults) {
+        // SARIF file contains several nulls as version, just ignoring it
+    }
 }
