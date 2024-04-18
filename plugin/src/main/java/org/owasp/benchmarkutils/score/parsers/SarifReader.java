@@ -17,12 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.ResultFile;
-import org.owasp.benchmarkutils.score.TestCaseResult;
-import org.owasp.benchmarkutils.score.TestSuiteResults;
+import static java.lang.Integer.parseInt;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,8 +28,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static java.lang.Integer.parseInt;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.ResultFile;
+import org.owasp.benchmarkutils.score.TestCaseResult;
+import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public abstract class SarifReader extends Reader {
 
@@ -91,7 +90,8 @@ public abstract class SarifReader extends Reader {
                 Date start = sdf.parse(invocation.getString("startTimeUtc"));
                 Date end = sdf.parse(invocation.getString("endTimeUtc"));
 
-                testSuiteResults.setTime(TestSuiteResults.formatTime(Math.abs(end.getTime() - start.getTime())));
+                testSuiteResults.setTime(
+                        TestSuiteResults.formatTime(Math.abs(end.getTime() - start.getTime())));
             } catch (ParseException ignored) {
             }
         } else {
@@ -102,8 +102,8 @@ public abstract class SarifReader extends Reader {
 
     private static boolean hasInvocationTimes(ResultFile resultFile) {
         return firstRun(resultFile).has("invocations")
-            && firstInvocation(resultFile).has("startTimeUtc")
-            && firstInvocation(resultFile).has("endTimeUtc");
+                && firstInvocation(resultFile).has("startTimeUtc")
+                && firstInvocation(resultFile).has("endTimeUtc");
     }
 
     private static JSONObject firstInvocation(ResultFile resultFile) {
@@ -210,16 +210,17 @@ public abstract class SarifReader extends Reader {
 
     public Map<String, Integer> customRuleCweMappings(JSONObject driver) {
         throw new IllegalArgumentException(
-            "SARIF Reader using custom cwe mappings MUST overwrite mapping method.");
+                "SARIF Reader using custom cwe mappings MUST overwrite mapping method.");
     }
 
     private TestSuiteResults testSuiteResults(ResultFile resultFile) {
         return new TestSuiteResults(
-            toolName(resultFile), isCommercial, TestSuiteResults.ToolType.SAST);
+                toolName(resultFile), isCommercial, TestSuiteResults.ToolType.SAST);
     }
 
-    /*
-     * Returns display tool name (for final report). By default, the SARIF tool name will be used. Overwrite if custom name is necessary.
+    /**
+     * Returns display tool name (for final report). By default, the SARIF tool name will be used.
+     * Overwrite if custom name is necessary.
      */
     public String toolName(ResultFile resultFile) {
         return sarifToolName(resultFile);
@@ -255,38 +256,39 @@ public abstract class SarifReader extends Reader {
 
     private static String resultUri(JSONObject result) {
         return result.getJSONArray("locations")
-            .getJSONObject(0)
-            .getJSONObject("physicalLocation")
-            .getJSONObject("artifactLocation")
-            .getString("uri");
+                .getJSONObject(0)
+                .getJSONObject("physicalLocation")
+                .getJSONObject("artifactLocation")
+                .getString("uri");
     }
 
-    /*
-     * Allows extending classes to map/change detected cwe numbers to match Benchmark expected numbers (if required)
+    /**
+     * Allows extending classes to map/change detected cwe numbers to match Benchmark expected
+     * numbers (if required)
      */
     public int mapCwe(int cwe) {
         return cwe;
     }
 
-    /*
-     * Extracts any number from given string (assuming it's a CWE number)
-     */
+    /** Extracts any number from given string (assuming it's a CWE number) */
     public static int extractCwe(String input) {
         Matcher matcher = Pattern.compile("\\d+").matcher(input);
 
         if (matcher.find()) {
             return parseInt(matcher.group(0));
         } else {
-            throw new IllegalArgumentException("ERROR: Could not extract number from input '" + input + "'");
+            throw new IllegalArgumentException(
+                    "ERROR: Could not extract number from input '" + input + "'");
         }
     }
 
-    /*
-     * Although the SARIF standard suggests that CWE numbers should not be a rule tag, most tools use them or a
-     * separate field for CWE number. As of today, no supported tool seems to follow the SARIF recommendation using
-     * taxonomies.
+    /**
+     * Although the SARIF standard suggests that CWE numbers should not be a rule tag, most tools
+     * use them or a separate field for CWE number. As of today, no supported tool seems to follow
+     * the SARIF recommendation using taxonomies.
      *
-     * See: https://docs.oasis-open.org/sarif/sarif/v2.1.0/csprd01/sarif-v2.1.0-csprd01.html#_Toc10540974
+     * <p>See:
+     * https://docs.oasis-open.org/sarif/sarif/v2.1.0/csprd01/sarif-v2.1.0-csprd01.html#_Toc10540974
      */
     public enum CweSourceType {
         TAG, // CWE-123, sometimes with prefix
