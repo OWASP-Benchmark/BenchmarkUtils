@@ -34,8 +34,6 @@ public class CodeQLReader extends SarifReader {
                 return CweNumber.COMMAND_INJECTION; // Command Injection
             case 335: // java/predictable-seed - Improves the tool's score
                 return CweNumber.WEAK_RANDOM; // Weak Random
-            case 564:
-                return CweNumber.SQL_INJECTION;
         }
         return cwe;
     }

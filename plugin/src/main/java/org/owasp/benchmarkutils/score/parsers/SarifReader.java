@@ -159,7 +159,8 @@ public abstract class SarifReader extends Reader {
             for (int j = 0; j < tags.length(); j++) {
                 String tag = tags.getString(j).toLowerCase();
 
-                if (tag.contains("cwe")) {
+                // only take first CWE id for rule
+                if (tag.contains("cwe") && !mappings.containsKey(rule.getString("id"))) {
                     mappings.put(rule.getString("id"), mapCwe(extractCwe(tag)));
                 }
             }
