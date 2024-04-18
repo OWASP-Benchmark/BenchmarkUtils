@@ -12,29 +12,26 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Dave Wichers
- * @author Nipuna Weerasekara
- * @author Nicolas Couraud
- * @created 2021
+ * @author Julien Delange
+ * @created 2024
  */
-package org.owasp.benchmarkutils.score.parsers;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
-import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
 
-public class CodeQLReader extends SarifReader {
+/**
+ * This reader is made for the datadog-static-analyzer available on
+ * <a href="https://github.com/DataDog/datadog-static-analyzer">...</a>.
+ * It uses the SARIF file produces by the tool.
+ */
+public class DatadogSastReader extends SarifReader {
 
-    public CodeQLReader() {
-        super("CodeQL", false, CweSourceType.TAG);
+    public DatadogSastReader() {
+        super("datadog-static-analyzer", false, CweSourceType.TAG);
     }
 
     @Override
-    public int mapCwe(int cwe) {
-        switch (cwe) {
-            case 94: // js/unsafe-dynamic-method-access & others - Improves the tool's score
-                return CweNumber.COMMAND_INJECTION; // Command Injection
-            case 335: // java/predictable-seed - Improves the tool's score
-                return CweNumber.WEAK_RANDOM; // Weak Random
-        }
-        return cwe;
+    public String toolName(ResultFile resultFile) {
+        return "DatadogSast";
     }
 }

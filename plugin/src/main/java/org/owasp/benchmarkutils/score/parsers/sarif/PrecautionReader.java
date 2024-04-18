@@ -15,7 +15,7 @@
  * @author Eric Brown
  * @created 2024
  */
-package org.owasp.benchmarkutils.score.parsers;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
 public class PrecautionReader extends SarifReader {
 

@@ -10,16 +10,16 @@
  *
  * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU General Public License for more details.
+ * PURPOSE. See the GNU General Public License for more details
  *
- * @author Sascha Knoop
- * @created 2024
+ * @author Raj Barath
+ * @created 2023
  */
-package org.owasp.benchmarkutils.score.parsers;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
-public class SemgrepSarifReader extends SarifReader {
+public class SnykReader extends SarifReader {
 
-    public SemgrepSarifReader() {
-        super("Semgrep OSS", false, CweSourceType.TAG);
+    public SnykReader() {
+        super("SnykCode", true, CweSourceType.FIELD);
     }
 }

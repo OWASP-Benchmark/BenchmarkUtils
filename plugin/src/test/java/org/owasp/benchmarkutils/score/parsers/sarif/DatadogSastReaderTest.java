@@ -10,15 +10,12 @@
  *
  * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU General Public License for more details
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Raj Barath
- * @created 2023
+ * @author Julien Delange
+ * @created 2024
  */
-package org.owasp.benchmarkutils.score.parsers;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,35 +24,37 @@ import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
-class SnykReaderTest extends ReaderTestBase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+public class DatadogSastReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_SnykCodeCli.sarif");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_DatadogSast.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    void onlySnykReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, SnykReader.class);
+    public void canReadFile() {
+        assertOnlyMatcherClassIs(this.resultFile, DatadogSastReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        SnykReader reader = new SnykReader();
+        DatadogSastReader reader = new DatadogSastReader();
         TestSuiteResults result = reader.parse(resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
-        assertTrue(result.isCommercial());
-        assertEquals("SnykCode", result.getToolName());
-        assertEquals("1.0.0", result.getToolVersion());
+        assertEquals("DatadogSast", result.getToolName());
+        assertFalse(result.isCommercial());
 
-        assertEquals(2, result.getTotalResults());
+        assertEquals(1, result.getTotalResults());
 
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XPATH_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.get(10).get(0).getCWE());
     }
 }

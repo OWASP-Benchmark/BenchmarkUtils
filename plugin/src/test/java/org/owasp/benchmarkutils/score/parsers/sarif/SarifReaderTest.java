@@ -12,26 +12,28 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Julien Delange
+ * @author Sascha Knoop
  * @created 2024
  */
-package org.owasp.benchmarkutils.score.parsers;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
-import org.owasp.benchmarkutils.score.ResultFile;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * This reader is made for the datadog-static-analyzer available on
- * <a href="https://github.com/DataDog/datadog-static-analyzer">...</a>.
- * It uses the SARIF file produces by the tool.
- */
-public class DatadogSastReader extends SarifReader {
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.owasp.benchmarkutils.score.parsers.sarif.SarifReader;
 
-    public DatadogSastReader() {
-        super("datadog-static-analyzer", false, CweSourceType.TAG);
-    }
+public class SarifReaderTest {
 
-    @Override
-    public String toolName(ResultFile resultFile) {
-        return "DatadogSast";
+    @ParameterizedTest(name = "{index} - extracts cwe number from input {0}")
+    @ValueSource(
+            strings = {
+                "CWE-326",
+                "CWE-326: Inadequate Encryption Strength",
+                "external/cwe/cwe-326",
+                "CWE:326"
+            })
+    void extractsCweNumberFromInput(String input) {
+        assertEquals(326, SarifReader.extractCwe(input));
     }
 }

@@ -12,13 +12,12 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Sascha Knoop
- * @created 2024
+ * @author Nicolas Couraud
+ * @created 2023
  */
-package org.owasp.benchmarkutils.score.parsers;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,35 +26,51 @@ import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
-class SemgrepSarifReaderTest extends ReaderTestBase {
+public class CodeQLReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-v1.67.0.sarif");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CodeQL-v2.13.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlySemgrepSarifReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, SemgrepSarifReader.class);
+    public void onlyCodeQLReaderTestReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, CodeQLReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        SemgrepSarifReader reader = new SemgrepSarifReader();
+        CodeQLReader reader = new CodeQLReader();
         TestSuiteResults result = reader.parse(resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
-        assertFalse(result.isCommercial());
-        assertEquals("Semgrep OSS", result.getToolName());
-        assertEquals("1.67.0", result.getToolVersion());
+
+        assertEquals("CodeQL", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+    }
+
+    @Test
+    void readerHandlesAlternativeResultFile() throws Exception {
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CodeQL-v2.13.alternative.sarif");
+        CodeQLReader reader = new CodeQLReader();
+        TestSuiteResults result = reader.parse(resultFile);
+
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+
+        assertEquals("CodeQL", result.getToolName());
+
+        assertEquals(2, result.getTotalResults());
+
+        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
     }
 }

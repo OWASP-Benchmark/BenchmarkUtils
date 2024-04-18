@@ -30,7 +30,7 @@ public abstract class ReaderTestBase {
                 "Reader " + thisReaderName + " must be added to Reader.allReaders() list");
     }
 
-    void assertOnlyMatcherClassIs(ResultFile resultFile, Class<? extends Reader> c) {
+    protected void assertOnlyMatcherClassIs(ResultFile resultFile, Class<? extends Reader> c) {
         List<Class<?>> readers =
                 Reader.allReaders().stream()
                         .filter(r -> r.canRead(resultFile))

@@ -15,7 +15,7 @@
  * @author Sascha Knoop
  * @created 2024
  */
-package org.owasp.benchmarkutils.score.parsers;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static java.lang.Integer.parseInt;
 
@@ -34,6 +34,7 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.parsers.Reader;
 
 public abstract class SarifReader extends Reader {
 

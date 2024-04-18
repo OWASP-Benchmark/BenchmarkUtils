@@ -15,7 +15,7 @@
  * @author Sascha Knoop
  * @created 2022
  */
-package org.owasp.benchmarkutils.score.parsers;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.CweNumber;
