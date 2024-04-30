@@ -147,7 +147,10 @@ public class CheckmarxESReader extends Reader {
                 tcr.setNumber(testNumber(testcaseName));
                 return tcr;
             } else {
-                resultFileName = nodes.getJSONObject(nodes.length() - 1).getString("FileName").replace("\\", "/");
+                resultFileName =
+                        nodes.getJSONObject(nodes.length() - 1)
+                                .getString("FileName")
+                                .replace("\\", "/");
                 testcaseName = resultFileName.substring(resultFileName.lastIndexOf('/') + 1);
                 if (testcaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
                     tcr.setNumber(testNumber(testcaseName));
