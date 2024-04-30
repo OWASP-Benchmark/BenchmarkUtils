@@ -141,14 +141,14 @@ public class CheckmarxESReader extends Reader {
             // get the testcase number
             // Try get testcase from the first node
             JSONArray nodes = result.getJSONArray("Nodes");
-            String resultFileName = nodes.getJSONObject(0).getString("FileName");
-            String testcaseName = resultFileName.substring(resultFileName.lastIndexOf('\\') + 1);
+            String resultFileName = nodes.getJSONObject(0).getString("FileName").replace("\\", "/");
+            String testcaseName = resultFileName.substring(resultFileName.lastIndexOf('/') + 1);
             if (testcaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
                 tcr.setNumber(testNumber(testcaseName));
                 return tcr;
             } else {
-                resultFileName = nodes.getJSONObject(nodes.length() - 1).getString("FileName");
-                testcaseName = resultFileName.substring(resultFileName.lastIndexOf('\\') + 1);
+                resultFileName = nodes.getJSONObject(nodes.length() - 1).getString("FileName").replace("\\", "/");
+                testcaseName = resultFileName.substring(resultFileName.lastIndexOf('/') + 1);
                 if (testcaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
                     tcr.setNumber(testNumber(testcaseName));
                     return tcr;
