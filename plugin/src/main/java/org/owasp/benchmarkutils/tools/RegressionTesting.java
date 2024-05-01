@@ -88,28 +88,33 @@ public class RegressionTesting {
     /**
      * Write a log file containing the verification results of all test cases, as JSON.
      *
-     * @param results
-     * @param dataDir
+     * @param results The verification results to log
+     * @param dataDir The directory to write the logfile to
+     * @param generate If true, generate log file, otherwise skip
      * @throws IOException
      * @throws LoggerConfigurationException
      */
     public static void genAllTCResultsToJsonFile(
-            List<TestCaseVerificationResults> results, String dataDir)
+            List<TestCaseVerificationResults> results, String dataDir, boolean generate)
             throws IOException, LoggerConfigurationException {
 
-        final File FILE_TC_VERIF_RESULTS_JSON = new File(dataDir, FILENAME_TC_VERIF_RESULTS_JSON);
-        SimpleFileLogger.setFile("TC_VERIF_RESULTS_JSON", FILE_TC_VERIF_RESULTS_JSON);
+        if (generate) {
 
-        try (SimpleFileLogger tcJSON = SimpleFileLogger.getLogger("TC_VERIF_RESULTS_JSON")) {
+            final File FILE_TC_VERIF_RESULTS_JSON =
+                    new File(dataDir, FILENAME_TC_VERIF_RESULTS_JSON);
+            SimpleFileLogger.setFile("TC_VERIF_RESULTS_JSON", FILE_TC_VERIF_RESULTS_JSON);
 
-            tcJsonLogger = tcJSON;
+            try (SimpleFileLogger tcJSON = SimpleFileLogger.getLogger("TC_VERIF_RESULTS_JSON")) {
 
-            // Create JSON version of verification results for ALL test cases
-            tcJsonLogger.println(Utils.objectToJson(results));
-        } catch (JAXBException e) {
-            System.out.println("Fatal Error trying to convert verification results to JSON");
-            e.printStackTrace();
-            System.exit(-1);
+                tcJsonLogger = tcJSON;
+
+                // Create JSON version of verification results for ALL test cases
+                tcJsonLogger.println(Utils.objectToJson(results));
+            } catch (JAXBException e) {
+                System.out.println("Fatal Error trying to convert verification results to JSON");
+                e.printStackTrace();
+                System.exit(-1);
+            }
         }
     }
 

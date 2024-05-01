@@ -455,7 +455,6 @@ public class BenchmarkCrawler extends AbstractMojo {
         if (null == this.pluginFilenameParam) {
             System.out.println("ERROR: A crawlerFile parameter must be specified.");
         } else {
-            //          String[] mainArgs = {"-f", this.pluginFilenameParam};
             List<String> mainArgs = new ArrayList<>();
             mainArgs.add("-f");
             mainArgs.add(this.pluginFilenameParam);

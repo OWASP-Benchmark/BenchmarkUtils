@@ -38,6 +38,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.owasp.benchmarkutils.entities.CliRequest;
 import org.owasp.benchmarkutils.entities.CliResponseInfo;
 import org.owasp.benchmarkutils.entities.ExecutableTestCaseInput;
@@ -77,6 +78,9 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     SimpleFileLogger ndLogger;
     SimpleFileLogger eLogger;
     SimpleFileLogger uLogger;
+
+    @Parameter(property = "json")
+    String generateJSONResults;
 
     BenchmarkCrawlerVerification() {
         // A default constructor required to support Maven plugin API.
@@ -311,10 +315,13 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         }
                     }
 
-                    // Then generate JSON file with ALL verification results. This has to go at end
-                    // because previous methods have some side affects that file in test case
-                    // verification values.
-                    RegressionTesting.genAllTCResultsToJsonFile(results, getOutputDirectory());
+                    // Then generate JSON file with ALL verification results if generateJSONResults
+                    // is enabled. This has to go at end because previous methods have some side
+                    // affects that fill in test case verification values.
+                    RegressionTesting.genAllTCResultsToJsonFile(
+                            results,
+                            getOutputDirectory(),
+                            Boolean.parseBoolean(generateJSONResults));
                 }
             }
 
@@ -562,6 +569,12 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         .required()
                         .build());
         options.addOption(Option.builder("h").longOpt("help").desc("Usage").build());
+        options.addOption(
+                Option.builder("j")
+                        .longOpt("json")
+                        .desc("generate json version of verification results")
+                        .hasArg()
+                        .build());
         options.addOption("m", "", false, "verify fixed test suite");
         options.addOption(
                 Option.builder("n")
@@ -602,6 +615,9 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             if (line.hasOption("h")) {
                 formatter.printHelp("BenchmarkCrawlerVerification", options, true);
             }
+            if (line.hasOption("j")) {
+                generateJSONResults = line.getOptionValue("j");
+            }
             if (line.hasOption("n")) {
                 selectedTestCaseName = line.getOptionValue("n");
             }
@@ -625,6 +641,10 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             if (this.pluginTestCaseNameParam != null) {
                 mainArgs.add("-n");
                 mainArgs.add(this.pluginTestCaseNameParam);
+            }
+            if (this.generateJSONResults != null) {
+                mainArgs.add("-j");
+                mainArgs.add(this.generateJSONResults);
             }
             main(mainArgs.stream().toArray(String[]::new));
         }
