@@ -573,7 +573,6 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                 Option.builder("j")
                         .longOpt("json")
                         .desc("generate json version of verification results")
-                        .hasArg()
                         .build());
         options.addOption("m", "", false, "verify fixed test suite");
         options.addOption(
@@ -616,7 +615,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                 formatter.printHelp("BenchmarkCrawlerVerification", options, true);
             }
             if (line.hasOption("j")) {
-                generateJSONResults = line.getOptionValue("j");
+                generateJSONResults = "true";
             }
             if (line.hasOption("n")) {
                 selectedTestCaseName = line.getOptionValue("n");
@@ -630,6 +629,11 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         }
     }
 
+    /**
+     * The execute() method is invoked when this class is invoked as a maven plugin, rather than via
+     * the command line. So what we do here is set up the command line parameters and then invoke
+     * main() so this can be called both as a plugin, or via the command line.
+     */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (null == this.pluginFilenameParam) {
@@ -643,8 +647,8 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                 mainArgs.add(this.pluginTestCaseNameParam);
             }
             if (this.generateJSONResults != null) {
+                // At the command line, only the -j is required, with no value needed
                 mainArgs.add("-j");
-                mainArgs.add(this.generateJSONResults);
             }
             main(mainArgs.stream().toArray(String[]::new));
         }

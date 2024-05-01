@@ -450,6 +450,11 @@ public class BenchmarkCrawler extends AbstractMojo {
         }
     }
 
+    /**
+     * The execute() method is invoked when this class is invoked as a maven plugin, rather than via
+     * the command line. So what we do here is set up the command line parameters and then invoke
+     * main() so this can be called both as a plugin, or via the command line.
+     */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (null == this.pluginFilenameParam) {
