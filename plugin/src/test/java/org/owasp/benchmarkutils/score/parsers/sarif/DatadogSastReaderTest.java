@@ -12,12 +12,13 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Nicolas Couraud
- * @created 2023
+ * @author Julien Delange
+ * @created 2024
  */
-package org.owasp.benchmarkutils.score.parsers;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,50 +27,35 @@ import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
-public class CodeQLReaderTest extends ReaderTestBase {
+public class DatadogSastReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CodeQL-v2.13.sarif");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_DatadogSast.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyCodeQLReaderTestReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, CodeQLReader.class);
+    public void canReadFile() {
+        assertOnlyMatcherClassIs(this.resultFile, DatadogSastReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        CodeQLReader reader = new CodeQLReader();
+        DatadogSastReader reader = new DatadogSastReader();
         TestSuiteResults result = reader.parse(resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertEquals("DatadogSast", result.getToolName());
+        assertEquals("0.2.9", result.getToolVersion());
+        assertFalse(result.isCommercial());
 
-        assertEquals("CodeQL", result.getToolName());
+        assertEquals(1, result.getTotalResults());
 
-        assertEquals(2, result.getTotalResults());
-
-        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
-    }
-
-    @Test
-    void readerHandlesAlternativeResultFile() throws Exception {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CodeQL-v2.13.alternative.sarif");
-        CodeQLReader reader = new CodeQLReader();
-        TestSuiteResults result = reader.parse(resultFile);
-
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
-
-        assertEquals("CodeQL", result.getToolName());
-
-        assertEquals(2, result.getTotalResults());
-
-        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.get(10).get(0).getCWE());
     }
 }

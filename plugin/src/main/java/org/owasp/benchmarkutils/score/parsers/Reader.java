@@ -28,6 +28,12 @@ import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.parsers.sarif.CodeQLReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.ContrastScanReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.DatadogSastReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.SemgrepSarifReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.SnykReader;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -75,7 +81,6 @@ public abstract class Reader {
                 new JuliaReader(),
                 new KlocworkCSVReader(),
                 new KiuwanReader(),
-                new LGTMReader(),
                 new MendReader(),
                 new NetsparkerReader(),
                 new NJSScanReader(),

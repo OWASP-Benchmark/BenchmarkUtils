@@ -12,12 +12,13 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Julien Delange
+ * @author Sascha Knoop
  * @created 2024
  */
-package org.owasp.benchmarkutils.score.parsers;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,33 +27,36 @@ import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
-public class DatadogSastReaderTest extends ReaderTestBase {
+class SemgrepSarifReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_DatadogSast.sarif");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-v1.67.0.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void canReadFile() {
-        assertOnlyMatcherClassIs(this.resultFile, DatadogSastReader.class);
+    public void onlySemgrepSarifReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, SemgrepSarifReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        DatadogSastReader reader = new DatadogSastReader();
+        SemgrepSarifReader reader = new SemgrepSarifReader();
         TestSuiteResults result = reader.parse(resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertFalse(result.isCommercial());
+        assertEquals("Semgrep OSS", result.getToolName());
+        assertEquals("1.67.0", result.getToolVersion());
 
-        assertEquals("DatadogSast", result.getToolName());
+        assertEquals(2, result.getTotalResults());
 
-        assertEquals(1, result.getTotalResults());
-
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(10).get(0).getCWE());
+        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
     }
 }
