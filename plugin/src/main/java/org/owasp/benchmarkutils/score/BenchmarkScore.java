@@ -1056,7 +1056,7 @@ public class BenchmarkScore extends AbstractMojo {
         final ClassLoader CL = BenchmarkScore.class.getClassLoader();
 
         VulnerabilityStatsTable vulnerabilityStatsTable =
-                new VulnerabilityStatsTable(config, TESTSUITE);
+                new VulnerabilityStatsTable(config, TESTSUITE, tools);
 
         for (String cat : catSet) {
             try {
@@ -1113,7 +1113,7 @@ public class BenchmarkScore extends AbstractMojo {
                 html = html.replace("${version}", TESTSUITEVERSION);
                 html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
 
-                html = html.replace("${table}", vulnerabilityStatsTable.generateFor(tools, cat));
+                html = html.replace("${table}", vulnerabilityStatsTable.generateFor(cat));
                 html = html.replace("${tprlabel}", config.tprLabel);
                 html =
                         html.replace(
