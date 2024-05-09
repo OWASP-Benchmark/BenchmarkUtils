@@ -57,6 +57,7 @@ import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
 import org.owasp.benchmarkutils.score.report.html.OverallStatsTable;
+import org.owasp.benchmarkutils.score.report.html.VulnerabilityStatsTable;
 import org.xml.sax.SAXException;
 
 @Mojo(name = "create-scorecard", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
@@ -1054,6 +1055,9 @@ public class BenchmarkScore extends AbstractMojo {
 
         final ClassLoader CL = BenchmarkScore.class.getClassLoader();
 
+        VulnerabilityStatsTable vulnerabilityStatsTable =
+                new VulnerabilityStatsTable(config, TESTSUITE);
+
         for (String cat : catSet) {
             try {
 
@@ -1109,8 +1113,7 @@ public class BenchmarkScore extends AbstractMojo {
                 html = html.replace("${version}", TESTSUITEVERSION);
                 html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
 
-                String table = generateVulnStatsTable(tools, cat);
-                html = html.replace("${table}", table);
+                html = html.replace("${table}", vulnerabilityStatsTable.generateFor(tools, cat));
                 html = html.replace("${tprlabel}", config.tprLabel);
                 html =
                         html.replace(
@@ -1233,71 +1236,6 @@ public class BenchmarkScore extends AbstractMojo {
                 e.printStackTrace();
             }
         } // end if
-    }
-
-    /**
-     * This generates the vulnerability stats table that goes at the bottom of each vulnerability
-     * category page.
-     *
-     * @param tools - The set of all tools being scored. Each Tool includes it's scored results.
-     * @param category - The vulnerability category to generate this table for.
-     * @return The HTML of the vulnerability stats table.
-     */
-    private static String generateVulnStatsTable(Set<Tool> tools, String category) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<table class=\"table\">\n");
-        sb.append("<tr>");
-        sb.append("<th>Tool</th>");
-        sb.append("<th>Type</th>");
-        if (config.mixedMode) sb.append("<th>" + TESTSUITE + " Version</th>");
-        sb.append("<th>TP</th>");
-        sb.append("<th>FN</th>");
-        sb.append("<th>TN</th>");
-        sb.append("<th>FP</th>");
-        sb.append("<th>Total</th>");
-        if (config.includePrecision) sb.append("<th>Precision</th><th>F-score</th>");
-        sb.append("<th>${tprlabel}</th>");
-        sb.append("<th>FPR</th>");
-        sb.append("<th>Score</th>");
-        sb.append("</tr>\n");
-
-        for (Tool tool : tools) {
-
-            if (!(config.showAveOnlyMode && tool.isCommercial())) {
-                ToolResults or = tool.getOverallResults();
-                Map<String, TP_FN_TN_FP_Counts> scores = tool.getScores();
-                TP_FN_TN_FP_Counts c = scores.get(category);
-                CategoryResults r = or.getCategoryResults(category);
-                String style = "";
-
-                if (Math.abs(r.truePositiveRate - r.falsePositiveRate) < .1)
-                    style = "class=\"danger\"";
-                else if (r.truePositiveRate > .7 && r.falsePositiveRate < .3)
-                    style = "class=\"success\"";
-                sb.append("<tr " + style + ">");
-                sb.append("<td>" + tool.getToolNameAndVersion() + "</td>");
-                sb.append("<td>" + tool.getToolType() + "</td>");
-                if (config.mixedMode) sb.append("<td>" + tool.getTestSuiteVersion() + "</td>");
-                sb.append("<td>" + c.tp + "</td>");
-                sb.append("<td>" + c.fn + "</td>");
-                sb.append("<td>" + c.tn + "</td>");
-                sb.append("<td>" + c.fp + "</td>");
-                sb.append("<td>" + r.totalTestCases + "</td>");
-                if (config.includePrecision) {
-                    sb.append("<td>" + new DecimalFormat("#0.00%").format(r.precision) + "</td>");
-                    sb.append("<td>" + new DecimalFormat("#0.0000").format(r.fscore) + "</td>");
-                }
-                sb.append(
-                        "<td>" + new DecimalFormat("#0.00%").format(r.truePositiveRate) + "</td>");
-                sb.append(
-                        "<td>" + new DecimalFormat("#0.00%").format(r.falsePositiveRate) + "</td>");
-                sb.append("<td>" + new DecimalFormat("#0.00%").format(r.score) + "</td>");
-                sb.append("</tr>\n");
-            }
-        }
-
-        sb.append("</table>");
-        return sb.toString();
     }
 
     /**
