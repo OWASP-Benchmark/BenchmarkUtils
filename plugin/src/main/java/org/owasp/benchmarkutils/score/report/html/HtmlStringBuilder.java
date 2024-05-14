@@ -59,6 +59,18 @@ public class HtmlStringBuilder {
         return this;
     }
 
+    public HtmlStringBuilder th(long content) {
+        sb.append("<th>").append(content).append("</th>");
+
+        return this;
+    }
+
+    public HtmlStringBuilder th(double content) {
+        sb.append("<th>").append(content).append("</th>");
+
+        return this;
+    }
+
     public HtmlStringBuilder th(String content, String cssClass) {
         if (cssClass == null) {
             return th(content);
@@ -76,6 +88,18 @@ public class HtmlStringBuilder {
     }
 
     public HtmlStringBuilder td(String content) {
+        sb.append("<td>").append(content).append("</td>");
+
+        return this;
+    }
+
+    public HtmlStringBuilder td(long content) {
+        sb.append("<td>").append(content).append("</td>");
+
+        return this;
+    }
+
+    public HtmlStringBuilder td(double content) {
         sb.append("<td>").append(content).append("</td>");
 
         return this;

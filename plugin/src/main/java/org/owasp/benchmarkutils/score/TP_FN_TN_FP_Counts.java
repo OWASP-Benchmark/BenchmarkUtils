@@ -27,4 +27,13 @@ public class TP_FN_TN_FP_Counts {
     public int fn = 0;
     public int tn = 0;
     public int fp = 0;
+
+    public TP_FN_TN_FP_Counts() {}
+
+    public TP_FN_TN_FP_Counts(int tp, int fn, int tn, int fp) {
+        this.tp = tp;
+        this.fn = fn;
+        this.tn = tn;
+        this.fp = fp;
+    }
 }
