@@ -71,8 +71,7 @@ class HtmlStringBuilderTest {
                         .endTable()
                         .toString();
 
-        assertEquals(
-                "<table><tr><th>th</th><td>td</td></tr></table>", table);
+        assertEquals("<table><tr><th>th</th><td>td</td></tr></table>", table);
     }
 
     @Test
@@ -82,5 +81,36 @@ class HtmlStringBuilderTest {
         sb.p("Some paragraph");
 
         assertEquals("<p>Some paragraph</p>", sb.toString());
+    }
+
+    @Test
+    void acceptsLongAndDoubleAsDashContent() {
+        HtmlStringBuilder sb = new HtmlStringBuilder();
+
+        String table =
+                sb.beginTable()
+                        .beginTr()
+                        .th(123456)
+                        .th(123.456)
+                        .endTr()
+                        .beginTr()
+                        .td(123456)
+                        .td(123.456)
+                        .endTr()
+                        .endTable()
+                        .toString();
+
+        assertEquals(
+                "<table>"
+                        + "<tr>"
+                        + "<th>123456</th>"
+                        + "<th>123.456</th>"
+                        + "</tr>"
+                        + "<tr>"
+                        + "<td>123456</td>"
+                        + "<td>123.456</td>"
+                        + "</tr>"
+                        + "</table>",
+                table);
     }
 }

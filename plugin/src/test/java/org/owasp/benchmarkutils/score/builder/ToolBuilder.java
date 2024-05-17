@@ -50,7 +50,7 @@ public class ToolBuilder {
         return this;
     }
 
-    public ToolBuilder setScore(String key, TP_FN_TN_FP_Counts value) {
+    public ToolBuilder putScore(String key, TP_FN_TN_FP_Counts value) {
         this.scores.put(key, value);
 
         return this;
