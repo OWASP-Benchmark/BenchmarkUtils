@@ -221,26 +221,24 @@ public abstract class Reader {
         return path.chars().filter(ch -> ch == c).count();
     }
 
-    /* get rid of everything except the test name */
     public static int testNumber(String path) {
+        return testNumber(path, BenchmarkScore.TESTCASENAME);
+    }
+
+    /** Get rid of everything except the test name. */
+    public static int testNumber(String path, String testCaseName) {
         try {
-            // System.out.println("Path: " + path);
             // No BenchmarkTest
-            if (path.indexOf(BenchmarkScore.TESTCASENAME) < 0) {
+            if (!path.contains(testCaseName)) {
                 return -1;
             }
-            int numberStart =
-                    path.indexOf(BenchmarkScore.TESTCASENAME)
-                            + BenchmarkScore.TESTCASENAME.length()
-                            + 1;
+            int numberStart = path.indexOf(testCaseName) + testCaseName.length() + 1;
             path = path.substring(numberStart);
             // System.out.println("After length: " + path);
             path = path.replaceAll("\\?.*", "");
             path = path.replaceAll(",.*", "");
 
-            path =
-                    path.replaceAll(
-                            BenchmarkScore.TESTCASENAME + "v[0-9]*", BenchmarkScore.TESTCASENAME);
+            path = path.replaceAll(testCaseName + "v[0-9]*", testCaseName);
 
             path = path.replaceAll("/send", "");
             if (path.contains(":")) {

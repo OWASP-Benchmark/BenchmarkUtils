@@ -18,11 +18,9 @@
 package org.owasp.benchmarkutils.score;
 
 import com.google.common.annotations.VisibleForTesting;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -58,6 +56,7 @@ import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
 import org.owasp.benchmarkutils.score.report.html.OverallStatsTable;
 import org.owasp.benchmarkutils.score.report.html.VulnerabilityStatsTable;
+import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
 import org.xml.sax.SAXException;
 
 @Mojo(name = "create-scorecard", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
@@ -875,76 +874,13 @@ public class BenchmarkScore extends AbstractMojo {
     // Create a TestResults object that contains the expected results for this version
     // of the test suite.
     private static TestSuiteResults readExpectedResults(File file) {
-        TestSuiteResults tr = new TestSuiteResults("Expected", true, null);
+        try {
+            TestSuiteResults tr = ExpectedResultsProvider.parse(new ResultFile(file));
 
-        try (final BufferedReader fr = new BufferedReader(new FileReader(file))) {
-            // Read the 1st line. Parse out the test suite name and version #, which looks like:
-            // # test name, category, real vulnerability, cwe, TESTSUITENAME version: x.y,
-            // YYYY-MM-DD
+            BenchmarkScore.TESTSUITE = tr.getTestSuiteName();
+            BenchmarkScore.TESTCASENAME = tr.getTestSuiteName() + BenchmarkScore.TEST;
 
-            String line = fr.readLine();
-            final String TESTSUITE_VERSION_PREFIX = " version: ";
-            if (line != null) {
-                String[] firstLineElements = line.split(", ");
-                int startOfVersionStringLocation =
-                        firstLineElements[4].indexOf(TESTSUITE_VERSION_PREFIX);
-                if (startOfVersionStringLocation != -1) {
-                    final String TESTSUITENAME =
-                            firstLineElements[4].substring(0, startOfVersionStringLocation);
-                    tr.setTestSuiteName(TESTSUITENAME);
-                    BenchmarkScore.TESTSUITE = TESTSUITENAME; // Set classwide variable
-                    BenchmarkScore.TESTCASENAME = // Set classwide variable;
-                            TESTSUITENAME + TEST;
-                    startOfVersionStringLocation += TESTSUITE_VERSION_PREFIX.length();
-                } else {
-                    String versionNumError =
-                            "Couldn't find "
-                                    + TESTSUITE_VERSION_PREFIX
-                                    + " on first line of expected results file";
-                    System.out.println(versionNumError);
-                    throw new IOException(versionNumError);
-                }
-                // Trim off everything except the version #
-                line = firstLineElements[4].substring(startOfVersionStringLocation);
-                tr.setTestSuiteVersion(line);
-            }
-
-            boolean reading = true;
-            while (reading) {
-                line = fr.readLine();
-                reading = line != null;
-                if (reading) {
-                    // Normally, each line contains: test name, category, real vulnerability, cwe #
-
-                    // String[] parts = line.split(",");
-                    // regex from
-                    // http://stackoverflow.com/questions/1757065/java-splitting-a-comma-separated-string-but-ignoring-commas-in-quotes
-                    // This regex needed because some 'full details' entries contain comma's inside
-                    // quoted strings
-                    String[] parts = line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-                    if (parts[0] != null && parts[0].startsWith(TESTCASENAME)) {
-                        TestCaseResult tcr = new TestCaseResult();
-                        tcr.setTestCaseName(parts[0]);
-                        tcr.setCategory(parts[1]);
-                        tcr.setTruePositive(Boolean.parseBoolean(parts[2]));
-                        tcr.setCWE(Integer.parseInt(parts[3]));
-
-                        tcr.setNumber(Reader.testNumber(parts[0]));
-
-                        // Handle situation where expected results has full details
-                        // Sometimes, it also has: source, data flow, data flow filename, sink
-
-                        if (parts.length > 4) {
-                            tcr.setSource(parts[4]);
-                            tcr.setDataFlow(parts[5]);
-                            // tcr.setDataFlowFile(parts[6]);
-                            tcr.setSink(parts[6]);
-                        }
-
-                        tr.put(tcr);
-                    }
-                }
-            }
+            return tr;
         } catch (FileNotFoundException e) {
             System.out.println("ERROR: Can't find expected results file: " + file);
             System.exit(-1);
@@ -953,7 +889,8 @@ public class BenchmarkScore extends AbstractMojo {
             e.printStackTrace();
             System.exit(-1);
         }
-        return tr;
+
+        return null;
     }
 
     /**
@@ -965,7 +902,6 @@ public class BenchmarkScore extends AbstractMojo {
      * @return The name of the results file produced
      */
     private static String produceResultsFile(TestSuiteResults actual, File scoreCardDir) {
-
         String testSuiteVersion = actual.getTestSuiteVersion();
         String resultsFileName =
                 scoreCardDir.getAbsolutePath()

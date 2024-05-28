@@ -77,7 +77,7 @@ public class TestSuiteResults {
 
     // Set the test suite name for this specific set of TestResults
     public void setTestSuiteName(String name) {
-        this.testSuiteVersion = name;
+        this.testSuiteName = name;
     }
 
     public String getTestSuiteName() {
