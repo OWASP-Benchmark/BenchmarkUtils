@@ -55,6 +55,7 @@ import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
 import org.owasp.benchmarkutils.score.report.html.OverallStatsTable;
+import org.owasp.benchmarkutils.score.report.html.ToolScorecard;
 import org.owasp.benchmarkutils.score.report.html.VulnerabilityStatsTable;
 import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
 import org.xml.sax.SAXException;
@@ -479,13 +480,19 @@ public class BenchmarkScore extends AbstractMojo {
 
         // Step 7: Generate the tool scorecards now that the overall Vulnerability scorecards and
         // stats have been calculated
-        for (Tool tool : tools) {
-            tool.generateScorecard(overallAveToolResults, scoreCardDir);
-        }
+        ToolScorecard toolScorecard =
+                new ToolScorecard(
+                        overallAveToolResults,
+                        scoreCardDir,
+                        config,
+                        TESTSUITE,
+                        fullTestSuiteName(TESTSUITE));
+
+        tools.forEach(toolScorecard::generate);
 
         // Step 8: Update all the menus for all the generated pages to reflect the tools and
         // vulnerability categories
-        updateMenus(tools, catSet, scoreCardDir);
+        updateMenus(tools, catSet, scoreCardDir, toolScorecard);
 
         // Step 9: Generate the overall comparison chart for all the tools in this test
         ScatterHome.generateComparisonChart(tools, config.focus, scoreCardDir);
@@ -1182,15 +1189,17 @@ public class BenchmarkScore extends AbstractMojo {
      * @param tools - All the scored tools.
      * @param catSet - The set of vulnerability categories to create menus for
      * @param scoreCardDir - The directory containing the HTML files to be updated.
+     * @param toolScorecard
      */
-    private static void updateMenus(Set<Tool> tools, Set<String> catSet, File scoreCardDir) {
+    private static void updateMenus(
+            Set<Tool> tools, Set<String> catSet, File scoreCardDir, ToolScorecard toolScorecard) {
 
         // Create tool menu
         StringBuffer sb = new StringBuffer();
         for (Tool tool : tools) {
             if (!(config.showAveOnlyMode && tool.isCommercial())) {
                 sb.append("<li><a href=\"");
-                sb.append(tool.getScorecardFilename());
+                sb.append(toolScorecard.filenameFor(tool));
                 sb.append(".html\">");
                 sb.append(tool.getToolNameAndVersion());
                 sb.append("</a></li>");

@@ -20,7 +20,6 @@ package org.owasp.benchmarkutils.score.report;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.Map;
@@ -33,8 +32,15 @@ import org.owasp.benchmarkutils.score.TP_FN_TN_FP_Counts;
 import org.owasp.benchmarkutils.score.Tool;
 import org.owasp.benchmarkutils.score.ToolResults;
 import org.owasp.benchmarkutils.score.report.ToolBarChart.BarChartType;
+import org.owasp.benchmarkutils.score.report.html.ToolReportProvider;
 
-public class ToolReport {
+public class ToolReport implements ToolReportProvider {
+
+    private final Map<String, CategoryResults> overallAveToolResults;
+
+    public ToolReport(Map<String, CategoryResults> overallAveToolResults) {
+        this.overallAveToolResults = overallAveToolResults;
+    }
 
     /**
      * Generate an HTML report for whatever tool's results are passed in.
@@ -43,18 +49,11 @@ public class ToolReport {
      * @param title - The title of the HTML report to generate.
      * @param scorecardImageFile - The File that contains the scorecard image for this tool's
      *     results.
-     * @param actualCSVResultsFileName - The name of the actual results .csv file for this tool.
      * @return The generated HTML report for the supplied tool.
      * @throws IOException
-     * @throws URISyntaxException
      */
-    public static String generateHtml(
-            Tool currentTool,
-            String title,
-            File scorecardImageFile,
-            String actualCSVResultsFileName,
-            Map<String, CategoryResults> overallAveToolResults)
-            throws IOException, URISyntaxException {
+    public String generateHtml(Tool currentTool, String title, File scorecardImageFile)
+            throws IOException {
 
         ToolResults overallToolResults = currentTool.getOverallResults();
 
@@ -81,7 +80,7 @@ public class ToolReport {
         html = html.replace("${version}", currentTool.getTestSuiteVersion());
         html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
         html = html.replace("${cwecategoryname}", BenchmarkScore.config.cweCategoryName);
-        html = html.replace("${actualResultsFile}", actualCSVResultsFileName);
+        html = html.replace("${actualResultsFile}", currentTool.getActualResultsFileName());
 
         html = html.replace("${image}", scorecardImageFile.getName());
 
