@@ -20,10 +20,8 @@ package org.owasp.benchmarkutils.score;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,7 +29,6 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -58,6 +55,7 @@ import org.owasp.benchmarkutils.score.report.html.OverallStatsTable;
 import org.owasp.benchmarkutils.score.report.html.ToolScorecard;
 import org.owasp.benchmarkutils.score.report.html.VulnerabilityStatsTable;
 import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
+import org.owasp.benchmarkutils.score.service.ResultsFileCreator;
 import org.xml.sax.SAXException;
 
 @Mojo(name = "create-scorecard", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
@@ -265,7 +263,6 @@ public class BenchmarkScore extends AbstractMojo {
         // Steps 4 & 5: Read the expected results so we know what each tool 'should do' and each
         // tool's results file. a) is for 'mixed' mode, and b) is for normal mode
         try {
-
             if (config.mixedMode) {
 
                 if (!resultsFileOrDir.isDirectory()) {
@@ -342,16 +339,20 @@ public class BenchmarkScore extends AbstractMojo {
                             System.exit(-1);
                         }
 
+                        ResultsFileCreator resultsFileCreator =
+                                new ResultsFileCreator(scoreCardDir, TESTSUITE);
+
                         // Step 5a: Go through each result file, score the tool, and generate a
                         // scorecard for that tool
                         if (!config.anonymousMode) {
+
                             for (File actual : rootDirFile.listFiles()) {
                                 // Don't confuse the expected results file as an actual results file
                                 // if its in the same directory
                                 if (!actual.isDirectory()
                                         && !expectedResultsFilename.equals(actual.getName())) {
                                     // process() populates tools with the supplied tool's results
-                                    process(actual, expectedResults, tools, scoreCardDir);
+                                    process(actual, expectedResults, tools, resultsFileCreator);
                                 }
                             }
                         } else {
@@ -373,7 +374,7 @@ public class BenchmarkScore extends AbstractMojo {
                                 if (!actual.isDirectory()
                                         && !expectedResultsFilename.equals(actual.getName())) {
                                     // process() populates tools with the supplied tool's results
-                                    process(actual, expectedResults, tools, scoreCardDir);
+                                    process(actual, expectedResults, tools, resultsFileCreator);
                                 }
                             } // end while
                         } // end else
@@ -402,8 +403,12 @@ public class BenchmarkScore extends AbstractMojo {
                     }
                 }
 
+                ResultsFileCreator resultsFileCreator =
+                        new ResultsFileCreator(scoreCardDir, TESTSUITE);
+
                 // Step 5b: Go through each result file and generate a scorecard for that tool.
                 if (resultsFileOrDir.isDirectory()) {
+
                     if (!config.anonymousMode) {
                         boolean processedAtLeastOneResultsFile = false;
                         for (File actual : resultsFileOrDir.listFiles()) {
@@ -412,7 +417,7 @@ public class BenchmarkScore extends AbstractMojo {
                             if (!actual.isDirectory()
                                     && !expected.getName().equals(actual.getName())) {
                                 // process() populates tools with the supplied tool's results
-                                process(actual, expectedResults, tools, scoreCardDir);
+                                process(actual, expectedResults, tools, resultsFileCreator);
                                 processedAtLeastOneResultsFile = true;
                             }
                         }
@@ -443,7 +448,7 @@ public class BenchmarkScore extends AbstractMojo {
                             if (!actual.isDirectory()
                                     && !expected.getName().equals(actual.getName())) {
                                 // process() populates tools with the supplied tool's results
-                                process(actual, expectedResults, tools, scoreCardDir);
+                                process(actual, expectedResults, tools, resultsFileCreator);
                             }
                         }
                     } // end else (!anonymousMode)
@@ -452,7 +457,7 @@ public class BenchmarkScore extends AbstractMojo {
                     // This will process a single results file, if that is what the 2nd parameter
                     // points to. This has never been used.
                     // process() populates tools with the supplied tool's results
-                    process(resultsFileOrDir, expectedResults, tools, scoreCardDir);
+                    process(resultsFileOrDir, expectedResults, tools, resultsFileCreator);
                 } // end else ( f.isDirectory() )
             } // end else "Not mixed"
 
@@ -546,13 +551,13 @@ public class BenchmarkScore extends AbstractMojo {
      *     generated later and a summary scorecard can be computed. A new Tool is added each time
      *     this method is called which adds the name of the tool, the filename of the scorecard, and
      *     the report that was created for that tool.
-     * @param scoreCardDir - The directory where the scorecard is being written to.
+     * @param resultsFileCreator - Creates results file for given tools
      */
     private static void process(
             File rawToolResultsFile,
             TestSuiteResults expectedResults,
             Set<Tool> tools,
-            File scoreCardDir) {
+            ResultsFileCreator resultsFileCreator) {
 
         try {
             String resultsFileName = rawToolResultsFile.getName();
@@ -573,7 +578,7 @@ public class BenchmarkScore extends AbstractMojo {
                 // tool, and we are in showAveOnly mode.
                 String actualResultsFileName = "notProduced";
                 if (!(config.showAveOnlyMode && rawToolResults.isCommercial)) {
-                    actualResultsFileName = produceResultsFile(actualResults, scoreCardDir);
+                    actualResultsFileName = resultsFileCreator.createFor(actualResults);
                 }
 
                 Map<String, TP_FN_TN_FP_Counts> scores = calculateScores(actualResults);
@@ -581,8 +586,6 @@ public class BenchmarkScore extends AbstractMojo {
                 ToolResults metrics = calculateMetrics(scores);
                 metrics.setScanTime(rawToolResults.getTime());
 
-                // This has the side effect of also generating the tool's report in the
-                // scoreCardDir.
                 Tool tool =
                         new Tool(
                                 rawToolResults,
@@ -898,81 +901,6 @@ public class BenchmarkScore extends AbstractMojo {
         }
 
         return null;
-    }
-
-    /**
-     * This produces the .csv of all the results for this tool. It's basically the expected results
-     * file with a couple of extra columns in it to say what the actual result for this tool was per
-     * test case and whether that result was a pass or fail.
-     *
-     * @param actual The actual TestResults to produce the actual results file for.
-     * @return The name of the results file produced
-     */
-    private static String produceResultsFile(TestSuiteResults actual, File scoreCardDir) {
-        String testSuiteVersion = actual.getTestSuiteVersion();
-        String resultsFileName =
-                scoreCardDir.getAbsolutePath()
-                        + File.separator
-                        + TESTSUITE
-                        + "_v"
-                        + testSuiteVersion
-                        + "_Scorecard_for_"
-                        + actual.getToolNameAndVersion().replace(' ', '_')
-                        + ".csv";
-        File resultsFile = new File(resultsFileName);
-        try (FileOutputStream fos = new FileOutputStream(resultsFile, false);
-                PrintStream ps = new PrintStream(fos); ) {
-
-            Set<Integer> testCaseKeys = actual.keySet();
-
-            boolean fulldetails =
-                    (actual.get(testCaseKeys.iterator().next()).get(0).getSource() != null);
-
-            // Write actual results header
-            ps.print("# test name, category, CWE, ");
-            if (fulldetails) ps.print("source, data flow, sink, ");
-            ps.print(
-                    "real vulnerability, identified by tool, pass/fail, "
-                            + TESTSUITE
-                            + " version: "
-                            + testSuiteVersion);
-
-            // Append the date YYYY-MM-DD to the header in each .csv file
-            Calendar c = Calendar.getInstance();
-            String s = String.format("%1$tY-%1$tm-%1$te", c);
-            ps.println(", Actual results generated: " + s);
-
-            for (Integer expectedResultsKey : testCaseKeys) {
-                // Write meta data to file here.
-                TestCaseResult actualResult = actual.get(expectedResultsKey.intValue()).get(0);
-                ps.print(actualResult.getName());
-                ps.print(", " + actualResult.getCategory());
-                ps.print(", " + actualResult.getCWE());
-                if (fulldetails) {
-                    ps.print("," + actualResult.getSource());
-                    ps.print("," + actualResult.getDataFlow());
-                    ps.print("," + actualResult.getSink());
-                }
-                boolean isreal = actualResult.isTruePositive();
-                ps.print(", " + isreal);
-                boolean passed = actualResult.isPassed();
-                boolean toolresult = !(isreal ^ passed);
-                ps.print(", " + toolresult);
-                ps.println(", " + (passed ? "pass" : "fail"));
-            }
-
-            System.out.println("Actual results file generated: " + resultsFile.getAbsolutePath());
-
-            return resultsFile.getName();
-
-        } catch (FileNotFoundException e) {
-            System.out.println(
-                    "ERROR: Can't create actual results file: " + resultsFile.getAbsolutePath());
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
-
-        return null; // Should have returned results file name earlier if successful
     }
 
     /**
