@@ -29,7 +29,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -54,6 +53,7 @@ import org.owasp.benchmarkutils.score.parsers.Reader;
 import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
+import org.owasp.benchmarkutils.score.report.html.CommercialAveragesTable;
 import org.owasp.benchmarkutils.score.report.html.OverallStatsTable;
 import org.owasp.benchmarkutils.score.report.html.ToolScorecard;
 import org.owasp.benchmarkutils.score.report.html.VulnerabilityStatsTable;
@@ -983,13 +983,7 @@ public class BenchmarkScore extends AbstractMojo {
      */
     private static void generateVulnerabilityScorecards(
             Set<Tool> tools, Set<String> catSet, File scoreCardDir) {
-        StringBuilder htmlForCommercialAverages = null;
-
-        int commercialToolTotal = 0;
-        int numberOfVulnCategories = 0;
-        int commercialLowTotal = 0;
-        int commercialAveTotal = 0;
-        int commercialHighTotal = 0;
+        CommercialAveragesTable commercialAveragesTable = new CommercialAveragesTable();
 
         // A side effect of this method is to calculate these averages
         averageCommercialToolResults = new HashMap<String, CategoryResults>();
@@ -1003,7 +997,6 @@ public class BenchmarkScore extends AbstractMojo {
 
         for (String cat : catSet) {
             try {
-
                 // Generate a comparison chart for all tools for this vuln category. When
                 // constructed, scatter contains the Overall, Non-commercial, and Commercial stats
                 // for this category across all tools.
@@ -1065,45 +1058,10 @@ public class BenchmarkScore extends AbstractMojo {
 
                 Files.write(htmlFile.toPath(), html.getBytes());
 
-                // Now build up the commercial stats scorecard if there are at 2+ commercial tools
+                // Only build commercial stats scorecard if there are at 2+ commercial tools
                 if (scatter.getCommercialToolCount() > 1) {
-                    if (htmlForCommercialAverages == null) {
-                        commercialToolTotal = scatter.getCommercialToolCount();
-                        htmlForCommercialAverages = new StringBuilder();
-                        htmlForCommercialAverages.append("<table class=\"table\">\n");
-                        htmlForCommercialAverages.append("<tr>");
-                        htmlForCommercialAverages.append("<th>Vulnerability Category</th>");
-                        htmlForCommercialAverages.append("<th>Low Tool Type</th>");
-                        htmlForCommercialAverages.append("<th>Low Score</th>");
-                        htmlForCommercialAverages.append("<th>Ave Score</th>");
-                        htmlForCommercialAverages.append("<th>High Score</th>");
-                        htmlForCommercialAverages.append("<th>High Tool Type</th>");
-                        htmlForCommercialAverages.append("</tr>\n");
-                    } // if 1st time through
-
-                    numberOfVulnCategories++;
-
-                    String style = "";
-                    htmlForCommercialAverages.append("<tr>");
-                    htmlForCommercialAverages.append("<td>" + cat + "</td>");
-                    htmlForCommercialAverages.append(
-                            "<td>" + scatter.getCommercialLowToolType() + "</td>");
-                    if (scatter.getCommercialLow() <= 10) style = "class=\"danger\"";
-                    else if (scatter.getCommercialLow() >= 50) style = "class=\"success\"";
-                    htmlForCommercialAverages.append(
-                            "<td " + style + ">" + scatter.getCommercialLow() + "</td>");
-                    commercialLowTotal += scatter.getCommercialLow();
-                    htmlForCommercialAverages.append("<td>" + scatter.getCommercialAve() + "</td>");
-                    commercialAveTotal += scatter.getCommercialAve();
-                    if (scatter.getCommercialHigh() <= 10) style = "class=\"danger\"";
-                    else if (scatter.getCommercialHigh() >= 50) style = "class=\"success\"";
-                    htmlForCommercialAverages.append(
-                            "<td " + style + ">" + scatter.getCommercialHigh() + "</td>");
-                    commercialHighTotal += scatter.getCommercialHigh();
-                    htmlForCommercialAverages.append(
-                            "<td>" + scatter.getCommercialHighToolType() + "</td>");
-                    htmlForCommercialAverages.append("</tr>\n");
-                } // if more than 1 commercial tool
+                    commercialAveragesTable.add(scatter);
+                }
 
             } catch (IOException e) {
                 System.out.println("Error generating vulnerability summaries: " + e.getMessage());
@@ -1111,42 +1069,11 @@ public class BenchmarkScore extends AbstractMojo {
             }
         } // end for loop
 
-        // if we computed a commercial average, then add the last row to the table AND create the
-        // file and write the HTML to it.
-        if (htmlForCommercialAverages != null) {
-
-            htmlForCommercialAverages.append("<tr>");
-            htmlForCommercialAverages.append(
-                    "<td>Average across all categories for " + commercialToolTotal + " tools</td>");
-            htmlForCommercialAverages.append("<td></td>");
-            htmlForCommercialAverages.append(
-                    "<td>"
-                            + new DecimalFormat("0.0")
-                                    .format(
-                                            (float) commercialLowTotal
-                                                    / (float) numberOfVulnCategories)
-                            + "</td>");
-            htmlForCommercialAverages.append(
-                    "<td>"
-                            + new DecimalFormat("0.0")
-                                    .format(
-                                            (float) commercialAveTotal
-                                                    / (float) numberOfVulnCategories)
-                            + "</td>");
-            htmlForCommercialAverages.append(
-                    "<td>"
-                            + new DecimalFormat("0.0")
-                                    .format(
-                                            (float) commercialHighTotal
-                                                    / (float) numberOfVulnCategories)
-                            + "</td>");
-            htmlForCommercialAverages.append("<td></td>");
-            htmlForCommercialAverages.append("</tr>\n");
-            htmlForCommercialAverages.append("</table>\n");
-
+        if (commercialAveragesTable.hasEntries()) {
             try {
                 commercialAveScorecardFilename =
                         TESTSUITE + "_v" + TESTSUITEVERSION + "_Scorecard_for_Commercial_Tools";
+
                 Path htmlfile =
                         Paths.get(
                                 scoreCardDir.getAbsolutePath()
@@ -1164,8 +1091,7 @@ public class BenchmarkScore extends AbstractMojo {
                 html = html.replace("${version}", TESTSUITEVERSION);
                 html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
 
-                String table = htmlForCommercialAverages.toString();
-                html = html.replace("${table}", table);
+                html = html.replace("${table}", commercialAveragesTable.render());
                 html = html.replace("${tprlabel}", config.tprLabel);
                 html =
                         html.replace(

@@ -94,14 +94,13 @@ public class ScatterVulns extends ScatterPlot {
      * @param title - The title of the chart to be produced.
      * @param height - Height of the chart (typically 800)
      * @param category - The vulnerability category this chart is being generated for.
-     * @param toolResults - A list of each individual tool's results.
+     * @param tools - A list of each individual tool's results.
      * @param focus - A tool to emphasize in the chart, if any.
      */
-    public ScatterVulns(
-            String title, int height, String category, Set<Tool> toolResults, String focus) {
+    public ScatterVulns(String title, int height, String category, Set<Tool> tools, String focus) {
         this.focus = focus;
         this.CATEGORY = category;
-        display("          " + title, height, category, toolResults);
+        display("          " + title, height, category, tools);
     }
 
     private JFreeChart display(String title, int height, String category, Set<Tool> toolResults) {
