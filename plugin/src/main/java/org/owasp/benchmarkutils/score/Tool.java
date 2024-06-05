@@ -82,15 +82,6 @@ public class Tool implements Comparable<Tool> {
         return this.testSuiteVersion;
     }
 
-    //    /**
-    //     * Gets the name of the file that contains the generated HTML scorecard for this tool.
-    //     *
-    //     * @return Name of the file (without any path information and the file extension)
-    //     */
-    //    public String getScorecardFilename() {
-    //        return this.scorecardFilename;
-    //    }
-
     public String getActualResultsFileName() {
         return actualResultsFileName;
     }
