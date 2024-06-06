@@ -99,6 +99,16 @@ public class HtmlStringBuilder {
         return this;
     }
 
+    public HtmlStringBuilder td(long content, String cssClass) {
+        if (cssClass == null) {
+            return td(content);
+        }
+
+        sb.append("<td class=\"").append(cssClass).append("\">").append(content).append("</td>");
+
+        return this;
+    }
+
     public HtmlStringBuilder td(double content) {
         sb.append("<td>").append(content).append("</td>");
 
