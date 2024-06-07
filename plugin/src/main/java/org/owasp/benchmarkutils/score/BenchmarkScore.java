@@ -50,6 +50,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.Utils;
+import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 import org.owasp.benchmarkutils.score.parsers.Reader;
 import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
@@ -75,7 +76,7 @@ public class BenchmarkScore extends AbstractMojo {
     // Prefixes for generated test suites and file names. Used by lots of other classes for
     // scorecard generation.
     public static String TESTSUITEVERSION; // Pulled from expected results file
-    public static String TESTSUITE; // Pulled from expected results file
+    public static TestSuiteName TESTSUITENAME; // Pulled from expected results file
     public static final String TEST = "Test";
     public static String TESTCASENAME; // Set w/TESTSUITE. i.e., TESTSUITE + TEST;
 
@@ -481,12 +482,7 @@ public class BenchmarkScore extends AbstractMojo {
         // Step 7: Generate the tool scorecards now that the overall Vulnerability scorecards and
         // stats have been calculated
         ToolScorecard toolScorecard =
-                new ToolScorecard(
-                        overallAveToolResults,
-                        scoreCardDir,
-                        config,
-                        TESTSUITE,
-                        fullTestSuiteName(TESTSUITE));
+                new ToolScorecard(overallAveToolResults, scoreCardDir, config, TESTSUITENAME);
 
         tools.forEach(toolScorecard::generate);
 
@@ -499,7 +495,7 @@ public class BenchmarkScore extends AbstractMojo {
 
         // Step 10: Generate the results table across all the tools in this test
         try {
-            OverallStatsTable overallStatsTable = new OverallStatsTable(config, TESTSUITE);
+            OverallStatsTable overallStatsTable = new OverallStatsTable(config, TESTSUITENAME);
 
             String html =
                     new String(Files.readAllBytes(homeFilePath))
@@ -528,7 +524,7 @@ public class BenchmarkScore extends AbstractMojo {
             e.printStackTrace();
         }
 
-        System.out.println(BenchmarkScore.TESTSUITE + " scorecards complete.");
+        System.out.println(BenchmarkScore.TESTSUITENAME.simpleName() + " scorecards complete.");
 
         System.exit(0);
     }
@@ -884,7 +880,7 @@ public class BenchmarkScore extends AbstractMojo {
         try {
             TestSuiteResults tr = ExpectedResultsProvider.parse(new ResultFile(file));
 
-            BenchmarkScore.TESTSUITE = tr.getTestSuiteName();
+            BenchmarkScore.TESTSUITENAME = new TestSuiteName(tr.getTestSuiteName());
             BenchmarkScore.TESTCASENAME = tr.getTestSuiteName() + BenchmarkScore.TEST;
 
             return tr;
@@ -913,7 +909,7 @@ public class BenchmarkScore extends AbstractMojo {
         String resultsFileName =
                 scoreCardDir.getAbsolutePath()
                         + File.separator
-                        + TESTSUITE
+                        + TESTSUITENAME.simpleName()
                         + "_v"
                         + testSuiteVersion
                         + "_Scorecard_for_"
@@ -933,7 +929,7 @@ public class BenchmarkScore extends AbstractMojo {
             if (fulldetails) ps.print("source, data flow, sink, ");
             ps.print(
                     "real vulnerability, identified by tool, pass/fail, "
-                            + TESTSUITE
+                            + TESTSUITENAME.simpleName()
                             + " version: "
                             + testSuiteVersion);
 
@@ -999,7 +995,7 @@ public class BenchmarkScore extends AbstractMojo {
         final ClassLoader CL = BenchmarkScore.class.getClassLoader();
 
         VulnerabilityStatsTable vulnerabilityStatsTable =
-                new VulnerabilityStatsTable(config, TESTSUITE, tools);
+                new VulnerabilityStatsTable(config, TESTSUITENAME, tools);
 
         for (String cat : catSet) {
             try {
@@ -1021,7 +1017,7 @@ public class BenchmarkScore extends AbstractMojo {
                 BenchmarkScore.overallAveToolResults.put(cat, scatter.getOverallCategoryResults());
 
                 String filename =
-                        TESTSUITE
+                        TESTSUITENAME.simpleName()
                                 + "_v"
                                 + TESTSUITEVERSION
                                 + "_Scorecard_for_"
@@ -1038,14 +1034,9 @@ public class BenchmarkScore extends AbstractMojo {
                 }
 
                 String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
-                html =
-                        html.replace(
-                                "${testsuite}",
-                                BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE));
+                html = html.replace("${testsuite}", BenchmarkScore.TESTSUITENAME.fullName());
                 String fullTitle =
-                        BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE)
-                                + " Scorecard for "
-                                + cat;
+                        BenchmarkScore.TESTSUITENAME.fullName() + " Scorecard for " + cat;
 
                 html = html.replace("${image}", filename + ".png");
                 html = html.replace("${title}", fullTitle);
@@ -1146,7 +1137,10 @@ public class BenchmarkScore extends AbstractMojo {
 
             try {
                 commercialAveScorecardFilename =
-                        TESTSUITE + "_v" + TESTSUITEVERSION + "_Scorecard_for_Commercial_Tools";
+                        TESTSUITENAME.simpleName()
+                                + "_v"
+                                + TESTSUITEVERSION
+                                + "_Scorecard_for_Commercial_Tools";
                 Path htmlfile =
                         Paths.get(
                                 scoreCardDir.getAbsolutePath()
@@ -1157,10 +1151,7 @@ public class BenchmarkScore extends AbstractMojo {
                 InputStream vulnTemplateStream =
                         CL.getResourceAsStream(scoreCardDir + "/commercialAveTemplate.html");
                 String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
-                html =
-                        html.replace(
-                                "${testsuite}",
-                                BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE));
+                html = html.replace("${testsuite}", BenchmarkScore.TESTSUITENAME.fullName());
                 html = html.replace("${version}", TESTSUITEVERSION);
                 html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
 
@@ -1224,7 +1215,11 @@ public class BenchmarkScore extends AbstractMojo {
         sb = new StringBuffer();
         for (String cat : catSet) {
             String filename =
-                    TESTSUITE + "_v" + TESTSUITEVERSION + "_Scorecard_for_" + cat.replace(' ', '_');
+                    TESTSUITENAME.simpleName()
+                            + "_v"
+                            + TESTSUITEVERSION
+                            + "_Scorecard_for_"
+                            + cat.replace(' ', '_');
             sb.append("            <li><a href=\"");
             sb.append(filename);
             sb.append(".html\">");
@@ -1249,10 +1244,7 @@ public class BenchmarkScore extends AbstractMojo {
                     String html = new String(Files.readAllBytes(f.toPath()));
                     html = html.replace("${toolmenu}", toolmenu);
                     html = html.replace("${vulnmenu}", vulnmenu);
-                    html =
-                            html.replace(
-                                    "${testsuite}",
-                                    BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE));
+                    html = html.replace("${testsuite}", TESTSUITENAME.fullName());
                     html = html.replace("${version}", TESTSUITEVERSION);
                     html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
                     html = html.replace("${cwecategoryname}", config.cweCategoryName);
@@ -1269,11 +1261,5 @@ public class BenchmarkScore extends AbstractMojo {
                 }
             }
         }
-    }
-
-    // A utility method for providing a more descriptive test suite name than the base, single word,
-    // test suite name.
-    public static String fullTestSuiteName(String suite) {
-        return ("Benchmark".equals(suite) ? "OWASP Benchmark" : suite);
     }
 }

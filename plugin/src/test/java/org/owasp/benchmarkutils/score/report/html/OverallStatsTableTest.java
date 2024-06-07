@@ -34,6 +34,7 @@ import org.owasp.benchmarkutils.score.builder.ConfigurationBuilder;
 import org.owasp.benchmarkutils.score.builder.TestSuiteResultsBuilder;
 import org.owasp.benchmarkutils.score.builder.ToolBuilder;
 import org.owasp.benchmarkutils.score.builder.ToolResultsBuilder;
+import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 
 class OverallStatsTableTest {
 
@@ -81,7 +82,7 @@ class OverallStatsTableTest {
                                         .build())
                         .build();
 
-        OverallStatsTable table = new OverallStatsTable(config, "Benchmark");
+        OverallStatsTable table = new OverallStatsTable(config, new TestSuiteName("Benchmark"));
 
         String actual = table.generateFor(asSet(firstTool, secondTool));
 
@@ -131,7 +132,7 @@ class OverallStatsTableTest {
                                         .build())
                         .build();
 
-        OverallStatsTable table = new OverallStatsTable(config, "Benchmark");
+        OverallStatsTable table = new OverallStatsTable(config, new TestSuiteName("Benchmark"));
 
         String actual = table.generateFor(asSet(firstTool));
 
@@ -165,7 +166,7 @@ class OverallStatsTableTest {
                                         .build())
                         .build();
 
-        OverallStatsTable table = new OverallStatsTable(config, "Benchmark");
+        OverallStatsTable table = new OverallStatsTable(config, new TestSuiteName("Benchmark"));
 
         String actual = table.generateFor(asSet(firstTool));
 
@@ -207,7 +208,7 @@ class OverallStatsTableTest {
                                         .build())
                         .build();
 
-        OverallStatsTable table = new OverallStatsTable(config, "Benchmark");
+        OverallStatsTable table = new OverallStatsTable(config, new TestSuiteName("Benchmark"));
 
         String actual = table.generateFor(asSet(firstTool, secondTool));
 
@@ -254,7 +255,7 @@ class OverallStatsTableTest {
                                         .build())
                         .build();
 
-        OverallStatsTable table = new OverallStatsTable(config, "Benchmark");
+        OverallStatsTable table = new OverallStatsTable(config, new TestSuiteName("Benchmark"));
 
         String actual = table.generateFor(asSet(firstTool, secondTool));
 
@@ -306,7 +307,7 @@ class OverallStatsTableTest {
                         .setToolResults(secondToolResults)
                         .build();
 
-        OverallStatsTable table = new OverallStatsTable(config, "Benchmark");
+        OverallStatsTable table = new OverallStatsTable(config, new TestSuiteName("Benchmark"));
 
         String actual = table.generateFor(asSet(firstTool, secondTool));
 

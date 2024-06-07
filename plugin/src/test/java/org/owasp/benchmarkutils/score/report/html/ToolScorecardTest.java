@@ -40,6 +40,7 @@ import org.owasp.benchmarkutils.score.Tool;
 import org.owasp.benchmarkutils.score.builder.ConfigurationBuilder;
 import org.owasp.benchmarkutils.score.builder.TestSuiteResultsBuilder;
 import org.owasp.benchmarkutils.score.builder.ToolBuilder;
+import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 
 class ToolScorecardTest {
 
@@ -61,7 +62,7 @@ class ToolScorecardTest {
         BenchmarkScore.config = config;
 
         ToolScorecard toolScorecard =
-                new ToolScorecard(emptyMap(), tmpDir, config, "TestSuite", "FullName");
+                new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("Benchmark"));
 
         AtomicBoolean toolBarChartCalled = new AtomicBoolean(false);
 
@@ -105,11 +106,11 @@ class ToolScorecardTest {
 
         assertEquals(3, htmlLines.size());
         assertEquals("Some Tool v1.0", htmlLines.get(0));
-        assertEquals("FullName Scorecard for Some Tool v1.0 (SAST)", htmlLines.get(1));
+        assertEquals("OWASP Benchmark Scorecard for Some Tool v1.0 (SAST)", htmlLines.get(1));
         assertEquals(
                 tmpDir.getAbsolutePath()
                         + File.separator
-                        + "TestSuite_v1.2_Scorecard_for_Some_Tool_v1.0.png",
+                        + "Benchmark_v1.2_Scorecard_for_Some_Tool_v1.0.png",
                 htmlLines.get(2));
 
         assertTrue(toolBarChartCalled.get());
@@ -126,7 +127,7 @@ class ToolScorecardTest {
         BenchmarkScore.config = config;
 
         ToolScorecard toolScorecard =
-                new ToolScorecard(emptyMap(), tmpDir, config, "TestSuite", "FullName");
+                new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("Benchmark"));
 
         AtomicBoolean toolBarChartCalled = new AtomicBoolean(false);
 
@@ -154,7 +155,7 @@ class ToolScorecardTest {
         BenchmarkScore.config = config;
 
         ToolScorecard toolScorecard =
-                new ToolScorecard(emptyMap(), tmpDir, config, "TestSuite", "FullName");
+                new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("Benchmark"));
 
         Tool someTool =
                 ToolBuilder.builder()
@@ -180,6 +181,6 @@ class ToolScorecardTest {
         assertTrue(htmlFile.isPresent());
         String content = Files.readString(htmlFile.get().toPath());
 
-        assertEquals("FullName Scorecard for Some Tool v1.0", content);
+        assertEquals("OWASP Benchmark Scorecard for Some Tool v1.0", content);
     }
 }
