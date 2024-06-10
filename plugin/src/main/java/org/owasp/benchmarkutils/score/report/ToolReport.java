@@ -64,9 +64,7 @@ public class ToolReport implements ToolReportProvider {
                         .getResourceAsStream(BenchmarkScore.SCORECARDDIRNAME + "/template.html");
         String html = IOUtils.toString(templateFileStream, StandardCharsets.UTF_8);
 
-        html =
-                html.replace(
-                        "${testsuite}", BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE));
+        html = html.replace("${testsuite}", BenchmarkScore.TESTSUITENAME.fullName());
         html = html.replace("${title}", title);
         html = html.replace("${tests}", Integer.toString(overallToolResults.getTotalTestCases()));
         html = html.replace("${time}", overallToolResults.getScanTime());

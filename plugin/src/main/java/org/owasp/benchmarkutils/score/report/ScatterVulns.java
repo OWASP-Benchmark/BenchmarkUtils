@@ -535,7 +535,7 @@ public class ScatterVulns extends ScatterPlot {
             String category, Set<Tool> toolResults, String focus, File scoreCardDir) {
         try {
             String scatterTitle =
-                    BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE)
+                    BenchmarkScore.TESTSUITENAME.fullName()
                             + (BenchmarkScore.config.mixedMode
                                     ? " -"
                                     : " v" + BenchmarkScore.TESTSUITEVERSION)
@@ -547,7 +547,7 @@ public class ScatterVulns extends ScatterPlot {
             scatter.writeChartToFile(
                     new File(
                             scoreCardDir,
-                            BenchmarkScore.TESTSUITE
+                            BenchmarkScore.TESTSUITENAME.simpleName()
                                     + "_v"
                                     + BenchmarkScore.TESTSUITEVERSION
                                     + "_Scorecard_for_"

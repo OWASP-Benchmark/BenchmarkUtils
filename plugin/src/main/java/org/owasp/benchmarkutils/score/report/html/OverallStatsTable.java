@@ -24,15 +24,16 @@ import java.util.Set;
 import org.owasp.benchmarkutils.score.Configuration;
 import org.owasp.benchmarkutils.score.Tool;
 import org.owasp.benchmarkutils.score.ToolResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 
 public class OverallStatsTable {
 
     private final Configuration config;
-    private final String testSuite;
+    private final TestSuiteName testSuiteName;
 
-    public OverallStatsTable(Configuration config, String testSuite) {
+    public OverallStatsTable(Configuration config, TestSuiteName testSuiteName) {
         this.config = config;
-        this.testSuite = testSuite;
+        this.testSuiteName = testSuiteName;
     }
 
     /**
@@ -65,7 +66,7 @@ public class OverallStatsTable {
         htmlBuilder.th("Tool");
 
         if (config.mixedMode) {
-            htmlBuilder.th(testSuite + " Version");
+            htmlBuilder.th(testSuiteName.simpleName() + " Version");
         }
 
         htmlBuilder.th("Type");
