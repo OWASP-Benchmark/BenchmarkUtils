@@ -17,15 +17,24 @@
  */
 package org.owasp.benchmarkutils.score.report.html;
 
+import static java.text.MessageFormat.format;
 import static org.owasp.benchmarkutils.score.report.Formats.singleDecimalPlaceNumber;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
 
 public class CommercialAveragesTable {
 
     private final List<ScatterVulns> entries = new ArrayList<>();
+    private final TestSuiteName testSuiteName;
+    private final String testSuiteVersion;
+
+    public CommercialAveragesTable(TestSuiteName testSuiteName, String testSuiteVersion) {
+        this.testSuiteName = testSuiteName;
+        this.testSuiteVersion = testSuiteVersion;
+    }
 
     public void add(ScatterVulns scatter) {
         entries.add(scatter);
@@ -120,5 +129,11 @@ public class CommercialAveragesTable {
 
     public boolean hasEntries() {
         return !entries.isEmpty();
+    }
+
+    public String filename() {
+        return format(
+                "{0}_v{1}_Scorecard_for_Commercial_Tools.html",
+                testSuiteName.simpleName(), testSuiteVersion);
     }
 }

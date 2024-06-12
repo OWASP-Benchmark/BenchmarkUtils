@@ -55,6 +55,7 @@ import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
 import org.owasp.benchmarkutils.score.report.html.CommercialAveragesTable;
+import org.owasp.benchmarkutils.score.report.html.MenuUpdater;
 import org.owasp.benchmarkutils.score.report.html.OverallStatsTable;
 import org.owasp.benchmarkutils.score.report.html.ToolScorecard;
 import org.owasp.benchmarkutils.score.report.html.VulnerabilityStatsTable;
@@ -89,10 +90,6 @@ public class BenchmarkScore extends AbstractMojo {
     private static final String HOMEFILENAME = "Scorecard_Home.html";
     // scorecard dir normally created under current user directory
     public static final String SCORECARDDIRNAME = "scorecard";
-
-    // The name of this file if generated. This value is calculated by code below. Not set via
-    // config.
-    private static String commercialAveScorecardFilename = null;
 
     // The values stored in this is pulled from the categories.xml config file
     //    public static Categories CATEGORIES;
@@ -475,7 +472,10 @@ public class BenchmarkScore extends AbstractMojo {
         }
 
         // Then we generate each vulnerability scorecard
-        BenchmarkScore.generateVulnerabilityScorecards(tools, catSet, scoreCardDir);
+        CommercialAveragesTable commercialAveragesTable =
+                new CommercialAveragesTable(TESTSUITENAME, TESTSUITEVERSION);
+        BenchmarkScore.generateVulnerabilityScorecards(
+                tools, catSet, scoreCardDir, commercialAveragesTable);
         System.out.println("Vulnerability scorecards computed.");
 
         // Step 7: Generate the tool scorecards now that the overall Vulnerability scorecards and
@@ -487,7 +487,19 @@ public class BenchmarkScore extends AbstractMojo {
 
         // Step 8: Update all the menus for all the generated pages to reflect the tools and
         // vulnerability categories
-        updateMenus(tools, catSet, scoreCardDir, toolScorecard);
+        new MenuUpdater(
+                        config,
+                        TESTSUITENAME,
+                        TESTSUITEVERSION,
+                        PROJECTLINKENTRY,
+                        PRECISIONKEYENTRY,
+                        FSCOREKEYENTRY,
+                        commercialAveragesTable,
+                        tools,
+                        catSet,
+                        scoreCardDir,
+                        toolScorecard)
+                .updateMenus();
 
         // Step 9: Generate the overall comparison chart for all the tools in this test
         ScatterHome.generateComparisonChart(tools, config.focus, scoreCardDir);
@@ -975,8 +987,10 @@ public class BenchmarkScore extends AbstractMojo {
      * overallAveToolResults.
      */
     private static void generateVulnerabilityScorecards(
-            Set<Tool> tools, Set<String> catSet, File scoreCardDir) {
-        CommercialAveragesTable commercialAveragesTable = new CommercialAveragesTable();
+            Set<Tool> tools,
+            Set<String> catSet,
+            File scoreCardDir,
+            CommercialAveragesTable commercialAveragesTable) {
 
         // A side effect of this method is to calculate these averages
         averageCommercialToolResults = new HashMap<String, CategoryResults>();
@@ -1059,17 +1073,11 @@ public class BenchmarkScore extends AbstractMojo {
 
         if (commercialAveragesTable.hasEntries()) {
             try {
-                commercialAveScorecardFilename =
-                        TESTSUITENAME.simpleName()
-                                + "_v"
-                                + TESTSUITEVERSION
-                                + "_Scorecard_for_Commercial_Tools";
                 Path htmlfile =
                         Paths.get(
                                 scoreCardDir.getAbsolutePath()
                                         + File.separator
-                                        + commercialAveScorecardFilename
-                                        + ".html");
+                                        + commercialAveragesTable.filename());
                 // Resources in a jar file have to be loaded as streams. Not directly as Files.
                 InputStream vulnTemplateStream =
                         CL.getResourceAsStream(scoreCardDir + "/commercialAveTemplate.html");
@@ -1092,96 +1100,5 @@ public class BenchmarkScore extends AbstractMojo {
                 e.printStackTrace();
             }
         } // end if
-    }
-
-    /**
-     * Updates the menus of all the scorecards previously generated so people can navigate between
-     * all the tool results. Also perform a few other tag replacements for things that need to be
-     * done in the final stages of scorecard generation.
-     *
-     * @param tools - All the scored tools.
-     * @param catSet - The set of vulnerability categories to create menus for
-     * @param scoreCardDir - The directory containing the HTML files to be updated.
-     * @param toolScorecard
-     */
-    private static void updateMenus(
-            Set<Tool> tools, Set<String> catSet, File scoreCardDir, ToolScorecard toolScorecard) {
-
-        // Create tool menu
-        StringBuffer sb = new StringBuffer();
-        for (Tool tool : tools) {
-            if (!(config.showAveOnlyMode && tool.isCommercial())) {
-                sb.append("<li><a href=\"");
-                sb.append(toolScorecard.filenameFor(tool));
-                sb.append(".html\">");
-                sb.append(tool.getToolNameAndVersion());
-                sb.append("</a></li>");
-                sb.append(System.lineSeparator());
-            }
-        }
-
-        // Before finishing, check to see if there is a commercial average scorecard file, and if so
-        // Add it to the menu
-        if (commercialAveScorecardFilename != null) {
-            sb.append("<li><a href=\"");
-            sb.append(commercialAveScorecardFilename);
-            sb.append(".html\">");
-            sb.append("Commercial Average");
-            sb.append("</a></li>");
-            sb.append(System.lineSeparator());
-        }
-
-        String toolmenu = sb.toString();
-
-        // create vulnerability menu
-        sb = new StringBuffer();
-        for (String cat : catSet) {
-            String filename =
-                    TESTSUITENAME.simpleName()
-                            + "_v"
-                            + TESTSUITEVERSION
-                            + "_Scorecard_for_"
-                            + cat.replace(' ', '_');
-            sb.append("            <li><a href=\"");
-            sb.append(filename);
-            sb.append(".html\">");
-            sb.append(cat);
-            sb.append("</a></li>");
-            sb.append(System.lineSeparator());
-        }
-        String vulnmenu = sb.toString();
-
-        // rewrite HTML files with new menus
-        updateMenuTemplates(toolmenu, vulnmenu, scoreCardDir);
-    }
-
-    /*
-     * This method goes through all the already generated .html files and updates their menus and a few other
-     * things in those files.
-     */
-    private static void updateMenuTemplates(String toolmenu, String vulnmenu, File scoreCardDir) {
-        for (File f : scoreCardDir.listFiles()) {
-            if (!f.isDirectory() && f.getName().endsWith(".html")) {
-                try {
-                    String html = new String(Files.readAllBytes(f.toPath()));
-                    html = html.replace("${toolmenu}", toolmenu);
-                    html = html.replace("${vulnmenu}", vulnmenu);
-                    html = html.replace("${testsuite}", TESTSUITENAME.fullName());
-                    html = html.replace("${version}", TESTSUITEVERSION);
-                    html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
-                    html = html.replace("${cwecategoryname}", config.cweCategoryName);
-                    html =
-                            html.replace(
-                                    "${precisionkey}",
-                                    BenchmarkScore.PRECISIONKEYENTRY
-                                            + BenchmarkScore.FSCOREKEYENTRY);
-
-                    Files.write(f.toPath(), html.getBytes());
-                } catch (IOException e) {
-                    System.out.println("Error updating menus in: " + f.getName());
-                    e.printStackTrace();
-                }
-            }
-        }
     }
 }
