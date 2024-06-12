@@ -17,6 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.report.html;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,6 +31,7 @@ import org.owasp.benchmarkutils.score.Tool;
 import org.owasp.benchmarkutils.score.builder.ConfigurationBuilder;
 import org.owasp.benchmarkutils.score.builder.ToolBuilder;
 import org.owasp.benchmarkutils.score.builder.ToolResultsBuilder;
+import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
 
 class CommercialAveragesTableTest {
@@ -86,7 +88,8 @@ class CommercialAveragesTableTest {
                                         .build())
                         .build();
 
-        CommercialAveragesTable commercialAveragesTable = new CommercialAveragesTable();
+        CommercialAveragesTable commercialAveragesTable =
+                new CommercialAveragesTable(new TestSuiteName(""), "");
 
         Set<Tool> tools = asSet(firstTool, secondTool);
 
@@ -121,7 +124,7 @@ class CommercialAveragesTableTest {
 
     @Test
     void doesNotHaveEntriesByDefault() {
-        assertFalse(new CommercialAveragesTable().hasEntries());
+        assertFalse(new CommercialAveragesTable(new TestSuiteName(""), "").hasEntries());
     }
 
     @Test
@@ -154,7 +157,8 @@ class CommercialAveragesTableTest {
                                         .build())
                         .build();
 
-        CommercialAveragesTable commercialAveragesTable = new CommercialAveragesTable();
+        CommercialAveragesTable commercialAveragesTable =
+                new CommercialAveragesTable(new TestSuiteName(""), "");
 
         Set<Tool> tools = asSet(tool);
 
@@ -209,7 +213,8 @@ class CommercialAveragesTableTest {
                                         .build())
                         .build();
 
-        CommercialAveragesTable commercialAveragesTable = new CommercialAveragesTable();
+        CommercialAveragesTable commercialAveragesTable =
+                new CommercialAveragesTable(new TestSuiteName(""), "");
 
         Set<Tool> tools = asSet(tool);
 
@@ -232,5 +237,15 @@ class CommercialAveragesTableTest {
                 actual.contains(
                         "<tr><td>Average across all categories for 1 tools</td><td></td><td>-60.0</td><td>-60.0</td>"
                                 + "<td>0.0</td><td></td></tr>"));
+    }
+
+    @Test
+    void buildsFilename() {
+        CommercialAveragesTable commercialAveragesTable =
+                new CommercialAveragesTable(new TestSuiteName("Benchmark"), "1.2");
+
+        assertEquals(
+                "Benchmark_v1.2_Scorecard_for_Commercial_Tools.html",
+                commercialAveragesTable.filename());
     }
 }
