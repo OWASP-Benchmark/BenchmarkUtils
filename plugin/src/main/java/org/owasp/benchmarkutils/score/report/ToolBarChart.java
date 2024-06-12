@@ -150,7 +150,7 @@ public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
      */
     public static String generateBarChartFileName(Tool tool, BarChartType type) {
         String filename =
-                BenchmarkScore.TESTSUITE
+                BenchmarkScore.TESTSUITENAME.simpleName()
                         + " v"
                         + tool.getTestSuiteVersion()
                         + " "

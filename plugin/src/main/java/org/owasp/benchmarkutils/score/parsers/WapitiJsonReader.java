@@ -26,11 +26,54 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class WapitiJsonReader extends Reader {
+
+    private Map<String, Integer> categoryCweMap;
+
+    public WapitiJsonReader() {
+        categoryCweMap = new HashMap<>();
+
+        categoryCweMap.put("CRLF Injection", CweNumber.CRLF_INJECTION);
+        categoryCweMap.put("Cross Site Request Forgery", CweNumber.CSRF);
+        categoryCweMap.put("Command execution", CweNumber.COMMAND_INJECTION);
+        categoryCweMap.put("Path Traversal", CweNumber.PATH_TRAVERSAL);
+        categoryCweMap.put("Secure Flag cookie", CweNumber.INSECURE_COOKIE);
+        categoryCweMap.put("Blind SQL Injection", CweNumber.SQL_INJECTION);
+        categoryCweMap.put("SQL Injection", CweNumber.SQL_INJECTION);
+        categoryCweMap.put("Cross Site Scripting", CweNumber.XSS);
+        categoryCweMap.put("Stored Cross Site Scripting", CweNumber.XSS);
+        categoryCweMap.put("Reflected Cross Site Scripting", CweNumber.XSS);
+        categoryCweMap.put("XML External Entity", CweNumber.XXE);
+
+        // Add others we don't currently care about, to make sure that all findings are considered,
+        // and no new finding types are ignored
+        // It is possible we'd care about some of these in the future
+        categoryCweMap.put(
+                "Content Security Policy Configuration", CweNumber.IMPROPER_UI_LAYER_RESTRICTION);
+        categoryCweMap.put("Open Redirect", CweNumber.OPEN_REDIRECT);
+        categoryCweMap.put("Server Side Request Forgery", CweNumber.SSRF);
+        categoryCweMap.put("Backup file", CweNumber.DONTCARE);
+        categoryCweMap.put("Fingerprint web application framework", CweNumber.DONTCARE);
+        categoryCweMap.put("Fingerprint web server", CweNumber.DONTCARE);
+        categoryCweMap.put("Htaccess Bypass", CweNumber.DONTCARE);
+        categoryCweMap.put("HTTP Secure Headers", CweNumber.DONTCARE);
+        categoryCweMap.put("HttpOnly Flag cookie", CweNumber.COOKIE_WITHOUT_HTTPONLY);
+        categoryCweMap.put("Potentially dangerous file", CweNumber.DONTCARE);
+        categoryCweMap.put("Weak credentials", CweNumber.DONTCARE);
+        categoryCweMap.put("Spring4Shell", CweNumber.DONTCARE);
+        categoryCweMap.put("Stored HTML Injection", CweNumber.DONTCARE);
+        categoryCweMap.put("Subdomain takeover", CweNumber.DONTCARE);
+        categoryCweMap.put("Unrestricted File Upload", CweNumber.DONTCARE);
+        categoryCweMap.put("Unencrypted Channels", CweNumber.DONTCARE);
+        categoryCweMap.put("Log4Shell", CweNumber.DONTCARE);
+        categoryCweMap.put("HTML Injection", CweNumber.DONTCARE);
+        categoryCweMap.put("TLS/SSL misconfigurations", CweNumber.DONTCARE);
+    }
 
     @Override
     public boolean canRead(ResultFile resultFile) {
@@ -50,33 +93,6 @@ public class WapitiJsonReader extends Reader {
         TestSuiteResults tr = new TestSuiteResults("Wapiti", false, TestSuiteResults.ToolType.DAST);
 
         JSONObject vulnerabilities = resultFile.json().getJSONObject("vulnerabilities");
-
-        Map<String, Integer> categoryCweMap = new HashMap<>();
-
-        categoryCweMap.put("CRLF Injection", 93);
-        categoryCweMap.put("Cross Site Request Forgery", 352);
-        categoryCweMap.put("Command execution", 78); // aka command injection
-        categoryCweMap.put("Path Traversal", 22);
-        categoryCweMap.put("Secure Flag cookie", 614);
-        categoryCweMap.put("Blind SQL Injection", 89);
-        categoryCweMap.put("SQL Injection", 89);
-        categoryCweMap.put("Cross Site Scripting", 79);
-        categoryCweMap.put("XML External Entity", 611);
-
-        // Add others we don't currently care about, to make sure that all findings are considered,
-        // and no new finding types are ignored
-        // It is possible we'd care about some of these in the future
-        categoryCweMap.put("Content Security Policy Configuration", 1021);
-        categoryCweMap.put("Open Redirect", 601);
-        categoryCweMap.put("Server Side Request Forgery", 918);
-        categoryCweMap.put("Backup file", 0);
-        categoryCweMap.put("Fingerprint web application framework", 0);
-        categoryCweMap.put("Fingerprint web server", 0);
-        categoryCweMap.put("Htaccess Bypass", 0);
-        categoryCweMap.put("HTTP Secure Headers", 0);
-        categoryCweMap.put("HttpOnly Flag cookie", 1004);
-        categoryCweMap.put("Potentially dangerous file", 0);
-        categoryCweMap.put("Weak credentials", 0);
 
         for (Map.Entry<String, Integer> entry : categoryCweMap.entrySet()) {
             String category = entry.getKey();

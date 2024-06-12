@@ -26,6 +26,7 @@ import java.util.Map;
 import org.owasp.benchmarkutils.score.CategoryResults;
 import org.owasp.benchmarkutils.score.Configuration;
 import org.owasp.benchmarkutils.score.Tool;
+import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 import org.owasp.benchmarkutils.score.report.ScatterTools;
 import org.owasp.benchmarkutils.score.report.ToolBarChart;
 import org.owasp.benchmarkutils.score.report.ToolReport;
@@ -34,8 +35,7 @@ public class ToolScorecard {
 
     private final File scoreCardDir;
     private final Configuration config;
-    private final String testSuite;
-    private final String fullTestSuiteName;
+    private final TestSuiteName testSuiteName;
 
     private ToolBarChartProvider toolBarChart;
     private ToolReportProvider toolReport;
@@ -44,12 +44,10 @@ public class ToolScorecard {
             Map<String, CategoryResults> overallAveToolResults,
             File scoreCardDir,
             Configuration config,
-            String testSuite,
-            String fullTestSuiteName) {
+            TestSuiteName testSuiteName) {
         this.scoreCardDir = scoreCardDir;
         this.config = config;
-        this.testSuite = testSuite;
-        this.fullTestSuiteName = fullTestSuiteName;
+        this.testSuiteName = testSuiteName;
 
         this.toolBarChart = new ToolBarChart(overallAveToolResults, scoreCardDir);
         this.toolReport = new ToolReport(overallAveToolResults);
@@ -88,13 +86,16 @@ public class ToolScorecard {
     }
 
     private String titleFor(Tool tool) {
-        String fullTitle = fullTestSuiteName + " Scorecard for " + tool.getToolNameAndVersion();
+        String fullTitle =
+                testSuiteName.fullName() + " Scorecard for " + tool.getToolNameAndVersion();
+
         // If not in anonymous mode OR the tool is not commercial, add the type at the end of
         // the name. It's not added to anonymous commercial tools, because it would be
         // redundant.
         if (!config.anonymousMode || !tool.isCommercial()) {
             fullTitle += " (" + tool.getToolType() + ")";
         }
+
         return fullTitle;
     }
 
@@ -102,7 +103,7 @@ public class ToolScorecard {
         String shortTitle =
                 format(
                         "{0} v{1} Scorecard for {2}",
-                        testSuite, tool.getTestSuiteVersion(), tool.getToolName());
+                        testSuiteName.simpleName(), tool.getTestSuiteVersion(), tool.getToolName());
 
         File img = new File(scoreCardDir, filenameFor(tool) + ".png");
 
@@ -126,7 +127,9 @@ public class ToolScorecard {
     public String filenameFor(Tool tool) {
         return (format(
                         "{0} v{1} Scorecard for {2}",
-                        testSuite, tool.getTestSuiteVersion(), tool.getToolNameAndVersion()))
+                        testSuiteName.simpleName(),
+                        tool.getTestSuiteVersion(),
+                        tool.getToolNameAndVersion()))
                 .replace(' ', '_');
     }
 }

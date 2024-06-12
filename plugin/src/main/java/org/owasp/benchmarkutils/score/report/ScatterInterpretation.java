@@ -32,7 +32,7 @@ public class ScatterInterpretation extends ScatterPlot {
     public ScatterInterpretation(int height) {
         display(
                 "          "
-                        + BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE)
+                        + BenchmarkScore.TESTSUITENAME.fullName()
                         + " Results Interpretation Guide",
                 height);
     }

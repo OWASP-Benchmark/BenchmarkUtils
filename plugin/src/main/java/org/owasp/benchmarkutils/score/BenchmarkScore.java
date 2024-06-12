@@ -27,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,10 +46,12 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.Utils;
+import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 import org.owasp.benchmarkutils.score.parsers.Reader;
 import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
+import org.owasp.benchmarkutils.score.report.html.CommercialAveragesTable;
 import org.owasp.benchmarkutils.score.report.html.OverallStatsTable;
 import org.owasp.benchmarkutils.score.report.html.ToolScorecard;
 import org.owasp.benchmarkutils.score.report.html.VulnerabilityStatsTable;
@@ -73,7 +74,7 @@ public class BenchmarkScore extends AbstractMojo {
     // Prefixes for generated test suites and file names. Used by lots of other classes for
     // scorecard generation.
     public static String TESTSUITEVERSION; // Pulled from expected results file
-    public static String TESTSUITE; // Pulled from expected results file
+    public static TestSuiteName TESTSUITENAME; // Pulled from expected results file
     public static final String TEST = "Test";
     public static String TESTCASENAME; // Set w/TESTSUITE. i.e., TESTSUITE + TEST;
 
@@ -340,7 +341,7 @@ public class BenchmarkScore extends AbstractMojo {
                         }
 
                         ResultsFileCreator resultsFileCreator =
-                                new ResultsFileCreator(scoreCardDir, TESTSUITE);
+                                new ResultsFileCreator(scoreCardDir, TESTSUITENAME.fullName());
 
                         // Step 5a: Go through each result file, score the tool, and generate a
                         // scorecard for that tool
@@ -404,7 +405,7 @@ public class BenchmarkScore extends AbstractMojo {
                 }
 
                 ResultsFileCreator resultsFileCreator =
-                        new ResultsFileCreator(scoreCardDir, TESTSUITE);
+                        new ResultsFileCreator(scoreCardDir, TESTSUITENAME.fullName());
 
                 // Step 5b: Go through each result file and generate a scorecard for that tool.
                 if (resultsFileOrDir.isDirectory()) {
@@ -486,12 +487,7 @@ public class BenchmarkScore extends AbstractMojo {
         // Step 7: Generate the tool scorecards now that the overall Vulnerability scorecards and
         // stats have been calculated
         ToolScorecard toolScorecard =
-                new ToolScorecard(
-                        overallAveToolResults,
-                        scoreCardDir,
-                        config,
-                        TESTSUITE,
-                        fullTestSuiteName(TESTSUITE));
+                new ToolScorecard(overallAveToolResults, scoreCardDir, config, TESTSUITENAME);
 
         tools.forEach(toolScorecard::generate);
 
@@ -504,7 +500,7 @@ public class BenchmarkScore extends AbstractMojo {
 
         // Step 10: Generate the results table across all the tools in this test
         try {
-            OverallStatsTable overallStatsTable = new OverallStatsTable(config, TESTSUITE);
+            OverallStatsTable overallStatsTable = new OverallStatsTable(config, TESTSUITENAME);
 
             String html =
                     new String(Files.readAllBytes(homeFilePath))
@@ -533,7 +529,7 @@ public class BenchmarkScore extends AbstractMojo {
             e.printStackTrace();
         }
 
-        System.out.println(BenchmarkScore.TESTSUITE + " scorecards complete.");
+        System.out.println(BenchmarkScore.TESTSUITENAME.simpleName() + " scorecards complete.");
 
         System.exit(0);
     }
@@ -887,7 +883,7 @@ public class BenchmarkScore extends AbstractMojo {
         try {
             TestSuiteResults tr = ExpectedResultsProvider.parse(new ResultFile(file));
 
-            BenchmarkScore.TESTSUITE = tr.getTestSuiteName();
+            BenchmarkScore.TESTSUITENAME = new TestSuiteName(tr.getTestSuiteName());
             BenchmarkScore.TESTCASENAME = tr.getTestSuiteName() + BenchmarkScore.TEST;
 
             return tr;
@@ -911,13 +907,7 @@ public class BenchmarkScore extends AbstractMojo {
      */
     private static void generateVulnerabilityScorecards(
             Set<Tool> tools, Set<String> catSet, File scoreCardDir) {
-        StringBuilder htmlForCommercialAverages = null;
-
-        int commercialToolTotal = 0;
-        int numberOfVulnCategories = 0;
-        int commercialLowTotal = 0;
-        int commercialAveTotal = 0;
-        int commercialHighTotal = 0;
+        CommercialAveragesTable commercialAveragesTable = new CommercialAveragesTable();
 
         // A side effect of this method is to calculate these averages
         averageCommercialToolResults = new HashMap<String, CategoryResults>();
@@ -927,11 +917,10 @@ public class BenchmarkScore extends AbstractMojo {
         final ClassLoader CL = BenchmarkScore.class.getClassLoader();
 
         VulnerabilityStatsTable vulnerabilityStatsTable =
-                new VulnerabilityStatsTable(config, TESTSUITE, tools);
+                new VulnerabilityStatsTable(config, TESTSUITENAME, tools);
 
         for (String cat : catSet) {
             try {
-
                 // Generate a comparison chart for all tools for this vuln category. When
                 // constructed, scatter contains the Overall, Non-commercial, and Commercial stats
                 // for this category across all tools.
@@ -949,7 +938,7 @@ public class BenchmarkScore extends AbstractMojo {
                 BenchmarkScore.overallAveToolResults.put(cat, scatter.getOverallCategoryResults());
 
                 String filename =
-                        TESTSUITE
+                        TESTSUITENAME.simpleName()
                                 + "_v"
                                 + TESTSUITEVERSION
                                 + "_Scorecard_for_"
@@ -966,14 +955,9 @@ public class BenchmarkScore extends AbstractMojo {
                 }
 
                 String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
-                html =
-                        html.replace(
-                                "${testsuite}",
-                                BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE));
+                html = html.replace("${testsuite}", BenchmarkScore.TESTSUITENAME.fullName());
                 String fullTitle =
-                        BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE)
-                                + " Scorecard for "
-                                + cat;
+                        BenchmarkScore.TESTSUITENAME.fullName() + " Scorecard for " + cat;
 
                 html = html.replace("${image}", filename + ".png");
                 html = html.replace("${title}", fullTitle);
@@ -993,45 +977,10 @@ public class BenchmarkScore extends AbstractMojo {
 
                 Files.write(htmlFile.toPath(), html.getBytes());
 
-                // Now build up the commercial stats scorecard if there are at 2+ commercial tools
+                // Only build commercial stats scorecard if there are at 2+ commercial tools
                 if (scatter.getCommercialToolCount() > 1) {
-                    if (htmlForCommercialAverages == null) {
-                        commercialToolTotal = scatter.getCommercialToolCount();
-                        htmlForCommercialAverages = new StringBuilder();
-                        htmlForCommercialAverages.append("<table class=\"table\">\n");
-                        htmlForCommercialAverages.append("<tr>");
-                        htmlForCommercialAverages.append("<th>Vulnerability Category</th>");
-                        htmlForCommercialAverages.append("<th>Low Tool Type</th>");
-                        htmlForCommercialAverages.append("<th>Low Score</th>");
-                        htmlForCommercialAverages.append("<th>Ave Score</th>");
-                        htmlForCommercialAverages.append("<th>High Score</th>");
-                        htmlForCommercialAverages.append("<th>High Tool Type</th>");
-                        htmlForCommercialAverages.append("</tr>\n");
-                    } // if 1st time through
-
-                    numberOfVulnCategories++;
-
-                    String style = "";
-                    htmlForCommercialAverages.append("<tr>");
-                    htmlForCommercialAverages.append("<td>" + cat + "</td>");
-                    htmlForCommercialAverages.append(
-                            "<td>" + scatter.getCommercialLowToolType() + "</td>");
-                    if (scatter.getCommercialLow() <= 10) style = "class=\"danger\"";
-                    else if (scatter.getCommercialLow() >= 50) style = "class=\"success\"";
-                    htmlForCommercialAverages.append(
-                            "<td " + style + ">" + scatter.getCommercialLow() + "</td>");
-                    commercialLowTotal += scatter.getCommercialLow();
-                    htmlForCommercialAverages.append("<td>" + scatter.getCommercialAve() + "</td>");
-                    commercialAveTotal += scatter.getCommercialAve();
-                    if (scatter.getCommercialHigh() <= 10) style = "class=\"danger\"";
-                    else if (scatter.getCommercialHigh() >= 50) style = "class=\"success\"";
-                    htmlForCommercialAverages.append(
-                            "<td " + style + ">" + scatter.getCommercialHigh() + "</td>");
-                    commercialHighTotal += scatter.getCommercialHigh();
-                    htmlForCommercialAverages.append(
-                            "<td>" + scatter.getCommercialHighToolType() + "</td>");
-                    htmlForCommercialAverages.append("</tr>\n");
-                } // if more than 1 commercial tool
+                    commercialAveragesTable.add(scatter);
+                }
 
             } catch (IOException e) {
                 System.out.println("Error generating vulnerability summaries: " + e.getMessage());
@@ -1039,42 +988,13 @@ public class BenchmarkScore extends AbstractMojo {
             }
         } // end for loop
 
-        // if we computed a commercial average, then add the last row to the table AND create the
-        // file and write the HTML to it.
-        if (htmlForCommercialAverages != null) {
-
-            htmlForCommercialAverages.append("<tr>");
-            htmlForCommercialAverages.append(
-                    "<td>Average across all categories for " + commercialToolTotal + " tools</td>");
-            htmlForCommercialAverages.append("<td></td>");
-            htmlForCommercialAverages.append(
-                    "<td>"
-                            + new DecimalFormat("0.0")
-                                    .format(
-                                            (float) commercialLowTotal
-                                                    / (float) numberOfVulnCategories)
-                            + "</td>");
-            htmlForCommercialAverages.append(
-                    "<td>"
-                            + new DecimalFormat("0.0")
-                                    .format(
-                                            (float) commercialAveTotal
-                                                    / (float) numberOfVulnCategories)
-                            + "</td>");
-            htmlForCommercialAverages.append(
-                    "<td>"
-                            + new DecimalFormat("0.0")
-                                    .format(
-                                            (float) commercialHighTotal
-                                                    / (float) numberOfVulnCategories)
-                            + "</td>");
-            htmlForCommercialAverages.append("<td></td>");
-            htmlForCommercialAverages.append("</tr>\n");
-            htmlForCommercialAverages.append("</table>\n");
-
+        if (commercialAveragesTable.hasEntries()) {
             try {
                 commercialAveScorecardFilename =
-                        TESTSUITE + "_v" + TESTSUITEVERSION + "_Scorecard_for_Commercial_Tools";
+                        TESTSUITENAME.simpleName()
+                                + "_v"
+                                + TESTSUITEVERSION
+                                + "_Scorecard_for_Commercial_Tools";
                 Path htmlfile =
                         Paths.get(
                                 scoreCardDir.getAbsolutePath()
@@ -1085,15 +1005,11 @@ public class BenchmarkScore extends AbstractMojo {
                 InputStream vulnTemplateStream =
                         CL.getResourceAsStream(scoreCardDir + "/commercialAveTemplate.html");
                 String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
-                html =
-                        html.replace(
-                                "${testsuite}",
-                                BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE));
+                html = html.replace("${testsuite}", BenchmarkScore.TESTSUITENAME.fullName());
                 html = html.replace("${version}", TESTSUITEVERSION);
                 html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
 
-                String table = htmlForCommercialAverages.toString();
-                html = html.replace("${table}", table);
+                html = html.replace("${table}", commercialAveragesTable.render());
                 html = html.replace("${tprlabel}", config.tprLabel);
                 html =
                         html.replace(
@@ -1152,7 +1068,11 @@ public class BenchmarkScore extends AbstractMojo {
         sb = new StringBuffer();
         for (String cat : catSet) {
             String filename =
-                    TESTSUITE + "_v" + TESTSUITEVERSION + "_Scorecard_for_" + cat.replace(' ', '_');
+                    TESTSUITENAME.simpleName()
+                            + "_v"
+                            + TESTSUITEVERSION
+                            + "_Scorecard_for_"
+                            + cat.replace(' ', '_');
             sb.append("            <li><a href=\"");
             sb.append(filename);
             sb.append(".html\">");
@@ -1177,10 +1097,7 @@ public class BenchmarkScore extends AbstractMojo {
                     String html = new String(Files.readAllBytes(f.toPath()));
                     html = html.replace("${toolmenu}", toolmenu);
                     html = html.replace("${vulnmenu}", vulnmenu);
-                    html =
-                            html.replace(
-                                    "${testsuite}",
-                                    BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE));
+                    html = html.replace("${testsuite}", TESTSUITENAME.fullName());
                     html = html.replace("${version}", TESTSUITEVERSION);
                     html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
                     html = html.replace("${cwecategoryname}", config.cweCategoryName);
@@ -1197,11 +1114,5 @@ public class BenchmarkScore extends AbstractMojo {
                 }
             }
         }
-    }
-
-    // A utility method for providing a more descriptive test suite name than the base, single word,
-    // test suite name.
-    public static String fullTestSuiteName(String suite) {
-        return ("Benchmark".equals(suite) ? "OWASP Benchmark" : suite);
     }
 }

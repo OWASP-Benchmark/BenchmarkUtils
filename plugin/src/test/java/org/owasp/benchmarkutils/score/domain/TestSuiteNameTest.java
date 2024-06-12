@@ -15,14 +15,27 @@
  * @author Sascha Knoop
  * @created 2024
  */
-package org.owasp.benchmarkutils.score.report;
+package org.owasp.benchmarkutils.score.domain;
 
-import java.text.DecimalFormat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class Formats {
+import org.junit.jupiter.api.Test;
 
-    public static final DecimalFormat twoDecimalPlacesPercentage = new DecimalFormat("#0.00%");
+class TestSuiteNameTest {
 
-    public static final DecimalFormat singleDecimalPlaceNumber = new DecimalFormat("0.0");
-    public static final DecimalFormat fourDecimalPlacesNumber = new DecimalFormat("#0.0000");
+    @Test
+    void returnsSimpleName() {
+        assertEquals("SimpleName", new TestSuiteName("SimpleName").simpleName());
+        assertEquals("Benchmark", new TestSuiteName("Benchmark").simpleName());
+    }
+
+    @Test
+    void returnsFixedFullNameForBenchmark() {
+        assertEquals("OWASP Benchmark", new TestSuiteName("Benchmark").fullName());
+    }
+
+    @Test
+    void returnsSimpleNameForFullNameWhenNotBenchmark() {
+        assertEquals("SimpleName", new TestSuiteName("SimpleName").fullName());
+    }
 }

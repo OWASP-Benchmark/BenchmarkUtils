@@ -15,14 +15,29 @@
  * @author Sascha Knoop
  * @created 2024
  */
-package org.owasp.benchmarkutils.score.report;
+package org.owasp.benchmarkutils.score.domain;
 
-import java.text.DecimalFormat;
+public class TestSuiteName {
 
-public class Formats {
+    private final String name;
 
-    public static final DecimalFormat twoDecimalPlacesPercentage = new DecimalFormat("#0.00%");
+    public TestSuiteName(String name) {
+        this.name = name;
+    }
 
-    public static final DecimalFormat singleDecimalPlaceNumber = new DecimalFormat("0.0");
-    public static final DecimalFormat fourDecimalPlacesNumber = new DecimalFormat("#0.0000");
+    public String simpleName() {
+        return name;
+    }
+
+    /**
+     * If required, provide a more descriptive test suite name than the base, single word test suite
+     * name.
+     */
+    public String fullName() {
+        if ("Benchmark".equals(name)) {
+            return "OWASP Benchmark";
+        }
+
+        return simpleName();
+    }
 }
