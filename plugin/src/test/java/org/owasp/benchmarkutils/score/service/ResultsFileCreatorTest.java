@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,8 +34,11 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.builder.ConfigurationBuilder;
 import org.owasp.benchmarkutils.score.builder.TestCaseResultBuilder;
 import org.owasp.benchmarkutils.score.builder.TestSuiteResultsBuilder;
+import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 
 class ResultsFileCreatorTest {
+
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
     private File tmpDir;
 
@@ -90,7 +95,8 @@ class ResultsFileCreatorTest {
                         .setPassed(false)
                         .build());
 
-        ResultsFileCreator resultsFileCreator = new ResultsFileCreator(tmpDir, "TestSuite");
+        ResultsFileCreator resultsFileCreator =
+                new ResultsFileCreator(tmpDir, new TestSuiteName("TestSuite"));
 
         resultsFileCreator.createFor(results);
 
@@ -108,7 +114,8 @@ class ResultsFileCreatorTest {
 
         assertEquals(
                 "# test name, category, CWE, real vulnerability, identified by tool, pass/fail, "
-                        + "TestSuite version: 1.2, Actual results generated: 2024-06-04",
+                        + "TestSuite version: 1.2, Actual results generated: "
+                        + sdf.format(new Date()),
                 lines.get(0));
         assertEquals("BenchmarkTest00001, pathtraver, 22, true, true, pass", lines.get(1));
         assertEquals("BenchmarkTest00002, trustbound, 501, false, true, fail", lines.get(2));
@@ -176,7 +183,8 @@ class ResultsFileCreatorTest {
                         .setSink("Sink4")
                         .build());
 
-        ResultsFileCreator resultsFileCreator = new ResultsFileCreator(tmpDir, "TestSuite");
+        ResultsFileCreator resultsFileCreator =
+                new ResultsFileCreator(tmpDir, new TestSuiteName("TestSuite"));
 
         String resultFile = resultsFileCreator.createFor(results);
 
@@ -193,7 +201,8 @@ class ResultsFileCreatorTest {
 
         assertEquals(
                 "# test name, category, CWE, source, data flow, sink, real vulnerability, identified "
-                        + "by tool, pass/fail, TestSuite version: 1.2, Actual results generated: 2024-06-04",
+                        + "by tool, pass/fail, TestSuite version: 1.2, Actual results generated: "
+                        + sdf.format(new Date()),
                 lines.get(0));
         assertEquals(
                 "BenchmarkTest00001, pathtraver, 22, Source1, DataFlow1, Sink1, true, true, pass",

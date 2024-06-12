@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.Iterator;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 
 /**
  * This produces the .csv of all the results for this tool. It's basically the expected results file
@@ -37,14 +38,13 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 public class ResultsFileCreator {
 
     private final File scoreCardDir;
-    private final String testSuite;
+    private final TestSuiteName testSuiteName;
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-    public ResultsFileCreator(File scoreCardDir, String testSuite) {
-        System.out.println("CONSTRUCTOR");
+    public ResultsFileCreator(File scoreCardDir, TestSuiteName testSuiteName) {
         this.scoreCardDir = scoreCardDir;
-        this.testSuite = testSuite;
+        this.testSuiteName = testSuiteName;
     }
 
     public String createFor(TestSuiteResults actual) {
@@ -86,7 +86,7 @@ public class ResultsFileCreator {
 
         ps.print(
                 "real vulnerability, identified by tool, pass/fail, "
-                        + testSuite
+                        + testSuiteName.simpleName()
                         + " version: "
                         + testSuiteVersion);
 
@@ -119,7 +119,7 @@ public class ResultsFileCreator {
                 "{0}{1}{2}_v{3}_Scorecard_for_{4}.csv",
                 scoreCardDir.getAbsolutePath(),
                 File.separator,
-                testSuite,
+                testSuiteName.simpleName(),
                 actual.getTestSuiteVersion(),
                 actual.getToolNameAndVersion().replace(' ', '_'));
     }

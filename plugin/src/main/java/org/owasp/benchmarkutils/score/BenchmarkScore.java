@@ -341,7 +341,7 @@ public class BenchmarkScore extends AbstractMojo {
                         }
 
                         ResultsFileCreator resultsFileCreator =
-                                new ResultsFileCreator(scoreCardDir, TESTSUITENAME.fullName());
+                                new ResultsFileCreator(scoreCardDir, TESTSUITENAME);
 
                         // Step 5a: Go through each result file, score the tool, and generate a
                         // scorecard for that tool
@@ -405,7 +405,7 @@ public class BenchmarkScore extends AbstractMojo {
                 }
 
                 ResultsFileCreator resultsFileCreator =
-                        new ResultsFileCreator(scoreCardDir, TESTSUITENAME.fullName());
+                        new ResultsFileCreator(scoreCardDir, TESTSUITENAME);
 
                 // Step 5b: Go through each result file and generate a scorecard for that tool.
                 if (resultsFileOrDir.isDirectory()) {
