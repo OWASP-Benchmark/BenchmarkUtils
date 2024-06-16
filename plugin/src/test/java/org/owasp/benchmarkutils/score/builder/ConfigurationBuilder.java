@@ -41,6 +41,10 @@ public class ConfigurationBuilder {
     private String tprLabel;
     private boolean includeProjectLink;
 
+    private String reportHtmlProjectLinkEntry;
+    private String reportHtmlPrecisionKeyEntry;
+    private String reportHtmlFsCoreEntry;
+
     private ConfigurationBuilder() {
         Configuration defaultConfig = Configuration.fromDefaultConfig();
 
@@ -54,6 +58,10 @@ public class ConfigurationBuilder {
         this.cweCategoryName = defaultConfig.cweCategoryName;
         this.tprLabel = defaultConfig.tprLabel;
         this.includeProjectLink = defaultConfig.includeProjectLink;
+
+        this.reportHtmlProjectLinkEntry = defaultConfig.report.html.projectLinkEntry;
+        this.reportHtmlPrecisionKeyEntry = defaultConfig.report.html.precisionKeyEntry;
+        this.reportHtmlFsCoreEntry = defaultConfig.report.html.fsCoreEntry;
     }
 
     public static ConfigurationBuilder builder() {
@@ -120,9 +128,29 @@ public class ConfigurationBuilder {
         return this;
     }
 
+    public ConfigurationBuilder setReportHtmlProjectLinkEntry(String projectLinkEntry) {
+        this.reportHtmlProjectLinkEntry = projectLinkEntry;
+
+        return this;
+    }
+
+    public ConfigurationBuilder setReportHtmlPrecisionKeyEntry(String precisionKeyEntry) {
+        this.reportHtmlPrecisionKeyEntry = precisionKeyEntry;
+
+        return this;
+    }
+
+    public ConfigurationBuilder setReportHtmlFsCoreEntry(String fsCoreEntry) {
+        this.reportHtmlFsCoreEntry = fsCoreEntry;
+
+        return this;
+    }
+
     public Configuration build() {
         try {
             Map<String, Object> testConfig = new HashMap<>();
+            Map<String, Object> report = new HashMap<>();
+            Map<String, Object> html = new HashMap<>();
 
             testConfig.put("expectedresults", expectedResultsFileName);
             testConfig.put("resultsfileordir", resultsFileOrDirName);
@@ -134,6 +162,13 @@ public class ConfigurationBuilder {
             testConfig.put("tprlabel", tprLabel);
             testConfig.put("includeprojectlink", includeProjectLink);
             testConfig.put("includeprecision", includePrecision);
+
+            html.put("projectLinkEntry", reportHtmlProjectLinkEntry);
+            html.put("precisionKeyEntry", reportHtmlPrecisionKeyEntry);
+            html.put("fsCoreEntry", reportHtmlFsCoreEntry);
+
+            report.put("html", html);
+            testConfig.put("report", report);
 
             return Configuration.fromFile(writeTempConfig(testConfig).getAbsolutePath());
         } catch (IOException e) {

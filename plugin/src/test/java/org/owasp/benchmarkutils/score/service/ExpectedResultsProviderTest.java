@@ -34,8 +34,8 @@ class ExpectedResultsProviderTest {
 
     @BeforeEach
     void setUp() {
-        simpleResultFile = TestHelper.resultFileOf("testfiles/expectedresults-1.2-simple.csv");
-        extendedResultFile = TestHelper.resultFileOf("testfiles/expectedresults-1.2-extended.csv");
+        simpleResultFile = TestHelper.resultFileOf("expectedresults-1.2-simple.csv");
+        extendedResultFile = TestHelper.resultFileOf("expectedresults-1.2-extended.csv");
     }
 
     @Test

@@ -76,7 +76,7 @@ public class ToolReport implements ToolReportProvider {
                                         .format(overallToolResults.getOverallScore()));
         html = html.replace("${tool}", currentTool.getToolName());
         html = html.replace("${version}", currentTool.getTestSuiteVersion());
-        html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
+        html = html.replace("${projectlink}", BenchmarkScore.config.report.html.projectLinkEntry);
         html = html.replace("${cwecategoryname}", BenchmarkScore.config.cweCategoryName);
         html = html.replace("${actualResultsFile}", currentTool.getActualResultsFileName());
 
@@ -88,7 +88,8 @@ public class ToolReport implements ToolReportProvider {
         html =
                 html.replace(
                         "${precisionkey}",
-                        BenchmarkScore.PRECISIONKEYENTRY + BenchmarkScore.FSCOREKEYENTRY);
+                        BenchmarkScore.config.report.html.precisionKeyEntry
+                                + BenchmarkScore.config.report.html.fsCoreEntry);
 
         // Calculate the image tags for the Precision/Recall tables, if includePrecision enabled
         String precisionTablesVal =

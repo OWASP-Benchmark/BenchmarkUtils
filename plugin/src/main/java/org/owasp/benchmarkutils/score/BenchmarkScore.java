@@ -92,31 +92,6 @@ public class BenchmarkScore extends AbstractMojo {
     // The values stored in this is pulled from the categories.xml config file
     //    public static Categories CATEGORIES;
 
-    // This is the default project link. This is set to "" if includeProjectLink set to false.
-    // TODO: Make this value configurable via .yaml file
-    public static String PROJECTLINKENTRY =
-            "            <p>\n"
-                    + "                For more information, please visit the <a href=\"https://owasp.org/www-project-benchmark/\">OWASP Benchmark Project Site</a>.\n"
-                    + "            </p>\n";
-
-    // This is the Key Entry for Precision, which is added to the Key for tables that include
-    // Precision. If includePrecision explicitly set to false via .yaml, then this default value set
-    // to "".
-    public static String PRECISIONKEYENTRY =
-            "<tr>\n"
-                    + "                    <th>Precision = TP / ( TP + FP )</th>\n"
-                    + "                    <td>The percentage of reported vulnerabilities that are true positives. Defined at <a href=\"https://en.wikipedia.org/wiki/Precision_and_recall\">Wikipedia</a>.</td>\n"
-                    + "                </tr>\n";
-
-    // This is the Key Entry for F-Score, which is added to the Key for tables that also include
-    // Precision. If includePrecision explicitly set to false via .yaml, then this default value set
-    // to "".
-    public static String FSCOREKEYENTRY =
-            "<tr>\n"
-                    + "                    <th>F-score = 2 * Precision * Recall / (Precision + Recall)</th>\n"
-                    + "                    <td>The harmonic mean of the precision and recall. A value of 1.0 indicates perfect precision and recall. Defined at <a href=\"https://en.wikipedia.org/wiki/F-score\">Wikipedia</a>.</td>\n"
-                    + "                </tr>\n";
-
     /*
      * The set of all the Tools. Each Tool includes the results for that tool.
      */
@@ -156,17 +131,6 @@ public class BenchmarkScore extends AbstractMojo {
                 System.out.println(USAGE_MSG);
                 throw new IllegalArgumentException();
             }
-        }
-
-        // TODO: move to html class (once this has been extracted, too)
-        if (!config.includeProjectLink) {
-            PROJECTLINKENTRY = "";
-        }
-
-        if (!config.includePrecision) {
-            // These two values are both included or not included together (currently)
-            PRECISIONKEYENTRY = "";
-            FSCOREKEYENTRY = "";
         }
     }
 
@@ -497,9 +461,6 @@ public class BenchmarkScore extends AbstractMojo {
                         config,
                         TESTSUITENAME,
                         TESTSUITEVERSION,
-                        PROJECTLINKENTRY,
-                        PRECISIONKEYENTRY,
-                        FSCOREKEYENTRY,
                         commercialAveragesTable,
                         tools,
                         catSet,
@@ -516,13 +477,13 @@ public class BenchmarkScore extends AbstractMojo {
 
             String html =
                     new String(Files.readAllBytes(homeFilePath))
-                            .replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY)
+                            .replace("${projectlink}", config.report.html.projectLinkEntry)
                             .replace("${table}", overallStatsTable.generateFor(tools))
                             .replace("${tprlabel}", config.tprLabel)
                             .replace(
                                     "${precisionkey}",
-                                    BenchmarkScore.PRECISIONKEYENTRY
-                                            + BenchmarkScore.FSCOREKEYENTRY);
+                                    config.report.html.precisionKeyEntry
+                                            + config.report.html.fsCoreEntry);
 
             Files.write(homeFilePath, html.getBytes());
         } catch (IOException e) {
@@ -980,14 +941,15 @@ public class BenchmarkScore extends AbstractMojo {
                                 "${vulnerability}",
                                 cat + " (CWE #" + BenchmarkScore.translateNameToCWE(cat) + ")");
                 html = html.replace("${version}", TESTSUITEVERSION);
-                html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
+                html = html.replace("${projectlink}", config.report.html.projectLinkEntry);
 
                 html = html.replace("${table}", vulnerabilityStatsTable.generateFor(cat));
                 html = html.replace("${tprlabel}", config.tprLabel);
                 html =
                         html.replace(
                                 "${precisionkey}",
-                                BenchmarkScore.PRECISIONKEYENTRY + BenchmarkScore.FSCOREKEYENTRY);
+                                config.report.html.precisionKeyEntry
+                                        + config.report.html.fsCoreEntry);
 
                 Files.write(htmlFile.toPath(), html.getBytes());
 
@@ -1015,14 +977,15 @@ public class BenchmarkScore extends AbstractMojo {
                 String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
                 html = html.replace("${testsuite}", BenchmarkScore.TESTSUITENAME.fullName());
                 html = html.replace("${version}", TESTSUITEVERSION);
-                html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
+                html = html.replace("${projectlink}", config.report.html.projectLinkEntry);
 
                 html = html.replace("${table}", commercialAveragesTable.render());
                 html = html.replace("${tprlabel}", config.tprLabel);
                 html =
                         html.replace(
                                 "${precisionkey}",
-                                BenchmarkScore.PRECISIONKEYENTRY + BenchmarkScore.FSCOREKEYENTRY);
+                                config.report.html.precisionKeyEntry
+                                        + config.report.html.fsCoreEntry);
 
                 Files.write(htmlfile, html.getBytes());
                 System.out.println("Commercial average scorecard computed.");

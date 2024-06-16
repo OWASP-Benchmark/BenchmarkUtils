@@ -57,7 +57,12 @@ class MenuUpdaterTest {
         Configuration config =
                 ConfigurationBuilder.builder()
                         .setShowAveOnlyMode(false)
+                        .setIncludeProjectLink(true)
+                        .setIncludePrecision(true)
                         .setCweCategoryName("Some Category")
+                        .setReportHtmlProjectLinkEntry("<p>Project Link Entry</p>")
+                        .setReportHtmlPrecisionKeyEntry("<p>Precision Key Entry</p>")
+                        .setReportHtmlFsCoreEntry("<p>FS Core Entry</p>")
                         .build();
         BenchmarkScore.config = config;
         Tool firstTool = freeToolWithName("Tool A");
@@ -70,9 +75,6 @@ class MenuUpdaterTest {
                         config,
                         testSuite,
                         "1.2",
-                        "<p>Project Link Entry</p>",
-                        "<p>Precision Key Entry</p>",
-                        "<p>FS Core Entry</p>",
                         emptyCommercialAveragesTable(),
                         asSet(firstTool, secondTool),
                         asSet("Path Traversal", "Command Injection"),
@@ -196,9 +198,6 @@ class MenuUpdaterTest {
                         config,
                         new TestSuiteName(""),
                         "",
-                        "",
-                        "",
-                        "",
                         emptyCommercialAveragesTable(),
                         emptySet(),
                         emptySet(),
@@ -230,9 +229,6 @@ class MenuUpdaterTest {
                 new MenuUpdater(
                         config,
                         new TestSuiteName(""),
-                        "",
-                        "",
-                        "",
                         "",
                         emptyCommercialAveragesTable(),
                         emptySet(),
@@ -271,9 +267,6 @@ class MenuUpdaterTest {
                         config,
                         new TestSuiteName(""),
                         "",
-                        "",
-                        "",
-                        "",
                         commercialAveragesTable,
                         emptySet(),
                         emptySet(),
@@ -305,9 +298,6 @@ class MenuUpdaterTest {
                 new MenuUpdater(
                         config,
                         new TestSuiteName(""),
-                        "",
-                        "",
-                        "",
                         "",
                         emptyCommercialAveragesTable(),
                         asSet(freeToolWithName("Tool A"), commercialToolWithName("Tool B")),
@@ -341,9 +331,6 @@ class MenuUpdaterTest {
                 new MenuUpdater(
                         config,
                         new TestSuiteName(""),
-                        "",
-                        "",
-                        "",
                         "",
                         emptyCommercialAveragesTable(),
                         asSet(freeToolWithName("Tool A"), commercialToolWithName("Tool B")),

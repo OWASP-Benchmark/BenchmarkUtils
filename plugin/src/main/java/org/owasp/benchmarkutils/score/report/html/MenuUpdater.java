@@ -35,9 +35,6 @@ public class MenuUpdater {
     private final Configuration config;
     private final TestSuiteName testSuite;
     private final String testSuiteVersion;
-    private final String projectLinkEntry;
-    private final String precisionKeyEntry;
-    private final String fsCoreEntry;
     private final CommercialAveragesTable commercialAveragesTable;
     private final Set<Tool> tools;
     private final Set<String> catSet;
@@ -48,9 +45,6 @@ public class MenuUpdater {
             Configuration config,
             TestSuiteName testSuite,
             String testSuiteVersion,
-            String projectLinkEntry,
-            String precisionKeyEntry,
-            String fsCoreEntry,
             CommercialAveragesTable commercialAveragesTable,
             Set<Tool> tools,
             Set<String> catSet,
@@ -59,9 +53,6 @@ public class MenuUpdater {
         this.config = config;
         this.testSuite = testSuite;
         this.testSuiteVersion = testSuiteVersion;
-        this.projectLinkEntry = projectLinkEntry;
-        this.precisionKeyEntry = precisionKeyEntry;
-        this.fsCoreEntry = fsCoreEntry;
         this.commercialAveragesTable = commercialAveragesTable;
         this.tools = tools;
         this.catSet = catSet;
@@ -139,9 +130,12 @@ public class MenuUpdater {
                             .replace("${vulnmenu}", vulnerabilityMenu)
                             .replace("${testsuite}", testSuite.fullName())
                             .replace("${version}", testSuiteVersion)
-                            .replace("${projectlink}", projectLinkEntry)
+                            .replace("${projectlink}", config.report.html.projectLinkEntry)
                             .replace("${cwecategoryname}", config.cweCategoryName)
-                            .replace("${precisionkey}", precisionKeyEntry + fsCoreEntry);
+                            .replace(
+                                    "${precisionkey}",
+                                    config.report.html.precisionKeyEntry
+                                            + config.report.html.fsCoreEntry);
 
             Files.write(f.toPath(), html.getBytes());
         } catch (IOException e) {

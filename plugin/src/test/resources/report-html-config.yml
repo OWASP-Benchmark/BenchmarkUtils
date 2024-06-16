@@ -1,0 +1,18 @@
+# config file to test html report related things
+includeprojectlink: true
+includeprecision: true
+
+report:
+  html:
+    projectLinkEntry: |
+      <p>
+        projectLinkEntry
+      </p>
+    precisionKeyEntry: |
+      <p>
+        precisionKeyEntry
+      </p>
+    fsCoreEntry: |
+      <p>
+        fsCoreEntry
+      </p>
