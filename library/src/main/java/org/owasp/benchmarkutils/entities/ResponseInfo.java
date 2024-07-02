@@ -19,8 +19,12 @@ package org.owasp.benchmarkutils.entities;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
+import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorNode;
 
 @XmlRootElement(name = "ResponseInfo")
+@XmlSeeAlso({CliResponseInfo.class, HttpResponseInfo.class})
+@XmlDiscriminatorNode("@type")
 public abstract class ResponseInfo {
 
     // True if response to an attack request. False if response to normal request

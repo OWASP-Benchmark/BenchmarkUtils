@@ -29,8 +29,10 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 
 @XmlRootElement(name = "HttpRequest")
-public class HttpExecutor implements TestExecutor {
+public class HttpExecutor extends TestExecutor {
     HttpUriRequest httpRequest;
+
+    public HttpExecutor() {}
 
     public HttpExecutor(HttpUriRequest httpRequest) {
         super();

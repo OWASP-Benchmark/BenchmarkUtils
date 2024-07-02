@@ -95,7 +95,9 @@ public class RegressionTesting {
      * @throws LoggerConfigurationException
      */
     public static void genAllTCResultsToJsonFile(
-            List<TestCaseVerificationResults> results, String dataDir, boolean generate)
+            TestCaseVerificationResultsCollection resultsCollection,
+            String dataDir,
+            boolean generate)
             throws IOException, LoggerConfigurationException {
 
         if (generate) {
@@ -109,7 +111,7 @@ public class RegressionTesting {
                 tcJsonLogger = tcJSON;
 
                 // Create JSON version of verification results for ALL test cases
-                tcJsonLogger.println(Utils.objectToJson(results));
+                tcJsonLogger.println(Utils.objectToJson(resultsCollection));
             } catch (JAXBException e) {
                 System.out.println("Fatal Error trying to convert verification results to JSON");
                 e.printStackTrace();
@@ -260,7 +262,7 @@ public class RegressionTesting {
         out.println(testCase.toString());
         out.println();
         out.println("Attack request:");
-        out.println(result.getAttackTestExecutor().getExecutorDescription());
+        out.println(result.getAttackTestExecutorDescription());
         if (attackResponseInfo instanceof HttpResponseInfo) {
             out.printf(
                     "Attack response: [%d]:%n",
@@ -280,7 +282,7 @@ public class RegressionTesting {
         }
         out.println();
         out.println("Safe request:");
-        out.println(result.getSafeTestExecutor().getExecutorDescription());
+        out.println(result.getSafeTestExecutorDescription());
         if (safeResponseInfo instanceof HttpResponseInfo) {
             out.printf(
                     "Safe response: [%d]:%n",

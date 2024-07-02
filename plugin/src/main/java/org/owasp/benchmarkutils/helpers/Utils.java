@@ -57,11 +57,13 @@ import javax.xml.transform.sax.SAXSource;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.persistence.jaxb.JAXBContextFactory;
 import org.eclipse.persistence.jaxb.MarshallerProperties;
+import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.eclipse.persistence.oxm.MediaType;
 import org.owasp.benchmarkutils.entities.ResponseInfo;
 import org.owasp.benchmarkutils.entities.TestSuite;
 import org.owasp.benchmarkutils.tools.TestCaseRequestFileParseException;
 import org.owasp.benchmarkutils.tools.TestCaseVerificationResults;
+import org.owasp.benchmarkutils.tools.TestCaseVerificationResultsCollection;
 import org.owasp.benchmarkutils.tools.VerifyFixOutput;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -415,6 +417,7 @@ public class Utils {
                     ResponseInfo.class,
                     TestSuite.class,
                     TestCaseVerificationResults.class,
+                    TestCaseVerificationResultsCollection.class,
                     VerifyFixOutput.class
                 };
         JAXBContext jaxbContext =
@@ -430,5 +433,34 @@ public class Utils {
         jaxbMarshaller.marshal(object, writer);
 
         return writer.toString();
+    }
+
+    public static TestCaseVerificationResultsCollection jsonToTestCaseVerificationResultsList(
+            File file)
+            throws JAXBException, FileNotFoundException, SAXException,
+                    ParserConfigurationException {
+
+        // Disable XXE
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+
+        // Do unmarshall operation
+        //        Source jsonSource =
+        //                new SAXSource(
+        //                        spf.newSAXParser().getXMLReader(), new InputSource(new
+        // FileReader(file)));
+        JAXBContext context =
+                JAXBContextFactory.createContext(
+                        new Class[] {TestCaseVerificationResultsCollection.class}, null);
+        Unmarshaller unmarshaller = context.createUnmarshaller();
+        unmarshaller.setProperty(UnmarshallerProperties.MEDIA_TYPE, MediaType.APPLICATION_JSON);
+        unmarshaller.setProperty(UnmarshallerProperties.JSON_INCLUDE_ROOT, Boolean.TRUE);
+        unmarshaller.setEventHandler(new javax.xml.bind.helpers.DefaultValidationEventHandler());
+        TestCaseVerificationResultsCollection resultsList =
+                (TestCaseVerificationResultsCollection) unmarshaller.unmarshal(file);
+
+        return resultsList;
     }
 }

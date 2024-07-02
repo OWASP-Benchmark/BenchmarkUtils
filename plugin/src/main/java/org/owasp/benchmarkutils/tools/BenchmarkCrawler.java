@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -280,7 +281,16 @@ public class BenchmarkCrawler extends AbstractMojo {
     static ResponseInfo sendRequest(
             CloseableHttpClient httpclient, HttpUriRequest request, boolean attackRequest) {
         HttpResponseInfo responseInfo = new HttpResponseInfo(attackRequest);
-        responseInfo.setRequestBase(request);
+        //        responseInfo.setRequestBase(request);
+        responseInfo.setMethod(request.getMethod());
+        URI uri = null;
+        try {
+            uri = request.getUri();
+        } catch (URISyntaxException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        responseInfo.setUri(uri.toString());
         CloseableHttpResponse response = null;
 
         boolean isPost = request instanceof HttpPost;

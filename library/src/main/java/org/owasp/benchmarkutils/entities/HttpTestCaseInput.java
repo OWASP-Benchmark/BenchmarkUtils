@@ -18,6 +18,7 @@
 package org.owasp.benchmarkutils.entities;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.security.KeyManagementException;
@@ -64,7 +65,7 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
 
     private List<RequestVariable> headers;
 
-    private static CloseableHttpClient httpClient;
+    // private static CloseableHttpClient httpClient;
 
     void beforeMarshal(Marshaller marshaller) {
         //        System.out.println("Before marshal");
@@ -253,15 +254,22 @@ public abstract class HttpTestCaseInput extends TestCaseInput {
     static ResponseInfo sendRequest(
             CloseableHttpClient httpclient, HttpUriRequest request, boolean attackRequest) {
         HttpResponseInfo responseInfo = new HttpResponseInfo(attackRequest);
-        responseInfo.setRequestBase(request);
+        //      responseInfo.setRequestBase(request);
+        responseInfo.setMethod(request.getMethod());
+        URI uri = null;
+        try {
+            uri = request.getUri();
+        } catch (URISyntaxException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        responseInfo.setUri(uri.toString());
+
         CloseableHttpResponse response = null;
 
         boolean isPost = request instanceof HttpPost;
-        try {
-            System.out.println((isPost ? "POST " : "GET ") + request.getUri());
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+        System.out.println((isPost ? "POST " : "GET ") + uri);
+
         StopWatch watch = new StopWatch();
 
         watch.start();

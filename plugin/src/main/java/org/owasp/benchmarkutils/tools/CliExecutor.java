@@ -24,8 +24,10 @@ import org.owasp.benchmarkutils.entities.CliRequest;
 import org.owasp.benchmarkutils.entities.RequestVariable;
 
 @XmlRootElement(name = "CliRequest")
-public class CliExecutor implements TestExecutor {
+public class CliExecutor extends TestExecutor {
     CliRequest cliRequest;
+
+    public CliExecutor() {}
 
     public CliExecutor(CliRequest cliRequest) {
         super();

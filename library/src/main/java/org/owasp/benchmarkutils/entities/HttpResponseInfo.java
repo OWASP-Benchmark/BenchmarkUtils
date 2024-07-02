@@ -18,11 +18,14 @@
 package org.owasp.benchmarkutils.entities;
 
 import javax.xml.bind.annotation.XmlElement;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 
 public class HttpResponseInfo extends ResponseInfo {
 
-    private HttpUriRequest requestBase;
+    //    private HttpUriRequest requestBase;
+
+    private String method;
+
+    private String uri;
 
     public HttpResponseInfo() {
         // Default is this is a normal, non-attack response
@@ -33,12 +36,30 @@ public class HttpResponseInfo extends ResponseInfo {
         super(attackRequest);
     }
 
+    //    @XmlElement(required = true)
+    //    public HttpUriRequest getRequestBase() {
+    //        return requestBase;
+    //    }
+    //
+    //    public void setRequestBase(HttpUriRequest request) {
+    //        this.requestBase = request;
+    //    }
+
     @XmlElement(required = true)
-    public HttpUriRequest getRequestBase() {
-        return requestBase;
+    public String getMethod() {
+        return method;
     }
 
-    public void setRequestBase(HttpUriRequest request) {
-        this.requestBase = request;
+    public void setMethod(String method) {
+        this.method = method;
+    }
+
+    @XmlElement(required = true)
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 }

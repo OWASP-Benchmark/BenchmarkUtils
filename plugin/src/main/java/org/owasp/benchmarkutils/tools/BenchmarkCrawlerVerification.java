@@ -20,11 +20,11 @@ package org.owasp.benchmarkutils.tools;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -50,6 +50,7 @@ import org.owasp.benchmarkutils.entities.TestCaseSetup;
 import org.owasp.benchmarkutils.entities.TestCaseSetupException;
 import org.owasp.benchmarkutils.entities.TestSuite;
 import org.owasp.benchmarkutils.helpers.Utils;
+import org.xml.sax.SAXException;
 
 /**
  * TODO: Refactor this class. There is way too much duplication of code in BenchmarkCrawler here.
@@ -62,15 +63,19 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
     private static int maxTimeInSeconds = 2;
     private static boolean isTimingEnabled = false;
-    private boolean verifyFixed = false;
+    // private boolean verifyFixed = false; // DEBUG
     private String configurationDirectory = Utils.DATA_DIR;
     private String outputDirectory = Utils.DATA_DIR;
-    private String beforeFixOutputDirectory = Utils.DATA_DIR;
+    //    private String beforeFixOutputDirectory =
+    //            new File(new File(Utils.DATA_DIR).getParent(), "before_data")
+    //                    .getAbsolutePath(); // DEBUG: Utils.DATA_DIR;
     private static final String FILENAME_TIMES_ALL = "crawlerTimes.txt";
     private static final String FILENAME_TIMES = "crawlerSlowTimes.txt";
     private static final String FILENAME_NON_DISCRIMINATORY_LOG = "nonDiscriminatoryTestCases.txt";
     private static final String FILENAME_ERRORS_LOG = "errorTestCases.txt";
     private static final String FILENAME_UNVERIFIABLE_LOG = "unverifiableTestCases.txt";
+    // FIXME: This constant is also used by RegressionUtils and should not be duplicated.
+    private static final String FILENAME_TC_VERIF_RESULTS_JSON = "testCaseVerificationResults.json";
     //     The following is reconfigurable via parameters to main()
     //    private String CRAWLER_DATA_DIR = Utils.DATA_DIR; // default data dir
 
@@ -79,8 +84,14 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     SimpleFileLogger eLogger;
     SimpleFileLogger uLogger;
 
-    @Parameter(property = "json")
-    String generateJSONResults;
+    @Parameter(property = "json", defaultValue = "false")
+    private String generateJSONResults;
+
+    @Parameter(property = "verifyFixed", defaultValue = "false")
+    private String verifyFixed;
+
+    @Parameter(property = "beforeFixOutputDirectory")
+    private String beforeFixOutputDirectory;
 
     BenchmarkCrawlerVerification() {
         // A default constructor required to support Maven plugin API.
@@ -242,8 +253,8 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                     }
                     TestCaseVerificationResults result =
                             new TestCaseVerificationResults(
-                                    attackExecutor,
-                                    safeExecutor,
+                                    attackExecutor.getExecutorDescription(),
+                                    safeExecutor.getExecutorDescription(),
                                     testCase,
                                     attackPayloadResponseInfo,
                                     safePayloadResponseInfo);
@@ -254,6 +265,9 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         handleResponse(result);
                     }
                 }
+                TestCaseVerificationResultsCollection resultsCollection =
+                        new TestCaseVerificationResultsCollection();
+                resultsCollection.setResultsObjects(results);
 
                 // Log the elapsed time for all test cases
                 long stop = System.currentTimeMillis();
@@ -319,7 +333,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                     // is enabled. This has to go at end because previous methods have some side
                     // affects that fill in test case verification values.
                     RegressionTesting.genAllTCResultsToJsonFile(
-                            results,
+                            resultsCollection,
                             getOutputDirectory(),
                             Boolean.parseBoolean(generateJSONResults));
                 }
@@ -407,25 +421,21 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             HttpResponseInfo httpResponseInfo = (HttpResponseInfo) responseInfo;
 
             // Log the response
-            HttpUriRequest requestBase = httpResponseInfo.getRequestBase();
+            //            HttpUriRequest requestBase = httpResponseInfo.getRequestBase();
             String outputString =
                     String.format(
                             "--> (%d : %d sec)%n",
                             httpResponseInfo.getStatusCode(), httpResponseInfo.getTimeInSeconds());
-            try {
-                if (isTimingEnabled) {
-                    if (httpResponseInfo.getTimeInSeconds() >= maxTimeInSeconds) {
-                        tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
-                        tLogger.println(outputString);
-                    }
-                } else {
-                    tLogger.println(requestBase.getMethod() + " " + requestBase.getUri());
+            if (isTimingEnabled) {
+                if (httpResponseInfo.getTimeInSeconds() >= maxTimeInSeconds) {
+                    tLogger.println(httpResponseInfo.getMethod() + " " + httpResponseInfo.getUri());
                     tLogger.println(outputString);
                 }
-            } catch (URISyntaxException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            } else {
+                tLogger.println(httpResponseInfo.getMethod() + " " + httpResponseInfo.getUri());
+                tLogger.println(outputString);
             }
+
         } else if (responseInfo instanceof CliResponseInfo) {
             CliResponseInfo cliResponseInfo = (CliResponseInfo) responseInfo;
 
@@ -466,30 +476,47 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         // specified.
         RegressionTesting.verifyTestCase(results);
 
-        if (verifyFixed) {
-            TestCaseVerificationResults beforeFixResults =
+        if (Boolean.parseBoolean(verifyFixed)) {
+            TestCaseVerificationResultsCollection beforeFixResultsCollection =
                     loadTestCaseVerificationResults(beforeFixOutputDirectory);
+            TestCaseVerificationResults beforeFixResults =
+                    beforeFixResultsCollection.getResultsObjects().get(0);
             verifyFix(beforeFixResults, results);
         }
     }
 
-    private TestCaseVerificationResults loadTestCaseVerificationResults(String directory) {
+    private TestCaseVerificationResultsCollection loadTestCaseVerificationResults(
+            String directory) {
+
+        TestCaseVerificationResultsCollection results = null;
+        try {
+            results =
+                    Utils.jsonToTestCaseVerificationResultsList(
+                            new File(directory, FILENAME_TC_VERIF_RESULTS_JSON));
+        } catch (JAXBException
+                | FileNotFoundException
+                | SAXException
+                | ParserConfigurationException e) {
+            System.out.println("ERROR: Could not unmarshall JSON file content.");
+            e.printStackTrace();
+        }
 
         // FIXME: Replace this with code to load results from JSON data files
-        TestExecutor attackTestExecutor = new HttpExecutor(null);
-        TestExecutor safeTestExecutor = new HttpExecutor(null);
-        TestCase testCase = new TestCase();
-        ResponseInfo responseToAttackValue = new HttpResponseInfo(); // FIXME: Or CliResponseInfo
-        responseToAttackValue.setResponseString("");
-        ResponseInfo responseToSafeValue = new HttpResponseInfo();
-        responseToSafeValue.setResponseString("");
-        TestCaseVerificationResults results =
-                new TestCaseVerificationResults(
-                        attackTestExecutor,
-                        safeTestExecutor,
-                        testCase,
-                        responseToAttackValue,
-                        responseToSafeValue);
+        //        TestExecutor attackTestExecutor = new HttpExecutor(null);
+        //        TestExecutor safeTestExecutor = new HttpExecutor(null);
+        //        TestCase testCase = new TestCase();
+        //        ResponseInfo responseToAttackValue = new HttpResponseInfo(); // FIXME: Or
+        // CliResponseInfo
+        //        responseToAttackValue.setResponseString("");
+        //        ResponseInfo responseToSafeValue = new HttpResponseInfo();
+        //        responseToSafeValue.setResponseString("");
+        //        TestCaseVerificationResults results =
+        //                new TestCaseVerificationResults(
+        //                        attackTestExecutor,
+        //                        safeTestExecutor,
+        //                        testCase,
+        //                        responseToAttackValue,
+        //                        responseToSafeValue);
 
         return results;
     }
@@ -528,6 +555,30 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         return !wasExploited && !wasBroken;
     }
 
+    private boolean verifyFixes(
+            TestCaseVerificationResultsCollection beforeFixResultsCollection,
+            TestCaseVerificationResultsCollection afterFixResultsCollection) {
+
+        boolean isVerified = true;
+
+        // This assumes that the results are ordered.
+        if (beforeFixResultsCollection.getResultsObjects().size()
+                != afterFixResultsCollection.getResultsObjects().size()) {
+            System.out.println("ERROR: Results lists are not the same size");
+            isVerified = false;
+        } else {
+            int count = beforeFixResultsCollection.getResultsObjects().size();
+            for (int i = 0; i < count; i++) {
+                TestCaseVerificationResults beforeFixResults =
+                        beforeFixResultsCollection.getResultsObjects().get(i);
+                TestCaseVerificationResults afterFixResults =
+                        afterFixResultsCollection.getResultsObjects().get(i);
+                isVerified &= verifyFix(beforeFixResults, afterFixResults);
+            }
+        }
+        return isVerified;
+    }
+
     /**
      * Process the command line arguments that make any configuration changes.
      *
@@ -535,6 +586,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
      * @return specified crawler file if valid command line arguments provided. Null otherwise.
      */
     protected void processCommandLineArgs(String[] args) {
+        System.out.println("Maven user selected verifyFixed=" + verifyFixed);
 
         // Set default attack crawler file
         String crawlerFileName = new File(Utils.DATA_DIR, "benchmark-attack-http.xml").getPath();
@@ -574,7 +626,9 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         .longOpt("json")
                         .desc("generate json version of verification results")
                         .build());
-        options.addOption("m", "", false, "verify fixed test suite");
+        //        options.addOption("m", "verifyFixed", false, "verify fixed test suite");
+        options.addOption(
+                Option.builder("m").longOpt("verifyFixed").desc("verify fixed test suite").build());
         options.addOption(
                 Option.builder("n")
                         .longOpt("name")
@@ -617,6 +671,10 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             if (line.hasOption("j")) {
                 generateJSONResults = "true";
             }
+            if (line.hasOption("m")) {
+                System.out.println("User selected to verify fixes");
+                verifyFixed = "true";
+            }
             if (line.hasOption("n")) {
                 selectedTestCaseName = line.getOptionValue("n");
             }
@@ -642,11 +700,19 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             List<String> mainArgs = new ArrayList<>();
             mainArgs.add("-f");
             mainArgs.add(this.pluginFilenameParam);
+            if (this.beforeFixOutputDirectory != null) {
+                mainArgs.add("-b");
+                mainArgs.add(this.beforeFixOutputDirectory);
+            }
             if (this.pluginTestCaseNameParam != null) {
                 mainArgs.add("-n");
                 mainArgs.add(this.pluginTestCaseNameParam);
             }
-            if (this.generateJSONResults != null) {
+            if (Boolean.parseBoolean(this.verifyFixed)) {
+                // At the command line, only the -m is required, with no value needed
+                mainArgs.add("-m");
+            }
+            if (Boolean.parseBoolean(this.generateJSONResults)) {
                 // At the command line, only the -j is required, with no value needed
                 mainArgs.add("-j");
             }

@@ -37,9 +37,9 @@ public class TestCaseVerificationResults {
 
     private boolean isPassed;
 
-    private TestExecutor attackTestExecutor;
+    private String attackTestExecutorDescription;
 
-    private TestExecutor safeTestExecutor;
+    private String safeTestExecutorDescription;
 
     private TestCase testCase;
 
@@ -48,14 +48,14 @@ public class TestCaseVerificationResults {
     }
 
     public TestCaseVerificationResults(
-            TestExecutor attackTestExecutor,
-            TestExecutor safeTestExecutor,
+            String attackTestExecutorDescription,
+            String safeTestExecutorDescription,
             TestCase testCase,
             ResponseInfo responseToAttackValue,
             ResponseInfo responseToSafeValue) {
         this(
-                attackTestExecutor,
-                safeTestExecutor,
+                attackTestExecutorDescription,
+                safeTestExecutorDescription,
                 testCase,
                 responseToAttackValue,
                 responseToSafeValue,
@@ -65,8 +65,8 @@ public class TestCaseVerificationResults {
     }
 
     public TestCaseVerificationResults(
-            TestExecutor attackTestExecutor,
-            TestExecutor safeTestExecutor,
+            String attackTestExecutorDescription,
+            String safeTestExecutorDescription,
             TestCase testCase,
             ResponseInfo responseToAttackValue,
             ResponseInfo responseToSafeValue,
@@ -74,8 +74,8 @@ public class TestCaseVerificationResults {
             boolean isDeclaredVerifiable,
             boolean isPassed) {
         super();
-        this.attackTestExecutor = attackTestExecutor;
-        this.safeTestExecutor = safeTestExecutor;
+        this.attackTestExecutorDescription = attackTestExecutorDescription;
+        this.safeTestExecutorDescription = safeTestExecutorDescription;
         this.testCase = testCase;
         this.responseToAttackValue = responseToAttackValue;
         this.responseToSafeValue = responseToSafeValue;
@@ -130,21 +130,21 @@ public class TestCaseVerificationResults {
     }
 
     @XmlElement(name = "AttackRequestInfo")
-    public TestExecutor getAttackTestExecutor() {
-        return attackTestExecutor;
+    public String getAttackTestExecutorDescription() {
+        return attackTestExecutorDescription;
     }
 
-    public void setAttackTestExecutor(TestExecutor attackTestExecutor) {
-        this.attackTestExecutor = attackTestExecutor;
+    public void setAttackTestExecutorDescription(String attackTestExecutor) {
+        this.attackTestExecutorDescription = attackTestExecutorDescription;
     }
 
     @XmlElement(name = "SafeRequestInfo")
-    public TestExecutor getSafeTestExecutor() {
-        return safeTestExecutor;
+    public String getSafeTestExecutorDescription() {
+        return safeTestExecutorDescription;
     }
 
-    public void setSafeTestExecutor(TestExecutor safeTestExecutor) {
-        this.safeTestExecutor = safeTestExecutor;
+    public void setSafeTestExecutorDescription(String safeTestExecutor) {
+        this.safeTestExecutorDescription = safeTestExecutorDescription;
     }
 
     @XmlElement(name = "TestCase")

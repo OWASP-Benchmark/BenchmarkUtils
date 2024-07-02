@@ -20,10 +20,12 @@ package org.owasp.benchmarkutils.tools;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 
 @XmlRootElement(name = "TestCaseRequest")
-public interface TestExecutor {
+@XmlSeeAlso({CliExecutor.class, HttpExecutor.class})
+public abstract class TestExecutor {
     @XmlAttribute(name = "RequestDescription", required = true)
     @NotNull
-    public String getExecutorDescription();
+    public abstract String getExecutorDescription();
 }

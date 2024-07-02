@@ -28,6 +28,8 @@ public class CliRequest {
 
     private RequestVariable stdinData;
 
+    public CliRequest() {}
+
     public CliRequest(String command, List<RequestVariable> args, RequestVariable stdinData) {
         super();
         this.command = command;
