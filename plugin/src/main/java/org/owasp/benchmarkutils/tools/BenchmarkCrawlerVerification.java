@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.cli.CommandLine;
@@ -93,6 +94,9 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     @Parameter(property = "beforeFixOutputDirectory")
     private String beforeFixOutputDirectory;
 
+    @Parameter(property = "testCaseName")
+    private String selectedTestCaseName;
+
     BenchmarkCrawlerVerification() {
         // A default constructor required to support Maven plugin API.
         // The theCrawlerFile has to be instantiated before a crawl can be done.
@@ -139,7 +143,18 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                 uLogger = ul;
                 tLogger = tl;
 
-                for (TestCase testCase : testSuite.getTestCases()) {
+                List<TestCase> filteredList;
+                if (selectedTestCaseName != null) {
+                    filteredList =
+                            testSuite.getTestCases().stream()
+                                    .filter(
+                                            testCase ->
+                                                    testCase.getName().equals(selectedTestCaseName))
+                                    .collect(Collectors.toList());
+                } else {
+                    filteredList = testSuite.getTestCases();
+                }
+                for (TestCase testCase : filteredList) {
 
                     //                    if (this.selectedTestCaseName != null) {
                     //                        if
