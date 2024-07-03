@@ -68,10 +68,10 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     private static boolean isTimingEnabled = false;
     // private boolean verifyFixed = false; // DEBUG
     private String configurationDirectory = Utils.DATA_DIR;
-    private String outputDirectory = Utils.DATA_DIR;
-    //    private String beforeFixOutputDirectory =
-    //            new File(new File(Utils.DATA_DIR).getParent(), "before_data")
-    //                    .getAbsolutePath(); // DEBUG: Utils.DATA_DIR;
+    private String defaultOutputDirectory = Utils.DATA_DIR;
+    private String defaultBeforeFixOutputDirectory =
+            new File(new File(Utils.DATA_DIR).getParent(), "before_data")
+                    .getAbsolutePath(); // DEBUG: Utils.DATA_DIR;
     private static final String FILENAME_TIMES_ALL = "crawlerTimes.txt";
     private static final String FILENAME_TIMES = "crawlerSlowTimes.txt";
     private static final String FILENAME_NON_DISCRIMINATORY_LOG = "nonDiscriminatoryTestCases.txt";
@@ -96,6 +96,9 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
     @Parameter(property = "beforeFixOutputDirectory")
     private String beforeFixOutputDirectory;
+
+    @Parameter(property = "outputDirectory")
+    private String outputDirectory;
 
     @Parameter(property = "testCaseName")
     private String selectedTestCaseName;
@@ -681,9 +684,13 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
             if (line.hasOption("b")) {
                 beforeFixOutputDirectory = line.getOptionValue("b");
+            } else {
+                beforeFixOutputDirectory = defaultBeforeFixOutputDirectory;
             }
             if (line.hasOption("d")) {
                 outputDirectory = line.getOptionValue("d");
+            } else {
+                outputDirectory = defaultOutputDirectory;
             }
             if (line.hasOption("f")) {
                 this.crawlerFile = line.getOptionValue("f");
@@ -732,6 +739,10 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             List<String> mainArgs = new ArrayList<>();
             mainArgs.add("-f");
             mainArgs.add(this.pluginFilenameParam);
+            if (this.outputDirectory != null) {
+                mainArgs.add("-d");
+                mainArgs.add(this.outputDirectory);
+            }
             if (this.beforeFixOutputDirectory != null) {
                 mainArgs.add("-b");
                 mainArgs.add(this.beforeFixOutputDirectory);
