@@ -17,8 +17,10 @@
  */
 package org.owasp.benchmarkutils.tools;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -77,6 +79,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     private static final String FILENAME_UNVERIFIABLE_LOG = "unverifiableTestCases.txt";
     // FIXME: This constant is also used by RegressionUtils and should not be duplicated.
     private static final String FILENAME_TC_VERIF_RESULTS_JSON = "testCaseVerificationResults.json";
+    private static final String FILENAME_VERIFY_FIX_RESULT = "verifyFixedResult.json";
     //     The following is reconfigurable via parameters to main()
     //    private String CRAWLER_DATA_DIR = Utils.DATA_DIR; // default data dir
 
@@ -496,7 +499,15 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                     loadTestCaseVerificationResults(beforeFixOutputDirectory);
             TestCaseVerificationResults beforeFixResults =
                     beforeFixResultsCollection.getResultsObjects().get(0);
-            verifyFix(beforeFixResults, results);
+            if (beforeFixResults.getTestCase().getName().equals(results.getTestCase().getName())) {
+                verifyFix(beforeFixResults, results);
+            } else {
+                System.out.println(
+                        "WARNING: After fix testcase is "
+                                + results.getTestCase().getName()
+                                + " but before fix testcase is "
+                                + beforeFixResults.getTestCase().getName());
+            }
         }
     }
 
@@ -548,7 +559,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                 !beforeFixResults
                         .getResponseToSafeValue()
                         .getResponseString()
-                        .equals(afterFixResults.getResponseToAttackValue().getResponseString());
+                        .equals(afterFixResults.getResponseToSafeValue().getResponseString());
         if (wasExploited) {
             System.out.println("NOT FIXED: Vulnerability was exploited");
         }
@@ -556,12 +567,18 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             System.out.println("NOT FIXED: Functionality was broken");
         }
 
-        try {
+        File verifyFixResultFile = new File(getOutputDirectory(), FILENAME_VERIFY_FIX_RESULT);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(verifyFixResultFile))) {
             VerifyFixOutput verifyFixOutput = new VerifyFixOutput();
             verifyFixOutput.setWasExploited(wasExploited);
             verifyFixOutput.setWasBroken(wasBroken);
             String output = Utils.objectToJson(verifyFixOutput);
-            System.out.println(output);
+            //            System.out.println(output);
+            writer.write(output);
+        } catch (IOException e) {
+            System.out.println(
+                    "ERROR: Could not write VerifyFixOutput to file " + verifyFixResultFile);
+            e.printStackTrace();
         } catch (JAXBException e) {
             System.out.println("ERROR: Could not marshall VerifyFixOutput to JSON");
             e.printStackTrace();
