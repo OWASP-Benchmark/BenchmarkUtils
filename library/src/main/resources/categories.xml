@@ -163,4 +163,11 @@
         <isInjection>true</isInjection>
         <shortname>XXE</shortname>
     </category>
+    <category>
+        <id>deserialization</id>
+        <name>Insecure Deserialization</name>
+        <cwe>502</cwe>
+        <isInjection>false</isInjection>
+        <shortname>DESER</shortname>
+    </category>
 </categories>

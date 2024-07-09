@@ -19,6 +19,7 @@ package org.owasp.benchmarkutils.score;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Objects;
 import org.apache.commons.io.IOUtils;
 
@@ -35,6 +36,23 @@ public class TestHelper {
     public static byte[] contentOf(String filename) {
         try {
             return IOUtils.toByteArray(asStream(filename));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static ResultFile resultFileWithoutLineBreaksOf(String filename) {
+        try {
+            return new ResultFile(filename, contentWithoutLineBreaksOf(filename));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String contentWithoutLineBreaksOf(String filename) {
+        try {
+            return IOUtils.toString(asStream(filename), Charset.defaultCharset())
+                    .replace('\n', ' ');
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

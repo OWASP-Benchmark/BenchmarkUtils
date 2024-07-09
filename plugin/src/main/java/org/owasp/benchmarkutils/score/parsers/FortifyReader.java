@@ -176,15 +176,9 @@ public class FortifyReader extends Reader {
 
         // The first block looks for class names for Java findings.
         String tc = getAttributeValue("enclosingClass", function);
+
         if (tc != null && tc.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tc = tc.substring(BenchmarkScore.TESTCASENAME.length());
-            // This strips off inner classes from the test case file name I believe
-            int dollar = tc.indexOf('$');
-            if (dollar != -1) {
-                tc = tc.substring(0, dollar);
-            }
-            int tn = Integer.parseInt(tc);
-            tcr.setNumber(tn);
+            tcr.setNumber(testNumber(tc));
             return tcr;
         } else {
             /* if tc is null (from attribute enclosingClass), then this might be a NodeJS finding
@@ -214,8 +208,7 @@ public class FortifyReader extends Reader {
                             if (dollar != -1) {
                                 tc = tc.substring(0, dollar);
                             }
-                            int tn = Integer.parseInt(tc);
-                            tcr.setNumber(tn);
+                            tcr.setNumber(Integer.parseInt(tc));
                             return tcr;
                         }
                     }

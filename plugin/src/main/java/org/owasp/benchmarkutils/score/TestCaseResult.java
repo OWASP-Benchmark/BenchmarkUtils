@@ -17,6 +17,8 @@
  */
 package org.owasp.benchmarkutils.score;
 
+import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
+
 /* This class represents a single test case result. It documents the expected result (real),
  * and the actual result (result).
  */
@@ -25,8 +27,8 @@ public class TestCaseResult {
 
     private String testCaseName = "";
     private int number = 0;
-    private boolean real = false;
-    private boolean result = false;
+    private boolean truePositive = false; // Is this test case a true or false positive?
+    private boolean result = false; // Did a tool properly detect this as a true or false positive?
     private int CWE = 0;
     private String category = null;
     private String evidence = null;
@@ -36,6 +38,29 @@ public class TestCaseResult {
     private String source = null;
     private String dataflow = null;
     private String sink = null;
+
+    public TestCaseResult() {
+        // By default, do nothing special.
+    }
+
+    /**
+     * Convert what we know about a TestCase Request description back into a TestCaseResult
+     * (expected or actual)
+     *
+     * @param request The request object used to access this test case.
+     */
+    public TestCaseResult(AbstractTestCaseRequest request) {
+        this.testCaseName = request.getName();
+        this.number = request.getNumber();
+        this.truePositive = request.isVulnerability();
+        this.CWE = request.getCategory().getCWE();
+        this.category = request.getCategory().getName();
+
+        // fill in optional attributes since we have this data available
+        this.source = request.getSourceFile();
+        this.dataflow = request.getDataflowFile();
+        this.sink = request.getSinkFile();
+    }
 
     /*
      *  Set the name of the test case (E.g., BenchmarkTest00001). This is frequently only used for
@@ -68,12 +93,12 @@ public class TestCaseResult {
         this.number = number;
     }
 
-    public boolean isReal() {
-        return real;
+    public boolean isTruePositive() {
+        return truePositive;
     }
 
-    public void setReal(boolean real) {
-        this.real = real;
+    public void setTruePositive(boolean truePositive) {
+        this.truePositive = truePositive;
     }
 
     public boolean isPassed() {
@@ -134,18 +159,19 @@ public class TestCaseResult {
 
     @Override
     public String toString() {
-        return getNumber()
-                + ","
+        return "Testcase #: "
+                + getNumber()
+                + ", Category: "
                 + getCategory()
-                + ","
-                + isReal()
-                + ","
+                + ", isVulnerable: "
+                + isTruePositive()
+                + ", CWE: "
                 + getCWE()
-                + ","
-                + isPassed()
-                + ","
-                + getEvidence()
-                + ","
-                + getConfidence();
-    }
+                + ", toolPassed: "
+                + isPassed();
+        /*                + ", evidence: "
+                        + getEvidence()
+                        + ", confidence: "
+                        + getConfidence();
+        */ }
 }

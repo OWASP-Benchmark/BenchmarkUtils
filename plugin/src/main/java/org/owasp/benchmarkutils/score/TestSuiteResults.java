@@ -77,7 +77,7 @@ public class TestSuiteResults {
 
     // Set the test suite name for this specific set of TestResults
     public void setTestSuiteName(String name) {
-        this.testSuiteVersion = name;
+        this.testSuiteName = name;
     }
 
     public String getTestSuiteName() {
@@ -162,7 +162,7 @@ public class TestSuiteResults {
         if (!anonymous
                 && this.toolVersion != null
                 && !"".equals(this.toolVersion)
-                && !(BenchmarkScore.anonymousMode && this.isCommercial)) {
+                && !(BenchmarkScore.config.anonymousMode && this.isCommercial)) {
             return this.toolName + " v" + this.toolVersion;
         }
         return this.toolName;

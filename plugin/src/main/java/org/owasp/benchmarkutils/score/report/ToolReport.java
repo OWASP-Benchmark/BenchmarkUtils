@@ -20,7 +20,6 @@ package org.owasp.benchmarkutils.score.report;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.Map;
@@ -33,8 +32,15 @@ import org.owasp.benchmarkutils.score.TP_FN_TN_FP_Counts;
 import org.owasp.benchmarkutils.score.Tool;
 import org.owasp.benchmarkutils.score.ToolResults;
 import org.owasp.benchmarkutils.score.report.ToolBarChart.BarChartType;
+import org.owasp.benchmarkutils.score.report.html.ToolReportProvider;
 
-public class ToolReport {
+public class ToolReport implements ToolReportProvider {
+
+    private final Map<String, CategoryResults> overallAveToolResults;
+
+    public ToolReport(Map<String, CategoryResults> overallAveToolResults) {
+        this.overallAveToolResults = overallAveToolResults;
+    }
 
     /**
      * Generate an HTML report for whatever tool's results are passed in.
@@ -43,18 +49,11 @@ public class ToolReport {
      * @param title - The title of the HTML report to generate.
      * @param scorecardImageFile - The File that contains the scorecard image for this tool's
      *     results.
-     * @param actualCSVResultsFileName - The name of the actual results .csv file for this tool.
      * @return The generated HTML report for the supplied tool.
      * @throws IOException
-     * @throws URISyntaxException
      */
-    public static String generateHtml(
-            Tool currentTool,
-            String title,
-            File scorecardImageFile,
-            String actualCSVResultsFileName,
-            Map<String, CategoryResults> overallAveToolResults)
-            throws IOException, URISyntaxException {
+    public String generateHtml(Tool currentTool, String title, File scorecardImageFile)
+            throws IOException {
 
         ToolResults overallToolResults = currentTool.getOverallResults();
 
@@ -65,9 +64,7 @@ public class ToolReport {
                         .getResourceAsStream(BenchmarkScore.SCORECARDDIRNAME + "/template.html");
         String html = IOUtils.toString(templateFileStream, StandardCharsets.UTF_8);
 
-        html =
-                html.replace(
-                        "${testsuite}", BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE));
+        html = html.replace("${testsuite}", BenchmarkScore.TESTSUITENAME.fullName());
         html = html.replace("${title}", title);
         html = html.replace("${tests}", Integer.toString(overallToolResults.getTotalTestCases()));
         html = html.replace("${time}", overallToolResults.getScanTime());
@@ -79,23 +76,24 @@ public class ToolReport {
                                         .format(overallToolResults.getOverallScore()));
         html = html.replace("${tool}", currentTool.getToolName());
         html = html.replace("${version}", currentTool.getTestSuiteVersion());
-        html = html.replace("${projectlink}", BenchmarkScore.PROJECTLINKENTRY);
-        html = html.replace("${cwecategoryname}", BenchmarkScore.CWECATEGORYNAME);
-        html = html.replace("${actualResultsFile}", actualCSVResultsFileName);
+        html = html.replace("${projectlink}", BenchmarkScore.config.report.html.projectLinkEntry);
+        html = html.replace("${cwecategoryname}", BenchmarkScore.config.cweCategoryName);
+        html = html.replace("${actualResultsFile}", currentTool.getActualResultsFileName());
 
         html = html.replace("${image}", scorecardImageFile.getName());
 
         String table = generateDetailedResultsTableForTool(currentTool, overallAveToolResults);
         html = html.replace("${table}", table);
-        html = html.replace("${tprlabel}", BenchmarkScore.TPRLABEL);
+        html = html.replace("${tprlabel}", BenchmarkScore.config.tprLabel);
         html =
                 html.replace(
                         "${precisionkey}",
-                        BenchmarkScore.PRECISIONKEYENTRY + BenchmarkScore.FSCOREKEYENTRY);
+                        BenchmarkScore.config.report.html.precisionKeyEntry
+                                + BenchmarkScore.config.report.html.fsCoreEntry);
 
         // Calculate the image tags for the Precision/Recall tables, if includePrecision enabled
         String precisionTablesVal =
-                (BenchmarkScore.includePrecision
+                (BenchmarkScore.config.includePrecision
                         ? precisionTablesVal =
                                 "<img align=\"middle\" src=\""
                                         + ToolBarChart.generateBarChartFileName(
@@ -120,14 +118,14 @@ public class ToolReport {
         sb.append("<table class=\"table\">\n");
         sb.append("<tr>");
         sb.append("<th>Category</th>");
-        if (BenchmarkScore.includePrecision) sb.append("<th>Abbr.</th>");
+        if (BenchmarkScore.config.includePrecision) sb.append("<th>Abbr.</th>");
         sb.append("<th>CWE #</th>");
         sb.append("<th>TP</th>");
         sb.append("<th>FN</th>");
         sb.append("<th>TN</th>");
         sb.append("<th>FP</th>");
         sb.append("<th>Total</th>");
-        if (BenchmarkScore.includePrecision) sb.append("<th>Precision</th><th>F-score</th>");
+        if (BenchmarkScore.config.includePrecision) sb.append("<th>Precision</th><th>F-score</th>");
         sb.append("<th>${tprlabel}</th>");
         sb.append("<th>FPR</th>");
         sb.append("<th>Score</th>");
@@ -154,7 +152,7 @@ public class ToolReport {
                 style = "class=\"success\"";
             sb.append("<tr " + style + ">");
             sb.append("<td>" + categoryName + "</td>");
-            if (BenchmarkScore.includePrecision) { // Abbr. column
+            if (BenchmarkScore.config.includePrecision) { // Abbr. column
                 sb.append("<td>" + category.getShortName() + "</td>");
             }
             sb.append("<td>" + category.getCWE() + "</td>");
@@ -164,7 +162,7 @@ public class ToolReport {
             sb.append("<td>" + c.fp + "</td>");
             sb.append("<td>" + r.totalTestCases + "</td>");
             String recallBonus = "";
-            if (BenchmarkScore.includePrecision) {
+            if (BenchmarkScore.config.includePrecision) {
                 CategoryResults currentCategoryResults = overallAveToolResults.get(categoryName);
                 // default value hard spaces equal to triangle width
                 String precisionBonus = "&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -227,19 +225,19 @@ public class ToolReport {
             totalScore += r.score;
         }
         sb.append("<tr><th>Totals</th><th/>");
-        if (BenchmarkScore.includePrecision) sb.append("<th/>"); // Abbr column added
+        if (BenchmarkScore.config.includePrecision) sb.append("<th/>"); // Abbr column added
         sb.append("<th>" + totals.tp + "</th>");
         sb.append("<th>" + totals.fn + "</th>");
         sb.append("<th>" + totals.tn + "</th>");
         sb.append("<th>" + totals.fp + "</th>");
         int total = totals.tp + totals.fn + totals.tn + totals.fp;
         sb.append("<th>" + total + "</th>");
-        if (BenchmarkScore.includePrecision)
+        if (BenchmarkScore.config.includePrecision)
             sb.append("<th/><th/><th/><th/>"); // 4 columns added with this flag
         sb.append("<th/><th/><th/></tr>\n");
 
         sb.append("<tr><th>Overall Results*</th><th/><th/><th/><th/><th/><th/>");
-        if (BenchmarkScore.includePrecision) {
+        if (BenchmarkScore.config.includePrecision) {
             double precision = (totalPrecision / scoresPerCategory.size());
             sb.append("<th/><th>" + new DecimalFormat("#0.00%").format(precision) + "</th>");
             double fscore = (totalFScore / scoresPerCategory.size());
@@ -252,7 +250,7 @@ public class ToolReport {
         double score = totalScore / scoresPerCategory.size();
         sb.append("<th>" + new DecimalFormat("#0.00%").format(score) + "</th>");
         sb.append("</tr>\n");
-        if (BenchmarkScore.includePrecision) {
+        if (BenchmarkScore.config.includePrecision) {
             sb.append(
                     "<tr><th colspan=\"3\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Legend:"
                             + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
@@ -263,7 +261,7 @@ public class ToolReport {
         sb.append(
                 "<p>*-The Overall Results are averages across all the vulnerability categories. "
                         + " You can't compute these averages by simply calculating the"
-                        + (BenchmarkScore.includePrecision
+                        + (BenchmarkScore.config.includePrecision
                                 ? " Precision, F-score, Recall (TPR),"
                                 : " TPR")
                         + " and FPR rates using"

@@ -93,13 +93,8 @@ public class BurpReader extends Reader {
         testcase = testcase.substring(testcase.lastIndexOf('/') + 1);
         testcase = testcase.split("\\.")[0];
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno = testcase.substring(BenchmarkScore.TESTCASENAME.length());
-            try {
-                tcr.setNumber(Integer.parseInt(testno));
-                return tcr;
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-            }
+            tcr.setNumber(testNumber(testcase));
+            return tcr;
         }
 
         return null;
@@ -168,6 +163,8 @@ public class BurpReader extends Reader {
                 return CweNumber.DONTCARE; // Incorrect Content Type - Map to nothing right now.
             case "8389888":
                 return 16; // Content type is not specified
+            case "16777472":
+                return CweNumber.DONTCARE; // TLS Certificate Problem
         } // end switch(id)
         System.out.println("Unknown Burp rule id: " + id);
         return -1;

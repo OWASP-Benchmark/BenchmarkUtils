@@ -84,7 +84,7 @@ public class ScatterHome extends ScatterPlot {
             if (toolReport.isCommercial()) {
                 commercialToolCount++;
                 ToolResults overallResults = toolReport.getOverallResults();
-                if (!BenchmarkScore.showAveOnlyMode) {
+                if (!BenchmarkScore.config.showAveOnlyMode) {
                     series.add(
                             overallResults.getFalsePositiveRate() * 100,
                             overallResults.getTruePositiveRate() * 100);
@@ -107,7 +107,7 @@ public class ScatterHome extends ScatterPlot {
         this.commercialAveTPR = this.commercialAveTPR / averageCommercialTrueRates.size();
 
         if (commercialToolCount > 1
-                || (BenchmarkScore.showAveOnlyMode && commercialToolCount == 1)) {
+                || (BenchmarkScore.config.showAveOnlyMode && commercialToolCount == 1)) {
             series.add(commercialAveFPR * 100, commercialAveTPR * 100);
         }
 
@@ -188,7 +188,7 @@ public class ScatterHome extends ScatterPlot {
         for (Tool r : tools) {
             if (r.isCommercial()) {
                 commercialToolCount++;
-                if (!BenchmarkScore.showAveOnlyMode) {
+                if (!BenchmarkScore.config.showAveOnlyMode) {
                     ToolResults or = r.getOverallResults();
                     double x = or.getFalsePositiveRate() * 100 + sr.nextDouble() * .000001;
                     double y =
@@ -207,7 +207,7 @@ public class ScatterHome extends ScatterPlot {
         }
 
         if (commercialToolCount > 1
-                || (BenchmarkScore.showAveOnlyMode && commercialToolCount == 1)) {
+                || (BenchmarkScore.config.showAveOnlyMode && commercialToolCount == 1)) {
             Point2D ap =
                     new Point2D.Double(
                             commercialAveFPR * 100 + sr.nextDouble() * .000001,
@@ -284,7 +284,7 @@ public class ScatterHome extends ScatterPlot {
                 String label = (ch == 'I' || ch == 'i' ? ch + ":   " : ch + ": ");
                 // Another hack to make it line up better if the letter is a 'J' or 'j'
                 label = (ch == 'J' || ch == 'j' ? ch + ":  " : label);
-                if (!BenchmarkScore.showAveOnlyMode) {
+                if (!BenchmarkScore.config.showAveOnlyMode) {
                     addEntryToKey(
                             xyplot,
                             Color.blue,
@@ -315,7 +315,7 @@ public class ScatterHome extends ScatterPlot {
 
         // commercial average
         if (commercialToolCount > 1
-                || (BenchmarkScore.showAveOnlyMode && commercialToolCount == 1)) {
+                || (BenchmarkScore.config.showAveOnlyMode && commercialToolCount == 1)) {
 
             addEntryToKey(
                     xyplot,
@@ -337,8 +337,8 @@ public class ScatterHome extends ScatterPlot {
     public static void generateComparisonChart(Set<Tool> tools, String focus, File scoreCardDir) {
         try {
             String scatterTitle =
-                    BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE)
-                            + (BenchmarkScore.mixedMode
+                    BenchmarkScore.TESTSUITENAME.fullName()
+                            + (BenchmarkScore.config.mixedMode
                                     ? ""
                                     : " v" + BenchmarkScore.TESTSUITEVERSION)
                             + " Results Comparison";

@@ -93,8 +93,8 @@ public class AppScanSourceReader extends Reader {
             }
             if (filename.endsWith(".java") && filename.startsWith(BenchmarkScore.TESTCASENAME)) {
                 filename = filename.substring(0, filename.length() - 5);
-                String testnum = filename.substring(BenchmarkScore.TESTCASENAME.length());
-                tn = Integer.parseInt(testnum);
+                int testno = testNumber(filename);
+                tn = testno;
             }
 
             Set<Integer> findings = assess.get(fileid);

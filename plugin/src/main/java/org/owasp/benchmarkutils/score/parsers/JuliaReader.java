@@ -83,15 +83,9 @@ public class JuliaReader extends Reader {
             String childName = child.getNodeName();
             if (childName.equals("source")) {
                 String where = child.getTextContent().replace('/', '.');
-                where = where.substring(0, where.length() - ".java".length());
-                if (where.startsWith(prefixOfTest)) {
-                    String testNumber =
-                            where.substring(
-                                    where.lastIndexOf('.')
-                                            + 1
-                                            + BenchmarkScore.TESTCASENAME.length());
-                    tcr.setNumber(Integer.parseInt(testNumber));
-                }
+                // "org.owasp.benchmark.testcode.BenchmarkTest00042.java"
+                tcr.setNumber(testNumber(where));
+
             } else if (childName.equals("CWEid"))
                 tcr.setCWE(Integer.parseInt(child.getTextContent()));
         }

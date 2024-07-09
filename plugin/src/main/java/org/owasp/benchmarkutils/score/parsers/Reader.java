@@ -28,6 +28,12 @@ import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.parsers.sarif.CodeQLReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.ContrastScanReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.DatadogSastReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.SemgrepSarifReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.SnykReader;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -37,8 +43,10 @@ public abstract class Reader {
     protected final ObjectMapper jsonMapper = new ObjectMapper();
     protected final XmlMapper xmlMapper = new XmlMapper();
 
-    // TODO: Figure out how to dynamically add all readers here without listing them out manually
-    // NOTE: There is a unit test that at least automatically verifies that any reader with a unit
+    // TODO: Figure out how to dynamically add all readers here without listing them
+    // out manually
+    // NOTE: There is a unit test that at least automatically verifies that any
+    // reader with a unit
     // test is in this list
     public static List<Reader> allReaders() {
         return Arrays.asList(
@@ -46,6 +54,7 @@ public abstract class Reader {
                 new AppScanDynamicReader(),
                 new AppScanSourceReader(),
                 new ArachniReader(),
+                new BearerReader(),
                 new BurpJsonReader(),
                 new BurpReader(),
                 new CASTAIPReader(),
@@ -57,34 +66,39 @@ public abstract class Reader {
                 new ContrastScanReader(),
                 new CoverityReader(),
                 new CrashtestReader(),
+                new DatadogReader(),
+                new DatadogSastReader(),
                 new FaastReader(),
                 new FindbugsReader(),
+                new FluidAttacksReader(),
                 new FortifyReader(),
                 new FusionLiteInsightReader(),
                 new HCLAppScanIASTReader(),
                 new HCLAppScanSourceReader(),
                 new HCLAppScanStandardReader(),
-                new HdivReader(),
                 new HorusecReader(),
                 new InsiderReader(),
                 new JuliaReader(),
                 new KlocworkCSVReader(),
                 new KiuwanReader(),
-                new LGTMReader(),
                 new MendReader(),
                 new NetsparkerReader(),
                 new NJSScanReader(),
                 new NoisyCricketReader(),
                 new ParasoftReader(),
+                new PrecautionReader(),
                 new PMDReader(),
                 new QualysWASReader(),
                 new Rapid7Reader(),
                 new ReshiftReader(),
+                new ScnrReader(),
                 new SeekerReader(),
                 new SemgrepReader(),
+                new SemgrepSarifReader(),
                 new ShiftLeftReader(),
                 new ShiftLeftScanReader(),
                 new SnappyTickReader(),
+                new SnykReader(),
                 new SonarQubeJsonReader(),
                 new SonarQubeReader(),
                 new SourceMeterReader(),
@@ -106,13 +120,16 @@ public abstract class Reader {
     public static Node getNamedNode(String name, NodeList list) {
         for (int i = 0; i < list.getLength(); i++) {
             Node n = list.item(i);
+
             if (n.getNodeName().equals(name)) {
                 return n;
             }
         }
+
         return null;
     }
-    // Returns the node inside this nodelist whose name matches 'name', that also has an attribute
+    // Returns the node inside this nodelist whose name matches 'name', that also
+    // has an attribute
     // called 'key' whose value matches 'keyvalue'
 
     public static Node getNamedNode(String name, String keyValue, NodeList list) {
@@ -131,6 +148,11 @@ public abstract class Reader {
     public static Node getNamedChild(String name, Node parent) {
         NodeList children = parent.getChildNodes();
         return getNamedNode(name, children);
+    }
+
+    public static boolean hasNamedChild(String name, Node parent) {
+        NodeList children = parent.getChildNodes();
+        return getNamedNode(name, children) != null;
     }
 
     public static List<Node> getNamedChildren(String name, List<Node> list) {
@@ -176,21 +198,78 @@ public abstract class Reader {
         return null;
     }
 
-    /* get rid of everything except the test name */
-    public static int testNumber(String path) {
-        try {
-            String filename = extractFilename(path);
+    private static String manipulateTestcase(String path) {
+        if (path.startsWith(BenchmarkScore.TESTCASENAME)) {
+            int latest = path.indexOf(".");
+            String toReplace = path.substring(0, latest);
+            path = path.replaceAll(toReplace, BenchmarkScore.TESTCASENAME);
+            System.out.println(path);
+        }
+        return path;
+    }
 
-            if (!filename.contains(BenchmarkScore.TESTCASENAME)) {
+    private static int findFirstNonNumeric(String path) {
+        for (int i = 0; i < path.length(); i++) {
+            if (!Character.isDigit(path.charAt(i))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static long occurrences(String path, char c) {
+        return path.chars().filter(ch -> ch == c).count();
+    }
+
+    public static int testNumber(String path) {
+        return testNumber(path, BenchmarkScore.TESTCASENAME);
+    }
+
+    /** Get rid of everything except the test name. */
+    public static int testNumber(String path, String testCaseName) {
+        try {
+            // No BenchmarkTest
+            if (!path.contains(testCaseName)) {
                 return -1;
             }
+            int numberStart = path.indexOf(testCaseName) + testCaseName.length() + 1;
+            path = path.substring(numberStart);
+            // System.out.println("After length: " + path);
+            path = path.replaceAll("\\?.*", "");
+            path = path.replaceAll(",.*", "");
 
-            if (filename.contains(".")) {
-                filename = removeFileEnding(filename);
+            path = path.replaceAll(testCaseName + "v[0-9]*", testCaseName);
+
+            path = path.replaceAll("/send", "");
+            if (path.contains(":")) {
+                path = removeColon(path);
             }
+            path = path.replaceAll("[^0-9.]", "");
+            // System.out.println("After replace: " + path);
+            if (path.contains(".") && occurrences(path, '.') > 1) {
+                int start = path.indexOf(".") + 1;
+                int end = path.length();
+                if (end - start > 1) {
+                    path = path.substring(start, end);
+                }
+            }
+            if (path.contains(".")) {
+                path = removeFileEnding(path);
+            }
+            // System.out.println("Before dot cleaning " + path);
 
-            return Integer.parseInt(filename.substring(BenchmarkScore.TESTCASENAME.length()));
+            // Remove remaining dots
+            path = path.replace(".", "");
+            // System.out.println("Final: " + path);
+            // In the case of $innerclass
+            int dollar = path.indexOf("$");
+            if (dollar != -1) {
+                path = path.substring(0, dollar);
+            }
+            return Integer.parseInt(path);
+
         } catch (Exception e) {
+
             return -1;
         }
     }
@@ -203,6 +282,10 @@ public abstract class Reader {
         } catch (Throwable t) {
             return "";
         }
+    }
+
+    private static String removeColon(String filename) {
+        return filename.substring(0, filename.lastIndexOf(':'));
     }
 
     private static String removeFileEnding(String filename) {

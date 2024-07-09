@@ -21,8 +21,8 @@ import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -178,14 +178,7 @@ public class CheckmarxReader extends Reader {
             testcase = testcase.substring(testcase.lastIndexOf('\\') + 1);
         }
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno =
-                    testcase.substring(
-                            BenchmarkScore.TESTCASENAME.length(), testcase.lastIndexOf('.'));
-            try {
-                tcr.setNumber(Integer.parseInt(testno));
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-            }
+            tcr.setNumber(testNumber(testcase));
             return tcr;
         } else {
             // If not, then the last PastNode must end in a FileName that startsWith BenchmarkTest
@@ -202,14 +195,7 @@ public class CheckmarxReader extends Reader {
                 testcase2 = testcase2.substring(testcase2.lastIndexOf('\\') + 1);
             }
             if (testcase2.startsWith(BenchmarkScore.TESTCASENAME)) {
-                String testno2 =
-                        testcase2.substring(
-                                BenchmarkScore.TESTCASENAME.length(), testcase2.lastIndexOf('.'));
-                try {
-                    tcr.setNumber(Integer.parseInt(testno2));
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
-                }
+                tcr.setNumber(testNumber(testcase2));
                 return tcr;
             }
         }

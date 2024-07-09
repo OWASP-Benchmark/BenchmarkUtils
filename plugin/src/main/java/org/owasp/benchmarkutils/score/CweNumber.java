@@ -46,6 +46,9 @@ public class CweNumber {
      */
     public static int LDAP_INJECTION = 90;
 
+    /** CWE-93: Improper Neutralization of CRLF Sequences ('CRLF Injection') */
+    public static int CRLF_INJECTION = 93;
+
     /**
      * CWE-113: Improper Neutralization of CRLF Sequences in HTTP Headers ('HTTP Response
      * Splitting')
@@ -136,6 +139,9 @@ public class CweNumber {
     /** CWE-595: Comparison of Object References Instead of Object Contents */
     public static int OBJECT_REFERENCE_COMPARISON = 595;
 
+    /** CWE-601: URL Redirection to Untrusted Site ('Open Redirect') */
+    public static int OPEN_REDIRECT = 601;
+
     /** CWE-611: Improper Restriction of XML External Entity Reference */
     public static int XXE = 611;
 
@@ -160,6 +166,15 @@ public class CweNumber {
     /** CWE-835: Loop with Unreachable Exit Condition ('Infinite Loop') */
     public static int LOOP_WITH_UNREACHABLE_EXIT = 835;
 
+    /** CWE-918: Server-Side Request Forgery (SSRF) */
+    public static int SSRF = 918;
+
     /** CWE-1004: Sensitive Cookie Without 'HttpOnly' Flag */
     public static int COOKIE_WITHOUT_HTTPONLY = 1004;
+
+    /** CWE-1021: Improper Restriction of Rendered UI Layers or Frames */
+    public static int IMPROPER_UI_LAYER_RESTRICTION = 1021;
+
+    /** CWE-1336: Improper Neutralization of Special Elements Used in a Template Engine */
+    public static int SSTI = 1336;
 }

@@ -20,8 +20,11 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.StringReader;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
@@ -39,9 +42,41 @@ public class HCLAppScanIASTReader extends Reader {
         cr.parse(resultFile);
     }
 
+    public HCLAppScanIASTReader() {
+        createVulnerabilitiesMap();
+    }
+
+    private Map<String, Integer> vulnerabilityToCweNumber;
+
     @Override
     public boolean canRead(ResultFile resultFile) {
         return resultFile.filename().endsWith(".hcl");
+    }
+
+    private void createVulnerabilitiesMap() {
+        vulnerabilityToCweNumber = new HashMap<>();
+        vulnerabilityToCweNumber.put("attRespCookieNotSecureSSL", CweNumber.INSECURE_COOKIE);
+        vulnerabilityToCweNumber.put("SessionManagement.Cookies", CweNumber.INSECURE_COOKIE);
+        vulnerabilityToCweNumber.put("Injection.SQL", CweNumber.SQL_INJECTION);
+        vulnerabilityToCweNumber.put("Injection.OS", CweNumber.COMMAND_INJECTION);
+        vulnerabilityToCweNumber.put("Injection.LDAP", CweNumber.LDAP_INJECTION);
+        vulnerabilityToCweNumber.put("CrossSiteScripting.Reflected", CweNumber.XSS);
+        vulnerabilityToCweNumber.put("Injection.XPath", CweNumber.XPATH_INJECTION);
+        vulnerabilityToCweNumber.put("PathTraversal", CweNumber.PATH_TRAVERSAL);
+        vulnerabilityToCweNumber.put("Cryptography.InsecureAlgorithm", CweNumber.WEAK_HASH_ALGO);
+        vulnerabilityToCweNumber.put("Cryptography.Mac", CweNumber.WEAK_HASH_ALGO);
+        vulnerabilityToCweNumber.put("Cryptography.WeakHash", CweNumber.WEAK_HASH_ALGO);
+        vulnerabilityToCweNumber.put("Cryptography.PoorEntropy", CweNumber.WEAK_RANDOM);
+        vulnerabilityToCweNumber.put("Cryptography.NonStandard", CweNumber.WEAK_CRYPTO_ALGO);
+        vulnerabilityToCweNumber.put("Cryptography.Ciphers", CweNumber.WEAK_CRYPTO_ALGO);
+        vulnerabilityToCweNumber.put("Validation.Required", CweNumber.TRUST_BOUNDARY_VIOLATION);
+        vulnerabilityToCweNumber.put("TrustBoundaryViolation", CweNumber.TRUST_BOUNDARY_VIOLATION);
+        vulnerabilityToCweNumber.put("attLoginNotOverSSL", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
+        vulnerabilityToCweNumber.put("attFileUploadXXE", CweNumber.XXE);
+        vulnerabilityToCweNumber.put("attCrossSiteRequestForgery", CweNumber.CSRF);
+        vulnerabilityToCweNumber.put("passParamGET", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
+        vulnerabilityToCweNumber.put("attJavaDeserCodeExec", CweNumber.COMMAND_INJECTION);
+        vulnerabilityToCweNumber.put("GV_JSONXSS", CweNumber.XSS);
     }
 
     @Override
@@ -64,8 +99,8 @@ public class HCLAppScanIASTReader extends Reader {
                 if (line != null) {
                     if (line.contains("writeVulnerabilityToFile")) {
                         parseFindings(tr, line);
-                    } else if (line.contains("Agent Version:")) {
-                        String version = line.substring(line.indexOf("Version:") + 8);
+                    } else if (line.contains("Loading agent")) {
+                        String version = line.split("Loading agent ")[1];
                         tr.setToolVersion(version.trim());
                     } else if (line.contains("[checking URL:")
                             && line.contains(FIRSTLINEINDICATOR)) {
@@ -114,42 +149,31 @@ public class HCLAppScanIASTReader extends Reader {
     }
 
     private int cweLookup(String rule) {
-        switch (rule) {
-            case "SessionManagement.Cookies":
-                return CweNumber.INSECURE_COOKIE;
-            case "Injection.SQL":
-                return CweNumber.SQL_INJECTION;
-            case "Injection.OS":
-                return CweNumber.COMMAND_INJECTION;
-            case "Injection.LDAP":
-                return CweNumber.LDAP_INJECTION;
-            case "CrossSiteScripting.Reflected":
-                return CweNumber.XSS;
-            case "Injection.XPath":
-                return CweNumber.XPATH_INJECTION;
-            case "PathTraversal":
-                return CweNumber.PATH_TRAVERSAL;
-            case "Cryptography.Mac":
-                return CweNumber.WEAK_HASH_ALGO;
-            case "Cryptography.PoorEntropy":
-                return CweNumber.WEAK_RANDOM;
-            case "Cryptography.Ciphers":
-                return CweNumber.WEAK_CRYPTO_ALGO;
-            case "Validation.Required":
-                return CweNumber.TRUST_BOUNDARY_VIOLATION;
-            default:
-                System.out.println("WARNING: HCL AppScan IAST-Unrecognized finding type: " + rule);
+        Integer cweNumber = vulnerabilityToCweNumber.get(rule);
+        if (cweNumber == null) {
+            System.out.println("WARNING: HCL AppScan IAST-Unrecognized finding type: " + rule);
+            return 0;
         }
-        return 0;
+        return cweNumber;
     }
 
     private String calculateTime(String firstLine, String lastLine) {
         try {
-            String start = firstLine.split(" ")[0];
-            String stop = lastLine.split(" ")[0];
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
-            Date startTime = sdf.parse(start);
-            Date stopTime = sdf.parse(stop);
+            String start = firstLine.split(" \\[")[0];
+            String stop = lastLine.split(" \\[")[0];
+            SimpleDateFormat dateAndTimeParser = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            SimpleDateFormat timeParser = new SimpleDateFormat("HH:mm:ss.SSS");
+            Date startTime;
+            Date stopTime;
+            try {
+                // try parse date and time
+                startTime = dateAndTimeParser.parse(start);
+                stopTime = dateAndTimeParser.parse(stop);
+            } catch (ParseException e) {
+                // try parse time only (for older versions)
+                startTime = timeParser.parse(start);
+                stopTime = timeParser.parse(stop);
+            }
             long startMillis = startTime.getTime();
             long stopMillis = stopTime.getTime();
             long seconds = (stopMillis - startMillis) / 1000;

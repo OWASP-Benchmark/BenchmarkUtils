@@ -48,10 +48,8 @@ public class SonarQubeReader extends Reader {
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
 
         // Because the Sonar results file is not well formed, i.e., it has multiple root elements,
-        // not
-        // just one, we have to wrap the contents in a <sonar> element so the XML can be parsed
-        // properly
-        // by the DocumentBuilder. Without this, you get an error like:
+        // not just one, we have to wrap the contents in a <sonar> element so the XML can be
+        // parsed properly by the DocumentBuilder. Without this, you get an error like:
         // org.xml.sax.SAXParseException;
         // lineNumber: X; columnNumber: YY; The markup in the document following the root element
         // must be well-formed.
@@ -106,21 +104,15 @@ public class SonarQubeReader extends Reader {
     private TestCaseResult parseSonarIssue(Node flaw) {
         TestCaseResult tcr = new TestCaseResult();
         String rule = getNamedChild("rule", flaw).getTextContent();
-        // System.out.println("Rule # is: " + rule);
         tcr.setCWE(cweLookup(rule.substring("java:".length())));
 
         String cat = getNamedChild("message", flaw).getTextContent();
         tcr.setEvidence(cat);
 
         String testfile = getNamedChild("component", flaw).getTextContent().trim();
-        // System.out.println("Found in component: " + testfile);
         testfile = testfile.substring(testfile.lastIndexOf('/') + 1);
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno =
-                    testfile.substring(
-                            BenchmarkScore.TESTCASENAME.length(), testfile.lastIndexOf('.'));
-            // System.out.println("Which is determined to be test #: " + testno);
-            tcr.setNumber(Integer.parseInt(testno));
+            tcr.setNumber(testNumber(testfile));
             return tcr;
         }
         return null;
@@ -139,10 +131,7 @@ public class SonarQubeReader extends Reader {
         String testfile = getNamedChild("component", flaw).getTextContent().trim();
         testfile = testfile.substring(testfile.lastIndexOf('/') + 1);
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            String testno =
-                    testfile.substring(
-                            BenchmarkScore.TESTCASENAME.length(), testfile.lastIndexOf('.'));
-            tcr.setNumber(Integer.parseInt(testno));
+            tcr.setNumber(testNumber(testfile));
             return tcr;
         }
         return null;
@@ -225,7 +214,7 @@ public class SonarQubeReader extends Reader {
             case "S1066":
                 return CweNumber.DONTCARE; // Collapsible "if" statements should be merged
             case "S1075":
-                return CweNumber.DONTCARE; // URIs should not be hardcoded
+                return CweNumber.DONTCARE; // URIs should not be hard coded
             case "S1104": // Class variable fields should not have public accessibility
                 return CweNumber.PUBLIC_VAR_WITHOUT_FINAL;
             case "S1116":
@@ -241,8 +230,7 @@ public class SonarQubeReader extends Reader {
             case "S1132":
                 return CweNumber
                         .DONTCARE; // Strings literals should be placed on the left side when
-                // checking for
-                // equality
+                // checking for equality
             case "S1134":
                 return CweNumber.DONTCARE; // Track uses of "FIXME" tags
             case "S1135":
@@ -325,8 +313,7 @@ public class SonarQubeReader extends Reader {
             case "S1488":
                 return CweNumber
                         .DONTCARE; // Local variables should not be declared and then immediately
-                // returned
-                // or thrown
+                // returned or thrown
             case "S1643":
                 return CweNumber.DONTCARE; // Strings should not be concatenated using '+' in a loop
             case "S1659":
@@ -343,8 +330,7 @@ public class SonarQubeReader extends Reader {
             case "S1850":
                 return CweNumber
                         .DONTCARE; // "instanceof" operators that always return "true" or"false"
-                // should be
-                // removed
+                // should be removed
             case "S1854":
                 return CweNumber.UNUSED_VAR_ASSIGNMENT; // Unused assignments should be removed
             case "S1872":
@@ -364,8 +350,7 @@ public class SonarQubeReader extends Reader {
                 return 259; // Credentials should not be hard-coded
             case "S2070":
                 return CweNumber.WEAK_HASH_ALGO; // Benchmark Vuln: SHACweNumber.DONTCARE and
-                // Message-Digest hash
-                // algorithms should not be used
+                // Message-Digest hash algorithms should not be used
             case "S2076":
                 return CweNumber
                         .COMMAND_INJECTION; // Benchmark Vuln: Values passed to OS commands should
@@ -431,16 +416,14 @@ public class SonarQubeReader extends Reader {
             case "S2275":
                 return CweNumber
                         .DONTCARE; // Printf-style format strings should not lead to unexpected
-                // behavior
-                // at runtime
+                // behavior at runtime
             case "S2277":
                 return 780; // Cryptographic RSA algorithms should always incorporate OAEP (Optimal
                 // Asymmetric Encryption Padding)
             case "S2278":
                 return CweNumber
                         .WEAK_CRYPTO_ALGO; // Benchmark Vuln: DES (Data Encryption Standard) and
-                // DESede
-                // (3DES) should not be used
+                // DESede (3DES) should not be used
             case "S2293":
                 return CweNumber.DONTCARE; // The diamond operator ("<>") should be used
             case "S2384":
@@ -474,8 +457,7 @@ public class SonarQubeReader extends Reader {
             case "S2864":
                 return CweNumber
                         .DONTCARE; // "entrySet()" should be iterated when both the key and value
-                // are
-                // needed
+                // are needed
             case "S3008":
                 return CweNumber
                         .DONTCARE; // Static non-final field names should comply with a naming
@@ -518,8 +500,7 @@ public class SonarQubeReader extends Reader {
             case "S4838":
                 return CweNumber
                         .DONTCARE; // An iteration on a Collection should be performed on the type
-                // handled
-                // by the Collection
+                // handled by the Collection
             case "S5131": // Endpoints should not be vulnerable to reflected cross-site scripting
                 // (XSS) attacks
                 return CweNumber.XSS;
@@ -532,8 +513,7 @@ public class SonarQubeReader extends Reader {
             case "S5542":
                 return CweNumber
                         .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Encryption algorithms should be used
-                // with
-                // secure mode and padding scheme
+                // with secure mode and padding scheme
             case "S5547":
                 return CweNumber
                         .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Cipher algorithms should be robust

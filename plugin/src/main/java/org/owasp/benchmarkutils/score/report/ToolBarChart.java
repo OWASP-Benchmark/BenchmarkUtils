@@ -36,18 +36,27 @@ import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CategoryResults;
 import org.owasp.benchmarkutils.score.Tool;
+import org.owasp.benchmarkutils.score.report.html.ToolBarChartProvider;
 
-public class ToolBarChart extends ScatterPlot {
+public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
 
     private static final Color BLUECOLUMN = Color.decode("#4572a7"); // Blue
     private static final Color PURPLECOLUMN = Color.decode("#7851a9"); // Royal purple
+
+    private final Map<String, CategoryResults> overallAveToolResults;
+    private final File scoreCardDir;
 
     enum BarChartType {
         Precision,
         Recall
     }
 
-    public static void initializePlot(
+    public ToolBarChart(Map<String, CategoryResults> overallAveToolResults, File scoreCardDir) {
+        this.overallAveToolResults = overallAveToolResults;
+        this.scoreCardDir = scoreCardDir;
+    }
+
+    private static void initializePlot(
             JFreeChart chart, DefaultCategoryDataset dataset, Color toolColor) {
         CategoryPlot xyplot = chart.getCategoryPlot();
         CategoryItemRenderer renderer = xyplot.getRendererForDataset(dataset);
@@ -92,9 +101,8 @@ public class ToolBarChart extends ScatterPlot {
      *     to.
      * @param type - The Type of BarChart to create.
      * @param scoreCardDir - The directory to write the created Chart file into.
-     * @return The name of the file created (with no path information).
      */
-    public static String createBarChart(
+    private static void createBarChart(
             Tool tool, DefaultCategoryDataset dataset, BarChartType type, File scoreCardDir) {
 
         JFreeChart chart =
@@ -128,9 +136,7 @@ public class ToolBarChart extends ScatterPlot {
         } catch (IOException e) {
             System.out.println("Error writing bar chart to target file.");
             e.printStackTrace();
-            return null;
         }
-        return fileToCreate;
     }
 
     /**
@@ -143,9 +149,8 @@ public class ToolBarChart extends ScatterPlot {
      * @return - The filename to write this type of Bar chart to.
      */
     public static String generateBarChartFileName(Tool tool, BarChartType type) {
-
         String filename =
-                BenchmarkScore.TESTSUITE
+                BenchmarkScore.TESTSUITENAME.simpleName()
                         + " v"
                         + tool.getTestSuiteVersion()
                         + " "
@@ -166,7 +171,7 @@ public class ToolBarChart extends ScatterPlot {
      * @param type - The Type of Bar Chart to create.
      * @return The created DataSet.
      */
-    public static DefaultCategoryDataset createToolDataSet(
+    private static DefaultCategoryDataset createToolDataSet(
             Tool targetTool, Map<String, CategoryResults> aveToolResults, BarChartType type) {
         final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -215,14 +220,9 @@ public class ToolBarChart extends ScatterPlot {
      * the other tools and write those charts to tool/metric specific names.
      *
      * @param tool - The Tool to create the charts for.
-     * @param overallAveToolResults - A Map of each vuln category to the average CategoryResults for
-     *     that category.
      */
-    public static void generateComparisonCharts(
-            Tool tool, Map<String, CategoryResults> overallAveToolResults, File scoreCardDir) {
-
-        if (BenchmarkScore.includePrecision) {
-
+    public void generateComparisonCharts(Tool tool) {
+        if (BenchmarkScore.config.includePrecision) {
             // Generate Precision Chart
             // First create the Dataset required for the chart
             DefaultCategoryDataset toolPrecisionData =
