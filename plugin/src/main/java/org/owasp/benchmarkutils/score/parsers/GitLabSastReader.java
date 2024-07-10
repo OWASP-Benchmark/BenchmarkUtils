@@ -19,7 +19,10 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.*;
+import org.owasp.benchmarkutils.score.CweNumber;
+import org.owasp.benchmarkutils.score.ResultFile;
+import org.owasp.benchmarkutils.score.TestCaseResult;
+import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class GitLabSastReader extends Reader {
     @Override
@@ -53,10 +56,9 @@ public class GitLabSastReader extends Reader {
     private TestCaseResult parseGitLabSastFindings(JSONObject vulnerability) {
 
         try {
-            String className = vulnerability.getJSONObject("location").getString("file");
-            className = (className.substring(className.lastIndexOf('/') + 1)).split("\\.")[0];
+            int testNumber = testNumber(vulnerability.getJSONObject("location").getString("file"));
 
-            if (className.startsWith(BenchmarkScore.TESTCASENAME)) {
+            if (testNumber > -1) {
                 TestCaseResult tcr = new TestCaseResult();
 
                 JSONArray identifiers = vulnerability.getJSONArray("identifiers");
@@ -73,7 +75,7 @@ public class GitLabSastReader extends Reader {
                 tcr.setCategory(category);
                 tcr.setEvidence(evidence);
                 tcr.setConfidence(0);
-                tcr.setNumber(testNumber(className));
+                tcr.setNumber(testNumber);
 
                 return tcr;
             }
