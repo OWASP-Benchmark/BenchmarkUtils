@@ -68,36 +68,7 @@ public class GitLabSastReader extends Reader {
     }
 
     private int translate(int cwe) {
-        //in gitlab sast {
-        //  "trustbound": 306,  // Authentication Bypass Using Trust Boundaries (CWE-306)
-        //  "weakrand": 338,  // Use of Cryptographically Weak Pseudo-Random Number Generator (CWE-338)
-        //  "sqli": 89,  // SQL Injection (CWE-89)
-        //  "crypto": 327,  // Use of a Broken or Risky Cryptographic Algorithm (CWE-327)
-        //  "cmdi": 185,  // Improper Control of Generation of Code ('Code Injection') (CWE-185)
-        //  "xss": 79,  // Cross-site Scripting (CWE-79)
-        //  "hash": 326,  // Inadequate Encryption Strength (CWE-326)
-        //  "pathtraver": 22,  // Path Traversal (CWE-22)
-        //  "securecookie": 614,  // Sensitive Cookie in HTTPS Session Without 'Secure' Attribute (CWE-614)
-        //  "xpathi": 643,  // XPath Injection (CWE-643)
-        //  "ldapi": 90,  // Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection') (CWE-90)
-        //  "httpresponse": 113,  // Improper Neutralization of CRLF Sequences in HTTP Headers ('HTTP Response Splitting') (CWE-113)
-        //  "debugcode": 259,  // Use of Hard-coded Password (CWE-259)
-        //  "cryptointegration": 1004  // Sensitive Cookie Without 'HttpOnly' Flag (CWE-1004)
-        //}
 
-        //in benchmark tool {
-        //  "trustbound": 501,
-        //  "weakrand": 330,
-        //  "sqli": 89,
-        //  "crypto": 327,
-        //  "cmdi": 78,
-        //  "xss": 79,
-        //  "hash": 328,
-        //  "pathtraver": 22,
-        //  "securecookie": 614,
-        //  "xpathi": 643,
-        //  "ldapi": 90
-        //}
         switch (cwe) {
             case 22:
                 return CweNumber.PATH_TRAVERSAL;
