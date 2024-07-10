@@ -39,7 +39,7 @@ class GitLabSastReaderTest extends ReaderTestBase {
     }
 
     @Test
-    void isAbleToFetchTestFileClassName() {
+    void isAbleToExtractDataToCreateTestCaseResults() {
         JSONArray vulnerabilities = resultFile.json().getJSONArray("vulnerabilities");
         String path = vulnerabilities.getJSONObject(1).getJSONObject("location").getString("file");
 
