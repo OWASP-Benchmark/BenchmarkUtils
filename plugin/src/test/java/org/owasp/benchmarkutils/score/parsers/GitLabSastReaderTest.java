@@ -43,7 +43,7 @@ class GitLabSastReaderTest extends ReaderTestBase {
         JSONArray vulnerabilities = resultFile.json().getJSONArray("vulnerabilities");
         String path = vulnerabilities.getJSONObject(1).getJSONObject("location").getString("file");
 
-        assertEquals("src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00614.java", path);
+        assertEquals("src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java", path);
 
         String className = (path.substring(path.lastIndexOf('/') + 1)).split("\\.")[0];
         assertTrue(className.startsWith(BenchmarkScore.TESTCASENAME));
