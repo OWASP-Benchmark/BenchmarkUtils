@@ -73,6 +73,7 @@ public abstract class Reader {
                 new FluidAttacksReader(),
                 new FortifyReader(),
                 new FusionLiteInsightReader(),
+                new GitLabSastReader(),
                 new HCLAppScanIASTReader(),
                 new HCLAppScanSourceReader(),
                 new HCLAppScanStandardReader(),
