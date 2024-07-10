@@ -12,7 +12,7 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details
  *
- * @author Raj Barath
+ * @author Barath Raj
  * @created 2023
  */
 package org.owasp.benchmarkutils.score.parsers.sarif;
