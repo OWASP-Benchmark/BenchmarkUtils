@@ -55,16 +55,16 @@ public class ExpectedResultsProvider {
                 if (record.get(TEST_NAME).startsWith(tr.getTestSuiteName() + BenchmarkScore.TEST)) {
                     TestCaseResult tcr = new TestCaseResult();
 
-                    tcr.setTestCaseName(record.get(TEST_NAME));
-                    tcr.setCategory(record.get(CATEGORY));
-                    tcr.setTruePositive(parseBoolean(record.get(REAL_VULNERABILITY)));
-                    tcr.setCWE(parseInt(record.get(CWE)));
-                    tcr.setNumber(testNumber(record.get(TEST_NAME), testCaseName));
+                    tcr.setTestCaseName(record.get(TEST_NAME).trim());
+                    tcr.setCategory(record.get(CATEGORY).trim());
+                    tcr.setTruePositive(parseBoolean(record.get(REAL_VULNERABILITY).trim()));
+                    tcr.setCWE(parseInt(record.get(CWE).trim()));
+                    tcr.setNumber(testNumber(record.get(TEST_NAME).trim(), testCaseName));
 
                     if (isExtendedResultsFile(parser)) {
-                        tcr.setSource(record.get(SOURCE));
-                        tcr.setDataFlow(record.get(DATA_FLOW));
-                        tcr.setSink(record.get(SINK));
+                        tcr.setSource(record.get(SOURCE).trim());
+                        tcr.setDataFlow(record.get(DATA_FLOW).trim());
+                        tcr.setSink(record.get(SINK).trim());
                     }
 
                     tr.put(tcr);

@@ -36,7 +36,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.AbstractMojo;
@@ -58,7 +57,6 @@ import org.owasp.benchmarkutils.score.report.html.ToolScorecard;
 import org.owasp.benchmarkutils.score.report.html.VulnerabilityStatsTable;
 import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
 import org.owasp.benchmarkutils.score.service.ResultsFileCreator;
-import org.xml.sax.SAXException;
 
 @Mojo(name = "create-scorecard", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
 public class BenchmarkScore extends AbstractMojo {
@@ -158,17 +156,6 @@ public class BenchmarkScore extends AbstractMojo {
             loadConfigFromCommandLineArguments(args);
         } catch (RuntimeException e) {
             System.out.println("Error processing configuration for Scoring. Aborting.");
-            System.exit(-1);
-        }
-
-        // Load in the categories definitions from the config file.
-        try {
-            InputStream categoriesFileStream =
-                    BenchmarkScore.class.getClassLoader().getResourceAsStream(Categories.FILENAME);
-            new Categories(categoriesFileStream);
-        } catch (ParserConfigurationException | SAXException | IOException e1) {
-            System.out.println("ERROR: couldn't load categories from categories config file.");
-            e1.printStackTrace();
             System.exit(-1);
         }
 

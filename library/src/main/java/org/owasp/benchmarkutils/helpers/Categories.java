@@ -46,6 +46,20 @@ public class Categories {
 
     private static Categories _instance; // The Singleton instance of this class
 
+    // Statically load the categories definitions from the config file to instantiate the Category
+    // singleton
+    static {
+        try {
+            InputStream categoriesFileStream =
+                    Categories.class.getClassLoader().getResourceAsStream(Categories.FILENAME);
+            new Categories(categoriesFileStream);
+        } catch (ParserConfigurationException | SAXException | IOException e1) {
+            System.out.println("ERROR: couldn't load categories from categories config file.");
+            e1.printStackTrace();
+            System.exit(-1);
+        }
+    }
+
     /**
      * Initialize all the categories from the InputStream connected to the target XML file.
      *

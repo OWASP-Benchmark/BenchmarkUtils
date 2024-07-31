@@ -114,10 +114,10 @@ class MenuUpdaterTest {
                             assertFalse(file.contains("${vulnmenu}"));
                             assertTrue(
                                     file.contains(
-                                            "<li><a href=\"Benchmark_v1.2_Scorecard_for_Path_Traversal.html\">Path Traversal</a></li>\n"));
+                                            "<li><a href=\"Benchmark_v1.2_Scorecard_for_Path_Traversal.html\">Path Traversal</a></li>"));
                             assertTrue(
                                     file.contains(
-                                            "<li><a href=\"Benchmark_v1.2_Scorecard_for_Command_Injection.html\">Command Injection</a></li>\n"));
+                                            "<li><a href=\"Benchmark_v1.2_Scorecard_for_Command_Injection.html\">Command Injection</a></li>"));
 
                             assertFalse(file.contains("${testsuite}"));
                             assertTrue(file.contains("testsuite=OWASP Benchmark"));
