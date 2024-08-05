@@ -85,14 +85,13 @@ public class SemgrepReader extends Reader {
             case 501:
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
             case 614:
-            case 1004:
                 return CweNumber.INSECURE_COOKIE;
+            case 1004:
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
             case 643:
                 return CweNumber.XPATH_INJECTION;
             default:
-                System.out.println(
-                        "INFO: Found following CWE in SemGrep results which we haven't seen before: "
-                                + cwe);
+                System.out.println("WARNING: Found CWE in SemGrep we haven't seen before: " + cwe);
         }
         return cwe;
     }
@@ -228,8 +227,7 @@ public class SemgrepReader extends Reader {
                 String evidence = result.getString("check_id");
 
                 tcr.setCWE(cwe);
-                tcr.setCategory(category);
-                tcr.setEvidence(evidence);
+                tcr.setEvidence(category + "::" + evidence);
                 tcr.setConfidence(0);
                 tcr.setNumber(testNumber(className));
 

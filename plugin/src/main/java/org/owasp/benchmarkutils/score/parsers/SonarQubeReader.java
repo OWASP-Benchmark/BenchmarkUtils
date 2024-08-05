@@ -124,7 +124,6 @@ public class SonarQubeReader extends Reader {
         tcr.setCWE(cweLookup(rule.substring("squid:".length())));
 
         String cat = getNamedChild("message", flaw).getTextContent();
-        tcr.setCategory(cat);
         tcr.setConfidence(5);
         tcr.setEvidence(cat);
 
@@ -531,6 +530,6 @@ public class SonarQubeReader extends Reader {
                                 + " has no CWE mapping.");
         }
 
-        return -1;
+        return CweNumber.DONTCARE;
     }
 }

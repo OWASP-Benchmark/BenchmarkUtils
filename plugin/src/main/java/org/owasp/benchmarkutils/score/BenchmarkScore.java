@@ -156,6 +156,7 @@ public class BenchmarkScore extends AbstractMojo {
             loadConfigFromCommandLineArguments(args);
         } catch (RuntimeException e) {
             System.out.println("Error processing configuration for Scoring. Aborting.");
+            e.printStackTrace();
             System.exit(-1);
         }
 

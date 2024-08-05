@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -114,7 +113,7 @@ public class DatadogReader extends Reader {
 
             int originalPos = 0;
             int indexPos;
-            while((indexPos=line.indexOf(TYPE, originalPos))!=-1) {
+            while ((indexPos = line.indexOf(TYPE, originalPos)) != -1) {
                 int pos = indexPos + TYPE.length();
                 originalPos = pos;
                 String type = line.substring(pos, line.indexOf('"', pos + 1));
@@ -122,7 +121,7 @@ public class DatadogReader extends Reader {
                 Type t = Type.secureValueOf(type);
                 if (t != null) {
                     tcr.setCWE(t.number);
-                    tcr.setCategory(t.id);
+                    tcr.setEvidence(t.id);
 
                     try {
                         tcr.setNumber(Integer.parseInt(testNumber));

@@ -52,8 +52,8 @@ public class MendReader extends Reader {
                         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
                             TestCaseResult tcr = new TestCaseResult();
 
-                            tcr.setCategory(result.type.name);
                             tcr.setCWE(result.type.cwe.asNumber());
+                            tcr.setEvidence(result.type.name);
                             tcr.setNumber(testNumber(testfile));
 
                             tr.put(tcr);

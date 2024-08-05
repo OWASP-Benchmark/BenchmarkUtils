@@ -146,8 +146,6 @@ public class AcunetixReader extends Reader {
         }
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
             tcr.setNumber(testNumber(testfile));
-            String cat = getNamedChild("type", vuln).getTextContent();
-            tcr.setCategory(cat);
 
             Node classification = getNamedChild("classification", vuln);
             Node vulnId = getNamedChild("cwe", classification);
@@ -155,8 +153,6 @@ public class AcunetixReader extends Reader {
                 String cweNum = vulnId.getTextContent();
                 int cwe = cweLookup(cweNum);
                 tcr.setCWE(cwe);
-                // System.out.println("Found CWE: " + cwe + " in test case: " +
-                // tcr.getNumber());
                 tcr.setConfidence(
                         Integer.parseInt(getNamedChild("certainty", vuln).getTextContent()));
                 return tcr;
@@ -186,7 +182,6 @@ public class AcunetixReader extends Reader {
         TestCaseResult tcr = new TestCaseResult();
 
         String cat = getNamedChild("Name", flaw).getTextContent();
-        tcr.setCategory(cat);
         tcr.setEvidence(cat);
 
         Node cweList = getNamedChild("CWEList", flaw);
@@ -196,9 +191,6 @@ public class AcunetixReader extends Reader {
             int cwe = cweLookup(cweNum, cat);
             tcr.setCWE(cwe);
         }
-
-        //        String conf = getNamedChild( "Severity", flaw ).getTextContent();
-        //        tcr.setConfidence( Integer.parseInt( conf ) );
 
         String uri = getNamedChild("Affects", flaw).getTextContent();
         int spaceIdx = uri.indexOf(' ');
@@ -220,7 +212,7 @@ public class AcunetixReader extends Reader {
     private int cweLookup(String cweNum) {
         if (cweNum == null || cweNum.isEmpty()) {
             System.out.println("ERROR: No CWE number supplied");
-            return 0000;
+            return CweNumber.UNKNOWN;
         }
         return cweLookup(cweNum, null);
     }
@@ -228,7 +220,7 @@ public class AcunetixReader extends Reader {
     private int cweLookup(String cweNum, String name) {
         if (cweNum == null || cweNum.isEmpty()) {
             System.out.println("ERROR: No CWE number supplied");
-            return 0000;
+            return CweNumber.UNKNOWN;
         }
         switch (cweNum) {
             case "22":
@@ -250,25 +242,12 @@ public class AcunetixReader extends Reader {
                 }
                 break;
 
-                // switch left in case we ever need to map a reported cwe to the one expected by
-                // Benchmark
-                //        case "ldap-injection"            :  return 90;   // ldap injection
-                //        case "header-injection"          :  return 113;  // header injection
-                //        case "hql-injection"             :  return 0000; // hql injection
-                //        case "unsafe-readline"           :  return 0000; // unsafe readline
-                //        case "reflection-injection"      :  return 0000; // reflection injection
-                //        case "xpath-injection"           :  return 643;  // xpath injection
-                //        case "crypto-bad-mac"            :  return 328;  // weak hash
-                //        case "crypto-weak-randomness"    :  return 330;  // weak random
-                //        case "crypto-bad-ciphers"        :  return 327;  // weak encryption
-                //        case "trust-boundary-violation"  :  return 501;  // trust boundary
-                //        case "xxe"                       :  return 611;  // xml entity
             case "209": // Application error messages
-                return CweNumber.DONTCARE;
+                return 209;
             case "310": // TLS/SSL LOGJAM attack
-                return CweNumber.DONTCARE;
+                return 310;
             case "937": // Vulnerable JavaScript libraries
-                return CweNumber.DONTCARE;
+                return 937;
         }
 
         // Add any 'new' CWEs ever found to switch above so we know they are mapped properly.

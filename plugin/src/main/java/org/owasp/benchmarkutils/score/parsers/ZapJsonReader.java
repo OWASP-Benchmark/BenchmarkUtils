@@ -204,8 +204,7 @@ public class ZapJsonReader extends Reader {
                 return Integer.parseInt(cwe); // Return the CWE anyway.
 
             default:
-                System.out.println(
-                        "WARNING: ZAP CWE not mapped to expected test suite CWE: " + cwe);
+                System.out.println("WARNING: Unmapped ZAP CWE encountered: " + cwe);
                 return Integer.parseInt(cwe);
         }
     }

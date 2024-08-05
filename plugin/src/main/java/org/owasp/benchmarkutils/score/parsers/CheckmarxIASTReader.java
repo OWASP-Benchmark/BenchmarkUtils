@@ -48,7 +48,6 @@ public class CheckmarxIASTReader extends Reader {
             //      System.out.println("URL = "+url); //For debugging YE
 
             TestCaseResult tcr = new TestCaseResult();
-            tcr.setCategory(checkerKey);
             tcr.setCWE(cweLookup(checkerKey));
             Pattern testCasePattern =
                     Pattern.compile(

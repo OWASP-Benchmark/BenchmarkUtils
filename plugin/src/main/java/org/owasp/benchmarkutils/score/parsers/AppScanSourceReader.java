@@ -106,7 +106,6 @@ public class AppScanSourceReader extends Reader {
                 int confidence = Integer.parseInt(confString);
 
                 String vtype = vulns.get(vid);
-                tcr.setCategory(vtype);
 
                 tcr.setCWE(cweLookup(vtype));
                 tcr.setEvidence(vtype);
@@ -114,8 +113,7 @@ public class AppScanSourceReader extends Reader {
 
                 // Exclude Confidence 3 - apparently these are "scan coverage"
                 // We tried excluding Confidence 2 as well - as these are "suspect", but AppScan's
-                // score actually
-                // went down because it excludes ALL of the weak randomness findings.
+                // score actually went down because it excludes ALL of the weak randomness findings.
                 // Confidence 1 - are "definitive" findings
                 if (confidence < 3) {
                     tr.put(tcr);
@@ -137,12 +135,6 @@ public class AppScanSourceReader extends Reader {
         return hours + ":" + mins + ":" + secs;
     }
 
-    /*    private static void printPool(Map<Integer, String> vulns) {
-    		for ( Map.Entry<Integer, String> e : vulns.entrySet() ) {
-    			System.out.println( "  " + e.getKey() + " :: " + e.getValue() );
-    		}
-    	  }
-    */
     private int cweLookup(String vtype) {
         switch (vtype) {
                 //		case "Vulnerability.AppDOS" : return 00;

@@ -35,7 +35,7 @@ public class ExpectedResultsProvider {
     private static final String PREFIX = " version: ";
 
     private static final String TEST_NAME = "# test name";
-    private static final String CATEGORY = " category";
+    // private static final String CATEGORY = " category";
     private static final String REAL_VULNERABILITY = " real vulnerability";
     private static final String CWE = " cwe";
 
@@ -52,23 +52,34 @@ public class ExpectedResultsProvider {
             String testCaseName = tr.getTestSuiteName() + BenchmarkScore.TEST;
 
             for (CSVRecord record : parser) {
-                if (record.get(TEST_NAME).startsWith(tr.getTestSuiteName() + BenchmarkScore.TEST)) {
-                    TestCaseResult tcr = new TestCaseResult();
+                TestCaseResult tcr = new TestCaseResult();
 
-                    tcr.setTestCaseName(record.get(TEST_NAME).trim());
-                    tcr.setCategory(record.get(CATEGORY).trim());
-                    tcr.setTruePositive(parseBoolean(record.get(REAL_VULNERABILITY).trim()));
-                    tcr.setCWE(parseInt(record.get(CWE).trim()));
-                    tcr.setNumber(testNumber(record.get(TEST_NAME).trim(), testCaseName));
-
-                    if (isExtendedResultsFile(parser)) {
-                        tcr.setSource(record.get(SOURCE).trim());
-                        tcr.setDataFlow(record.get(DATA_FLOW).trim());
-                        tcr.setSink(record.get(SINK).trim());
-                    }
-
-                    tr.put(tcr);
+                tcr.setTestCaseName(record.get(TEST_NAME).trim());
+                // tcr.setCategory(record.get(CATEGORY).trim()); // Autoset by setCWE() below.
+                tcr.setTruePositive(parseBoolean(record.get(REAL_VULNERABILITY).trim()));
+                int cwe = parseInt(record.get(CWE).trim());
+                tcr.setCWE(cwe);
+                if (TestCaseResult.UNMAPPED_CATEGORY.equals(tcr.getCategory())) {
+                    System.out.println(
+                            "FATAL ERROR: CWE metadata missing for CWE: "
+                                    + cwe
+                                    + " specified in results file: "
+                                    + resultFile.filename()
+                                    + ". Add missing data to categories.xml to address.");
+                    System.exit(-1);
                 }
+                if (record.get(TEST_NAME)
+                        .trim()
+                        .startsWith(tr.getTestSuiteName() + BenchmarkScore.TEST)) {
+                    tcr.setNumber(testNumber(record.get(TEST_NAME).trim(), testCaseName));
+                } else tcr.setNumber(TestCaseResult.NOT_USING_TESTCASE_NUMBERS);
+                if (isExtendedResultsFile(parser)) {
+                    tcr.setSource(record.get(SOURCE).trim());
+                    tcr.setDataFlow(record.get(DATA_FLOW).trim());
+                    tcr.setSink(record.get(SINK).trim());
+                }
+
+                tr.put(tcr);
             }
         }
 

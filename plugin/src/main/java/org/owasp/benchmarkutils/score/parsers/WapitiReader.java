@@ -88,8 +88,10 @@ public class WapitiReader extends Reader {
                 if (path.contains(BenchmarkScore.TESTCASENAME)) {
                     TestCaseResult tcr = new TestCaseResult();
                     tcr.setCWE(cwe);
-                    tcr.setCategory(getAttributeValue("name", vuln));
-                    tcr.setEvidence(getNamedChild("curl_command", entry).getTextContent());
+                    tcr.setEvidence(
+                            getAttributeValue("name", vuln)
+                                    + "::"
+                                    + getNamedChild("curl_command", entry).getTextContent());
                     tcr.setNumber(testNumber(path));
                     tr.put(tcr);
                 }
@@ -127,12 +129,14 @@ public class WapitiReader extends Reader {
                 return CweNumber.CSRF;
             case "611":
                 return CweNumber.XXE;
-            case "93": // HTTP Response Splitting
+            case "918": // SSRF
+                return CweNumber.SSRF;
+
+            case "93": // Improper Neutralization of CRLF
             case "530": // Exposure of Backup file
             case "538": // Htaccess bypass
             case "601": // Open Redirect
             case "798": // Hard Coded credentials
-            case "918": // SSRF
                 return CweNumber.DONTCARE;
 
                 // Note: Wapiti does report Secure Flag not set on cookie findings, but doesn't
@@ -140,6 +144,6 @@ public class WapitiReader extends Reader {
             default:
                 System.out.println("WARNING: Wapiti-Unmapped CWE number: " + cwe);
         }
-        return -1;
+        return CweNumber.UNKNOWN;
     }
 }

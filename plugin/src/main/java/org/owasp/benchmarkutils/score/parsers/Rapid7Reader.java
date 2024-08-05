@@ -52,8 +52,7 @@ public class Rapid7Reader extends Reader {
                 if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
                     TestCaseResult tcr = new TestCaseResult();
 
-                    tcr.setCategory(vulnerability.vulnType);
-                    tcr.setEvidence(vulnerability.attackType);
+                    tcr.setEvidence(vulnerability.vulnType + "::" + vulnerability.attackType);
                     tcr.setCWE(cweLookup(vulnerability.cwe, vulnerability.attackType));
                     tcr.setNumber(testNumber(testfile));
 
@@ -95,14 +94,14 @@ public class Rapid7Reader extends Reader {
                     case "X-Content-Type-Options header not found":
                     case "X-Frame-Options HTTP header checking":
                     case "X-XSS-Protection header not found":
-                        return 0;
+                        return CweNumber.DONTCARE;
                     default:
                         {
                             // If this prints out anything new, add to this mapping so we know it's
                             // mapped properly.
                             System.out.println(
-                                    "Found new unmapped finding with evidence: " + evidence);
-                            return 0; // In case they add any new mappings
+                                    "Found unmapped Rapid7 finding with evidence: " + evidence);
+                            return CweNumber.DONTCARE; // In case they add any new mappings
                         }
                 }
             case 79:
@@ -142,6 +141,8 @@ public class Rapid7Reader extends Reader {
             case 209: // Find SQL query constructions - This causes their TP rate to go up 2.5% but
                 // FP rate up 7.75%
                 return CweNumber.SQL_INJECTION;
+            default:
+                System.out.println("Unmapped Rapid7 CWE found: " + cwe + ". Returning 'as is'.");
         }
         return cwe;
     }

@@ -21,6 +21,7 @@ import java.io.StringReader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -41,38 +42,38 @@ public class ReshiftReader extends Reader {
             case "Path Traversal (Read)":
             case "Path Traversal (Relative)":
             case "Path Traversal (Write)":
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
 
             case "SQL Injection (Hibernate)":
             case "SQL Injection (Java Database Connectivity)":
             case "SQL Injection (JDBC)":
             case "SQL Injection (Non-constant String)":
             case "SQL Injection (Prepared Statement)":
-                return 89; // sql injection
+                return CweNumber.SQL_INJECTION;
 
             case "Arbitrary Command Execution":
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
             case "XPath Injection":
-                return 643; // xpath injection
+                return CweNumber.XPATH_INJECTION;
             case "Cipher is Susceptible to Padding Oracle":
             case "Cipher With No Integrity":
             case "DES is Insecure":
             case "DESede is Insecure":
             case "Static IV":
-                return 327; // weak encryption
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "MD2, MD4 and MD5 Are Weak Hash Functions":
             case "SHA-1 is a Weak Hash Function":
-                return 328; // weak hash
+                return CweNumber.WEAK_HASH_ALGO;
             case "LDAP Injection":
-                return 90; // ldap injection
+                return CweNumber.LDAP_INJECTION;
             case "Cross-Site Scripting (XSS-Servlet Output)":
-                return 79; // xss
+                return CweNumber.XSS;
 
             default:
                 System.out.println(
-                        "WARNING: Unmapped Vulnerability category detected: " + checkerKey);
+                        "WARNING: Unmapped Reshift vuln category detected: " + checkerKey);
         }
-        return 0;
+        return CweNumber.DONTCARE;
     }
 
     @Override
@@ -98,9 +99,9 @@ public class ReshiftReader extends Reader {
             inReader.readLine();
         }
 
-        String header =
-                "None" + inReader.readLine(); // Have append this to the front as the 1st column is
-        // not named.
+        // Have to append this to the front as the 1st column is not named.
+        String header = "None" + inReader.readLine();
+
         CSVFormat.Builder CSVBuilder = CSVFormat.Builder.create(CSVFormat.RFC4180);
         CSVBuilder.setHeader(header.split(","));
         Iterable<CSVRecord> records = CSVBuilder.build().parse(inReader);
@@ -112,8 +113,8 @@ public class ReshiftReader extends Reader {
                 if (url.contains(BenchmarkScore.TESTCASENAME)) {
                     TestCaseResult tcr = new TestCaseResult();
                     String category = record.get("Category");
-                    tcr.setCategory(category);
                     tcr.setCWE(cweLookup(category));
+                    tcr.setEvidence(category);
                     tcr.setNumber(testNumber(url));
                     if (tcr.getCWE() != 0) {
                         tr.put(tcr);
@@ -123,8 +124,6 @@ public class ReshiftReader extends Reader {
                 System.out.println("> Parse error: " + record.toString());
             }
         }
-
-        tr.setTime("100");
 
         return tr;
     }

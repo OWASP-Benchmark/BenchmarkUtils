@@ -22,6 +22,9 @@ public class CweNumber {
     /** To be used when the CWE reported is one we don't care about in any test suite */
     public static int DONTCARE = 0000;
 
+    /** To be used when the CWE reported is unknown */
+    public static int UNKNOWN = -1;
+
     /** CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal') */
     public static int PATH_TRAVERSAL = 22;
 

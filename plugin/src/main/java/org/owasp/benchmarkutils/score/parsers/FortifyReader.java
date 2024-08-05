@@ -156,7 +156,6 @@ public class FortifyReader extends Reader {
         Node ci = getNamedNode("ClassInfo", vuln.getChildNodes());
         Node type = getNamedNode("Type", ci.getChildNodes());
         String vulnType = type.getTextContent();
-        tcr.setCategory(vulnType);
 
         // We grab this as sometimes we need to dig into this to verify the details of an issue
         Node ai = getNamedNode("AnalysisInfo", vuln.getChildNodes());

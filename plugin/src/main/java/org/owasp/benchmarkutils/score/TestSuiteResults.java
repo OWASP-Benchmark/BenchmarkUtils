@@ -111,7 +111,8 @@ public class TestSuiteResults {
         // This warning message is added just in case. It can be caused by a buggy parser or
         // invalid results file.
         int testCaseNum = tcr.getNumber();
-        if (testCaseNum <= 0 || testCaseNum > 10000) {
+        if ((testCaseNum <= 0 || testCaseNum > 10000)
+                && testCaseNum != TestCaseResult.NOT_USING_TESTCASE_NUMBERS) {
             System.out.println(
                     "WARNING: Did you really intend to add a test case result for test case: "
                             + testCaseNum);

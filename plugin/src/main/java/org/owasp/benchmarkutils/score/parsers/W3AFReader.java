@@ -79,14 +79,8 @@ public class W3AFReader extends Reader {
         TestCaseResult tcr = new TestCaseResult();
 
         String type = getAttributeValue("plugin", flaw);
-        tcr.setCategory(type);
-
-        String confidence = getNamedChild("fix-effort", flaw).getTextContent();
-        tcr.setConfidence(Integer.parseInt(confidence));
-
-        String severity = getAttributeValue("severity", flaw);
         String description = getNamedChild("description", flaw).getTextContent();
-        tcr.setEvidence(severity + "::" + description);
+        tcr.setEvidence(type + "::" + description);
 
         String name = getAttributeValue("name", flaw);
         int cwe = cweLookup(name);
@@ -107,28 +101,13 @@ public class W3AFReader extends Reader {
 
     private int cweLookup(String name) {
         if (name == null || name.isEmpty()) {
-            return 0000;
+            return CweNumber.UNKNOWN;
         }
         switch (name) {
             case "Cross site scripting vulnerability":
                 return CweNumber.XSS;
-                //        case "insecure-cookie"           :  return 614;  // insecure cookie use
-                //        case "sql-injection"             :  return 89;   // sql injection
-                //        case "cmd-injection"             :  return 78;   // command injection
-                //        case "ldap-injection"            :  return 90;   // ldap injection
-                //        case "header-injection"          :  return 113;  // header injection
-                //        case "hql-injection"             :  return 0000; // hql injection
-                //        case "unsafe-readline"           :  return 0000; // unsafe readline
-                //        case "reflection-injection"      :  return 0000; // reflection injection
-                //        case "reflected-xss"             :  return 79;   // xss
-                //        case "xpath-injection"           :  return 643;  // xpath injection
-                //        case "path-traversal"            :  return 22;   // path traversal
-                //        case "crypto-bad-mac"            :  return 328;  // weak hash
-                //        case "crypto-weak-randomness"    :  return 330;  // weak random
-                //        case "crypto-bad-ciphers"        :  return 327;  // weak encryption
-                //        case "trust-boundary-violation"  :  return 501;  // trust boundary
-                //        case "xxe"                       :  return 611;  // xml entity
+                // Apparently the rest of the W3AF findings we don't care about so aren't mapped
         }
-        return 0000;
+        return CweNumber.UNKNOWN;
     }
 }

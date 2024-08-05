@@ -60,8 +60,8 @@ public class FluidAttacksReader extends Reader {
 
             // We are only interested in results for the Benchmark test cases
             if (testCaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
-                testCaseResult.setCategory(category);
                 testCaseResult.setCWE(categoryToExpectedCwe(category));
+                testCaseResult.setEvidence(category);
                 testCaseResult.setNumber(
                         Integer.parseInt(
                                 testCaseName.substring(
@@ -100,7 +100,7 @@ public class FluidAttacksReader extends Reader {
             case "xpathi":
                 return 643;
             default:
-                return 0;
+                return 0; // Don't care about anything else
         }
     }
 
@@ -131,6 +131,7 @@ public class FluidAttacksReader extends Reader {
             case "643":
                 return "xpathi";
             default:
+                System.out.println("WARNING: FluidAttacks-Unrecognized finding type: " + cwe);
                 return "other";
         }
     }

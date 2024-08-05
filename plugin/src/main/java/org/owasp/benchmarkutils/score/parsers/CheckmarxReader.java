@@ -102,17 +102,15 @@ public class CheckmarxReader extends Reader {
         if (cwe != null) {
             tcr.setCWE(translate(Integer.parseInt(cwe)));
         } else {
-            System.out.println("flaw: " + query);
+            System.out.println("WARNING: no CWE number found for vuln in node: " + query);
+            return null;
         }
 
         String name = getAttributeValue("name", query);
-        tcr.setCategory(name);
         // filter out dynamic SQL queries because they report SQL injection separately - these are
-        // just dynamic SQL
-        // Other queries are filtered because they are a CHILD_OF of some other query and they share
-        // the same cwe id
-        // We only want the results from the queries that are relevant (PARENT_OF) for the benchmark
-        // project
+        // just dynamic SQL. Other queries are filtered because they are a CHILD_OF of some other
+        // query and they share the same CWE id. We only want the results from the queries that
+        // are relevant (PARENT_OF) for the Benchmark project
         if (name.equals("Dynamic_SQL_Queries")
                 || name.equals("Heuristic_2nd_Order_SQL_Injection")
                 || name.equals("Heuristic_SQL_Injection")

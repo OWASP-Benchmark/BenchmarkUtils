@@ -65,9 +65,7 @@ public class ThunderScanReader extends Reader {
         int testcasenum = testNumber(vulnerability.filename);
         if (testcasenum > 0) {
             tcResult.setNumber(testcasenum);
-            tcResult.setCategory(vulnerabilityType.name);
-            tcResult.setConfidence(1);
-            tcResult.setEvidence(lineNumber(vulnerability));
+            tcResult.setEvidence(vulnerabilityType.name + "::" + lineNumber(vulnerability));
             return tcResult;
         }
         return null; // Finding not in a test case
@@ -133,24 +131,26 @@ public class ThunderScanReader extends Reader {
                     return CweNumber.INSECURE_COOKIE;
                 }
 
-                return -1;
+                return CweNumber.DONTCARE;
+
             case "JSP Page Execution":
             case "Dangerous File Extensions":
             case "Arbitrary Server Connection":
             case "Log Forging":
             case "Mail Relay":
             case "HTTP Response Splitting":
-                return -1;
+                return CweNumber.DONTCARE;
+
             default:
                 System.out.println(
-                        "INFO: Unable to figure out cwe for: "
+                        "INFO: Unknown ThunderScan CWE mapping for: "
                                 + type
                                 + ", "
                                 + function
                                 + " @ "
                                 + filename);
-                return -1;
         }
+        return CweNumber.DONTCARE;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

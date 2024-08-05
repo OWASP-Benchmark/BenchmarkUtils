@@ -2,12 +2,12 @@
     isInjection is used to indicate CWEs where if a dataflow changes the input at all, it would likely break an exploit.
 -->
 <categories>
-    <category>
+    <!-- category> As this maps to the same CWE as missing Cache Control, we can't have both, so commenting this out.
         <id>autocomp</id>
         <name>Autocomplete Not Disabled</name>
         <cwe>525</cwe>
         <shortname>AUTO</shortname>
-    </category>
+        </category -->
     <category>
         <id>avail</id>
         <name>Availability</name>
@@ -17,6 +17,7 @@
     <category>
         <id>cache</id>
         <name>Cache Control</name>
+        <cwe>525</cwe>
         <shortname>CACHE</shortname>
     </category>
     <category>
@@ -48,7 +49,7 @@
     <category>
         <id>hardcode</id>
         <name>Hard-coded Credentials</name>
-        <cwe>328</cwe>
+        <cwe>798</cwe>
         <shortname>HARD</shortname>
     </category>
     <category>

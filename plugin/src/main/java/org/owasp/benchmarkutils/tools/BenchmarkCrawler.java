@@ -19,7 +19,6 @@ package org.owasp.benchmarkutils.tools;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -60,10 +59,8 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.TestSuite;
 import org.owasp.benchmarkutils.helpers.Utils;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 
 @Mojo(name = "run-crawler", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
 public class BenchmarkCrawler extends AbstractMojo {
@@ -97,11 +94,6 @@ public class BenchmarkCrawler extends AbstractMojo {
 
     void load() {
         try {
-            // Force initialization of the Categories singleton.
-            InputStream categoriesFileStream =
-                    BenchmarkScore.class.getClassLoader().getResourceAsStream(Categories.FILENAME);
-            new Categories(categoriesFileStream);
-
             this.testSuite = Utils.parseHttpFile(this.theCrawlerFile);
             Collections.sort(
                     this.testSuite.getTestCases(),

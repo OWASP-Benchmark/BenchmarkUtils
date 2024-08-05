@@ -237,7 +237,7 @@ public class NJSScanReader extends Reader {
 
             default:
                 System.out.println(
-                        "WARNING: NJSScan-Unrecognized cwe: "
+                        "WARNING: NJSScan-Unrecognized CWE: "
                                 + cwe
                                 + ". Verify mapping is correct and add mapping to NJSScanReader.");
         }

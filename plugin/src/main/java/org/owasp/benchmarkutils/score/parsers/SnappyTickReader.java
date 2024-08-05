@@ -22,6 +22,7 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -87,7 +88,6 @@ public class SnappyTickReader extends Reader {
                     String findingName = filename.substring(0, filename.indexOf("."));
                     if (findingCWE != 0) {
                         TestCaseResult tcr = new TestCaseResult();
-                        tcr.setCategory(findingName);
                         tcr.setCWE(findingCWE);
                         tcr.setEvidence(findingName);
                         tcr.setNumber(extractTestNumber(findingName));
@@ -111,37 +111,35 @@ public class SnappyTickReader extends Reader {
     private int cweLookup(String checkerKey) {
         switch (checkerKey.trim()) {
             case "1004":
-                return 614; // HTTPOnly Flag Not Set For Cookies:insecure cookie use
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
             case "614":
-                return 614; // Cookie not Sent Over SSL:insecure cookie use
+                return CweNumber.INSECURE_COOKIE;
             case "78":
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
             case "89":
-                return 89; // SQL injection
+                return CweNumber.SQL_INJECTION;
             case "755":
                 return 755; // SQL Exception Vulnerability:Info Leak
             case "258":
-                return 000; // "Use an empty string as a password"
+                return 258; // "Use an empty string as a password"
             case "20":
                 return 20; // "Input Validation Issue or Input Validation Required"
             case "79":
-                return 79; // Malicious Scripting Attacks and xss
+                return CweNumber.XSS;
             case "73":
-                return 22; // Path Manipulation: path traversal
+                return CweNumber.PATH_TRAVERSAL; // Path Manipulation: path traversal
             case "538":
-                return 22; // File Disclosure Vulnerability:path traversal
+                return CweNumber.PATH_TRAVERSAL; // File Disclosure Vulnerability:path traversal
             case "330":
-                return 330; // Use of java.util.Random generator function:weak random
+                return CweNumber.WEAK_RANDOM; // Use of java.util.Random
             case "327":
-                return 327; // Broken Cryptography or
-                // Weak Encryption Insecure Mode of Operation:weak encryption
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "328":
-                return 328; // Broken Hashing algorithm
+                return CweNumber.WEAK_HASH_ALGO;
             default:
                 System.out.println(
-                        "Found unrecognized vulnerability type in Snappy Tick results: "
-                                + checkerKey);
+                        "Found unrecognized vuln type in Snappy Tick results: " + checkerKey);
         }
-        return 0;
+        return CweNumber.DONTCARE;
     }
 }

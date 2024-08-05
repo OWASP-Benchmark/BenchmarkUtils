@@ -83,7 +83,6 @@ public class BurpReader extends Reader {
         tcr.setCWE(cweLookup(cwe));
 
         String name = getNamedChild("name", issue).getTextContent();
-        tcr.setCategory(name);
         tcr.setEvidence(name);
 
         // String confidence = getNamedChild( "confidence", issue ).getTextContent();

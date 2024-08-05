@@ -97,10 +97,12 @@ public class VisualCodeGrepperReader extends Reader {
 
             Node catnode = getNamedNode("Title", n.getChildNodes());
             tcr.setCWE(figureCWE(tcr, catnode));
-            tcr.setCategory(getNamedNode("Title", n.getChildNodes()).getTextContent());
             tcr.setConfidence(
                     Integer.parseInt(getNamedNode("Priority", n.getChildNodes()).getTextContent()));
-            tcr.setEvidence(getNamedNode("CodeLine", n.getChildNodes()).getTextContent());
+            tcr.setEvidence(
+                    getNamedNode("Title", n.getChildNodes()).getTextContent()
+                            + "::"
+                            + getNamedNode("CodeLine", n.getChildNodes()).getTextContent());
             return tcr;
         }
         return null;
@@ -161,8 +163,8 @@ public class VisualCodeGrepperReader extends Reader {
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
 
             default:
-                return 00; // System.out.println( "Unknown vuln category for VisualCodeGrepper: " +
-                // cat );
+                // System.out.println( "Unknown vuln category for VisualCodeGrepper: " + cat );
+                return CweNumber.DONTCARE;
         }
     }
 }

@@ -104,7 +104,7 @@ public class FindbugsReader extends Reader {
                     tcr.setCWE(figureCWE(tcr, cwenode, catnode));
 
                     String type = attrs.getNamedItem("type").getNodeValue();
-                    tcr.setCategory(type);
+                    tcr.setEvidence(type);
 
                     return tcr;
                 } catch (Exception e) {

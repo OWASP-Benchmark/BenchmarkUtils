@@ -243,7 +243,6 @@ public abstract class SarifReader extends Reader {
         }
 
         String ruleId = result.getString("ruleId");
-
         int cwe = mappings.getOrDefault(ruleId, -1);
 
         if (cwe == -1) {
@@ -253,7 +252,6 @@ public abstract class SarifReader extends Reader {
         String evidence = result.getJSONObject("message").getString("text");
 
         tcr.setCWE(cwe);
-        tcr.setCategory(ruleId);
         tcr.setEvidence(evidence);
         tcr.setConfidence(0);
         tcr.setNumber(testNumber(className));

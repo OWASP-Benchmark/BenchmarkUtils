@@ -19,6 +19,7 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -78,7 +79,6 @@ public class WebInspectReader extends Reader {
         TestCaseResult tcr = new TestCaseResult();
 
         String cat = getNamedChild("Name", flaw).getTextContent();
-        tcr.setCategory(cat);
         tcr.setEvidence(cat);
 
         Node vulnId = getNamedChild("VulnerabilityID", flaw);
@@ -107,76 +107,64 @@ public class WebInspectReader extends Reader {
     private int cweLookup(String rule) {
         switch (rule) {
             case "810":
-                return 0000; // Poor Error Handling: Unhandled Exception
             case "1436":
-                return 0000; // Poor Error Handling: Unhandled Exception
             case "1498":
-                return 0000; // Poor Error Handling: Unhandled Exception
+                return CweNumber.DONTCARE; // Poor Error Handling: Unhandled Exception
+
             case "4720":
-                return 614; // Cookie Security: Cookie Not Sent Over SSL
+                return CweNumber.INSECURE_COOKIE; // Cookie Security: Cookie Not Sent Over SSL
             case "4724":
-                return 0000; // Password Management: Unmasked Password Field
+                return CweNumber.DONTCARE; // Password Management: Unmasked Password Field
             case "4725":
-                return 0000; // Server Misconfiguration: SSL Certificate Hostname Discrepancy
+                return CweNumber
+                        .DONTCARE; // Server Misconfiguration: SSL Certificate Hostname Discrepancy
             case "4729":
-                return 0000; // Transport Layer Protection: Insecure Transmission
+                return CweNumber.DONTCARE; // Transport Layer Protection: Insecure Transmission
             case "5546":
-                return 0000; // Compliance Failure: Missing Privacy Policy
+                return CweNumber.DONTCARE; // Compliance Failure: Missing Privacy Policy
             case "5597":
-                return 0000; // Privacy Violation: Autocomplete
+                return CweNumber.DONTCARE; // Privacy Violation: Autocomplete
             case "5649":
-                return 79; // Cross-Site Scripting: Reflected
+                return CweNumber.XSS; // Cross-Site Scripting: Reflected
             case "10167":
-                return 0000; // Password Management: Insecure Submission
+                return CweNumber.DONTCARE; // Password Management: Insecure Submission
             case "10210":
-                return 0000; // Access Control: Unprotected Directory
+                return CweNumber.DONTCARE; // Access Control: Unprotected Directory
             case "10237":
-                return 0000; // Privacy Violation: Credit Card Number
+                return CweNumber.DONTCARE; // Privacy Violation: Credit Card Number
             case "10543":
-                return 0000; // Cookie Security: HTTPOnly not Set
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY; // Cookie Security: HTTPOnly not Set
             case "10655":
-                return 0000; // Application Misconfiguration: Exposure of POST Parameters in GET
+                return CweNumber
+                        .DONTCARE; // Application Misconfiguration: Exposure of POST Parameters in
+                // GET
                 // Request
             case "10825":
-                return 0000; // Privacy Violation: Credit Card Number
+                return CweNumber.DONTCARE; // Privacy Violation: Credit Card Number
             case "10932":
-                return 0000; // Poor Error Handling: Server Error Message
+                return CweNumber.DONTCARE; // Poor Error Handling: Server Error Message
             case "10965":
-                return 0000; // Transport Layer Protection: Insecure Transmission
+                return CweNumber.DONTCARE; // Transport Layer Protection: Insecure Transmission
             case "11293":
-                return 79; // Cross-Frame Scripting
             case "11294":
-                return 79; // Cross-Frame Scripting
+                return CweNumber.XSS; // Cross-Frame Scripting
             case "11299":
-                return 89; // SQL Injection: Blind
+                return CweNumber.SQL_INJECTION; // SQL Injection: Blind
             case "11306":
-                return 0000; // Server Misconfiguration: Cache Policy
+                return CweNumber.DONTCARE; // Server Misconfiguration: Cache Policy
             case "11359":
-                return 0000; // Server Misconfiguration: Response Headers
+                return CweNumber.DONTCARE; // Server Misconfiguration: Response Headers
             case "11365":
-                return 0000; // Insecure SSL: Missing Http Strict Transport
+                return CweNumber.DONTCARE; // Insecure SSL: Missing Http Strict Transport
             case "11380":
-                return 0000; // Often Misused: Weak SSL Certificate
+                return CweNumber.DONTCARE; // Often Misused: Weak SSL Certificate
             case "11395":
-                return 0000; // Transport Layer Protection: Weak SSL Protocol
+                return CweNumber.DONTCARE; // Transport Layer Protection: Weak SSL Protocol
 
-                //        case "insecure-cookie"           :  return 614;  // insecure cookie use
-                //        case "sql-injection"             :  return 89;   // sql injection
-                //        case "cmd-injection"             :  return 78;   // command injection
-                //        case "ldap-injection"            :  return 90;   // ldap injection
-                //        case "header-injection"          :  return 113;  // header injection
-                //        case "hql-injection"             :  return 0000; // hql injection
-                //        case "unsafe-readline"           :  return 0000; // unsafe readline
-                //        case "reflection-injection"      :  return 0000; // reflection injection
-                //        case "reflected-xss"             :  return 79;   // xss
-                //        case "xpath-injection"           :  return 643;  // xpath injection
-                //        case "path-traversal"            :  return 22;   // path traversal
-                //        case "crypto-bad-mac"            :  return 328;  // weak hash
-                //        case "crypto-weak-randomness"    :  return 330;  // weak random
-                //        case "crypto-bad-ciphers"        :  return 327;  // weak encryption
-                //        case "trust-boundary-violation"  :  return 501;  // trust boundary
-                //        case "xxe"                       :  return 611;  // xml entity
+            default:
+                System.out.println("WARNING: Unknown WebInspect vuln category: " + rule);
         }
-        return 0;
+
+        return CweNumber.UNKNOWN;
     }
 }

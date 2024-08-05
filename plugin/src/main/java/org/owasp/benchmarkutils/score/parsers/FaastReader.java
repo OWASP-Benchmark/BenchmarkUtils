@@ -78,7 +78,7 @@ public class FaastReader extends Reader {
         if (url.contains(BenchmarkScore.TESTCASENAME)) {
             tcr.setNumber(testNumber);
             tcr.setCWE(cwe);
-            tcr.setCategory(category);
+            tcr.setEvidence(category);
             return tcr;
         }
 
@@ -86,8 +86,7 @@ public class FaastReader extends Reader {
     }
 
     private String getCategory(String url) {
-        // TODO: Use APPNAME constant rather than 'benchmark' here.
-        String flag = "benchmark/";
+        String flag = BenchmarkScore.TESTSUITENAME + "/";
         int locator_start = url.lastIndexOf(flag) + flag.length();
         int locator_end = url.lastIndexOf("/" + BenchmarkScore.TESTCASENAME);
         return url.substring(locator_start, locator_end);

@@ -17,6 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -78,9 +79,8 @@ public class SourceMeterReader extends Reader {
     private TestCaseResult parseSourceMeterItem(String vuln, String file) throws Exception {
         TestCaseResult tcr = new TestCaseResult();
 
-        tcr.setCategory(vuln);
-        tcr.setEvidence(file);
         tcr.setCWE(cweLookup(vuln));
+        tcr.setEvidence(vuln + "::" + file);
         int testno = testNumber(file);
         if (testno > 0) {
             tcr.setNumber(testno);
@@ -95,13 +95,13 @@ public class SourceMeterReader extends Reader {
                 //        case "insecure-cookie":
                 //            return 614; // insecure cookie use
             case "SQL Injection":
-                return 89; // sql injection
+                return CweNumber.SQL_INJECTION;
             case "Command Injection":
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
             case "LDAP Injection":
-                return 90; // ldap injection
+                return CweNumber.LDAP_INJECTION;
             case "HTTP Response Splitting":
-                return 113; // header injection
+                return CweNumber.HTTP_RESPONSE_SPLITTING;
                 //        case "hql-injection":
                 //            return 0000; // hql injection
                 //        case "unsafe-readline":
@@ -109,11 +109,11 @@ public class SourceMeterReader extends Reader {
                 //        case "reflection-injection":
                 //            return 0000; // reflection injection
             case "Cross-site Scripting":
-                return 79; // xss
+                return CweNumber.XSS;
                 //        case "xpath-injection":
                 //            return 643; // xpath injection
             case "Path Traversal":
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
                 //        case "crypto-bad-mac":
                 //            return 328; // weak hash
                 //        case "crypto-weak-randomness":
@@ -124,7 +124,10 @@ public class SourceMeterReader extends Reader {
                 //            return 501; // trust boundary
                 //        case "xxe":
                 //            return 611; // xml entity
+
+            default:
+                System.out.println("WARNING: Unknown SourceMeter vuln category: " + vuln);
         }
-        return 0;
+        return CweNumber.DONTCARE;
     }
 }

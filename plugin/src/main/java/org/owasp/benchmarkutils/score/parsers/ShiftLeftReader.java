@@ -19,6 +19,7 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -54,10 +55,9 @@ public class ShiftLeftReader extends Reader {
                 String category = split[1];
 
                 TestCaseResult testCaseResult = new TestCaseResult();
-                testCaseResult.setCategory(category);
                 testCaseResult.setNumber(Integer.parseInt(split[0]));
                 testCaseResult.setCWE(categoryToCWE(category));
-                testCaseResult.setEvidence(line);
+                testCaseResult.setEvidence(category + "::" + line);
 
                 tr.put(testCaseResult);
             }
@@ -69,29 +69,30 @@ public class ShiftLeftReader extends Reader {
     private int categoryToCWE(String category) {
         switch (category) {
             case "cmdi":
-                return 78;
+                return CweNumber.COMMAND_INJECTION;
             case "crypto":
-                return 327;
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "hash":
-                return 328;
+                return CweNumber.WEAK_HASH_ALGO;
             case "ldapi":
-                return 90;
+                return CweNumber.LDAP_INJECTION;
             case "pathtraver":
-                return 22;
+                return CweNumber.PATH_TRAVERSAL;
             case "securecookie":
-                return 614;
+                return CweNumber.INSECURE_COOKIE;
             case "sqli":
-                return 89;
+                return CweNumber.SQL_INJECTION;
             case "trustbound":
-                return 501;
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
             case "weakrand":
-                return 330;
+                return CweNumber.WEAK_RANDOM;
             case "xpathi":
-                return 643;
+                return CweNumber.XPATH_INJECTION;
             case "xss":
-                return 79;
+                return CweNumber.XSS;
             default:
-                throw new RuntimeException("Unknown category: " + category);
+                System.out.println("Unknown ShiftLeft vuln category: " + category);
+                return CweNumber.DONTCARE;
         }
     }
 }

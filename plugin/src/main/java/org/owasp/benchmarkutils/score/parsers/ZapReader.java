@@ -157,7 +157,6 @@ public class ZapReader extends Reader {
         if (cwe != -1) {
             tcr.setCWE(cwe);
         }
-        tcr.setCategory(category);
         tcr.setEvidence(category);
         tcr.setConfidence(confidence);
         tcr.setNumber(testNumber);

@@ -18,10 +18,12 @@
 package org.owasp.benchmarkutils.score;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.util.Map;
+import org.owasp.benchmarkutils.helpers.Categories;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -37,7 +39,7 @@ public class Configuration {
     public static final String NON_DEFAULT_SUCCESS_MESSAGE =
             "INFO: YAML Scoring config file found and loaded.";
 
-    public final String expectedResultsFileName;
+    public static String expectedResultsFileName;
 
     /** The name of the tool to 'focus' on, if any */
     public final String focus;
@@ -104,20 +106,49 @@ public class Configuration {
         SequenceInputStream sequenceInputStream =
                 new SequenceInputStream(resourceAsStream(DEFAULT_CONFIG), stream);
 
-        Configuration configuration = new Configuration(yaml.load(sequenceInputStream));
+        Configuration configuration = null;
+        try {
+            configuration = new Configuration(yaml.load(sequenceInputStream));
+
+        } catch (org.yaml.snakeyaml.scanner.ScannerException e) {
+            System.out.println("FATAL ERROR: YAML configuration file format error.");
+            e.printStackTrace();
+            System.exit(-1);
+        }
 
         System.out.println(successMessage);
-
         return configuration;
     }
 
     private Configuration(Map<String, Object> yamlConfig) {
+        // This is a special config item where, if set, we want to reinitialize the
+        // Categories singleton with this file instead of the default file bundled
+        // with this library
+        String categoriesXMLFileName = (String) yamlConfig.get("categoriesXMLfile");
+        if (categoriesXMLFileName != null) {
+
+            try {
+                InputStream categoriesFileStream = new FileInputStream(categoriesXMLFileName);
+                Categories.initCategoriesFromXMLFile(categoriesFileStream, categoriesXMLFileName);
+                System.out.println(
+                        "INFO: CWE Categories loaded from custom XML file: "
+                                + categoriesXMLFileName);
+            } catch (FileNotFoundException e) {
+                System.out.println(
+                        "FATAL ERROR: couldn't load custom categories.xml file: "
+                                + categoriesXMLFileName);
+                System.exit(-1);
+            }
+        }
+
         expectedResultsFileName = (String) yamlConfig.get("expectedresults");
         focus = (String) yamlConfig.get("focustool");
         anonymousMode = (Boolean) yamlConfig.get("anonymousmode");
         mixedMode = (Boolean) yamlConfig.get("mixedmode");
         showAveOnlyMode = (Boolean) yamlConfig.get("averageonlymode");
         resultsFileOrDirName = (String) yamlConfig.get("resultsfileordir");
+
+        // These are used to customize the generated scorecard
         cweCategoryName = (String) yamlConfig.get("cwecategoryname");
         tprLabel = (String) yamlConfig.get("tprlabel");
         includeProjectLink = (Boolean) yamlConfig.get("includeprojectlink");

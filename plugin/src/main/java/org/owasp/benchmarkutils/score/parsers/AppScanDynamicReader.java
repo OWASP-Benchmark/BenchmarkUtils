@@ -150,7 +150,6 @@ public class AppScanDynamicReader extends Reader {
         if (cwe == null) return null;
         tcr.setCWE(translate(cwe));
 
-        tcr.setCategory(cwekey);
         tcr.setEvidence(cwekey);
 
         // fixme: not really confidence

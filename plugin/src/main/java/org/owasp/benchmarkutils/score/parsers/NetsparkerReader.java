@@ -66,9 +66,6 @@ public class NetsparkerReader extends Reader {
     private TestCaseResult parseNetsparkerIssue(Node flaw) {
         TestCaseResult tcr = new TestCaseResult();
 
-        String type = getNamedChild("type", flaw).getTextContent();
-        tcr.setCategory(type);
-
         String severity = getNamedChild("severity", flaw).getTextContent();
 
         String confidence = getNamedChild("certainty", flaw).getTextContent();

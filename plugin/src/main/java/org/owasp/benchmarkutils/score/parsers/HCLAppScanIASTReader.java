@@ -71,7 +71,8 @@ public class HCLAppScanIASTReader extends Reader {
         vulnerabilityToCweNumber.put("Cryptography.Ciphers", CweNumber.WEAK_CRYPTO_ALGO);
         vulnerabilityToCweNumber.put("Validation.Required", CweNumber.TRUST_BOUNDARY_VIOLATION);
         vulnerabilityToCweNumber.put("TrustBoundaryViolation", CweNumber.TRUST_BOUNDARY_VIOLATION);
-        vulnerabilityToCweNumber.put("attLoginNotOverSSL", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
+        vulnerabilityToCweNumber.put(
+                "attLoginNotOverSSL", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
         vulnerabilityToCweNumber.put("attFileUploadXXE", CweNumber.XXE);
         vulnerabilityToCweNumber.put("attCrossSiteRequestForgery", CweNumber.CSRF);
         vulnerabilityToCweNumber.put("passParamGET", CweNumber.UNPROTECTED_CREDENTIALS_TRANSPORT);
@@ -128,7 +129,7 @@ public class HCLAppScanIASTReader extends Reader {
 
             String ruleId = result.getJSONObject("issue-type").getString("ref");
             tcr.setCWE(cweLookup(ruleId));
-            tcr.setCategory(ruleId);
+            tcr.setEvidence(ruleId);
 
             JSONObject request =
                     result.getJSONArray("variant-group").getJSONObject(0).getJSONObject("request");

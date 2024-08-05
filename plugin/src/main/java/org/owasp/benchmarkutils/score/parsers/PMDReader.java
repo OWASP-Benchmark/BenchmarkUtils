@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -84,11 +85,8 @@ public class PMDReader extends Reader {
                 TestCaseResult tcr = new TestCaseResult();
 
                 tcr.setNumber(testNumber(testclass));
-                // System.out.println(
-                //        "PMD found violation: " + violation + " in test case: " + testclass);
                 tcr.setCWE(figureCWE(violation));
 
-                tcr.setCategory(violation);
                 tcr.setEvidence(violation);
                 results.add(tcr);
             }
@@ -115,38 +113,38 @@ public class PMDReader extends Reader {
             case "UnusedLocalVariable":
             case "UnusedPrivateMethod":
             case "UselessParentheses":
-                return 0000; // Don't care
+                return CweNumber.DONTCARE;
                 // Don't think PMD reports any of these:
             case "??1":
-                return 614; // insecure cookie use
+                return CweNumber.INSECURE_COOKIE;
             case "??2":
-                return 330; // weak random
+                return CweNumber.WEAK_RANDOM;
             case "??3":
-                return 90; // LDAP injection
+                return CweNumber.LDAP_INJECTION;
             case "??4":
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
             case "??5":
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
             case "??6":
-                return 327; // weak encryption
+                return CweNumber.WEAK_CRYPTO_ALGO;
             case "??7":
-                return 643; // xpath injection
+                return CweNumber.XPATH_INJECTION;
             case "??8":
-                return 328; // weak hash
+                return CweNumber.WEAK_HASH_ALGO;
             case "??9":
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
             case "??10":
-                return 79; // XSS
+                return CweNumber.XSS;
 
                 // FbInfer additional rules
             case "RESOURCE_LEAK":
             case "NULL_DEREFERENCE":
-                return 0;
+                return CweNumber.DONTCARE;
 
             default:
-                System.out.println("Unknown category: " + rule);
+                System.out.println("WARNING: Unknown PMD vuln category: " + rule);
         }
 
-        return 0;
+        return CweNumber.UNKNOWN;
     }
 }

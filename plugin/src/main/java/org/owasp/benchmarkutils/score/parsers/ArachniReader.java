@@ -148,7 +148,6 @@ public class ArachniReader extends Reader {
         }
 
         String cat = getNamedChild("name", flaw).getTextContent();
-        tcr.setCategory(cat);
 
         // not used
         // String conf = getNamedChild( "severity", flaw ).getTextContent();

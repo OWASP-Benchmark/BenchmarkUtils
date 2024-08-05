@@ -28,7 +28,6 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
@@ -70,62 +69,59 @@ public class HCLAppScanStandardReader extends Reader {
         if (version != null) {
             tr.setToolVersion(version.getTextContent().split(" ")[0]);
         }
-        
+
         Node allIssueVariants = getNamedChild("issue-group", root);
         List<Node> variants = getNamedChildren("item", allIssueVariants);
-        
+
         List<String> testCaseElementsFromVariants = new ArrayList<>();
-        
-        
+
         if (variants.isEmpty()) {
             // Handle non-variant issue types , Older xml format as in 9.x release versions and
             // before
             // First get the type of vuln, and if we don't care about that type, move on
-        	 Node allIssues = getNamedChild("url-group", root);
-        	 List<Node> vulnerabilities = getNamedChildren("item", allIssues);
-        	 for (Node vulnerability : vulnerabilities) {
-                 String issueType = getNamedChild("issue-type", vulnerability).getTextContent();
+            Node allIssues = getNamedChild("url-group", root);
+            List<Node> vulnerabilities = getNamedChildren("item", allIssues);
+            for (Node vulnerability : vulnerabilities) {
+                String issueType = getNamedChild("issue-type", vulnerability).getTextContent();
 
-                 String url = getNamedChild("name", vulnerability).getTextContent();
-                 
-            TestCaseResult tcr = TestCaseLookup(issueType, url);
-            if (tcr != null) tr.put(tcr);
-        	 }
-        }
-        
-        else {
+                String url = getNamedChild("name", vulnerability).getTextContent();
+
+                TestCaseResult tcr = TestCaseLookup(issueType, url);
+                if (tcr != null) tr.put(tcr);
+            }
+        } else {
             // Handle issues which are Variants, new xml format after 10.x release
-        	for (Node variant : variants) {
-	            String variantIssueType = getNamedChild("issue-type", variant).getTextContent().trim();
-	            // System.out.println("Variant Url Ref ID: " + variantUrlRefId);
-	
-	            // Add the record only if the issue type matches for the relevant variants
-	                Node variantNodes = getNamedChild("variant-group", variant);
-	                List<Node> variantNodeChildren = getNamedChildren("item", variantNodes);
-	                for (Node variantNodeChild : variantNodeChildren) {
-	                    String httpTraffic =
-	                            getNamedChild("test-http-traffic", variantNodeChild).getTextContent();
-	                    String[] variantUrl = httpTraffic.split(" ");
-	
-	                    String benchMarkTestCase = variantUrl[1].trim();
-	
-	                    if (benchMarkTestCase.contains("BenchmarkTest")) {
-	                        String[] urlElements = benchMarkTestCase.split("/");
-	
-	                        String testAreaUrl =
-	                                startingUrl
-	                                        + urlElements[urlElements.length - 2]
-	                                        + "/"
-	                                        + urlElements[urlElements.length - 1];
-	                        String testArea = testAreaUrl.split("\\?")[0]; // .split strips off the -##
-	
-	                        if (testArea.contains("BenchmarkTest"))
-	                            testCaseElementsFromVariants.add(testArea);
-			                    TestCaseResult tcr = TestCaseLookup(variantIssueType, testArea);
-			                    if (tcr != null) 
-			                    	tr.put(tcr);
-	                    }
-	                }
+            for (Node variant : variants) {
+                String variantIssueType =
+                        getNamedChild("issue-type", variant).getTextContent().trim();
+                // System.out.println("Variant Url Ref ID: " + variantUrlRefId);
+
+                // Add the record only if the issue type matches for the relevant variants
+                Node variantNodes = getNamedChild("variant-group", variant);
+                List<Node> variantNodeChildren = getNamedChildren("item", variantNodes);
+                for (Node variantNodeChild : variantNodeChildren) {
+                    String httpTraffic =
+                            getNamedChild("test-http-traffic", variantNodeChild).getTextContent();
+                    String[] variantUrl = httpTraffic.split(" ");
+
+                    String benchMarkTestCase = variantUrl[1].trim();
+
+                    if (benchMarkTestCase.contains("BenchmarkTest")) {
+                        String[] urlElements = benchMarkTestCase.split("/");
+
+                        String testAreaUrl =
+                                startingUrl
+                                        + urlElements[urlElements.length - 2]
+                                        + "/"
+                                        + urlElements[urlElements.length - 1];
+                        String testArea = testAreaUrl.split("\\?")[0]; // .split strips off the -##
+
+                        if (testArea.contains("BenchmarkTest"))
+                            testCaseElementsFromVariants.add(testArea);
+                        TestCaseResult tcr = TestCaseLookup(variantIssueType, testArea);
+                        if (tcr != null) tr.put(tcr);
+                    }
+                }
             }
         }
         return tr;
@@ -148,13 +144,9 @@ public class HCLAppScanStandardReader extends Reader {
         testcase = testcase.split("\\.")[0];
         // System.out.println("Candidate test case is: " + testcase);
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            // if (tn == -1) System.out.println("Found vuln outside of test case of type: " +
-            // issueType);
-
             // Add the vuln found in a test case to the results for this tool
             TestCaseResult tcr = new TestCaseResult();
             tcr.setNumber(testNumber(testcase));
-            tcr.setCategory(issueType); // TODO: Is this right?
             tcr.setCWE(vtype);
             tcr.setEvidence(issueType);
             return tcr;
@@ -167,12 +159,9 @@ public class HCLAppScanStandardReader extends Reader {
             String issueType, String itemID, String startingUrl, List<Node> variants) {
         List<String> testCaseElementsFromVariants = new ArrayList<>();
 
-        // System.out.println("Variant Lookup Item ID: " + itemID);
-
         for (Node variant : variants) {
             String variantUrlRefId = getNamedChild("url", variant).getTextContent().trim();
             String variantIssueType = getNamedChild("issue-type", variant).getTextContent().trim();
-            // System.out.println("Variant Url Ref ID: " + variantUrlRefId);
 
             // Add the record only if the issue type matches for the relevant variants
             if (issueType.equals(variantIssueType) && itemID.equals(variantUrlRefId)) {

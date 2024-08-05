@@ -98,7 +98,6 @@ public class HCLAppScanSourceReader extends Reader {
             } else {
                 TestCaseResult tcr = new TestCaseResult();
                 tcr.setNumber(tn);
-                tcr.setCategory(issueType); // TODO: Is this right?
                 tcr.setCWE(vtype);
                 tcr.setEvidence(issueType);
                 tr.put(tcr);

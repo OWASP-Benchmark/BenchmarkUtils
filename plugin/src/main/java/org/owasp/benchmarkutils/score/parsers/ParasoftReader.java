@@ -104,9 +104,9 @@ public class ParasoftReader extends Reader {
 
         if (cat != null) {
             tcr.setCWE(cweLookup(cat));
-            tcr.setCategory(getAttributeValue("rule", flaw));
             tcr.setConfidence(Integer.parseInt(getAttributeValue("sev", flaw)));
-            tcr.setEvidence(getAttributeValue("msg", flaw));
+            tcr.setEvidence(
+                    getAttributeValue("rule", flaw) + "::" + getAttributeValue("msg", flaw));
 
             String testcase = getAttributeValue("locFile", flaw);
             testcase = testcase.substring(testcase.lastIndexOf('/'));
@@ -134,14 +134,12 @@ public class ParasoftReader extends Reader {
         String cat = getAttributeValue("rule", flaw);
         tcr.setCWE(cweLookup(cat));
 
-        String rule = getAttributeValue("rule", flaw);
-        tcr.setCategory(rule);
-
         String severity = getAttributeValue("sev", flaw);
         tcr.setConfidence(Integer.parseInt(severity));
 
+        String rule = getAttributeValue("rule", flaw);
         String msg = getAttributeValue("msg", flaw);
-        tcr.setEvidence(msg);
+        tcr.setEvidence(rule + "::" + msg);
 
         String testcase = getAttributeValue("locFile", flaw);
         testcase = testcase.substring(testcase.lastIndexOf('/') + 1);
@@ -187,6 +185,8 @@ public class ParasoftReader extends Reader {
                 //        case "Trust Boundary Violation" : return 501;
                 //        case "Weak Cryptographic Hash" : return 328;
                 //        case "Weak Encryption" : return 327;
+            default:
+                System.out.println("WARNING: Parasoft-Unrecognized finding type: " + cat);
         }
         return -1;
     }

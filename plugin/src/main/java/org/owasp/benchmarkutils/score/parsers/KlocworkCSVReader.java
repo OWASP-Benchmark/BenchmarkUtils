@@ -46,7 +46,7 @@ public class KlocworkCSVReader extends Reader {
         DataBaseServer.java,/opt/klocwork/projects_root/projects/BenchmarkJavaToo/src/main/java/org/owasp/benchmark/helpers/DataBaseServer.java,65,getAll(),RLK.SQLOBJ,Critical (1),New,Analyze,Java,unowned
         DatabaseHelper.java,/opt/klocwork/projects_root/projects/BenchmarkJavaToo/src/main/java/org/owasp/benchmark/helpers/DatabaseHelper.java,174,executeSQLCommand(),EXC.BROADTHROWS,Review (4),New,Analyze,Java,unowned
 
-                */
+        */
         java.io.BufferedReader inReader =
                 new java.io.BufferedReader(new StringReader(resultFile.content()));
 
@@ -60,8 +60,8 @@ public class KlocworkCSVReader extends Reader {
             String filename = record.get("File"); // e.g., BenchmarkTest00001
 
             TestCaseResult tcr = new TestCaseResult();
-            tcr.setCategory(category);
             tcr.setCWE(cweLookup(category));
+            tcr.setEvidence(category);
             if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
                 tcr.setNumber(testNumber(filename));
             }
@@ -70,8 +70,6 @@ public class KlocworkCSVReader extends Reader {
                 tr.put(tcr);
             }
         }
-
-        tr.setTime("100"); // Why 100?
 
         return tr;
     }
@@ -136,7 +134,7 @@ public class KlocworkCSVReader extends Reader {
 
             default:
                 System.out.println(
-                        "WARNING: Unmapped Vulnerability category detected: " + checkerKey);
+                        "WARNING: Unmapped Klocwork Vuln category detected: " + checkerKey);
                 return 0;
         }
     }

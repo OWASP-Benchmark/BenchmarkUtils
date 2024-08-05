@@ -51,12 +51,12 @@ public class TestCaseResultBuilder {
         return this;
     }
 
-    public TestCaseResultBuilder setCategory(String category) {
-        this.category = category;
+    /*    public TestCaseResultBuilder setCategory(String category) {
+            this.category = category;
 
-        return this;
-    }
-
+            return this;
+        }
+    */
     public TestCaseResultBuilder setCwe(int cwe) {
         this.cwe = cwe;
 
@@ -98,7 +98,7 @@ public class TestCaseResultBuilder {
 
         testCaseResult.setTestCaseName(testCaseName);
         testCaseResult.setNumber(testNumber);
-        testCaseResult.setCategory(category);
+        //        testCaseResult.setCategory(category);
         testCaseResult.setCWE(cwe);
         testCaseResult.setSource(source);
         testCaseResult.setDataFlow(dataFlow);

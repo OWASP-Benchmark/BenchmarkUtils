@@ -17,6 +17,8 @@
  */
 package org.owasp.benchmarkutils.score;
 
+import org.owasp.benchmarkutils.helpers.Categories;
+import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
 
 /* This class represents a single test case result. It documents the expected result (real),
@@ -25,12 +27,13 @@ import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
 
 public class TestCaseResult {
 
-    private String testCaseName = "";
+    private String testCaseName = ""; // The name of the test case (E.g., BenchmarkTest00001)
     private int number = 0;
     private boolean truePositive = false; // Is this test case a true or false positive?
     private boolean result = false; // Did a tool properly detect this as a true or false positive?
     private int CWE = 0;
-    private String category = null;
+    private String category = null; // pathtraver, hash, cmdi, etc.
+    public static final String UNMAPPED_CATEGORY = "unmappedCWECategory";
     private String evidence = null;
     private int confidence = 0;
 
@@ -38,6 +41,10 @@ public class TestCaseResult {
     private String source = null;
     private String dataflow = null;
     private String sink = null;
+
+    // This is a special 'magic' testcase number which indicates we aren't using test case numbers
+    // for this particular scoring
+    public static final int NOT_USING_TESTCASE_NUMBERS = -654321;
 
     public TestCaseResult() {
         // By default, do nothing special.
@@ -54,7 +61,8 @@ public class TestCaseResult {
         this.number = request.getNumber();
         this.truePositive = request.isVulnerability();
         this.CWE = request.getCategory().getCWE();
-        this.category = request.getCategory().getName();
+        // this.category = request.getCategory().getName();
+        this.category = Categories.getByCWE(this.CWE).getName();
 
         // fill in optional attributes since we have this data available
         this.source = request.getSourceFile();
@@ -115,16 +123,37 @@ public class TestCaseResult {
 
     public void setCWE(int cwe) {
         this.CWE = cwe;
+        Category category = Categories.getByCWE(cwe);
+        if (category != null) {
+            this.category = category.getId();
+        } else {
+            this.category = this.UNMAPPED_CATEGORY;
+        }
     }
 
+    /**
+     * The CWE category name, e.g., pathtraver, hash, cmdi, etc.
+     *
+     * @return The descriptive name of this CWE, per categories.xml
+     */
     public String getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
+    /*
+        public void setCategory(String category) {
+            if (Categories.getById(category) != null) {
+                this.category = category;
+            } else {
+                System.out.println(
+                        "ERROR: Unknown vuln category provided to TestCaseResult.setCategory(): "
+                                + category);
+                throw new InvalidParameterException(
+                        "ERROR: Unknown vuln category provided to TestCaseResult.setCategory(): "
+                                + category);
+            }
+        }
+    */
     public String getEvidence() {
         return evidence;
     }

@@ -80,7 +80,6 @@ public class CoverityReader extends Reader {
                     }
                     int cwe = fixCWE(cweNumber);
                     tcr.setCWE(cwe);
-                    tcr.setCategory(props.getString("subcategoryShortDescription"));
                     tcr.setEvidence(props.getString("subcategoryLongDescription"));
                     return tcr;
                 }
@@ -106,7 +105,6 @@ public class CoverityReader extends Reader {
                     String cweNumber = finding.getString("cweNumber");
                     int cwe = fixCWE(cweNumber);
                     tcr.setCWE(cwe);
-                    tcr.setCategory(finding.getString("categoryDescription"));
                     tcr.setEvidence(finding.getString("longDescription"));
                     return tcr;
                 }
@@ -182,7 +180,6 @@ public class CoverityReader extends Reader {
                     return null;
                 }
                 tcr.setCWE(cwe);
-                tcr.setCategory(checker_name);
                 tcr.setEvidence(subcategory);
                 return tcr;
             }

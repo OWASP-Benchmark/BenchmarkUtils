@@ -27,7 +27,7 @@ public class Category implements Comparable<Category> {
     private final String name; // e.g., Path Traversal
     private final int CWE;
     private final boolean isInjection;
-    private final String shortName; // PATH
+    private final String shortName; // The shortname from categories.xml, e.g., PATHT, XSS, AUTH
 
     /**
      * Create a vuln category.
@@ -49,6 +49,11 @@ public class Category implements Comparable<Category> {
         return this.id;
     }
 
+    /**
+     * The string id for this CWE from categories.xml, e.g., pathtraver, xpathi, xss
+     *
+     * @return The name
+     */
     public String getName() {
         return this.name;
     }
@@ -61,6 +66,11 @@ public class Category implements Comparable<Category> {
         return this.isInjection;
     }
 
+    /**
+     * The shortname for this CWE from categories.xml, e.g., PATH, XSS, AUTH
+     *
+     * @return The short name
+     */
     public String getShortName() {
         return this.shortName;
     }

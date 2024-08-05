@@ -136,8 +136,10 @@ public class SonarQubeJsonReader extends Reader {
                 }
                 int cwe = SonarQubeReader.cweLookup(squid);
                 tcr.setCWE(cwe);
-                tcr.setCategory(finding.getJSONArray("tags").toString());
-                tcr.setEvidence(finding.getString("message"));
+                tcr.setEvidence(
+                        finding.getJSONArray("tags").toString()
+                                + "::"
+                                + finding.getString("message"));
                 return tcr;
             }
 
@@ -186,9 +188,10 @@ public class SonarQubeJsonReader extends Reader {
                 }
                 int cwe = securityCategoryCWELookup(secCat, finding.getString("message"));
                 tcr.setCWE(cwe);
-                tcr.setCategory(secCat);
                 tcr.setEvidence(
-                        "vulnerabilityProbability: "
+                        secCat
+                                + "::"
+                                + "vulnerabilityProbability: "
                                 + finding.getString("vulnerabilityProbability"));
                 return tcr;
             }
@@ -271,14 +274,14 @@ public class SonarQubeJsonReader extends Reader {
                 }
             default:
                 System.out.println(
-                        "WARN: Failed to translate SonarQube security category: '"
+                        "WARN: Unmapped SonarQube security category: '"
                                 + secCat
                                 + "' with message: '"
                                 + message
                                 + "'");
         }
 
-        return -1;
+        return CweNumber.DONTCARE;
     }
 
     // This parser relies on the SQUID # mapping method in SonarQubeReader.cweLookup()

@@ -129,7 +129,6 @@ public class ContrastAssessReader extends Reader {
 
         TestCaseResult tcr = new TestCaseResult();
         tcr.setCWE(cweLookup(elements[0]));
-        tcr.setCategory(elements[0]);
 
         if (tcr.getCWE() != 0 && elements[1].contains(BenchmarkScore.TESTCASENAME)) {
             tcr.setNumber(testNumber(elements[1]));
@@ -148,7 +147,6 @@ public class ContrastAssessReader extends Reader {
             if (CweNumber.DONTCARE == cweNum)
                 return; // Don't bother parsing finding types we don't care about
             tcr.setCWE(cweNum);
-            tcr.setCategory(ruleId);
 
             JSONObject request = obj.getJSONObject("request");
             String uri = request.getString("uri");

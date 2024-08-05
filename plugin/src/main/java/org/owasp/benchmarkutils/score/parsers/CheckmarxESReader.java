@@ -135,7 +135,6 @@ public class CheckmarxESReader extends Reader {
         try {
             TestCaseResult tcr = new TestCaseResult();
             tcr.setCWE(cwe);
-            tcr.setCategory(category);
             tcr.setEvidence(evidence);
 
             // get the testcase number
