@@ -55,7 +55,7 @@ public class ParasoftReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get("1").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get("2").get(0).getCWE());
     }
 }

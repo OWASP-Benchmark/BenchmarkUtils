@@ -56,9 +56,9 @@ public class HCLAppScanStandardReaderTest extends ReaderTestBase {
 
         assertEquals(4, result.getTotalResults());
 
-        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(300).get(0).getCWE());
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(348).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get("1").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.get("300").get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.get("348").get(0).getCWE());
     }
 }

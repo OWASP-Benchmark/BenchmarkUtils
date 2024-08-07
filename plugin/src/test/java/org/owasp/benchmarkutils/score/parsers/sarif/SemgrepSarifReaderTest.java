@@ -58,8 +58,8 @@ class SemgrepSarifReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get("1").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get("2").get(0).getCWE());
     }
 
     @Test
@@ -74,7 +74,7 @@ class SemgrepSarifReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get("1").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get("2").get(0).getCWE());
     }
 }

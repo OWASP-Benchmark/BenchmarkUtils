@@ -1,11 +1,11 @@
 package org.owasp.benchmarkutils.score.parsers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VeracodeReaderTest extends ReaderTestBase {
 
@@ -33,7 +33,7 @@ class VeracodeReaderTest extends ReaderTestBase {
 
         assertEquals(3, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(7).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(8).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get("7").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get("8").get(0).getCWE());
     }
 }

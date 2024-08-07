@@ -57,8 +57,8 @@ public class AcunetixReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get("1").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get("2").get(0).getCWE());
 
         // For Acunetix WVS
         reader = new AcunetixReader();
@@ -70,7 +70,7 @@ public class AcunetixReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.LDAP_INJECTION, result.get(44).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2629).get(0).getCWE());
+        assertEquals(CweNumber.LDAP_INJECTION, result.get("44").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get("2629").get(0).getCWE());
     }
 }

@@ -54,7 +54,7 @@ public class ThunderScanReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XPATH_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get("1").get(0).getCWE());
+        assertEquals(CweNumber.XPATH_INJECTION, result.get("2").get(0).getCWE());
     }
 }

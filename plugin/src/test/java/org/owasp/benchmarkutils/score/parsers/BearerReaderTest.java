@@ -55,8 +55,8 @@ public class BearerReaderTest extends ReaderTestBase {
 
         assertEquals(3, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(7).get(0).getCWE());
-        assertEquals(CweNumber.WEAK_HASH_ALGO, result.get(5).get(0).getCWE());
-        assertEquals(CweNumber.WEAK_CRYPTO_ALGO, result.get(35).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get("7").get(0).getCWE());
+        assertEquals(CweNumber.WEAK_HASH_ALGO, result.get("5").get(0).getCWE());
+        assertEquals(CweNumber.WEAK_CRYPTO_ALGO, result.get("35").get(0).getCWE());
     }
 }

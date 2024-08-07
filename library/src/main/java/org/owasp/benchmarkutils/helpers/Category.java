@@ -39,6 +39,13 @@ public class Category implements Comparable<Category> {
      */
     public Category(String id, String name, int cwe, boolean isInjection, String shortname) {
         this.id = id;
+        if (name.contains("/") || name.contains("\\")) {
+            System.out.println(
+                    "FATAL ERROR: CWE name from provided categories.xml file: '"
+                            + name
+                            + "' contains a path character, which breaks scorecard generation.");
+            System.exit(-1);
+        }
         this.name = name;
         this.CWE = cwe;
         this.isInjection = isInjection;

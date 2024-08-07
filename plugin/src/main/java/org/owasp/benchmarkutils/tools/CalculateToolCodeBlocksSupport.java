@@ -371,9 +371,8 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
             // 3. Calculate which codeblocks that tool seems to support and does not support
 
             // 3a. Loop through all the results in theToolResults to calculate the initial
-            // statistics
-            // across all of them.
-            for (int tc : theToolResults.keySet()) {
+            // statistics across all of them.
+            for (String tc : theToolResults.keySet()) {
                 TestCaseResult theResult = theToolResults.get(tc).get(0); // Always only one.
                 boolean passed = theResult.isPassed();
                 CodeBlockSupportResults source = sourceCodeBlocksResults.get(theResult.getSource());
@@ -393,9 +392,8 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
                         // If a TP passes, we 'assume' that all code block elements are supported
 
                         // However, sources can be false positives, but the dataflow introduces
-                        // taint, so we
-                        // only 'know' if a source is supported if the source is also a true
-                        // positive.
+                        // taint, so we only 'know' if a source is supported if the source is
+                        // also a true positive.
                         if (source.truePositive) source.supported = true;
                         source.numTPTestCasesPassed++;
                         dataflow.supported = true;
@@ -434,7 +432,7 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
             // SOURCEs/DATAFLOWs: Calculate which sources cause TPs to NOT be detected.
             // Loop through them all again and calculate the number of TPs for each source that
             // pass/fail, ignoring any failures that are caused by unsupported SINKs.
-            for (int tc : theToolResults.keySet()) {
+            for (String tc : theToolResults.keySet()) {
                 TestCaseResult theResult = theToolResults.get(tc).get(0); // Always only one.
                 boolean passed = theResult.isPassed();
                 CodeBlockSupportResults source = sourceCodeBlocksResults.get(theResult.getSource());
@@ -485,7 +483,7 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
             // Check Failures where the sink is 'supported' or hasn't been reported as a False
             // Positive and the dataflow is 'null'.
             boolean foundFPorFN = false;
-            for (int tc : theToolResults.keySet()) {
+            for (String tc : theToolResults.keySet()) {
                 TestCaseResult theResult = theToolResults.get(tc).get(0); // Always only one.
                 boolean passed = theResult.isPassed();
                 CodeBlockSupportResults source = sourceCodeBlocksResults.get(theResult.getSource());
@@ -592,7 +590,7 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
             // Print out codeblock coordinates of the rest of the False Positives, ignoring all with
             // sinks or sources already known to cause FPs
             int FPCount = 1;
-            for (int tc : theToolResults.keySet()) {
+            for (String tc : theToolResults.keySet()) {
                 TestCaseResult theResult = theToolResults.get(tc).get(0); // Always only one.
                 boolean passed = theResult.isPassed();
                 CodeBlockSupportResults source = sourceCodeBlocksResults.get(theResult.getSource());

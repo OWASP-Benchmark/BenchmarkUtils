@@ -106,7 +106,7 @@
     </category>
     <category>
         <id>reflecti</id>
-        <name>Reflection</name>
+        <name>Unsafe Reflection</name>
         <cwe>470</cwe>
         <isInjection>true</isInjection>
         <shortname>REFL</shortname>

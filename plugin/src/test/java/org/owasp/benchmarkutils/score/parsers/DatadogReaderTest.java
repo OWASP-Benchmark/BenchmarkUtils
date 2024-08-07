@@ -55,9 +55,9 @@ public class DatadogReaderTest extends ReaderTestBase {
 
         assertEquals(4, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1609).get(0).getCWE());
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(2).get(0).getCWE());
-        assertEquals(CweNumber.WEAK_HASH_ALGO, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.TRUST_BOUNDARY_VIOLATION, result.get(4).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get("1609").get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.WEAK_HASH_ALGO, result.get("1").get(0).getCWE());
+        assertEquals(CweNumber.TRUST_BOUNDARY_VIOLATION, result.get("4").get(0).getCWE());
     }
 }

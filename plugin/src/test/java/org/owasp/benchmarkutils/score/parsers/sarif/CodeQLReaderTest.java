@@ -55,8 +55,8 @@ public class CodeQLReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get("1").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get("2").get(0).getCWE());
     }
 
     @Test
@@ -72,7 +72,7 @@ public class CodeQLReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get("1").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get("2").get(0).getCWE());
     }
 }

@@ -28,7 +28,6 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
-import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
 
 class PrecautionReaderTest extends ReaderTestBase {
 
@@ -56,6 +55,6 @@ class PrecautionReaderTest extends ReaderTestBase {
         assertEquals("0.5.0", result.getToolVersion());
 
         assertEquals(1, result.getTotalResults());
-        assertEquals(CweNumber.WEAK_HASH_ALGO, result.get(73).get(0).getCWE());
+        assertEquals(CweNumber.WEAK_HASH_ALGO, result.get("73").get(0).getCWE());
     }
 }

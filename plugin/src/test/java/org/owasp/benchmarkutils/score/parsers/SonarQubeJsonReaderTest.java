@@ -54,7 +54,7 @@ public class SonarQubeJsonReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.WEAK_CRYPTO_ALGO, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.WEAK_CRYPTO_ALGO, result.get("1").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get("2").get(0).getCWE());
     }
 }

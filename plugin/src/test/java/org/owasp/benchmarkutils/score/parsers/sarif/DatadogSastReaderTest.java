@@ -56,6 +56,6 @@ public class DatadogSastReaderTest extends ReaderTestBase {
 
         assertEquals(1, result.getTotalResults());
 
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(10).get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.get("10").get(0).getCWE());
     }
 }

@@ -47,11 +47,11 @@ class ExpectedResultsProviderTest {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
-        assertNull(result.get(1).get(0).getSource());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get("1").get(0).getCWE());
+        assertNull(result.get("1").get(0).getSource());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(2).get(0).getCWE());
-        assertNull(result.get(2).get(0).getSource());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get("2").get(0).getCWE());
+        assertNull(result.get("2").get(0).getSource());
     }
 
     @Test
@@ -63,10 +63,10 @@ class ExpectedResultsProviderTest {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
-        assertEquals("RequestGetCookies.code", result.get(1).get(0).getSource());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get("1").get(0).getCWE());
+        assertEquals("RequestGetCookies.code", result.get("1").get(0).getSource());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(2).get(0).getCWE());
-        assertEquals("RequestGetHeader.code", result.get(2).get(0).getSource());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get("2").get(0).getCWE());
+        assertEquals("RequestGetHeader.code", result.get("2").get(0).getSource());
     }
 }

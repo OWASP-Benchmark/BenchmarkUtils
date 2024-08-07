@@ -58,7 +58,7 @@ public class ContrastScanReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get("1").get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.get("2").get(0).getCWE());
     }
 }

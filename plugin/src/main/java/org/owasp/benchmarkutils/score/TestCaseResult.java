@@ -81,7 +81,7 @@ public class TestCaseResult {
     /*
      * The name of the test case. E.g., BenchmarkTest00001
      */
-    public String getName() {
+    public String getTestCaseName() {
         return testCaseName;
     }
 

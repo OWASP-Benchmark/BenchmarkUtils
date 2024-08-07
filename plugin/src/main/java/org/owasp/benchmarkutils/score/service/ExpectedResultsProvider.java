@@ -49,7 +49,7 @@ public class ExpectedResultsProvider {
         try (final CSVParser parser = resultFile.csvRecords()) {
             setResultsMetadata(parser, tr);
 
-            String testCaseName = tr.getTestSuiteName() + BenchmarkScore.TEST;
+            final String TESTCASENAME = tr.getTestSuiteName() + BenchmarkScore.TEST;
 
             for (CSVRecord record : parser) {
                 TestCaseResult tcr = new TestCaseResult();
@@ -70,9 +70,10 @@ public class ExpectedResultsProvider {
                 }
                 if (record.get(TEST_NAME)
                         .trim()
-                        .startsWith(tr.getTestSuiteName() + BenchmarkScore.TEST)) {
-                    tcr.setNumber(testNumber(record.get(TEST_NAME).trim(), testCaseName));
-                } else tcr.setNumber(TestCaseResult.NOT_USING_TESTCASE_NUMBERS);
+                        .startsWith(tr.getTestSuiteName() + BenchmarkScore.TEST))
+                    tcr.setNumber(testNumber(record.get(TEST_NAME).trim(), TESTCASENAME));
+                else tcr.setNumber(TestCaseResult.NOT_USING_TESTCASE_NUMBERS);
+
                 if (isExtendedResultsFile(parser)) {
                     tcr.setSource(record.get(SOURCE).trim());
                     tcr.setDataFlow(record.get(DATA_FLOW).trim());

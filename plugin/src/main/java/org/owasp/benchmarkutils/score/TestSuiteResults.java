@@ -48,14 +48,15 @@ public class TestSuiteResults {
     // The name and version of the test suite these test results are for
     private String testSuiteName = "notSet";
     private String testSuiteVersion = "notSet";
+    private boolean standardBenchmarkStyleScoring = true;
 
     private String toolName = "Unknown Tool";
     private String toolVersion = null;
     private String time = "Unknown"; // Scan time. e.g., '0:17:29'
     public final boolean isCommercial;
     public final ToolType toolType;
-    private Map<Integer, List<TestCaseResult>> testCaseResults =
-            new TreeMap<Integer, List<TestCaseResult>>();
+    private Map<String, List<TestCaseResult>> testCaseResults =
+            new TreeMap<String, List<TestCaseResult>>();
 
     // Used to track if this tool has been anonymized
     private boolean anonymous = false;
@@ -102,35 +103,47 @@ public class TestSuiteResults {
     }
 
     /**
-     * Add a test case result to the set of results for this tool.
+     * Add a test case result to the set of results for this tool or expected results file.
      *
      * @param tcr The test case result to add.
      */
     public void put(TestCaseResult tcr) {
 
-        // This warning message is added just in case. It can be caused by a buggy parser or
-        // invalid results file.
         int testCaseNum = tcr.getNumber();
-        if ((testCaseNum <= 0 || testCaseNum > 10000)
-                && testCaseNum != TestCaseResult.NOT_USING_TESTCASE_NUMBERS) {
-            System.out.println(
-                    "WARNING: Did you really intend to add a test case result for test case: "
-                            + testCaseNum);
+        String testCaseKey;
+
+        // If we are using test case numbers, we add each result to that specific test case number
+        if (this.standardBenchmarkStyleScoring
+                && (testCaseNum != TestCaseResult.NOT_USING_TESTCASE_NUMBERS)) {
+            // This warning message is added just in case. It can be caused by a buggy parser or
+            // invalid results file.
+            if ((testCaseNum <= 0 || testCaseNum > 10000)) {
+                System.out.println(
+                        "WARNING: Did you really intend to add a test case result for test case: "
+                                + testCaseNum);
+            }
+
+            testCaseKey = String.valueOf(testCaseNum);
+        } else {
+            // otherwise use test case names as the key, and we add each result by test case name
+            testCaseKey = tcr.getTestCaseName();
+            this.standardBenchmarkStyleScoring = false;
         }
 
         // There is a list of results for each test case
-        List<TestCaseResult> results = testCaseResults.get(testCaseNum);
+        List<TestCaseResult> results = testCaseResults.get(testCaseKey);
         if (results == null) {
             // If there are no results yet for this test case, create a List.
-            // Add this list for this test case to the set of results
+            // Add this entry for this test case to the set of results
             results = new ArrayList<TestCaseResult>();
-            testCaseResults.put(tcr.getNumber(), results);
+            testCaseResults.put(testCaseKey, results);
         }
+
         // Add this specific result to this test case's results
         results.add(tcr);
     }
 
-    public List<TestCaseResult> get(int tn) {
+    public List<TestCaseResult> get(String tn) {
         return testCaseResults.get(tn);
     }
 
@@ -139,7 +152,7 @@ public class TestSuiteResults {
      *
      * @return The Set of Keys.
      */
-    public Set<Integer> keySet() {
+    public Set<String> keySet() {
         return testCaseResults.keySet();
     }
 

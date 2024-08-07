@@ -72,7 +72,7 @@ public class ResultsFileCreator {
     }
 
     private boolean isFullDetails(TestSuiteResults actual) {
-        Iterator<Integer> iterator = actual.keySet().iterator();
+        Iterator<String> iterator = actual.keySet().iterator();
 
         return iterator.hasNext() && (actual.get(iterator.next()).get(0).getSource() != null);
     }
@@ -94,12 +94,12 @@ public class ResultsFileCreator {
     }
 
     private void appendRow(
-            PrintStream ps, TestSuiteResults actual, Integer testNumber, boolean fullDetails) {
-        TestCaseResult actualResult = actual.get(testNumber).get(0);
+            PrintStream ps, TestSuiteResults actual, String testcaseID, boolean fullDetails) {
+        TestCaseResult actualResult = actual.get(testcaseID).get(0);
         boolean isReal = actualResult.isTruePositive();
         boolean passed = actualResult.isPassed();
 
-        ps.print(actualResult.getName());
+        ps.print(actualResult.getTestCaseName());
         ps.print(", " + actualResult.getCategory());
         ps.print(", " + actualResult.getCWE());
 
