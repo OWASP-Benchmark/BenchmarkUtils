@@ -20,6 +20,6 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 public class SemgrepSarifReader extends SarifReader {
 
     public SemgrepSarifReader() {
-        super("Semgrep OSS", false, CweSourceType.TAG);
+        super("Semgrep", false, CweSourceType.TAG);
     }
 }
