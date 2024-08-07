@@ -53,7 +53,7 @@ public abstract class SarifReader extends Reader {
     @Override
     public boolean canRead(ResultFile resultFile) {
         try {
-            return resultFile.isJson() && sarifToolName(resultFile).equals(expectedToolName);
+            return resultFile.isJson() && sarifToolName(resultFile).startsWith(expectedToolName);
         } catch (Exception e) {
             return false;
         }

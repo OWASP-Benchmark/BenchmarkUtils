@@ -31,28 +31,46 @@ import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
 class SemgrepSarifReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private ResultFile resultFileOSS, resultFilePRO;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-v1.67.0.sarif");
+        resultFileOSS = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-oss-v1.67.0.sarif");
+        resultFilePRO = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-pro-v1.68.1.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlySemgrepSarifReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, SemgrepSarifReader.class);
+        assertOnlyMatcherClassIs(this.resultFileOSS, SemgrepSarifReader.class);
+        assertOnlyMatcherClassIs(this.resultFilePRO, SemgrepSarifReader.class);
     }
 
     @Test
-    void readerHandlesGivenResultFile() throws Exception {
+    void readerHandlesSemgrepOSSResultFile() throws Exception {
         SemgrepSarifReader reader = new SemgrepSarifReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(resultFileOSS);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());
         assertEquals("Semgrep OSS", result.getToolName());
         assertEquals("1.67.0", result.getToolVersion());
+
+        assertEquals(2, result.getTotalResults());
+
+        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
+    }
+
+    @Test
+    void readerHandlesSemgrepPROResultFile() throws Exception {
+        SemgrepSarifReader reader = new SemgrepSarifReader();
+        TestSuiteResults result = reader.parse(resultFilePRO);
+
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertFalse(result.isCommercial());
+        assertEquals("Semgrep PRO", result.getToolName());
+        assertEquals("1.68.1", result.getToolVersion());
 
         assertEquals(2, result.getTotalResults());
 
