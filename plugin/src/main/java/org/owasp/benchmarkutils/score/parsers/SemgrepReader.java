@@ -54,14 +54,67 @@ public class SemgrepReader extends Reader {
         return tr;
     }
 
-    private int translate(int cwe) {
+    public static int translate(int cwe) {
 
         switch (cwe) {
-            case 113: // Header injection;
-            case 200: // Information Leak / Disclosure;
-            case 276: // Incorrect Default Permissions;
-            case 352: // CSRF;
-            case 489: // Active Debug Code;
+            case 16: // CWE vuln mapping PROHIBITED: Configuration
+            case 73: // External Control of File Name or Path
+            case 74: // CWE vuln mapping DISCOURAGED: Improper Neutralization of Special Elements in
+                // Output Used by a Downstream Component ('Injection')
+            case 93: // Improper Neutralization of CRLF Sequences ('CRLF Injection')
+            case 94: // Improper Control of Generation of Code ('Code Injection') - Reported when it
+                // sees JS eval() being used.
+            case 95: // Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval
+                // Injection')
+            case 96: // Improper Neutralization of Directives in Statically Saved Code ('Static Code
+                // Injection')
+            case 113: // Header injection
+            case 116: // Improper Encoding or Escaping of Output
+            case 119: // CWE vuln mapping DISCOURAGED: Improper Restriction of Operations within the
+                // Bounds of a Memory Buffer
+            case 134: // Use of Externally-Controlled Format String
+            case 155: // Improper Neutralization of Wildcards or Matching Symbols
+            case 183: // Permissive List of Allowed Inputs
+            case 200: // Information Leak / Disclosure
+            case 242: // Use of Inherently Dangerous Function
+            case 264: // CWE vuln mapping PROHIBITED: Permissions, Privileges, and Access Controls
+            case 269: // CWE vuln mapping DISCOURAGED: Improper Privilege Management
+            case 276: // Incorrect Default Permissions
+            case 287: // CWE vuln mapping DISCOURAGED: Improper Authentication
+            case 295: // Improper Certificate Validation
+            case 297: // Improper Validation of Certificate with Host Mismatch
+            case 300: // CWE vuln mapping DISCOURAGED: Channel Accessible by Non-Endpoint
+            case 311: // CWE vuln mapping DISCOURAGED: Missing Encryption of Sensitive Data
+            case 319: // Cleartext Transmission of Sensitive Into (e.g., not using HTTPS)
+            case 322: // Key Exchange without Entity Authentication
+            case 353: // Missing Support for Integrity Check
+            case 352: // CSRF
+            case 369: // Divide By Zero
+            case 377: // Insecure Temporary File
+            case 400: // CWE vuln mapping DISCOURAGED: Uncontrolled Resource Consumption
+            case 415: // Double Free
+            case 416: // Use After Free
+            case 441: // Unintended Proxy or Intermediary ('Confused Deputy')
+            case 470: // Unsafe Reflection
+            case 489: // Active Debug Code
+            case 502: // Deserialization of Untrusted Data
+            case 521: // Weak Password Requirements
+            case 523: // Unprotected Transport of Credentials
+            case 601: // URL Redirection to Untrusted Site ('Open Redirect')
+            case 668: // CWE vuln mapping DISCOURAGED: Exposure of Resource to Wrong Sphere
+            case 676: // Use of Potentially Dangerous Function
+            case 704: // Incorrect Type Conversion or Cast
+            case 774: // Allocation of File Descriptors or Handles Without Limits or Throttling
+            case 776: // XEE: Improper Restriction of Recursive Entity References in DTDs ('XML
+                // Entity Expansion')
+            case 798: // Use of Hard-coded Credentials
+            case 913: // Improper Control of Dynamically-Managed Code Resources
+            case 915: // Improperly Controlled Modification of Dynamically-Determined Object
+                // Attributes
+            case 939: // Improper Authorization in Handler for Custom URL Scheme
+            case 942: // Permissive Cross-domain Policy with Untrusted Domains
+            case 1021: // TapJacking: Improper Restriction of Rendered UI Layers or Frames
+            case 1333: // Inefficient Regular Expression Complexity (e.g., RegexDOS)
                 break; // Don't care - So return CWE 'as is'
 
             case 22:
@@ -76,19 +129,25 @@ public class SemgrepReader extends Reader {
                 return CweNumber.LDAP_INJECTION;
             case 326:
             case 327:
+            case 329: // Generation of Predictable IV with CBC Mode - Has no affect on Benchmark -
+                // but leaving mapping in anyway
             case 696: // Incorrect Behavior Order
                 return CweNumber.WEAK_CRYPTO_ALGO; // weak encryption
             case 328:
                 return CweNumber.WEAK_HASH_ALGO;
-            case 330:
+            case 330: // Use of Insufficiently Random Values - Vuln mapping discouraged
+            case 338: // Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)
                 return CweNumber.WEAK_RANDOM;
             case 501:
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
+            case 611: // Improper Restriction of XML External Entity Reference (XXE)
+                return CweNumber.XXE;
             case 614:
-            case 1004:
                 return CweNumber.INSECURE_COOKIE;
             case 643:
                 return CweNumber.XPATH_INJECTION;
+            case 1004:
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
             default:
                 System.out.println(
                         "INFO: Found following CWE in SemGrep results which we haven't seen before: "

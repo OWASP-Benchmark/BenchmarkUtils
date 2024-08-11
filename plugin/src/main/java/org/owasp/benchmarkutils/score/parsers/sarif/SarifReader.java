@@ -270,7 +270,7 @@ public abstract class SarifReader extends Reader {
     }
 
     /**
-     * Allows extending classes to map/change detected cwe numbers to match Benchmark expected
+     * Allows extending classes to map/change detected CWE numbers to match Benchmark expected
      * numbers (if required)
      */
     public int mapCwe(int cwe) {
