@@ -17,9 +17,16 @@
  */
 package org.owasp.benchmarkutils.score.parsers.sarif;
 
+import org.owasp.benchmarkutils.score.parsers.SemgrepReader;
+
 public class SemgrepSarifReader extends SarifReader {
 
     public SemgrepSarifReader() {
         super("Semgrep", false, CweSourceType.TAG);
+    }
+
+    @Override
+    public int mapCwe(int cwe) {
+        return SemgrepReader.translate(cwe);
     }
 }
