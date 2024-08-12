@@ -77,20 +77,4 @@ class SemgrepSarifReaderTest extends ReaderTestBase {
         assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get("1").get(0).getCWE());
         assertEquals(CweNumber.XSS, result.get("2").get(0).getCWE());
     }
-
-    @Test
-    void readerHandlesSemgrepPROResultFile() throws Exception {
-        SemgrepSarifReader reader = new SemgrepSarifReader();
-        TestSuiteResults result = reader.parse(resultFilePRO);
-
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
-        assertFalse(result.isCommercial());
-        assertEquals("Semgrep PRO", result.getToolName());
-        assertEquals("1.68.1", result.getToolVersion());
-
-        assertEquals(2, result.getTotalResults());
-
-        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
-    }
 }

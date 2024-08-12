@@ -144,8 +144,6 @@ public class SemgrepReader extends Reader {
                 return CweNumber.XXE;
             case 614:
                 return CweNumber.INSECURE_COOKIE;
-            case 1004:
-                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
             case 643:
                 return CweNumber.XPATH_INJECTION;
             case 1004:
