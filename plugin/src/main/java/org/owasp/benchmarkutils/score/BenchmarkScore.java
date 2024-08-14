@@ -828,6 +828,20 @@ public class BenchmarkScore extends AbstractMojo {
                 }
             }
 
+            if (tool.startsWith("Snyk")) {
+                // Special case: Snyk reports CWE-916 (for insecure password hashing) while the
+                // Benchmark expects the parent CWE-328 (for weak hash in general)
+                if (!match && (expectedCWE == 328)) {
+                    match = (actualCWE == 916);
+                }
+
+                // Special case: Snyk reports CWE-23 (for relative path traversal) while the
+                // Benchmark expects the parent CWE-22 (for path traveral in general)
+                if (!match && (expectedCWE == 22)) {
+                    match = (actualCWE == 23);
+                }
+            }
+
             // return true if we find an exact match for a True Positive test
             if (match) {
                 return exp.isTruePositive();
