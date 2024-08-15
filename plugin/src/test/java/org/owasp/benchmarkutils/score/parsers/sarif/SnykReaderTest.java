@@ -59,4 +59,13 @@ class SnykReaderTest extends ReaderTestBase {
         assertEquals(CweNumber.INSECURE_COOKIE, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.XPATH_INJECTION, result.get(2).get(0).getCWE());
     }
+
+    @Test
+    void readerMapsCwes() {
+        SnykReader reader = new SnykReader();
+        assertEquals(
+                CweNumber.WEAK_HASH_ALGO,
+                reader.mapCwe(CweNumber.PASSWORD_HASH_WITH_INSUFFICIENT_COMPUTATIONAL_EFFORT));
+        assertEquals(CweNumber.PATH_TRAVERSAL, reader.mapCwe(CweNumber.RELATIVE_PATH_TRAVERSAL));
+    }
 }
