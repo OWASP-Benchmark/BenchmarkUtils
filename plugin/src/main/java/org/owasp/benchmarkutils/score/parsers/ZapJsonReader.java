@@ -100,7 +100,7 @@ public class ZapJsonReader extends Reader {
                 String testName = extractTestName(finding.getString("url"));
 
                 if (testName.contains(BenchmarkScore.TESTCASENAME)) {
-                    tcr.setNumber(testNumber(testName));
+                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(testName));
                     tcr.setCWE(figureCwe(finding));
 
                     tr.put(tcr);
@@ -131,7 +131,9 @@ public class ZapJsonReader extends Reader {
                                                             BenchmarkScore.TESTCASENAME)) {
                                                         TestCaseResult tcr = new TestCaseResult();
 
-                                                        tcr.setNumber(testNumber(testName));
+                                                        tcr.setTestID(
+                                                                getBenchmarkStyleTestCaseNumber(
+                                                                        testName));
                                                         tcr.setCWE(cwe);
 
                                                         tr.put(tcr);

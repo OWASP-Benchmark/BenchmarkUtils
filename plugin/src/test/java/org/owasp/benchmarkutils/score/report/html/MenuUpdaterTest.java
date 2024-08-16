@@ -30,7 +30,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CategoryResults;
@@ -45,10 +45,10 @@ import org.owasp.benchmarkutils.score.report.ScatterVulns;
 
 class MenuUpdaterTest {
 
-    private File tmpDir;
+    private static File tmpDir;
 
-    @BeforeEach
-    void setUp() throws IOException {
+    @BeforeAll
+    static void setUp() throws IOException {
         tmpDir = Files.createTempDirectory("Benchmark.MenuUpdaterTest").toFile();
     }
 

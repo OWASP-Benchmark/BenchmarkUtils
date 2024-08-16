@@ -20,9 +20,8 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -31,17 +30,16 @@ import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
 class PrecautionReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private static ResultFile resultFile;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Precaution.sarif");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlyPrecautionReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, PrecautionReader.class);
+        assertOnlyMatcherClassIs(resultFile, PrecautionReader.class);
     }
 
     @Test
@@ -55,6 +53,6 @@ class PrecautionReaderTest extends ReaderTestBase {
         assertEquals("0.5.0", result.getToolVersion());
 
         assertEquals(1, result.getTotalResults());
-        assertEquals(CweNumber.WEAK_HASH_ALGO, result.get("73").get(0).getCWE());
+        assertEquals(CweNumber.WEAK_HASH_ALGO, result.getTestCaseResults("73").get(0).getCWE());
     }
 }

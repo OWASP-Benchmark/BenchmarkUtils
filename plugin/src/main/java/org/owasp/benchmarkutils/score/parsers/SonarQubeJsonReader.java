@@ -82,7 +82,7 @@ public class SonarQubeJsonReader extends Reader {
                             ? parseSonarQubeHotSpotIssue(arr.getJSONObject(i))
                             : parseSonarQubeQualityIssue(arr.getJSONObject(i)));
             if (tcr != null) {
-                if (tcr.getNumber() == 0) {
+                if (tcr.getTestID().equals("0")) {
                     System.out.println(
                             "SQ Error: JSON object parsed with isHotspot key: '"
                                     + key
@@ -128,7 +128,7 @@ public class SonarQubeJsonReader extends Reader {
             filename = filename.substring(filename.lastIndexOf('/'));
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setNumber(testNumber(filename));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
                 String rule = finding.getString("rule");
                 String squid = rule.substring(rule.indexOf(":") + 1);
                 if (squid == null || squid.equals("none")) {
@@ -181,7 +181,7 @@ public class SonarQubeJsonReader extends Reader {
             filename = filename.substring(filename.lastIndexOf('/'));
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setNumber(testNumber(filename));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
                 String secCat = finding.getString("securityCategory");
                 if (secCat == null || secCat.equals("none")) {
                     return null;

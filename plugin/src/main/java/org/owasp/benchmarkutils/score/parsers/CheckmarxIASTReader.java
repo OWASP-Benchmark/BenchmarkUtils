@@ -45,7 +45,6 @@ public class CheckmarxIASTReader extends Reader {
         for (CSVRecord record : records) {
             String checkerKey = record.get("Vulnerability Type");
             String url = record.get("URL");
-            //      System.out.println("URL = "+url); //For debugging YE
 
             TestCaseResult tcr = new TestCaseResult();
             tcr.setCWE(cweLookup(checkerKey));
@@ -58,18 +57,14 @@ public class CheckmarxIASTReader extends Reader {
             Matcher testCaseMatcher = testCasePattern.matcher(url);
             if (testCaseMatcher.find()) {
                 String testCase = testCaseMatcher.group(0);
-                // System.out.println("testCase = "+testCase+" Test Num =
-                // "+testCase.substring(testCase.length()-Utils.TESTCASE_DIGITS,
-                // testCase.length())); // For debugging YE
                 tcr.setTestCaseName(testCase);
-                // BenchmarkTest00000 - BenchmarkTest99999
-                tcr.setNumber(testNumber(testCase));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(testCase));
                 if (tcr.getCWE() != 0) {
                     tr.put(tcr);
                 }
             }
         }
-        tr.setTime("100");
+
         return tr;
     }
 
@@ -168,7 +163,8 @@ public class CheckmarxIASTReader extends Reader {
 
             default:
                 System.out.println(
-                        "WARNING: Unmapped Vulnerability category detected: " + checkerKey);
+                        "WARNING: Unmapped Vulnerability category for CheckmarxIAST detected: "
+                                + checkerKey);
         }
         return 0;
     }

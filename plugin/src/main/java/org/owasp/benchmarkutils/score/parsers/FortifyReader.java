@@ -176,9 +176,16 @@ public class FortifyReader extends Reader {
         // The first block looks for class names for Java findings.
         String tc = getAttributeValue("enclosingClass", function);
 
-        if (tc != null && tc.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setNumber(testNumber(tc));
-            return tcr;
+        if (tc != null) {
+            // Strip off inner class name from the test case file name if present
+            int dollar = tc.indexOf('$');
+            if (dollar != -1) {
+                tc = tc.substring(0, dollar);
+            }
+            if (isTestCaseFile(tc)) {
+                tcr.setActualResultTestID(tc);
+                return tcr;
+            }
         } else {
             /* if tc is null (from attribute enclosingClass), then this might be a NodeJS finding
                that looks like this:
@@ -186,17 +193,18 @@ public class FortifyReader extends Reader {
                       <Unified>
                         <Context>
                           <Function name="processRequest"/>
-                          <FunctionDeclarationSourceLocation path="testcode/JulietJSTest00010.js" line="21" lineEnd="33" colStart="34" colEnd="0"/>
+                          <FunctionDeclarationSourceLocation path="testcode/TestSuiteTest00010.js" line="21" lineEnd="33" colStart="34" colEnd="0"/>
                         </Context>
             */
             if (tc == null) {
+                // TODO: Test with other test suite and fix use of deprecated API as appropriate.
                 Node functionDecl =
                         getNamedNode("FunctionDeclarationSourceLocation", context.getChildNodes());
                 if (functionDecl != null) {
                     String path = getAttributeValue("path", functionDecl);
                     if (path != null) {
                         int i = path.indexOf(BenchmarkScore.TESTCASENAME);
-                        if (i > 0) {
+                        if (i >= 0) {
                             tc = path.substring(i);
                             tc =
                                     tc.substring(
@@ -207,7 +215,7 @@ public class FortifyReader extends Reader {
                             if (dollar != -1) {
                                 tc = tc.substring(0, dollar);
                             }
-                            tcr.setNumber(Integer.parseInt(tc));
+                            tcr.setTestID(Integer.parseInt(tc));
                             return tcr;
                         }
                     }

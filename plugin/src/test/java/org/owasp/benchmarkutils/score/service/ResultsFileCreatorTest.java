@@ -26,7 +26,7 @@ import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
@@ -38,12 +38,12 @@ import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 
 class ResultsFileCreatorTest {
 
-    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-    private File tmpDir;
+    private static File tmpDir;
 
-    @BeforeEach
-    void setUp() throws IOException {
+    @BeforeAll
+    static void setUp() throws IOException {
         tmpDir = Files.createTempDirectory("Benchmark.ResultsFileCreatorTest").toFile();
     }
 
@@ -62,7 +62,7 @@ class ResultsFileCreatorTest {
                 TestCaseResultBuilder.builder()
                         .setTestCaseName("BenchmarkTest00001")
                         .setTestNumber(1)
-                        //                        .setCategory("pathtraver")
+                        // .setCategory("pathtraver")
                         .setCwe(CweNumber.PATH_TRAVERSAL)
                         .setTruePositive(true)
                         .setPassed(true)
@@ -71,7 +71,7 @@ class ResultsFileCreatorTest {
                 TestCaseResultBuilder.builder()
                         .setTestCaseName("BenchmarkTest00002")
                         .setTestNumber(2)
-                        //                        .setCategory("trustbound")
+                        // .setCategory("trustbound")
                         .setCwe(CweNumber.TRUST_BOUNDARY_VIOLATION)
                         .setTruePositive(false)
                         .setPassed(false)
@@ -80,7 +80,7 @@ class ResultsFileCreatorTest {
                 TestCaseResultBuilder.builder()
                         .setTestCaseName("BenchmarkTest00003")
                         .setTestNumber(3)
-                        //                        .setCategory("sqli")
+                        // .setCategory("sqli")
                         .setCwe(CweNumber.SQL_INJECTION)
                         .setTruePositive(false)
                         .setPassed(true)
@@ -89,7 +89,7 @@ class ResultsFileCreatorTest {
                 TestCaseResultBuilder.builder()
                         .setTestCaseName("BenchmarkTest00004")
                         .setTestNumber(4)
-                        //                        .setCategory("cmdi")
+                        // .setCategory("cmdi")
                         .setCwe(CweNumber.COMMAND_INJECTION)
                         .setTruePositive(true)
                         .setPassed(false)
@@ -138,7 +138,7 @@ class ResultsFileCreatorTest {
                 TestCaseResultBuilder.builder()
                         .setTestCaseName("BenchmarkTest00001")
                         .setTestNumber(1)
-                        //                        .setCategory("pathtraver")
+                        // .setCategory("pathtraver")
                         .setCwe(CweNumber.PATH_TRAVERSAL)
                         .setTruePositive(true)
                         .setPassed(true)
@@ -150,7 +150,7 @@ class ResultsFileCreatorTest {
                 TestCaseResultBuilder.builder()
                         .setTestCaseName("BenchmarkTest00002")
                         .setTestNumber(2)
-                        //                        .setCategory("trustbound")
+                        // .setCategory("trustbound")
                         .setCwe(CweNumber.TRUST_BOUNDARY_VIOLATION)
                         .setTruePositive(false)
                         .setPassed(false)
@@ -174,7 +174,7 @@ class ResultsFileCreatorTest {
                 TestCaseResultBuilder.builder()
                         .setTestCaseName("BenchmarkTest00004")
                         .setTestNumber(4)
-                        //                        .setCategory("cmdi")
+                        // .setCategory("cmdi")
                         .setCwe(CweNumber.COMMAND_INJECTION)
                         .setTruePositive(true)
                         .setPassed(false)

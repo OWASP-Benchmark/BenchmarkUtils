@@ -88,7 +88,7 @@ public class BearerReader extends Reader {
                 tcr.setCWE(cwe);
                 tcr.setEvidence(evidence);
                 tcr.setConfidence(0);
-                tcr.setNumber(testNumber(className));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(className));
 
                 return tcr;
             }

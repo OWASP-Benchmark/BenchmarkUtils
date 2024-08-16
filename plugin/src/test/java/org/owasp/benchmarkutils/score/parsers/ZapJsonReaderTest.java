@@ -20,9 +20,8 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -30,25 +29,24 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class ZapJsonReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFileOldFormat;
-    private ResultFile resultFileNewFormat;
+    private static ResultFile resultFileOldFormat;
+    private static ResultFile resultFileNewFormat;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFileOldFormat =
                 TestHelper.resultFileOf("testfiles/Benchmark_ZAP-v2.10.0-oldfmt.json");
         resultFileNewFormat = TestHelper.resultFileOf("testfiles/Benchmark_ZAP-v2.11.1.json");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlyZapJsonReaderReportsCanReadAsTrueForOldFormat() {
-        assertOnlyMatcherClassIs(this.resultFileOldFormat, ZapJsonReader.class);
+        assertOnlyMatcherClassIs(resultFileOldFormat, ZapJsonReader.class);
     }
 
     @Test
     public void onlyZapJsonReaderReportsCanReadAsTrueForNewFormat() {
-        assertOnlyMatcherClassIs(this.resultFileNewFormat, ZapJsonReader.class);
+        assertOnlyMatcherClassIs(resultFileNewFormat, ZapJsonReader.class);
     }
 
     @Test
@@ -62,8 +60,8 @@ public class ZapJsonReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.getTestCaseResults("2").get(0).getCWE());
     }
 
     @Test
@@ -78,7 +76,8 @@ public class ZapJsonReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.CSRF, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.CSRF, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(
+                CweNumber.COOKIE_WITHOUT_HTTPONLY, result.getTestCaseResults("2").get(0).getCWE());
     }
 }

@@ -20,9 +20,8 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -31,19 +30,18 @@ import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
 class SemgrepSarifReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFileOSS, resultFilePRO;
+    private static ResultFile resultFileOSS, resultFilePRO;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFileOSS = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-oss-v1.67.0.sarif");
         resultFilePRO = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-pro-v1.68.1.sarif");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlySemgrepSarifReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFileOSS, SemgrepSarifReader.class);
-        assertOnlyMatcherClassIs(this.resultFilePRO, SemgrepSarifReader.class);
+        assertOnlyMatcherClassIs(resultFileOSS, SemgrepSarifReader.class);
+        assertOnlyMatcherClassIs(resultFilePRO, SemgrepSarifReader.class);
     }
 
     @Test
@@ -58,8 +56,9 @@ class SemgrepSarifReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get("2").get(0).getCWE());
+        assertEquals(
+                CweNumber.COOKIE_WITHOUT_HTTPONLY, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.getTestCaseResults("2").get(0).getCWE());
     }
 
     @Test
@@ -74,7 +73,8 @@ class SemgrepSarifReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get("2").get(0).getCWE());
+        assertEquals(
+                CweNumber.COOKIE_WITHOUT_HTTPONLY, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.getTestCaseResults("2").get(0).getCWE());
     }
 }

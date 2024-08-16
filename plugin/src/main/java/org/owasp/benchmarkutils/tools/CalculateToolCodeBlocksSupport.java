@@ -373,7 +373,8 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
             // 3a. Loop through all the results in theToolResults to calculate the initial
             // statistics across all of them.
             for (String tc : theToolResults.keySet()) {
-                TestCaseResult theResult = theToolResults.get(tc).get(0); // Always only one.
+                TestCaseResult theResult =
+                        theToolResults.getTestCaseResults(tc).get(0); // Always only one.
                 boolean passed = theResult.isPassed();
                 CodeBlockSupportResults source = sourceCodeBlocksResults.get(theResult.getSource());
                 CodeBlockSupportResults dataflow =
@@ -433,7 +434,8 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
             // Loop through them all again and calculate the number of TPs for each source that
             // pass/fail, ignoring any failures that are caused by unsupported SINKs.
             for (String tc : theToolResults.keySet()) {
-                TestCaseResult theResult = theToolResults.get(tc).get(0); // Always only one.
+                TestCaseResult theResult =
+                        theToolResults.getTestCaseResults(tc).get(0); // Always only one.
                 boolean passed = theResult.isPassed();
                 CodeBlockSupportResults source = sourceCodeBlocksResults.get(theResult.getSource());
                 CodeBlockSupportResults dataflow =
@@ -484,7 +486,8 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
             // Positive and the dataflow is 'null'.
             boolean foundFPorFN = false;
             for (String tc : theToolResults.keySet()) {
-                TestCaseResult theResult = theToolResults.get(tc).get(0); // Always only one.
+                TestCaseResult theResult =
+                        theToolResults.getTestCaseResults(tc).get(0); // Always only one.
                 boolean passed = theResult.isPassed();
                 CodeBlockSupportResults source = sourceCodeBlocksResults.get(theResult.getSource());
                 CodeBlockSupportResults dataflow =
@@ -591,7 +594,8 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
             // sinks or sources already known to cause FPs
             int FPCount = 1;
             for (String tc : theToolResults.keySet()) {
-                TestCaseResult theResult = theToolResults.get(tc).get(0); // Always only one.
+                TestCaseResult theResult =
+                        theToolResults.getTestCaseResults(tc).get(0); // Always only one.
                 boolean passed = theResult.isPassed();
                 CodeBlockSupportResults source = sourceCodeBlocksResults.get(theResult.getSource());
                 CodeBlockSupportResults dataflow =

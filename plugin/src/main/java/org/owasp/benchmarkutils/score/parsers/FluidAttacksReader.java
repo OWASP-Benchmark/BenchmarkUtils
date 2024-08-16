@@ -62,7 +62,7 @@ public class FluidAttacksReader extends Reader {
             if (testCaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
                 testCaseResult.setCWE(categoryToExpectedCwe(category));
                 testCaseResult.setEvidence(category);
-                testCaseResult.setNumber(
+                testCaseResult.setTestID(
                         Integer.parseInt(
                                 testCaseName.substring(
                                         testCaseName.length() - BenchmarkScore.TESTIDLENGTH,

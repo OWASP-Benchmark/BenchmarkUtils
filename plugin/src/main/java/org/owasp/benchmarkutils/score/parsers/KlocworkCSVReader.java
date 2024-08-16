@@ -20,7 +20,6 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.io.StringReader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -60,14 +59,15 @@ public class KlocworkCSVReader extends Reader {
             String filename = record.get("File"); // e.g., BenchmarkTest00001
 
             TestCaseResult tcr = new TestCaseResult();
-            tcr.setCWE(cweLookup(category));
-            tcr.setEvidence(category);
-            if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                tcr.setNumber(testNumber(filename));
-            }
+            if (isTestCaseFile(filename)) {
+                tcr.setActualResultTestID(filename);
+                tcr.setCWE(cweLookup(category));
+                tcr.setEvidence(category);
 
-            if (tcr.getCWE() != 0) {
-                tr.put(tcr);
+                int cwe = tcr.getCWE();
+                if (cwe != CweNumber.DONTCARE && cwe != CweNumber.UNKNOWN) {
+                    tr.put(tcr);
+                }
             }
         }
 
@@ -135,7 +135,7 @@ public class KlocworkCSVReader extends Reader {
             default:
                 System.out.println(
                         "WARNING: Unmapped Klocwork Vuln category detected: " + checkerKey);
-                return 0;
+                return CweNumber.UNKNOWN;
         }
     }
 }

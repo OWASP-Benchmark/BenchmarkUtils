@@ -143,7 +143,7 @@ public class CheckmarxESReader extends Reader {
             String resultFileName = nodes.getJSONObject(0).getString("FileName").replace("\\", "/");
             String testcaseName = resultFileName.substring(resultFileName.lastIndexOf('/') + 1);
             if (testcaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
-                tcr.setNumber(testNumber(testcaseName));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcaseName));
                 return tcr;
             } else {
                 resultFileName =
@@ -152,7 +152,7 @@ public class CheckmarxESReader extends Reader {
                                 .replace("\\", "/");
                 testcaseName = resultFileName.substring(resultFileName.lastIndexOf('/') + 1);
                 if (testcaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    tcr.setNumber(testNumber(testcaseName));
+                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcaseName));
                     return tcr;
                 }
             }

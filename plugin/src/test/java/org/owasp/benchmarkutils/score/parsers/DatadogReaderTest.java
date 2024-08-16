@@ -20,9 +20,8 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -30,17 +29,16 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class DatadogReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private static ResultFile resultFile;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Datadog.log");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlyDatadogReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, DatadogReader.class);
+        assertOnlyMatcherClassIs(resultFile, DatadogReader.class);
     }
 
     @Test
@@ -55,9 +53,11 @@ public class DatadogReaderTest extends ReaderTestBase {
 
         assertEquals(4, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get("1609").get(0).getCWE());
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get("2").get(0).getCWE());
-        assertEquals(CweNumber.WEAK_HASH_ALGO, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.TRUST_BOUNDARY_VIOLATION, result.get("4").get(0).getCWE());
+        assertEquals(
+                CweNumber.COMMAND_INJECTION, result.getTestCaseResults("1609").get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.getTestCaseResults("2").get(0).getCWE());
+        assertEquals(CweNumber.WEAK_HASH_ALGO, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(
+                CweNumber.TRUST_BOUNDARY_VIOLATION, result.getTestCaseResults("4").get(0).getCWE());
     }
 }

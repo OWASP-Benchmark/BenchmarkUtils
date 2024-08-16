@@ -20,9 +20,8 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -30,17 +29,16 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class KlocworkCSVReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private static ResultFile resultFile;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Klocwork.csv");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlyKlocworkCSVReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, KlocworkCSVReader.class);
+        assertOnlyMatcherClassIs(resultFile, KlocworkCSVReader.class);
     }
 
     @Test
@@ -54,7 +52,7 @@ public class KlocworkCSVReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.SQL_INJECTION, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.getTestCaseResults("2").get(0).getCWE());
     }
 }

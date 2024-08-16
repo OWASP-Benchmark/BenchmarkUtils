@@ -107,7 +107,7 @@ public class ContrastAssessReader extends Reader {
 
         // Node findings look like:
         // debug: 2021-05-12T21:00:46.118Z 12631 contrast:rules:sinks - crypto-bad-mac:
-        // /julietjs/sqli-00/JulietJSTest00001
+        // /TESTSUITENAME/sqli-00/TestSuiteTest00001
         // However, there are similar lines like this we have to avoid:
         // debug: 2021-05-12T21:00:30.487Z 12631 contrast:rules:sinks - loading provider for
         // hardcoded-password
@@ -131,7 +131,7 @@ public class ContrastAssessReader extends Reader {
         tcr.setCWE(cweLookup(elements[0]));
 
         if (tcr.getCWE() != 0 && elements[1].contains(BenchmarkScore.TESTCASENAME)) {
-            tcr.setNumber(testNumber(elements[1]));
+            tcr.setTestID(getBenchmarkStyleTestCaseNumber(elements[1]));
             tr.put(tcr);
         }
     }
@@ -156,7 +156,7 @@ public class ContrastAssessReader extends Reader {
                 // web services, they can look like:
                 // "uri":"/benchmark/rest/xxe-00/BenchmarkTest03915/send"
                 // At this point testNumber could contain '00215', or '03915/send'
-                tcr.setNumber(testNumber(uri));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(uri));
                 // System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                 // tcr.getCategory() );
                 tr.put(tcr);

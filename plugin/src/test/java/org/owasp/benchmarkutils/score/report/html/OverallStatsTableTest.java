@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.Configuration;
@@ -38,8 +38,8 @@ import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 
 class OverallStatsTableTest {
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         BenchmarkScore.config = Configuration.fromDefaultConfig();
     }
 

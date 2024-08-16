@@ -84,7 +84,7 @@ public class JuliaReader extends Reader {
             if (childName.equals("source")) {
                 String where = child.getTextContent().replace('/', '.');
                 // "org.owasp.benchmark.testcode.BenchmarkTest00042.java"
-                tcr.setNumber(testNumber(where));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(where));
 
             } else if (childName.equals("CWEid"))
                 tcr.setCWE(Integer.parseInt(child.getTextContent()));

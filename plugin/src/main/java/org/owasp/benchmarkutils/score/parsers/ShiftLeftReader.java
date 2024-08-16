@@ -55,7 +55,7 @@ public class ShiftLeftReader extends Reader {
                 String category = split[1];
 
                 TestCaseResult testCaseResult = new TestCaseResult();
-                testCaseResult.setNumber(Integer.parseInt(split[0]));
+                testCaseResult.setTestID(Integer.parseInt(split[0]));
                 testCaseResult.setCWE(categoryToCWE(category));
                 testCaseResult.setEvidence(category + "::" + line);
 

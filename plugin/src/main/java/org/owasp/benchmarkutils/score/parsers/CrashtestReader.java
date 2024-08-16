@@ -152,7 +152,7 @@ public class CrashtestReader extends Reader {
             testfile = testfile.substring(testfile.lastIndexOf('/') + 1);
 
             if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-                tcr.setNumber(testNumber(testfile));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
                 return tcr;
             }
         }

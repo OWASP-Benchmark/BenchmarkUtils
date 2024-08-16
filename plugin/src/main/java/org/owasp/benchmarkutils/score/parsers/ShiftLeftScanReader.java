@@ -80,7 +80,7 @@ public class ShiftLeftScanReader extends Reader {
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
                 TestCaseResult tcr = new TestCaseResult();
 
-                tcr.setNumber(testNumber(filename));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
                 tcr.setCWE(cweNumber(finding));
 
                 return tcr;
@@ -119,8 +119,6 @@ public class ShiftLeftScanReader extends Reader {
                 return 22;
             case "COMMAND_INJECTION":
                 return 78;
-            case "HTTP_RESPONSE_SPLITTING":
-                return 113;
             case "XSS_SERVLET":
             case "HRS_REQUEST_PARAMETER_TO_COOKIE":
             case "XSS_REQUEST_PARAMETER_TO_SERVLET_WRITER":
@@ -132,6 +130,8 @@ public class ShiftLeftScanReader extends Reader {
                 return 89;
             case "LDAP_INJECTION":
                 return 90;
+            case "HTTP_RESPONSE_SPLITTING":
+                return 113;
             case "PADDING_ORACLE":
                 return 209;
             case "DES_USAGE":
@@ -146,12 +146,12 @@ public class ShiftLeftScanReader extends Reader {
                 return 330;
             case "TRUST_BOUNDARY_VIOLATION":
                 return 501;
-            case "HTTPONLY_COOKIE":
-                return 1004;
             case "INSECURE_COOKIE":
                 return 614;
             case "XPATH_INJECTION":
                 return 643;
+            case "HTTPONLY_COOKIE":
+                return 1004;
 
             default:
                 System.out.println(

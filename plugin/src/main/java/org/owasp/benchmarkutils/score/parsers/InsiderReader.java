@@ -78,7 +78,7 @@ public class InsiderReader extends Reader {
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
                 TestCaseResult tcr = new TestCaseResult();
 
-                tcr.setNumber(testNumber(filename));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
                 int cwe = cweNumber(finding);
                 tcr.setCWE(cwe);
 

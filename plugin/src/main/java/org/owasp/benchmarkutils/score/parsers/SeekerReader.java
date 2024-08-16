@@ -46,7 +46,7 @@ public class SeekerReader extends Reader {
             TestCaseResult tcr = new TestCaseResult();
             tcr.setCWE(cweLookup(checkerKey));
             tcr.setEvidence(checkerKey);
-            tcr.setNumber(testNumber(url));
+            tcr.setTestID(getBenchmarkStyleTestCaseNumber(url));
             if (tcr.getCWE() != 0) {
                 tr.put(tcr);
             }

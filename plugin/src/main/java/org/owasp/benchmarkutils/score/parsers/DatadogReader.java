@@ -124,7 +124,7 @@ public class DatadogReader extends Reader {
                     tcr.setEvidence(t.id);
 
                     try {
-                        tcr.setNumber(Integer.parseInt(testNumber));
+                        tcr.setTestID(Integer.parseInt(testNumber));
                     } catch (NumberFormatException e) {
                         System.out.println("> Parse error: " + line);
                     }

@@ -62,9 +62,9 @@ public class ThunderScanReader extends Reader {
 
         tcResult.setCWE(
                 figureCwe(vulnerabilityType.name, vulnerability.function, vulnerability.filename));
-        int testcasenum = testNumber(vulnerability.filename);
+        int testcasenum = getBenchmarkStyleTestCaseNumber(vulnerability.filename);
         if (testcasenum > 0) {
-            tcResult.setNumber(testcasenum);
+            tcResult.setTestID(testcasenum);
             tcResult.setEvidence(vulnerabilityType.name + "::" + lineNumber(vulnerability));
             return tcResult;
         }

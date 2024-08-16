@@ -54,7 +54,7 @@ public class MendReader extends Reader {
 
                             tcr.setCWE(result.type.cwe.asNumber());
                             tcr.setEvidence(result.type.name);
-                            tcr.setNumber(testNumber(testfile));
+                            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
 
                             tr.put(tcr);
                         }

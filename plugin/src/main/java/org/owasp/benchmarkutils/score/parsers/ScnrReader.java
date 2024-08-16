@@ -79,12 +79,13 @@ public class ScnrReader extends Reader {
             return null;
         }
 
-        int testNumber = testNumber(issue.getJSONObject("vector").getString("url"));
+        int testNumber =
+                getBenchmarkStyleTestCaseNumber(issue.getJSONObject("vector").getString("url"));
 
         TestCaseResult tcr = new TestCaseResult();
 
         tcr.setCWE(issue.getInt("cwe"));
-        tcr.setNumber(testNumber);
+        tcr.setTestID(testNumber);
 
         return tcr;
     }
@@ -137,12 +138,13 @@ public class ScnrReader extends Reader {
         }
 
         int testNumber =
-                testNumber(getNamedChild("url", getNamedChild("vector", issue)).getTextContent());
+                getBenchmarkStyleTestCaseNumber(
+                        getNamedChild("url", getNamedChild("vector", issue)).getTextContent());
 
         TestCaseResult tcr = new TestCaseResult();
 
         tcr.setCWE(parseInt(textContentOf(issue, "cwe")));
-        tcr.setNumber(testNumber);
+        tcr.setTestID(testNumber);
 
         return tcr;
     }

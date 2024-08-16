@@ -82,7 +82,7 @@ public class HCLAppScanSourceReader extends Reader {
                 // Parse out test number from: BenchmarkTest02603:99
                 try {
                     if (filename.contains(BenchmarkScore.TESTCASENAME)) {
-                        tn = testNumber(filename);
+                        tn = getBenchmarkStyleTestCaseNumber(filename);
                         if (tn < 0) {
                             throw new Exception("Failed to get test number from file: " + filename);
                         }
@@ -97,7 +97,7 @@ public class HCLAppScanSourceReader extends Reader {
                 reportWarning("TestCase Number is bad for file: " + filename);
             } else {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setNumber(tn);
+                tcr.setTestID(tn);
                 tcr.setCWE(vtype);
                 tcr.setEvidence(issueType);
                 tr.put(tcr);

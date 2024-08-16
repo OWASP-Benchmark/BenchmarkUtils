@@ -95,7 +95,7 @@ public class NetsparkerReader extends Reader {
         }
 
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setNumber(testNumber(testfile));
+            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
             return tcr;
         }
         return null;
@@ -107,7 +107,7 @@ public class NetsparkerReader extends Reader {
         }
         int cwe = Integer.parseInt(cweNum);
         switch (cwe) {
-            case 80:
+            case 80: // TODO - Is this correct? Shouldn't this be mapped to XSS?
                 return CweNumber.INSECURE_COOKIE; // insecure cookie use
                 //        case "insecure-cookie"           :  return 614;  // insecure cookie use
                 //        case "sql-injection"             :  return 89;   // sql injection

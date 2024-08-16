@@ -82,7 +82,7 @@ public class FusionLiteInsightReader extends Reader {
                             TestCaseResult tcr = new TestCaseResult();
                             tcr.setCWE(findingCWE);
                             tcr.setEvidence(findingName);
-                            tcr.setNumber(testNumber);
+                            tcr.setTestID(testNumber);
                             tr.put(tcr);
                         }
                     }
@@ -104,7 +104,7 @@ public class FusionLiteInsightReader extends Reader {
         testfile = testfile.substring(testfile.lastIndexOf('/') + 1);
 
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int testno = testNumber(testfile);
+            int testno = getBenchmarkStyleTestCaseNumber(testfile);
             return testno;
         }
         return -1;

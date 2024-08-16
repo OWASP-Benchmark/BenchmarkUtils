@@ -20,9 +20,8 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -30,17 +29,16 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class VisualCodeGrepperReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private static ResultFile resultFile;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_visualcodegrepper-v2.2.0.xml");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlyFindbugsReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, VisualCodeGrepperReader.class);
+        assertOnlyMatcherClassIs(resultFile, VisualCodeGrepperReader.class);
     }
 
     @Test
@@ -54,7 +52,7 @@ public class VisualCodeGrepperReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.SQL_INJECTION, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.getTestCaseResults("2").get(0).getCWE());
     }
 }

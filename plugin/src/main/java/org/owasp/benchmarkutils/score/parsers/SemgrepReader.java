@@ -287,7 +287,7 @@ public class SemgrepReader extends Reader {
                 tcr.setCWE(cwe);
                 tcr.setEvidence(category + "::" + evidence);
                 tcr.setConfidence(0);
-                tcr.setNumber(testNumber(className));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(className));
 
                 return tcr;
             }

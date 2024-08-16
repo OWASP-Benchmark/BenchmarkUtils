@@ -19,9 +19,8 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -30,17 +29,16 @@ import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
 public class CodeQLReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private static ResultFile resultFile;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CodeQL-v2.13.sarif");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlyCodeQLReaderTestReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, CodeQLReader.class);
+        assertOnlyMatcherClassIs(resultFile, CodeQLReader.class);
     }
 
     @Test
@@ -55,8 +53,8 @@ public class CodeQLReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.XSS, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("2").get(0).getCWE());
     }
 
     @Test
@@ -72,7 +70,7 @@ public class CodeQLReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.XSS, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("2").get(0).getCWE());
     }
 }

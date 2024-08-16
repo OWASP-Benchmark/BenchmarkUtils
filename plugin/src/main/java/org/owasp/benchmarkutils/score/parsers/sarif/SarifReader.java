@@ -30,7 +30,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -238,7 +237,7 @@ public abstract class SarifReader extends Reader {
 
         String className = extractFilename(resultUri(result));
 
-        if (!className.startsWith(BenchmarkScore.TESTCASENAME)) {
+        if (!isTestCaseFile(className)) {
             return null;
         }
 
@@ -253,8 +252,9 @@ public abstract class SarifReader extends Reader {
 
         tcr.setCWE(cwe);
         tcr.setEvidence(evidence);
-        tcr.setConfidence(0);
-        tcr.setNumber(testNumber(className));
+        //        tcr.setConfidence(0);
+        //        tcr.setTestID(getBenchmarkStyleTestCaseNumber(className));
+        tcr.setActualResultTestID(className);
 
         return tcr;
     }
@@ -268,7 +268,7 @@ public abstract class SarifReader extends Reader {
     }
 
     /**
-     * Allows extending classes to map/change detected CWE numbers to match Benchmark expected
+     * Allows extending classes to map/change detected CWE numbers to match test suite expected
      * numbers (if required)
      */
     public int mapCwe(int cwe) {

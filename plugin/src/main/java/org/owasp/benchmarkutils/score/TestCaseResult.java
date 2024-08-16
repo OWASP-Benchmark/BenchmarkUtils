@@ -19,6 +19,8 @@ package org.owasp.benchmarkutils.score;
 
 import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.Category;
+import org.owasp.benchmarkutils.score.parsers.Reader;
+import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
 import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
 
 /* This class represents a single test case result. It documents the expected result (real),
@@ -28,7 +30,9 @@ import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
 public class TestCaseResult {
 
     private String testCaseName = ""; // The name of the test case (E.g., BenchmarkTest00001)
-    private int number = 0;
+    // testID is the unique ID for this test case. For Benchmark Style, its a number (e.g., 1), for
+    // nonBenchmark Style its the name of the entire test case (e.g., FooBar_TryThis02).
+    private String testID = "0";
     private boolean truePositive = false; // Is this test case a true or false positive?
     private boolean result = false; // Did a tool properly detect this as a true or false positive?
     private int CWE = 0;
@@ -58,10 +62,8 @@ public class TestCaseResult {
      */
     public TestCaseResult(AbstractTestCaseRequest request) {
         this.testCaseName = request.getName();
-        this.number = request.getNumber();
         this.truePositive = request.isVulnerability();
         this.CWE = request.getCategory().getCWE();
-        // this.category = request.getCategory().getName();
         this.category = Categories.getByCWE(this.CWE).getName();
 
         // fill in optional attributes since we have this data available
@@ -82,27 +84,106 @@ public class TestCaseResult {
      * The name of the test case. E.g., BenchmarkTest00001
      */
     public String getTestCaseName() {
-        return testCaseName;
+        return this.testCaseName;
     }
 
     public int getConfidence() {
-        return confidence;
+        return this.confidence;
     }
 
     public void setConfidence(int confidence) {
         this.confidence = confidence;
     }
 
-    public int getNumber() {
-        return number;
+    public String getTestID() {
+        return this.testID;
     }
 
-    public void setNumber(int number) {
-        this.number = number;
+    /**
+     * Sets the unique identifier for this test case. For Benchmark style scoring, its the test ID
+     * number, converted to a String.
+     *
+     * <p>The use of this method should be converted to use setActualResultTestID() for tool
+     * parsers.
+     *
+     * @param id The unique test case number for this Benchmark style test case.
+     */
+    @Deprecated
+    public void setTestID(int id) {
+        this.testID = String.valueOf(id);
+    }
+
+    /**
+     * Sets the unique identifier for this test case. For Benchmark style, it parses out the test
+     * case number and uses that as the test ID. For non-Benchmark style scoring, it used the name
+     * of the tool result file to try to find the matching expected result test case name. In this
+     * case, if the reported filename from the tool starts with the name of a test case, then the
+     * test case name, is used as the testID. That way if there are multi-file test cases that all
+     * start with the same name, they will all match up against the expected result name with that
+     * name.
+     *
+     * @param id The test case file name, without path information.
+     */
+    public void setActualResultTestID(String testCaseFileName) {
+        if (ExpectedResultsProvider.isBenchmarkStyleScoring()) {
+            // Sets the test ID to the test case # or -1 if not a match
+            this.testID =
+                    String.valueOf(Reader.getBenchmarkStyleTestCaseNumber(testCaseFileName.trim()));
+        } else {
+            if (testCaseFileName.contains("/") || testCaseFileName.contains("\\")) {
+                new IllegalArgumentException(
+                                "FATAL ERROR: testCaseFileName value: "
+                                        + testCaseFileName
+                                        + " passed to setActualResultTestID() can't have any path information")
+                        .printStackTrace();
+                System.exit(-1);
+            }
+            // For actual results, we look for a matching test case name, and set that as the testID
+            String matchingID =
+                    ExpectedResultsProvider.getExpectedResults()
+                            .getMatchingTestCaseName(testCaseFileName);
+            // TODO: Maybe null is OK, and we should simply set the test ID to -1, like we do for
+            // Benchmark
+            if (matchingID == null) {
+                new IllegalArgumentException(
+                                "FATAL ERROR: testCaseFileName value: "
+                                        + testCaseFileName
+                                        + " passed to setActualResultTestID() doesn't match any expected results test case name.")
+                        .printStackTrace();
+                System.exit(-1);
+            }
+            this.testID = matchingID;
+        }
+    }
+
+    /**
+     * Sets the unique identifier for this test case. For non-Benchmark style scoring, its the name
+     * of the test case. For Benchmark style, it parses out the test case number and uses that as
+     * the test ID.
+     *
+     * @param id The test case file name, without path information.
+     */
+    public void setExpectedResultTestID(String testCaseFileName) {
+        if (ExpectedResultsProvider.isBenchmarkStyleScoring()) {
+            // Sets the test ID to the test case # or -1 if not a match
+            this.testID =
+                    String.valueOf(Reader.getBenchmarkStyleTestCaseNumber(testCaseFileName.trim()));
+        } else {
+            if (testCaseFileName.contains("/") || testCaseFileName.contains("\\")) {
+                new IllegalArgumentException(
+                                "FATAL ERROR: testCaseFileName value: "
+                                        + testCaseFileName
+                                        + " passed to setExpectedResultTestID() can't have any path information")
+                        .printStackTrace();
+                System.exit(-1);
+            }
+            // For expected results, we don't change the test case file name
+            this.testID = testCaseFileName.trim();
+        }
     }
 
     public boolean isTruePositive() {
-        return truePositive;
+        return this.truePositive;
     }
 
     public void setTruePositive(boolean truePositive) {
@@ -110,7 +191,7 @@ public class TestCaseResult {
     }
 
     public boolean isPassed() {
-        return result;
+        return this.result;
     }
 
     public void setPassed(boolean result) {
@@ -118,7 +199,7 @@ public class TestCaseResult {
     }
 
     public int getCWE() {
-        return CWE;
+        return this.CWE;
     }
 
     public void setCWE(int cwe) {
@@ -127,7 +208,25 @@ public class TestCaseResult {
         if (category != null) {
             this.category = category.getId();
         } else {
-            this.category = this.UNMAPPED_CATEGORY;
+            this.category = TestCaseResult.UNMAPPED_CATEGORY;
+        }
+    }
+
+    /**
+     * This method is used to abstract away how filenames are matched against a test case, that way
+     * it can be enhanced to support different test suite formats, and the logic on how to do this
+     * isn't implemented in every individual parser. This method expects that
+     * ExpectedResultsProvider.getExpectedResults().isTestCaseFile(filename) was called first to
+     * verify this file is a test case in the test suite being scored. It sets the CWE number and
+     * the test case name in this TestCaseResult if successful. It halts with an error if the
+     * supplied filename is not a valid test case.
+     *
+     * @param cwe The CWE # reported by this tool.
+     * @param filename The filename that might be a test case.
+     */
+    public void setCWEAndTestCaseID(int cwe, String filename) {
+        if (ExpectedResultsProvider.getExpectedResults().isTestCaseFile(filename)) {
+            // TODO
         }
     }
 
@@ -137,7 +236,7 @@ public class TestCaseResult {
      * @return The descriptive name of this CWE, per categories.xml
      */
     public String getCategory() {
-        return category;
+        return this.category;
     }
 
     /*
@@ -155,7 +254,7 @@ public class TestCaseResult {
         }
     */
     public String getEvidence() {
-        return evidence;
+        return this.evidence;
     }
 
     public void setEvidence(String evidence) {
@@ -188,8 +287,8 @@ public class TestCaseResult {
 
     @Override
     public String toString() {
-        return "Testcase #: "
-                + getNumber()
+        return "Testcase ID: "
+                + getTestID()
                 + ", Category: "
                 + getCategory()
                 + ", isVulnerable: "

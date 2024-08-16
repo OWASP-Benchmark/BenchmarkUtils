@@ -54,7 +54,7 @@ public class Rapid7Reader extends Reader {
 
                     tcr.setEvidence(vulnerability.vulnType + "::" + vulnerability.attackType);
                     tcr.setCWE(cweLookup(vulnerability.cwe, vulnerability.attackType));
-                    tcr.setNumber(testNumber(testfile));
+                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
 
                     tr.put(tcr);
                 }

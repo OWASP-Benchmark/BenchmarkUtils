@@ -92,7 +92,7 @@ public class BurpReader extends Reader {
         testcase = testcase.substring(testcase.lastIndexOf('/') + 1);
         testcase = testcase.split("\\.")[0];
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setNumber(testNumber(testcase));
+            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcase));
             return tcr;
         }
 

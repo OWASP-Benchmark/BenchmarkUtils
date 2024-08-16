@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.DumperOptions;
@@ -39,14 +40,14 @@ import org.yaml.snakeyaml.Yaml;
 
 public class ConfigurationTest {
 
-    private Map<String, Object> defaultConfig;
-    private Yaml yaml;
-    private final ClassLoader classLoader = Configuration.class.getClassLoader();
-    private ByteArrayOutputStream out;
+    private static Map<String, Object> defaultConfig;
+    private static Yaml yaml;
+    private static final ClassLoader classLoader = Configuration.class.getClassLoader();
+    private static ByteArrayOutputStream out;
     private static final String SEP = System.getProperty("line.separator");
 
-    @BeforeEach
-    public void setUp() {
+    @BeforeAll
+    static void overallSetUp() {
         // Prevent JSON-like output (https://stackoverflow.com/a/62305688)
         final DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
@@ -54,7 +55,10 @@ public class ConfigurationTest {
 
         yaml = new Yaml(options);
         defaultConfig = yaml.load(classLoader.getResourceAsStream(Configuration.DEFAULT_CONFIG));
+    }
 
+    @BeforeEach
+    void setUp() {
         out = new ByteArrayOutputStream();
         System.setOut(new PrintStream(out));
     }
@@ -66,7 +70,7 @@ public class ConfigurationTest {
 
     private void assertConfigEquals(
             Map<String, Object> expectedConfig, Configuration actualConfig) {
-        assertEquals(expectedConfig.get("expectedresults"), actualConfig.expectedResultsFileName);
+        assertEquals(expectedConfig.get("expectedresults"), Configuration.expectedResultsFileName);
         assertEquals(expectedConfig.get("resultsfileordir"), actualConfig.resultsFileOrDirName);
         assertEquals(expectedConfig.get("focustool"), actualConfig.focus);
         assertEquals(expectedConfig.get("anonymousmode"), actualConfig.anonymousMode);

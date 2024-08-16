@@ -72,7 +72,7 @@ public class CoverityReader extends Reader {
                 filename = filename.replaceAll("\\\\", "/");
                 filename = filename.substring(filename.lastIndexOf('/') + 1);
                 if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    tcr.setNumber(testNumber(filename));
+                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
                     JSONObject props = finding.getJSONObject("checkerProperties");
                     String cweNumber = props.getString("cweCategory");
                     if (cweNumber == null || cweNumber.equals("none")) {
@@ -98,7 +98,7 @@ public class CoverityReader extends Reader {
                 filename = filename.replaceAll("\\\\", "/");
                 filename = filename.substring(filename.lastIndexOf('/') + 1);
                 if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    tcr.setNumber(testNumber(filename));
+                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
                     if (finding.isNull("cweNumber")) {
                         return null;
                     }
@@ -137,7 +137,7 @@ public class CoverityReader extends Reader {
             filename = filename.substring(filename.lastIndexOf('/') + 1);
             if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setNumber(testNumber(filename));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
                 //
                 // *** Warning: serious foefeling and cutting of corners ahead. ***
                 //

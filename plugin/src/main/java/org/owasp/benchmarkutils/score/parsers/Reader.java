@@ -34,6 +34,7 @@ import org.owasp.benchmarkutils.score.parsers.sarif.DatadogSastReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.SemgrepSarifReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.SnykReader;
+import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -46,8 +47,7 @@ public abstract class Reader {
     // TODO: Figure out how to dynamically add all readers here without listing them
     // out manually
     // NOTE: There is a unit test that at least automatically verifies that any
-    // reader with a unit
-    // test is in this list
+    // reader with a unit test is in this list
     public static List<Reader> allReaders() {
         return Arrays.asList(
                 new AcunetixReader(),
@@ -128,10 +128,16 @@ public abstract class Reader {
 
         return null;
     }
-    // Returns the node inside this nodelist whose name matches 'name', that also
-    // has an attribute
-    // called 'key' whose value matches 'keyvalue'
 
+    /**
+     * Returns the node inside this nodelist whose name matches 'name', that also has an attribute
+     * called 'key' whose value matches 'keyvalue'
+     *
+     * @param name The name of the node to get
+     * @param keyvalue The name of the key attribute to match against
+     * @param list The list of Nodes to search through return The matching Node or null, of not a
+     *     match.
+     */
     public static Node getNamedNode(String name, String keyValue, NodeList list) {
         if ((name == null) || (keyValue == null) || (list == null)) return null;
         for (int i = 0; i < list.getLength(); i++) {
@@ -217,24 +223,46 @@ public abstract class Reader {
         return -1;
     }
 
-    public static long occurrences(String path, char c) {
+    /**
+     * Determined whether this file is part of a test case.
+     *
+     * @param testCaseFileName The filename reported by the tool
+     * @return True if file is part of a test case, false otherwise
+     */
+    public static boolean isTestCaseFile(String testCaseFileName) {
+        return ExpectedResultsProvider.getExpectedResults().isTestCaseFile(testCaseFileName);
+    }
+
+    private static long occurrences(String path, char c) {
         return path.chars().filter(ch -> ch == c).count();
     }
 
-    public static int testNumber(String path) {
-        return testNumber(path, BenchmarkScore.TESTCASENAME);
+    /**
+     * Parses out the test case number from a Benchmark style test case name.
+     *
+     * @param path The test case filename, with or without path. @Return the test case number or -1,
+     *     if it can't parse it out.
+     */
+    public static int getBenchmarkStyleTestCaseNumber(String path) {
+        return getBenchmarkStyleTestCaseNumber(path, BenchmarkScore.TESTCASENAME);
     }
 
-    /** Get rid of everything except the test name. */
-    public static int testNumber(String path, String testCaseName) {
+    /**
+     * Parses out the test case number from a Benchmark style test case name.
+     *
+     * @param path The test case filename, with or without path.
+     * @param testCaseName The test case name pattern to parse against @Return the test case number
+     *     or -1, if it can't parse it out.
+     */
+    public static int getBenchmarkStyleTestCaseNumber(String path, String testCaseName) {
         try {
             // No BenchmarkTest
             if (!path.contains(testCaseName)) {
                 return -1;
             }
+
             int numberStart = path.indexOf(testCaseName) + testCaseName.length() + 1;
             path = path.substring(numberStart);
-            // System.out.println("After length: " + path);
             path = path.replaceAll("\\?.*", "");
             path = path.replaceAll(",.*", "");
 
@@ -245,7 +273,6 @@ public abstract class Reader {
                 path = removeColon(path);
             }
             path = path.replaceAll("[^0-9.]", "");
-            // System.out.println("After replace: " + path);
             if (path.contains(".") && occurrences(path, '.') > 1) {
                 int start = path.indexOf(".") + 1;
                 int end = path.length();
@@ -256,12 +283,10 @@ public abstract class Reader {
             if (path.contains(".")) {
                 path = removeFileEnding(path);
             }
-            // System.out.println("Before dot cleaning " + path);
 
             // Remove remaining dots
             path = path.replace(".", "");
-            // System.out.println("Final: " + path);
-            // In the case of $innerclass
+            // In the case of an $innerclass
             int dollar = path.indexOf("$");
             if (dollar != -1) {
                 path = path.substring(0, dollar);
@@ -269,7 +294,6 @@ public abstract class Reader {
             return Integer.parseInt(path);
 
         } catch (Exception e) {
-
             return -1;
         }
     }

@@ -24,7 +24,6 @@ public class TestCaseResultBuilder {
 
     private String testCaseName = "SomeTest";
     private int testNumber = -1;
-    private String category = "somecategory";
     private int cwe = CweNumber.DONTCARE;
     private boolean truePositive = false;
     private boolean passed = false;
@@ -51,12 +50,6 @@ public class TestCaseResultBuilder {
         return this;
     }
 
-    /*    public TestCaseResultBuilder setCategory(String category) {
-            this.category = category;
-
-            return this;
-        }
-    */
     public TestCaseResultBuilder setCwe(int cwe) {
         this.cwe = cwe;
 
@@ -97,8 +90,7 @@ public class TestCaseResultBuilder {
         TestCaseResult testCaseResult = new TestCaseResult();
 
         testCaseResult.setTestCaseName(testCaseName);
-        testCaseResult.setNumber(testNumber);
-        //        testCaseResult.setCategory(category);
+        testCaseResult.setTestID(testNumber);
         testCaseResult.setCWE(cwe);
         testCaseResult.setSource(source);
         testCaseResult.setDataFlow(dataFlow);

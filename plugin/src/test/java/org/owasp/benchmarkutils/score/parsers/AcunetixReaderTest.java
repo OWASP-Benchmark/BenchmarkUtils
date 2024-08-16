@@ -20,9 +20,8 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -30,19 +29,18 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class AcunetixReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile_360, resultFile_WVS;
+    private static ResultFile resultFile_360, resultFile_WVS;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFile_360 = TestHelper.resultFileOf("testfiles/Benchmark_Acunetix-v1.4.1.xml");
         resultFile_WVS = TestHelper.resultFileOf("testfiles/Benchmark_Acunetix-v15.3.xml");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlyAcunetixReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile_360, AcunetixReader.class);
-        assertOnlyMatcherClassIs(this.resultFile_WVS, AcunetixReader.class);
+        assertOnlyMatcherClassIs(resultFile_360, AcunetixReader.class);
+        assertOnlyMatcherClassIs(resultFile_WVS, AcunetixReader.class);
     }
 
     @Test
@@ -57,8 +55,8 @@ public class AcunetixReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.getTestCaseResults("2").get(0).getCWE());
 
         // For Acunetix WVS
         reader = new AcunetixReader();
@@ -70,7 +68,7 @@ public class AcunetixReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.LDAP_INJECTION, result.get("44").get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get("2629").get(0).getCWE());
+        assertEquals(CweNumber.LDAP_INJECTION, result.getTestCaseResults("44").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("2629").get(0).getCWE());
     }
 }

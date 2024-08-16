@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,11 +29,11 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 class ExpectedResultsProviderTest {
 
-    private ResultFile simpleResultFile;
-    private ResultFile extendedResultFile;
+    private static ResultFile simpleResultFile;
+    private static ResultFile extendedResultFile;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         simpleResultFile = TestHelper.resultFileOf("expectedresults-1.2-simple.csv");
         extendedResultFile = TestHelper.resultFileOf("expectedresults-1.2-extended.csv");
     }
@@ -47,11 +47,11 @@ class ExpectedResultsProviderTest {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get("1").get(0).getCWE());
-        assertNull(result.get("1").get(0).getSource());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.getTestCaseResults("1").get(0).getCWE());
+        assertNull(result.getTestCaseResults("1").get(0).getSource());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get("2").get(0).getCWE());
-        assertNull(result.get("2").get(0).getSource());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.getTestCaseResults("2").get(0).getCWE());
+        assertNull(result.getTestCaseResults("2").get(0).getSource());
     }
 
     @Test
@@ -63,10 +63,10 @@ class ExpectedResultsProviderTest {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get("1").get(0).getCWE());
-        assertEquals("RequestGetCookies.code", result.get("1").get(0).getSource());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals("RequestGetCookies.code", result.getTestCaseResults("1").get(0).getSource());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get("2").get(0).getCWE());
-        assertEquals("RequestGetHeader.code", result.get("2").get(0).getSource());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.getTestCaseResults("2").get(0).getCWE());
+        assertEquals("RequestGetHeader.code", result.getTestCaseResults("2").get(0).getSource());
     }
 }

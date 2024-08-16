@@ -20,9 +20,8 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -31,17 +30,16 @@ import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
 class SnykReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private static ResultFile resultFile;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_SnykCodeCli.sarif");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     void onlySnykReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, SnykReader.class);
+        assertOnlyMatcherClassIs(resultFile, SnykReader.class);
     }
 
     @Test
@@ -56,8 +54,8 @@ class SnykReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.XPATH_INJECTION, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.XPATH_INJECTION, result.getTestCaseResults("2").get(0).getCWE());
     }
 
     @Test

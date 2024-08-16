@@ -44,7 +44,7 @@ import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 
 class ToolScorecardTest {
 
-    private File tmpDir;
+    private static File tmpDir;
 
     @BeforeEach
     void setUp() throws IOException {

@@ -80,7 +80,7 @@ public class HorusecReader extends Reader {
 
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setNumber(testNumber(filename));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
                 tcr.setCWE(figureCwe(vuln));
                 return tcr;
             }
@@ -155,7 +155,7 @@ public class HorusecReader extends Reader {
             case "Message Digest":
                 return "328";
             case "Cookie without the HttpOnly flag":
-                return "614";
+                return "1004";
             case "Base64 Encode":
                 return "649";
             default:

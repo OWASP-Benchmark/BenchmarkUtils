@@ -92,7 +92,7 @@ public class WapitiReader extends Reader {
                             getAttributeValue("name", vuln)
                                     + "::"
                                     + getNamedChild("curl_command", entry).getTextContent());
-                    tcr.setNumber(testNumber(path));
+                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(path));
                     tr.put(tcr);
                 }
             }

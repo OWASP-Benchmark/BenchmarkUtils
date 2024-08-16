@@ -20,9 +20,8 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -30,26 +29,25 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class SemgrepReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFileV65;
-    private ResultFile resultFileV121;
+    private static ResultFile resultFileV65;
+    private static ResultFile resultFileV121;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFileV65 = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-v0.65.0.json");
         resultFileV121 =
                 TestHelper.resultFileWithoutLineBreaksOf(
                         "testfiles/Benchmark_semgrep-v0.121.0.json");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlySemgrepReaderReportsCanReadAsTrueForV65() {
-        assertOnlyMatcherClassIs(this.resultFileV65, SemgrepReader.class);
+        assertOnlyMatcherClassIs(resultFileV65, SemgrepReader.class);
     }
 
     @Test
     public void onlySemgrepReaderReportsCanReadAsTrueForV121() {
-        assertOnlyMatcherClassIs(this.resultFileV121, SemgrepReader.class);
+        assertOnlyMatcherClassIs(resultFileV121, SemgrepReader.class);
     }
 
     @Test
@@ -63,8 +61,8 @@ public class SemgrepReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.SQL_INJECTION, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.INSECURE_COOKIE, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.getTestCaseResults("2").get(0).getCWE());
     }
 
     @Test
@@ -78,7 +76,8 @@ public class SemgrepReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get("3").get(0).getCWE());
-        assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get("4").get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.getTestCaseResults("3").get(0).getCWE());
+        assertEquals(
+                CweNumber.COOKIE_WITHOUT_HTTPONLY, result.getTestCaseResults("4").get(0).getCWE());
     }
 }

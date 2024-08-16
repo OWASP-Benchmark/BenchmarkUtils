@@ -2,6 +2,7 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -9,6 +10,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 
 public class ReaderTest {
+
+    @AfterAll
+    static void restoreAfter() {
+        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
+    }
 
     @ParameterizedTest(name = "{index} {0}")
     @ValueSource(
@@ -46,19 +52,19 @@ public class ReaderTest {
             })
     public void readsTestNumberFromPath(String path) {
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
-        assertEquals(42, Reader.testNumber(path));
+        assertEquals(42, Reader.getBenchmarkStyleTestCaseNumber(path));
     }
 
     @Test
     public void returnsInvalidNumberForNonMatchingPrefix() {
         BenchmarkScore.TESTCASENAME = "SomethingElse";
-        assertEquals(-1, Reader.testNumber("/somepath/BenchmarkTest00042"));
+        assertEquals(-1, Reader.getBenchmarkStyleTestCaseNumber("/somepath/BenchmarkTest00042"));
     }
 
     @Test
     public void returnsInvalidNumberForPathWithoutTestfile() {
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
-        assertEquals(-1, Reader.testNumber("/somepath/someotherfile"));
+        assertEquals(-1, Reader.getBenchmarkStyleTestCaseNumber("/somepath/someotherfile"));
     }
 
     @ParameterizedTest(name = "{index} {0}")

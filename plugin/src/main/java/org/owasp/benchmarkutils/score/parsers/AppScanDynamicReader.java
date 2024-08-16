@@ -20,7 +20,6 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -160,8 +159,8 @@ public class AppScanDynamicReader extends Reader {
         String testcase = getNamedChild("Url", issue).getTextContent();
         testcase = testcase.substring(testcase.lastIndexOf('/') + 1);
         testcase = testcase.split("\\.")[0];
-        if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setNumber(testNumber(testcase));
+        if (isTestCaseFile(testcase)) {
+            tcr.setActualResultTestID(testcase);
             return tcr;
         }
 

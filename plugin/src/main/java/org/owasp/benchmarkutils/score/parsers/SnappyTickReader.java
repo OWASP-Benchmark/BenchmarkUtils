@@ -90,7 +90,7 @@ public class SnappyTickReader extends Reader {
                         TestCaseResult tcr = new TestCaseResult();
                         tcr.setCWE(findingCWE);
                         tcr.setEvidence(findingName);
-                        tcr.setNumber(extractTestNumber(findingName));
+                        tcr.setTestID(extractTestNumber(findingName));
                         tr.put(tcr);
                     }
                 }
@@ -102,7 +102,7 @@ public class SnappyTickReader extends Reader {
 
     private int extractTestNumber(String testfile) {
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int testno = testNumber(testfile);
+            int testno = getBenchmarkStyleTestCaseNumber(testfile);
             return testno;
         }
         return -1;

@@ -93,30 +93,36 @@ public class AppScanSourceReader extends Reader {
             }
             if (filename.endsWith(".java") && filename.startsWith(BenchmarkScore.TESTCASENAME)) {
                 filename = filename.substring(0, filename.length() - 5);
-                int testno = testNumber(filename);
-                tn = testno;
+                tn = getBenchmarkStyleTestCaseNumber(filename);
             }
 
-            Set<Integer> findings = assess.get(fileid);
-            for (int findingid : findings) {
-                TestCaseResult tcr = new TestCaseResult();
-                tcr.setNumber(tn);
-                int vid = Integer.parseInt(finding.get(findingid));
-                String confString = conf.get(findingid);
-                int confidence = Integer.parseInt(confString);
+            if (isTestCaseFile(filename)) {
+                Set<Integer> findings = assess.get(fileid);
+                for (int findingid : findings) {
+                    TestCaseResult tcr = new TestCaseResult();
+                    tcr.setActualResultTestID(filename);
+                    int vid = Integer.parseInt(finding.get(findingid));
+                    String confString = conf.get(findingid);
+                    int confidence = Integer.parseInt(confString);
 
-                String vtype = vulns.get(vid);
+                    String vtype = vulns.get(vid);
 
-                tcr.setCWE(cweLookup(vtype));
-                tcr.setEvidence(vtype);
-                tcr.setConfidence(confidence);
+                    int cwe = cweLookup(vtype);
+                    // Exclude unmapped findings
+                    if (cwe == CweNumber.DONTCARE || cwe == CweNumber.UNKNOWN) continue;
+                    tcr.setCWE(cwe);
+                    tcr.setEvidence(vtype);
+                    tcr.setConfidence(confidence);
 
-                // Exclude Confidence 3 - apparently these are "scan coverage"
-                // We tried excluding Confidence 2 as well - as these are "suspect", but AppScan's
-                // score actually went down because it excludes ALL of the weak randomness findings.
-                // Confidence 1 - are "definitive" findings
-                if (confidence < 3) {
-                    tr.put(tcr);
+                    // Exclude Confidence 3 - apparently these are "scan coverage"
+                    // We tried excluding Confidence 2 as well - as these are "suspect", but
+                    // AppScan's
+                    // score actually went down because it excludes ALL of the weak randomness
+                    // findings.
+                    // Confidence 1 - are "definitive" findings
+                    if (confidence < 3) {
+                        tr.put(tcr);
+                    }
                 }
             }
         }
@@ -137,16 +143,22 @@ public class AppScanSourceReader extends Reader {
 
     private int cweLookup(String vtype) {
         switch (vtype) {
-                //		case "Vulnerability.AppDOS" : return 00;
-                //		case "Vulnerability.Authentication.Entity" : return 00;
+            case "Vulnerability.AppDOS":
+            case "Vulnerability.Authentication.Entity":
+            case "Vulnerability.ErrorHandling.RevealDetails.Message":
+            case "Vulnerability.ErrorHandling.RevealDetails.StackTrace":
+            case "Vulnerability.Malicious.DynamicCode":
+            case "Vulnerability.Malicious.DynamicCode.Execution":
+            case "Vulnerability.Quality.TestCode":
+            case "Vulnerability.Quality.Unsupported":
+                return CweNumber.DONTCARE;
+
             case "Vulnerability.Cryptography.InsecureAlgorithm":
                 return CweNumber.STATIC_CRYPTO_INIT;
             case "Vulnerability.Cryptography.PoorEntropy":
                 return CweNumber.WEAK_RANDOM;
             case "Vulnerability.Cryptography.????WeakHash":
                 return CweNumber.WEAK_HASH_ALGO; // They don't have a weak hashing rule
-                //		case "Vulnerability.ErrorHandling.RevealDetails.Message" : return 00;
-                //		case "Vulnerability.ErrorHandling.RevealDetails.StackTrace" : return 00;
             case "Vulnerability.Injection.HttpResponseSplitting":
                 return CweNumber.HTTP_RESPONSE_SPLITTING;
             case "Vulnerability.Injection.LDAP":
@@ -157,20 +169,19 @@ public class AppScanSourceReader extends Reader {
                 return CweNumber.SQL_INJECTION;
             case "Vulnerability.Injection.XPath":
                 return CweNumber.XPATH_INJECTION;
-                //		case "Vulnerability.Malicious.DynamicCode" : return 00;
-                //		case "Vulnerability.Malicious.DynamicCode.Execution" : return 00;
             case "Vulnerability.PathTraversal":
                 return CweNumber.PATH_TRAVERSAL;
-                //		case "Vulnerability.Quality.TestCode" : return 00;
-                //		case "Vulnerability.Quality.Unsupported" : return 00;
             case "Vulnerability.SessionManagement.Cookies":
                 return CweNumber.INSECURE_COOKIE;
             case "Vulnerability.Validation.EncodingRequired":
                 return CweNumber.XSS;
             case "Vulnerability.Validation.Required":
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
+
+            default:
+                System.out.println("Unknown vuln type for AppScanSource: " + vtype);
         }
-        return 0;
+        return CweNumber.UNKNOWN;
     }
 
     /**

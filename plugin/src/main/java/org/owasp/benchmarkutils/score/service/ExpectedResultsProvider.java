@@ -19,9 +19,9 @@ package org.owasp.benchmarkutils.score.service;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Integer.parseInt;
-import static org.owasp.benchmarkutils.score.parsers.Reader.testNumber;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -29,6 +29,7 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 
 public class ExpectedResultsProvider {
 
@@ -43,19 +44,28 @@ public class ExpectedResultsProvider {
     private static final String DATA_FLOW = " vuln src";
     private static final String SINK = " vuln df";
 
+    private static boolean standardBenchmarkStyleScoring;
+    private static TestSuiteResults expectedResults;
+
     public static TestSuiteResults parse(ResultFile resultFile) throws IOException {
         TestSuiteResults tr = new TestSuiteResults("Expected", true, null);
 
         try (final CSVParser parser = resultFile.csvRecords()) {
-            setResultsMetadata(parser, tr);
 
-            final String TESTCASENAME = tr.getTestSuiteName() + BenchmarkScore.TEST;
+            List<CSVRecord> allExpectedResults = parser.getRecords();
 
-            for (CSVRecord record : parser) {
+            CSVRecord firstRecord = allExpectedResults.get(0);
+            // setExpectedResultsMetadata() has side affects of setting
+            // BenchmarkScore.TESTSUITENAME, BenchmarkScore.TESTCASENAME, and
+            // ExpectedResultsProvider.standardBenchmarkStyleScoring
+            setExpectedResultsMetadata(parser, firstRecord, tr);
+
+            // Parse all the expected results
+            for (CSVRecord record : allExpectedResults) {
                 TestCaseResult tcr = new TestCaseResult();
 
-                tcr.setTestCaseName(record.get(TEST_NAME).trim());
-                // tcr.setCategory(record.get(CATEGORY).trim()); // Autoset by setCWE() below.
+                String testCaseFileName = record.get(TEST_NAME).trim();
+                tcr.setTestCaseName(testCaseFileName);
                 tcr.setTruePositive(parseBoolean(record.get(REAL_VULNERABILITY).trim()));
                 int cwe = parseInt(record.get(CWE).trim());
                 tcr.setCWE(cwe);
@@ -68,11 +78,10 @@ public class ExpectedResultsProvider {
                                     + ". Add missing data to categories.xml to address.");
                     System.exit(-1);
                 }
-                if (record.get(TEST_NAME)
-                        .trim()
-                        .startsWith(tr.getTestSuiteName() + BenchmarkScore.TEST))
-                    tcr.setNumber(testNumber(record.get(TEST_NAME).trim(), TESTCASENAME));
-                else tcr.setNumber(TestCaseResult.NOT_USING_TESTCASE_NUMBERS);
+                // This method sets the expected result testID based on the scoring style,
+                // previously determined
+                // DRW TODO: Combine with setTestCaseName in future?
+                tcr.setExpectedResultTestID(testCaseFileName);
 
                 if (isExtendedResultsFile(parser)) {
                     tcr.setSource(record.get(SOURCE).trim());
@@ -84,17 +93,44 @@ public class ExpectedResultsProvider {
             }
         }
 
+        // Set static variable so any class can access the expected results
+        expectedResults = tr;
+
         return tr;
     }
 
-    private static void setResultsMetadata(CSVParser parser, TestSuiteResults tr)
-            throws IOException {
+    /**
+     * The expected results for this scoring run.
+     *
+     * @return The expected results object.
+     */
+    public static TestSuiteResults getExpectedResults() {
+        if (expectedResults == null) {
+            System.out.println(
+                    "FATAL INTERNAL ERROR: Expected Results for this scoring run not initialized yet.");
+            System.exit(-1);
+        }
+        return expectedResults;
+    }
+
+    /**
+     * Whether standard Benchmark style test case file names are being scored per the expected
+     * results file.
+     *
+     * @return True if so, false otherwise
+     */
+    public static boolean isBenchmarkStyleScoring() {
+        return standardBenchmarkStyleScoring;
+    }
+
+    private static void setExpectedResultsMetadata(
+            CSVParser parser, CSVRecord firstRecord, TestSuiteResults tr) throws IOException {
         Optional<String> maybeVersionHeader =
                 parser.getHeaderMap().keySet().stream().filter(h -> h.contains(PREFIX)).findFirst();
 
         if (maybeVersionHeader.isEmpty()) {
             String versionNumError =
-                    "Couldn't find " + PREFIX + " on first line of expected results file";
+                    "ERROR: Couldn't find " + PREFIX + " on first line of expected results file";
             System.out.println(versionNumError);
             throw new IOException(versionNumError);
         }
@@ -103,12 +139,32 @@ public class ExpectedResultsProvider {
 
         int start = versionHeader.indexOf(PREFIX);
 
-        final String testSuiteName = versionHeader.substring(0, start).trim();
+        String testSuiteName = versionHeader.substring(0, start).trim();
+
+        // These values must be set here before parsing any expected/actual results
+        // Maybe these two statics should be moved to ExpectedResultsProvider??
+        BenchmarkScore.TESTSUITENAME = new TestSuiteName(testSuiteName);
+        BenchmarkScore.TESTCASENAME = testSuiteName + BenchmarkScore.TEST;
 
         start += PREFIX.length();
 
         tr.setTestSuiteName(testSuiteName);
+
         tr.setTestSuiteVersion(versionHeader.substring(start));
+
+        // Now check the 1st row of results to determine the scoring style
+        if (firstRecord
+                .get(TEST_NAME)
+                .trim()
+                .startsWith(tr.getTestSuiteName() + BenchmarkScore.TEST)) {
+            ExpectedResultsProvider.standardBenchmarkStyleScoring = true;
+            System.out.println(
+                    "INFO: Using Default Benchmark style scoring based on contents of supplied expected results file.");
+        } else {
+            ExpectedResultsProvider.standardBenchmarkStyleScoring = false;
+            System.out.println(
+                    "INFO: Using non-Benchmark style scoring based on contents of supplied expected results file.");
+        }
     }
 
     private static boolean isExtendedResultsFile(CSVParser parser) {

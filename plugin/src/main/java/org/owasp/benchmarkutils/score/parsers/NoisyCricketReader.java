@@ -62,7 +62,7 @@ public class NoisyCricketReader extends Reader {
             String[] cwes = cwelist.split(", ");
             for (String cwe : cwes) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setNumber(testNumber(testcase));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcase));
                 tcr.setCWE(Integer.parseInt(cwe));
                 tr.put(tcr);
             }

@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -95,14 +95,18 @@ public class FindbugsReader extends Reader {
             Node cl = getNamedNode("Class", n.getChildNodes());
             String classname = cl.getAttributes().getNamedItem("classname").getNodeValue();
             classname = classname.substring(classname.lastIndexOf('.') + 1);
-            if (classname.startsWith(BenchmarkScore.TESTCASENAME)) {
+            // TODO: Globally replace all instances like this across all parsers.
+            // if (classname.startsWith(BenchmarkScore.TESTCASENAME)) {
+            if (isTestCaseFile(classname)) {
+                // System.out.println("Class: " + classname + " IS a test case file.");
                 TestCaseResult tcr = new TestCaseResult();
                 try {
-                    tcr.setNumber(testNumber(classname));
+                    // TODO: Globally replace all instances like this across all parsers.
+                    //  tcr.setTestID(getBenchmarkStyleTestCaseNumber(classname));
+                    tcr.setActualResultTestID(classname);
                     Node cwenode = attrs.getNamedItem("cweid");
                     Node catnode = attrs.getNamedItem("abbrev");
                     tcr.setCWE(figureCWE(tcr, cwenode, catnode));
-
                     String type = attrs.getNamedItem("type").getNodeValue();
                     tcr.setEvidence(type);
 
@@ -131,7 +135,7 @@ public class FindbugsReader extends Reader {
         tcr.setEvidence("FB:" + cwe + "::" + cat);
 
         if (cwe != null) {
-            // FIX path traversal CWEs
+            // Map 2x path traversal CWEs to the standard CWE
             if (cwe.equals("23") || cwe.equals("36")) {
                 cwe = "22";
             }
@@ -149,109 +153,105 @@ public class FindbugsReader extends Reader {
         switch (cat) {
                 // Cookies
             case "SECIC":
-                return 614; // insecure cookie use
+                return CweNumber.INSECURE_COOKIE;
             case "SECCU":
-                return 00; // servlet cookie
+                return CweNumber.DONTCARE; // Cookie Usage- not a vuln
             case "SECHOC":
-                return 00; // HTTP Only not set on cookie - Information Leak / Disclosure
-                // (CWE-200)??
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
 
                 // Injections
             case "SECSQLIHIB":
-                return 564; // Hibernate Injection, child of SQL Injection
+                return CweNumber.HIBERNATE_INJECTION; // Hibernate Injection, child of SQL Injection
+
             case "SECSQLIJDO":
-                return 89;
             case "SECSQLIJPA":
-                return 89;
             case "SECSQLISPRJDBC":
-                return 89;
             case "SECSQLIJDBC":
-                return 89;
+                return CweNumber.SQL_INJECTION;
 
                 // LDAP injection
             case "SECLDAPI":
-                return 90; // LDAP injection
+                return CweNumber.LDAP_INJECTION;
+
+                // Potential XML injection
+            case "SECXML":
+                return 91; // XML injection
 
                 // XPath injection
             case "SECXPI":
-                return 643; // XPATH injection
+                return CweNumber.XPATH_INJECTION;
 
                 // Command injection
             case "SECCI":
-                return 78; // command injection
+                return CweNumber.COMMAND_INJECTION;
 
                 // Weak random
             case "SECPR":
-                return 330; // weak random
+                return CweNumber.WEAK_RANDOM;
 
                 // Weak encryption
-            case "SECDU":
-                return 327; // weak encryption DES
-            case "CIPINT":
-                return 327; // weak encryption - cipher with no integrity
-            case "PADORA":
-                return 327; // padding oracle -- FIXME: probably wrong
+            case "SECDU": // weak encryption DES
+            case "CIPINT": // weak encryption - cipher with no integrity
+            case "PADORA": // padding oracle -- FIXME: probably wrong
+                return CweNumber.WEAK_CRYPTO_ALGO;
+
             case "STAIV":
                 return 329; // static initialization vector for crypto
 
                 // Weak hash
             case "SECWMD":
-                return 328; // weak hash
+                return CweNumber.WEAK_HASH_ALGO;
 
                 // Path traversal
             case "SECPTO":
-                return 22; // path traversal
             case "SECPTI":
-                return 22; // path traversal
+                return CweNumber.PATH_TRAVERSAL;
 
                 // XSS
             case "SECXRW":
-                return 79; // XSS
             case "SECXSS1":
-                return 79; // XSS
             case "SECXSS2":
-                return 79; // XSS
+                return CweNumber.XSS;
 
                 // XXE
             case "SECXXEDOC":
-                return 611; // XXE
             case "SECXXEREAD":
-                return 611; // XXE
             case "SECXXESAX":
-                return 611; // XXE
+                return CweNumber.XXE;
 
                 // Input sources
-            case "SECSP":
-                return 00; // servlet parameter - not a vuln
-            case "SECSH":
-                return 00; // servlet header - not a vuln
-            case "SECSHR":
-                return 00; // Use of Request Header -- spoofable
-            case "SECSSQ":
-                return 00; // servlet query - not a vuln
+            case "SECSCT": // Servlet Content Type - not a vuln
+            case "SECSP": // Servlet Parameter - not a vuln
+            case "SECSH": // Servlet Header - not a vuln
+            case "SECSHR": // Use of Request Header -- spoofable
+            case "SECSSQ": // Servlet Query - not a vuln
+                return CweNumber.DONTCARE;
 
                 // Technology detection
-            case "SECSC":
-                return 00; // found Spring endpoint - not a vuln
-            case "SECJRS":
-                return 00; // JAX-RS Endpoint
+            case "SECSC": // found Spring endpoint - not a vuln
+            case "SECJRS": // JAX-RS Endpoint
+                return CweNumber.DONTCARE;
 
                 // Configuration
-            case "SECOPFP":
-                return 00; // Overly Permissive File Permissions
+            case "SECOPFP": // Overly Permissive File Permissions
+                return 732; // CWE-732: Incorrect Permission Assignment for Critical Resource
 
                 // Other
+            case "SECFSM":
+                return 134; // Format String Manipulation
             case "SECHPP":
-                return 235; // HTTP Parameter Polution
+                return 235; // HTTP Parameter Pollution (HPP)
             case "SECUNI":
-                return 00; // Improper Unicode
+                return CweNumber.DONTCARE; // Improper Unicode
             case "SECWF":
-                return 00; // Weak Filename Utils - i.e., not filtering out Null bytes in file names
+                return CweNumber
+                        .DONTCARE; // Weak Filename Utils - i.e., not filtering out Null bytes in
+                // file names
 
             default:
                 System.out.println("Unknown vuln category for FindBugs: " + cat);
         }
 
-        return 0;
+        return CweNumber.UNKNOWN;
     }
 }

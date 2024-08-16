@@ -147,7 +147,7 @@ public class BenchmarkScore extends AbstractMojo {
 
     /**
      * This is the original main() method used to invoke the scorecard generator. e.g., mvn validate
-     * -Pscorecard -Dexec.args="-cf ../julietjs/config/julietscoringconfig.yaml"
+     * -Pscorecard -Dexec.args="-cf ../TESTSUITENAME/config/testsuitescoringconfig.yaml"
      *
      * @param args - The command line arguments.
      */
@@ -576,7 +576,7 @@ public class BenchmarkScore extends AbstractMojo {
             TestSuiteResults expectedResults, TestSuiteResults actualResults) {
         Set<Integer> expectedCWE = new HashSet<Integer>();
         for (String testcase : expectedResults.keySet()) {
-            List<TestCaseResult> list = expectedResults.get(testcase);
+            List<TestCaseResult> list = expectedResults.getTestCaseResults(testcase);
             for (TestCaseResult t : list) {
                 expectedCWE.add(t.getCWE());
             }
@@ -584,7 +584,7 @@ public class BenchmarkScore extends AbstractMojo {
 
         Set<Integer> actualCWE = new HashSet<Integer>();
         for (String testcase : actualResults.keySet()) {
-            List<TestCaseResult> list = actualResults.get(testcase);
+            List<TestCaseResult> list = actualResults.getTestCaseResults(testcase);
             if (list != null) {
                 for (TestCaseResult t : list) {
                     actualCWE.add(t.getCWE());
@@ -683,7 +683,7 @@ public class BenchmarkScore extends AbstractMojo {
         Map<String, TP_FN_TN_FP_Counts> map = new TreeMap<String, TP_FN_TN_FP_Counts>();
 
         for (String testcase : actualResults.keySet()) {
-            TestCaseResult tcr = actualResults.get(testcase).get(0); // only one
+            TestCaseResult tcr = actualResults.getTestCaseResults(testcase).get(0); // only one
             String cat = Categories.getById(tcr.getCategory()).getName();
 
             TP_FN_TN_FP_Counts c = map.get(cat);
@@ -764,9 +764,10 @@ public class BenchmarkScore extends AbstractMojo {
 
         boolean pass = false;
         for (String testcase : expected.keySet()) {
-            TestCaseResult exp = expected.get(testcase).get(0); // always only one!
+            TestCaseResult exp = expected.getTestCaseResults(testcase).get(0); // always only one!
             List<TestCaseResult> act =
-                    rawToolResults.get(testcase); // could be lots of results for this test
+                    rawToolResults.getTestCaseResults(
+                            testcase); // could be lots of results for this test
 
             pass = compare(exp, act, rawToolResults.getToolName());
 

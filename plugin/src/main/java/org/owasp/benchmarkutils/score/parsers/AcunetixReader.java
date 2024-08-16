@@ -144,8 +144,8 @@ public class AcunetixReader extends Reader {
         if (testfile.contains("?")) {
             testfile = testfile.substring(0, testfile.indexOf("?"));
         }
-        if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setNumber(testNumber(testfile));
+        if (isTestCaseFile(testfile)) {
+            tcr.setActualResultTestID(testfile);
 
             Node classification = getNamedChild("classification", vuln);
             Node vulnId = getNamedChild("cwe", classification);
@@ -203,7 +203,7 @@ public class AcunetixReader extends Reader {
         }
 
         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setNumber(testNumber(testfile));
+            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
             return tcr;
         }
         return null;

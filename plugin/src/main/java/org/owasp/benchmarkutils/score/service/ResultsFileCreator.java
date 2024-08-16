@@ -74,7 +74,8 @@ public class ResultsFileCreator {
     private boolean isFullDetails(TestSuiteResults actual) {
         Iterator<String> iterator = actual.keySet().iterator();
 
-        return iterator.hasNext() && (actual.get(iterator.next()).get(0).getSource() != null);
+        return iterator.hasNext()
+                && (actual.getTestCaseResults(iterator.next()).get(0).getSource() != null);
     }
 
     private void writeHeader(PrintStream ps, boolean fullDetails, String testSuiteVersion) {
@@ -95,7 +96,7 @@ public class ResultsFileCreator {
 
     private void appendRow(
             PrintStream ps, TestSuiteResults actual, String testcaseID, boolean fullDetails) {
-        TestCaseResult actualResult = actual.get(testcaseID).get(0);
+        TestCaseResult actualResult = actual.getTestCaseResults(testcaseID).get(0);
         boolean isReal = actualResult.isTruePositive();
         boolean passed = actualResult.isPassed();
 

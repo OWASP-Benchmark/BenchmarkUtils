@@ -145,7 +145,8 @@ public class ZapReader extends Reader {
 
     private void addIssue(
             Node alertData, TestSuiteResults tr, int cwe, String category, int confidence) {
-        int testNumber = testNumber(getNamedChild("uri", alertData).getTextContent());
+        int testNumber =
+                getBenchmarkStyleTestCaseNumber(getNamedChild("uri", alertData).getTextContent());
         if (testNumber > 0) {
             tr.put(createTestCaseResult(cwe, category, confidence, testNumber));
         }
@@ -159,7 +160,7 @@ public class ZapReader extends Reader {
         }
         tcr.setEvidence(category);
         tcr.setConfidence(confidence);
-        tcr.setNumber(testNumber);
+        tcr.setTestID(testNumber);
         return tcr;
     }
 

@@ -20,9 +20,8 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -30,17 +29,16 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class BearerReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFileV1_30;
+    private static ResultFile resultFileV1_30;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFileV1_30 = TestHelper.resultFileOf("testfiles/Benchmark_Bearer-v1.30.0.jsonv2");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlyBearerReaderReportsCanReadAsTrueForV1_30() {
-        assertOnlyMatcherClassIs(this.resultFileV1_30, BearerReader.class);
+        assertOnlyMatcherClassIs(resultFileV1_30, BearerReader.class);
     }
 
     @Test
@@ -55,8 +53,8 @@ public class BearerReaderTest extends ReaderTestBase {
 
         assertEquals(3, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get("7").get(0).getCWE());
-        assertEquals(CweNumber.WEAK_HASH_ALGO, result.get("5").get(0).getCWE());
-        assertEquals(CweNumber.WEAK_CRYPTO_ALGO, result.get("35").get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.getTestCaseResults("7").get(0).getCWE());
+        assertEquals(CweNumber.WEAK_HASH_ALGO, result.getTestCaseResults("5").get(0).getCWE());
+        assertEquals(CweNumber.WEAK_CRYPTO_ALGO, result.getTestCaseResults("35").get(0).getCWE());
     }
 }

@@ -20,9 +20,8 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -30,25 +29,24 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class FindbugsReaderTest extends ReaderTestBase {
 
-    private ResultFile findSecBugsResultFile;
-    private ResultFile spotBugsResultFile;
+    private static ResultFile findSecBugsResultFile;
+    private static ResultFile spotBugsResultFile;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         findSecBugsResultFile =
                 TestHelper.resultFileOf("testfiles/Benchmark_findsecbugs-v1.11.0-105.xml");
         spotBugsResultFile = TestHelper.resultFileOf("testfiles/Benchmark_spotbugs-v4.1.4-104.xml");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlyFindbugsReaderReportsCanReadAsTrueForFindSecBugsFile() {
-        assertOnlyMatcherClassIs(this.findSecBugsResultFile, FindbugsReader.class);
+        assertOnlyMatcherClassIs(findSecBugsResultFile, FindbugsReader.class);
     }
 
     @Test
     public void onlyFindbugsReaderReportsCanReadAsTrueForSpotBugsFile() {
-        assertOnlyMatcherClassIs(this.spotBugsResultFile, FindbugsReader.class);
+        assertOnlyMatcherClassIs(spotBugsResultFile, FindbugsReader.class);
     }
 
     @Test
@@ -62,8 +60,8 @@ public class FindbugsReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.XSS, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("2").get(0).getCWE());
     }
 
     @Test
@@ -77,7 +75,7 @@ public class FindbugsReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.SQL_INJECTION, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.getTestCaseResults("2").get(0).getCWE());
     }
 }

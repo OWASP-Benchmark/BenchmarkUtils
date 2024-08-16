@@ -151,9 +151,9 @@ public class CheckmarxReader extends Reader {
         tcr.setEvidence(getAttributeValue("name", query));
 
         /* Some results do not appear in the previous version of this parser because it only look for the attribute "FileName"
-         *  Checkmarx have some results where the input does not start in a BenchmarkTest file so it was necessary to make some changes
-         *  We must consider a good result if the result node "FileName" startsWith BenchmarkTest file or if the last PathNode ends in a "FileName" that startsWith BenchmarkTest file.
-         *  An example is the SeparateClassRequest.java file that have some inputs that we catch but are not been considered as a valid result (FN)
+         * Checkmarx have some results where the input does not start in a BenchmarkTest file so it was necessary to make some changes
+         * We must consider a good result if the result node "FileName" startsWith BenchmarkTest file or if the last PathNode ends in a "FileName" that startsWith BenchmarkTest file.
+         * An example is the SeparateClassRequest.java file that have some inputs that we catch but are not been considered as a valid result (FN)
          */
 
         // Get the Path element inside Result
@@ -176,7 +176,7 @@ public class CheckmarxReader extends Reader {
             testcase = testcase.substring(testcase.lastIndexOf('\\') + 1);
         }
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setNumber(testNumber(testcase));
+            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcase));
             return tcr;
         } else {
             // If not, then the last PastNode must end in a FileName that startsWith BenchmarkTest
@@ -193,7 +193,7 @@ public class CheckmarxReader extends Reader {
                 testcase2 = testcase2.substring(testcase2.lastIndexOf('\\') + 1);
             }
             if (testcase2.startsWith(BenchmarkScore.TESTCASENAME)) {
-                tcr.setNumber(testNumber(testcase2));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcase2));
                 return tcr;
             }
         }

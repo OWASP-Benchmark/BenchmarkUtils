@@ -115,7 +115,7 @@ public class ReshiftReader extends Reader {
                     String category = record.get("Category");
                     tcr.setCWE(cweLookup(category));
                     tcr.setEvidence(category);
-                    tcr.setNumber(testNumber(url));
+                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(url));
                     if (tcr.getCWE() != 0) {
                         tr.put(tcr);
                     }

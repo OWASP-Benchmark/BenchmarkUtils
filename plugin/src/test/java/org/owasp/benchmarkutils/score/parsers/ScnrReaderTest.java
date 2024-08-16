@@ -3,9 +3,8 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
@@ -13,14 +12,13 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class ScnrReaderTest extends ReaderTestBase {
 
-    private ResultFile jsonResultFile;
-    private ResultFile xmlResultFile;
+    private static ResultFile jsonResultFile;
+    private static ResultFile xmlResultFile;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         jsonResultFile = TestHelper.resultFileOf("testfiles/Benchmark_SCNR.json");
         xmlResultFile = TestHelper.resultFileOf("testfiles/Benchmark_SCNR.xml");
-        BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
@@ -42,8 +40,8 @@ public class ScnrReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.SQL_INJECTION, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.getTestCaseResults("2").get(0).getCWE());
     }
 
     private static void assertToolData(TestSuiteResults result) {
@@ -63,7 +61,7 @@ public class ScnrReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get("1").get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get("2").get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("2").get(0).getCWE());
     }
 }

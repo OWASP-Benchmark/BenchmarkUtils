@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
 
 /**
  * TestSuiteResults contains the expected results for each test case in a test suite, if its
@@ -48,7 +49,6 @@ public class TestSuiteResults {
     // The name and version of the test suite these test results are for
     private String testSuiteName = "notSet";
     private String testSuiteVersion = "notSet";
-    private boolean standardBenchmarkStyleScoring = true;
 
     private String toolName = "Unknown Tool";
     private String toolVersion = null;
@@ -95,11 +95,11 @@ public class TestSuiteResults {
     }
 
     public ToolType getToolType() {
-        return toolType;
+        return this.toolType;
     }
 
     public boolean isCommercial() {
-        return isCommercial;
+        return this.isCommercial;
     }
 
     /**
@@ -109,42 +109,51 @@ public class TestSuiteResults {
      */
     public void put(TestCaseResult tcr) {
 
-        int testCaseNum = tcr.getNumber();
-        String testCaseKey;
+        String testCaseKey = tcr.getTestID();
 
-        // If we are using test case numbers, we add each result to that specific test case number
-        if (this.standardBenchmarkStyleScoring
-                && (testCaseNum != TestCaseResult.NOT_USING_TESTCASE_NUMBERS)) {
-            // This warning message is added just in case. It can be caused by a buggy parser or
-            // invalid results file.
-            if ((testCaseNum <= 0 || testCaseNum > 10000)) {
+        // If we are using test case numbers, just check to make sure the test case number is within
+        // a reasonable valid range, and if not, provide a warning.
+        if (ExpectedResultsProvider.isBenchmarkStyleScoring()) {
+            try {
+                int testCaseNum = Integer.parseInt(testCaseKey);
+                // This warning message is added just in case. It can be caused by a buggy parser or
+                // invalid results file.
+                if ((testCaseNum <= 0 || testCaseNum > 10000)) {
+                    System.out.println(
+                            "WARNING: Did you really intend to add a test case result for test case: "
+                                    + tcr.getTestCaseName()
+                                    + " with TestID: "
+                                    + testCaseKey
+                                    + " and testCaseNum: "
+                                    + testCaseNum);
+                    new Exception().printStackTrace();
+                }
+            } catch (NumberFormatException e) {
                 System.out.println(
-                        "WARNING: Did you really intend to add a test case result for test case: "
-                                + testCaseNum);
+                        "FATAL INTERNAL ERROR: testCaseKey: '"
+                                + testCaseKey
+                                + "' for test case: "
+                                + tcr.getTestCaseName()
+                                + " is supposed to be an integer.");
+                System.exit(-1);
             }
-
-            testCaseKey = String.valueOf(testCaseNum);
-        } else {
-            // otherwise use test case names as the key, and we add each result by test case name
-            testCaseKey = tcr.getTestCaseName();
-            this.standardBenchmarkStyleScoring = false;
         }
 
         // There is a list of results for each test case
-        List<TestCaseResult> results = testCaseResults.get(testCaseKey);
+        List<TestCaseResult> results = this.testCaseResults.get(testCaseKey);
         if (results == null) {
             // If there are no results yet for this test case, create a List.
             // Add this entry for this test case to the set of results
             results = new ArrayList<TestCaseResult>();
-            testCaseResults.put(testCaseKey, results);
+            this.testCaseResults.put(testCaseKey, results);
         }
 
         // Add this specific result to this test case's results
         results.add(tcr);
     }
 
-    public List<TestCaseResult> get(String tn) {
-        return testCaseResults.get(tn);
+    public List<TestCaseResult> getTestCaseResults(String tn) {
+        return this.testCaseResults.get(tn);
     }
 
     /**
@@ -153,7 +162,7 @@ public class TestSuiteResults {
      * @return The Set of Keys.
      */
     public Set<String> keySet() {
-        return testCaseResults.keySet();
+        return this.testCaseResults.keySet();
     }
 
     /**
@@ -173,7 +182,7 @@ public class TestSuiteResults {
      * @return Name of the tool.
      */
     public String getToolNameAndVersion() {
-        if (!anonymous
+        if (!this.anonymous
                 && this.toolVersion != null
                 && !"".equals(this.toolVersion)
                 && !(BenchmarkScore.config.anonymousMode && this.isCommercial)) {
@@ -188,7 +197,44 @@ public class TestSuiteResults {
      * @return Version of the tool if determined. Null otherwise.
      */
     public String getToolVersion() {
-        return toolVersion;
+        return this.toolVersion;
+    }
+
+    /**
+     * Determines whether the provided filename (without path info) is a test case file in this test
+     * suite or not
+     *
+     * @param testCaseFilename The name of the test case file to match against
+     * @return True if a test case file, false otherwise.
+     */
+    public boolean isTestCaseFile(String testCaseFilename) {
+        return (getMatchingTestCaseName(testCaseFilename) != null);
+    }
+
+    /**
+     * Determines whether the provided filename (without path info) is a test case file in this test
+     * suite or not. If so, it returns the name of the test cast name this file belongs to.
+     *
+     * @param testCaseFilename The name of the test case file to match against
+     * @return The corresponding test case name, or null if not a match
+     */
+    public String getMatchingTestCaseName(String testCaseFilename) {
+        if (ExpectedResultsProvider.isBenchmarkStyleScoring()) {
+            if (testCaseFilename.startsWith(BenchmarkScore.TESTCASENAME)) return testCaseFilename;
+        } else {
+            // If filename exactly matches test case file name, return the filename.
+            // This is done as a quick short circuit, as it is MUCH faster than searching
+            // through ALL test cases to look for a match
+            if (this.testCaseResults.get(testCaseFilename) != null) return testCaseFilename;
+            // Or filename starts with ANY expected results test case name, return the matching test
+            // case name.
+            Set<String> testcases = this.testCaseResults.keySet();
+            for (String testcasename : testcases) {
+                if (testCaseFilename.startsWith(testcasename)) return testcasename;
+            }
+            // if no match, fall through to return null
+        }
+        return null;
     }
 
     /**

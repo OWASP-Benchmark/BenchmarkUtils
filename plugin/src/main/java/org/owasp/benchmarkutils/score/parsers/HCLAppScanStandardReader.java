@@ -146,7 +146,7 @@ public class HCLAppScanStandardReader extends Reader {
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
             // Add the vuln found in a test case to the results for this tool
             TestCaseResult tcr = new TestCaseResult();
-            tcr.setNumber(testNumber(testcase));
+            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcase));
             tcr.setCWE(vtype);
             tcr.setEvidence(issueType);
             return tcr;

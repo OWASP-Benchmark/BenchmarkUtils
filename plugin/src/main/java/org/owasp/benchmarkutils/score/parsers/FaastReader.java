@@ -76,7 +76,7 @@ public class FaastReader extends Reader {
         }
 
         if (url.contains(BenchmarkScore.TESTCASENAME)) {
-            tcr.setNumber(testNumber);
+            tcr.setTestID(testNumber);
             tcr.setCWE(cwe);
             tcr.setEvidence(category);
             return tcr;
@@ -93,6 +93,6 @@ public class FaastReader extends Reader {
     }
 
     private int getTestCase(String url) {
-        return testNumber(url);
+        return getBenchmarkStyleTestCaseNumber(url);
     }
 }

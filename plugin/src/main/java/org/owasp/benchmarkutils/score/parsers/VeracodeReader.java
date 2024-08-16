@@ -116,7 +116,7 @@ public class VeracodeReader extends Reader {
 
         String testcase = getAttributeValue("sourcefile", flaw);
         if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setNumber(testNumber(testcase));
+            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcase));
             return tcr;
         }
 

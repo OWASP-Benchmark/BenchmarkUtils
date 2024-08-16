@@ -93,7 +93,7 @@ public class VisualCodeGrepperReader extends Reader {
         classname = (classname.substring(classname.lastIndexOf('\\') + 1)).split("\\.")[0];
         if (classname.startsWith(BenchmarkScore.TESTCASENAME)) {
             TestCaseResult tcr = new TestCaseResult();
-            tcr.setNumber(testNumber(classname));
+            tcr.setTestID(getBenchmarkStyleTestCaseNumber(classname));
 
             Node catnode = getNamedNode("Title", n.getChildNodes());
             tcr.setCWE(figureCWE(tcr, catnode));

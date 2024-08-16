@@ -22,7 +22,6 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.security.SecureRandom;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -209,8 +208,8 @@ public class ScatterVulns extends ScatterPlot {
     }
 
     /**
-     * Add the letter, from the key on the right, next to the plot point on the chart for for each
-     * tool to the supplied xyplot.
+     * Add the letter, from the key on the right, next to the plot point on the chart for each tool
+     * to the supplied xyplot.
      *
      * @param tools - THe set of tool results.
      * @param xyplot - The chart to make the Data labels on.
@@ -392,7 +391,6 @@ public class ScatterVulns extends ScatterPlot {
         double commercialTotalPrecision = 0;
         double commercialTotalTPR = 0;
         double commercialTotalFPR = 0;
-        final DecimalFormat DF = new DecimalFormat("#0.0");
 
         for (Tool tool : toolResults) {
             ToolResults or = tool.getOverallResults();

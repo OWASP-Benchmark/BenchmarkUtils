@@ -81,9 +81,9 @@ public class SourceMeterReader extends Reader {
 
         tcr.setCWE(cweLookup(vuln));
         tcr.setEvidence(vuln + "::" + file);
-        int testno = testNumber(file);
+        int testno = getBenchmarkStyleTestCaseNumber(file);
         if (testno > 0) {
-            tcr.setNumber(testno);
+            tcr.setTestID(testno);
             return tcr;
         } else {
             return null;

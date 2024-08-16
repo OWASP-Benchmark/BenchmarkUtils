@@ -148,8 +148,8 @@ public class ScatterHome extends ScatterPlot {
     }
 
     /**
-     * Add the letter, from the key on the right, next to the plot point on the chart for for each
-     * tool to the supplied xyplot.
+     * Add the letter, from the key on the right, next to the plot point on the chart for each tool
+     * to the supplied xyplot.
      *
      * @param tools - THe set of tool results.
      * @param xyplot - The chart to make the Data labels on.

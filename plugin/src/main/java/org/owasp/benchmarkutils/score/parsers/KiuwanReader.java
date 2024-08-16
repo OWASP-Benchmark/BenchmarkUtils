@@ -89,7 +89,7 @@ public class KiuwanReader extends Reader {
             String filename = dataFlow.getJSONObject(propagationPathLength).getString("file");
             filename = filename.substring(filename.lastIndexOf('/'));
             if (filename.contains(BenchmarkScore.TESTCASENAME)) {
-                tcr.setNumber(testNumber(filename));
+                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
 
                 int cwe = -1;
                 try {

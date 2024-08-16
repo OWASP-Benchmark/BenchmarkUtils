@@ -20,7 +20,6 @@ package org.owasp.benchmarkutils.score.report;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.security.SecureRandom;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import org.jfree.chart.ChartFactory;
@@ -90,7 +89,11 @@ public class ScatterTools extends ScatterPlot {
         XYPlot xyplot = this.chart.getXYPlot();
 
         makeDataLabels(toolResults, xyplot);
-        makeLegend(toolResults, 103, 93, dataset, xyplot);
+        double yCoordinate = 93; // default
+        // If there are more than 30 rows to plot, move the legend up to the very top of the legend
+        // box so more rows can be displayed
+        if (toolResults.getCategories().size() > 30) yCoordinate = 108;
+        makeLegend(toolResults, 103, yCoordinate, dataset, xyplot);
 
         // TODO: Make this into a method, or add it to makeDataLabels
         for (XYDataItem item : (List<XYDataItem>) series.getItems()) {
@@ -112,8 +115,8 @@ public class ScatterTools extends ScatterPlot {
     }
 
     /**
-     * Add the letter, from the key on the right, next to the plot point on the chart for for each
-     * tool to the supplied xyplot.
+     * Add the letter, from the key on the right, next to the plot point on the chart for each tool
+     * to the supplied xyplot.
      *
      * @param tools - THe set of tool results.
      * @param xyplot - The chart to make the Data labels on.
@@ -131,17 +134,21 @@ public class ScatterTools extends ScatterPlot {
         int size = 0;
         // make a list of all points. Add in a tiny random to prevent exact
         // duplicate coordinates in map
+        int wrapNumber = 1;
         for (CategoryResults r : toolResults.getCategoryResults()) {
             size++;
             double x = r.falsePositiveRate * 100 + sr.nextDouble() * .000001;
             // this puts the label just below the point
             double y = r.truePositiveRate * 100 + sr.nextDouble() * .000001 - 1;
             Point2D p = new Point2D.Double(x, y);
-            String label = "" + ch;
+            String label = (wrapNumber == 1 ? "" + ch : ch + String.valueOf(wrapNumber));
             map.put(p, label);
             // Weak hack if there are more than 26 tools scored. This will only get us to 52.
             if (ch == 'Z') ch = 'a';
-            else ch++;
+            else if (ch == 'z') {
+                ch = 'A'; // Wrap to use A again
+                wrapNumber++;
+            } else ch++;
         }
         // add average point
         if (size > 1) {
@@ -156,21 +163,33 @@ public class ScatterTools extends ScatterPlot {
         return map;
     }
 
+    /**
+     * Add the vulnerability results per category to this tool's scorecard.
+     *
+     * @param or The set of results for this tool.
+     * @param x The X coordinate to start writing the legend.
+     * @param y The Y coordinate to start writing the legend.
+     * @param dataset The dataset to plot
+     * @param xyplot The XYPlot to use to plot this.
+     */
     private void makeLegend(
             ToolResults or, double x, double y, XYSeriesCollection dataset, XYPlot xyplot) {
         char ch = ScatterHome.INITIAL_LABEL;
         int i = 0;
         int toolCount = 0;
-        double totalScore = 0;
         double totalTPR = 0;
         double totalFPR = 0;
-        final DecimalFormat DF = new DecimalFormat("#0.0");
+        int wrapNumber = 1;
         for (CategoryResults r : or.getCategoryResults()) {
             toolCount++;
-            // Special hack to make it line up better if the letter is an 'I' or 'i'
-            String label = (ch == 'I' || ch == 'i' ? ch + ":   " : ch + ": ");
-            // Another hack to make it line up better if the letter is a 'J' or 'j'
-            label = (ch == 'J' || ch == 'j' ? ch + ":  " : label);
+            // Special hack to make it line up better for these skinny letters
+            // By default, don't add a number unless there are over 52 entries
+            String extraNumeric = (wrapNumber == 1 ? "" : String.valueOf(wrapNumber));
+            String label = ((ch == 'I') ? ch + extraNumeric + ":   " : ch + extraNumeric + ": ");
+            label =
+                    ((ch == 'f' || ch == 'i' || ch == 'J' || ch == 'j')
+                            ? ch + extraNumeric + ":  "
+                            : label);
 
             addEntryToKey(
                     xyplot,
@@ -183,14 +202,15 @@ public class ScatterTools extends ScatterPlot {
                     r.truePositiveRate,
                     r.falsePositiveRate);
 
-            double score = 100 * (r.truePositiveRate - r.falsePositiveRate);
-            totalScore += score; // Already multiplied by 100
             totalTPR += r.truePositiveRate; // From 0-1, additive
             totalFPR += r.falsePositiveRate; // From 0-1, additive;
             i++;
             // Weak hack if there are more than 26 tools scored. This will only get us to 52.
             if (ch == 'Z') ch = 'a';
-            else ch++;
+            else if (ch == 'z') {
+                ch = 'A'; // Wrap to use A again
+                wrapNumber++;
+            } else ch++;
         }
 
         if (toolCount > 1) {
