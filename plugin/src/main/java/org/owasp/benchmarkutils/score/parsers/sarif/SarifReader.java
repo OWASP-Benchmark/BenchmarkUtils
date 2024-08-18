@@ -236,7 +236,7 @@ public abstract class SarifReader extends Reader {
     private TestCaseResult testCaseResultFor(JSONObject result, Map<String, Integer> mappings) {
         TestCaseResult tcr = new TestCaseResult();
 
-        String className = extractFilename(resultUri(result));
+        String className = extractFilenameWithoutEnding(resultUri(result));
 
         if (!className.startsWith(BenchmarkScore.TESTCASENAME)) {
             return null;
