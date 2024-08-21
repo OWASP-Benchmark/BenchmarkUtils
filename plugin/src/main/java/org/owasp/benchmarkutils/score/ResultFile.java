@@ -133,6 +133,10 @@ public class ResultFile {
     }
 
     public CSVParser csvRecords() {
+        return csvRecords(content());
+    }
+
+    private static CSVParser csvRecords(String content) {
         try {
             return CSVFormat.DEFAULT
                     .builder()
@@ -140,10 +144,20 @@ public class ResultFile {
                     .setSkipHeaderRecord(false)
                     .setIgnoreEmptyLines(false)
                     .build()
-                    .parse(new StringReader(content()));
+                    .parse(new StringReader(content));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public CSVParser csvRecordsSkipFirstRows(int skipRows) {
+        List<String> rows = contentAsRows();
+
+        return csvRecords(String.join("\n", rows.subList(skipRows, rows.size())));
+    }
+
+    public List<String> contentAsRows() {
+        return Arrays.asList(content().split("\n"));
     }
 
     /**
