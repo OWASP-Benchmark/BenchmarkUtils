@@ -298,11 +298,15 @@ public abstract class Reader {
         }
     }
 
-    public static String extractFilename(String path) {
+    public static String extractFilenameWithoutEnding(String path) {
         try {
-            path = removeUrlPart(path);
+            String name = new File(fixWindowsPath(removeUrlPart(path))).getName();
 
-            return new File(fixWindowsPath(path)).getName();
+            if (name.contains(".")) {
+                return name.substring(0, name.lastIndexOf("."));
+            } else {
+                return name;
+            }
         } catch (Throwable t) {
             return "";
         }

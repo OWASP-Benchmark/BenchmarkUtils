@@ -47,7 +47,7 @@ public class MendReader extends Reader {
                 for (Report.EngineResults.Result.Vulnerability vulnerability :
                         result.vulnerabilities) {
                     try {
-                        String testfile = extractFilename(vulnerability.filename);
+                        String testfile = extractFilenameWithoutEnding(vulnerability.filename);
 
                         if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
                             TestCaseResult tcr = new TestCaseResult();
