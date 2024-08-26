@@ -47,7 +47,7 @@ public class Rapid7Reader extends Reader {
 
         for (Report.Vulnerability vulnerability : report.vulnerabilities) {
             try {
-                String testfile = extractFilename(vulnerability.url);
+                String testfile = extractFilenameWithoutEnding(vulnerability.url);
 
                 if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
                     TestCaseResult tcr = new TestCaseResult();
