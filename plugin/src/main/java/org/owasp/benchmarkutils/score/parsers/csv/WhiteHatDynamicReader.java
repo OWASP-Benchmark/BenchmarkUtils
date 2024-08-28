@@ -124,7 +124,8 @@ public class WhiteHatDynamicReader extends Reader {
     }
 
     private static boolean isRelevant(CSVRecord r) {
-        return extractFilename(r.get("Attack Vector Path")).startsWith(BenchmarkScore.TESTCASENAME);
+        return extractFilenameWithoutEnding(r.get("Attack Vector Path"))
+                .startsWith(BenchmarkScore.TESTCASENAME);
     }
 
     private TestCaseResult toTestCaseResult(CSVRecord record) {
