@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -124,8 +123,7 @@ public class WhiteHatDynamicReader extends Reader {
     }
 
     private static boolean isRelevant(CSVRecord r) {
-        return extractFilenameWithoutEnding(r.get("Attack Vector Path"))
-                .startsWith(BenchmarkScore.TESTCASENAME);
+        return isTestCaseFile(r.get("Attack Vector Path"));
     }
 
     private TestCaseResult toTestCaseResult(CSVRecord record) {
@@ -133,11 +131,8 @@ public class WhiteHatDynamicReader extends Reader {
         String category = record.get("Class");
 
         TestCaseResult tcr = new TestCaseResult();
-
-        tcr.setCategory(category);
+        tcr.setActualResultTestID(filename);
         tcr.setCWE(cweLookup(category));
-        tcr.setNumber(testNumber(filename));
-
         return tcr;
     }
 

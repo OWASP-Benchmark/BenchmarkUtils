@@ -201,24 +201,25 @@ public class TestSuiteResults {
     }
 
     /**
-     * Determines whether the provided filename (without path info) is a test case file in this test
-     * suite or not
+     * Determines whether the provided filename (with or without path info) is a test case file in
+     * this test suite or not.
      *
      * @param testCaseFilename The name of the test case file to match against
      * @return True if a test case file, false otherwise.
      */
     public boolean isTestCaseFile(String testCaseFilename) {
-        return (getMatchingTestCaseName(testCaseFilename) != null);
+        return (getMatchingTestCaseName(getFileNameNoPath(testCaseFilename)) != null);
     }
 
     /**
-     * Determines whether the provided filename (without path info) is a test case file in this test
-     * suite or not. If so, it returns the name of the test cast name this file belongs to.
+     * Determines whether the provided filename (with or without path info) is a test case file in
+     * this test suite or not.
      *
      * @param testCaseFilename The name of the test case file to match against
      * @return The corresponding test case name, or null if not a match
      */
     public String getMatchingTestCaseName(String testCaseFilename) {
+        testCaseFilename = getFileNameNoPath(testCaseFilename);
         if (ExpectedResultsProvider.isBenchmarkStyleScoring()) {
             if (testCaseFilename.startsWith(BenchmarkScore.TESTCASENAME)) return testCaseFilename;
         } else {
@@ -235,6 +236,27 @@ public class TestSuiteResults {
             // if no match, fall through to return null
         }
         return null;
+    }
+
+    /**
+     * Returns the filename without any preceeding path info, for both Unix and Windows path
+     * separators.
+     *
+     * @param filename
+     * @return The filename without any path info (if any)
+     */
+    private String getFileNameNoPath(String filename) {
+        // We look for / and \ and strip off everything before and including the path separator. We
+        // check both path chars because the results could be generated on one platform and scored
+        // on another with different path chars
+        int length = filename.length();
+        if (filename.contains("/")) {
+            filename = filename.substring(filename.lastIndexOf('/') + 1, length);
+        }
+        if (filename.contains("\\")) {
+            filename = filename.substring(filename.lastIndexOf('\\') + 1, length);
+        }
+        return filename.trim();
     }
 
     /**
