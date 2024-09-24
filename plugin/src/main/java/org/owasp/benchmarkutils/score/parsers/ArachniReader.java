@@ -24,7 +24,6 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -80,7 +79,7 @@ public class ArachniReader extends Reader {
             try {
                 TestCaseResult tcr = parseArachniIssue(issue);
                 if (tcr != null) {
-                    //                 System.out.println( tcr.getNumber() + " " + tcr.getName() + "
+                    // System.out.println( tcr.getNumber() + " " + tcr.getName() + "
                     // -> " + tcr.getCWE() + "\t" + tcr.getEvidence() );
                     tr.put(tcr);
                 }
@@ -163,8 +162,8 @@ public class ArachniReader extends Reader {
         String testfile = url.getPath();
         testfile = testfile.substring(testfile.lastIndexOf('/') + 1);
 
-        if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
+        if (isTestCaseFile(testfile)) {
+            tcr.setActualResultTestID(testfile);
             return tcr;
         }
         return null;

@@ -23,7 +23,7 @@ import static org.owasp.benchmarkutils.score.report.Formats.twoDecimalPlacesPerc
 import java.util.Set;
 import org.owasp.benchmarkutils.score.Configuration;
 import org.owasp.benchmarkutils.score.Tool;
-import org.owasp.benchmarkutils.score.ToolResults;
+import org.owasp.benchmarkutils.score.ToolMetrics;
 import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 
 public class OverallStatsTable {
@@ -84,9 +84,9 @@ public class OverallStatsTable {
     }
 
     private void appendRowTo(HtmlStringBuilder htmlBuilder, Tool tool) {
-        ToolResults results = tool.getOverallResults();
+        ToolMetrics metrics = tool.getOverallMetrics();
 
-        htmlBuilder.beginTr(cssClassFor(results));
+        htmlBuilder.beginTr(cssClassFor(metrics));
         htmlBuilder.td(tool.getToolNameAndVersion());
 
         if (config.mixedMode) {
@@ -97,34 +97,34 @@ public class OverallStatsTable {
 
         if (config.includePrecision) {
             htmlBuilder
-                    .td(twoDecimalPlacesPercentage.format(results.getPrecision()))
-                    .td(fourDecimalPlacesNumber.format(results.getFScore()));
+                    .td(twoDecimalPlacesPercentage.format(metrics.getPrecision()))
+                    .td(fourDecimalPlacesNumber.format(metrics.getFScore()));
         }
 
         htmlBuilder
-                .td(twoDecimalPlacesPercentage.format(results.getTruePositiveRate()))
-                .td(twoDecimalPlacesPercentage.format(results.getFalsePositiveRate()))
-                .td(twoDecimalPlacesPercentage.format(results.getOverallScore()))
+                .td(twoDecimalPlacesPercentage.format(metrics.getTruePositiveRate()))
+                .td(twoDecimalPlacesPercentage.format(metrics.getFalsePositiveRate()))
+                .td(twoDecimalPlacesPercentage.format(metrics.getOverallScore()))
                 .endTr();
     }
 
-    private String cssClassFor(ToolResults results) {
+    private String cssClassFor(ToolMetrics metrics) {
         String cssClass = null;
 
-        if (isDanger(results)) {
+        if (isDanger(metrics)) {
             cssClass = "danger";
-        } else if (isSuccess(results)) {
+        } else if (isSuccess(metrics)) {
             cssClass = "success";
         }
 
         return cssClass;
     }
 
-    private boolean isSuccess(ToolResults results) {
-        return results.getTruePositiveRate() > .7 && results.getFalsePositiveRate() < .3;
+    private boolean isSuccess(ToolMetrics metrics) {
+        return metrics.getTruePositiveRate() > .7 && metrics.getFalsePositiveRate() < .3;
     }
 
-    private boolean isDanger(ToolResults results) {
-        return Math.abs(results.getTruePositiveRate() - results.getFalsePositiveRate()) < .1;
+    private boolean isDanger(ToolMetrics metrics) {
+        return Math.abs(metrics.getTruePositiveRate() - metrics.getFalsePositiveRate()) < .1;
     }
 }

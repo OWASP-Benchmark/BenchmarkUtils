@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -55,7 +56,7 @@ public class ExpectedResultsProvider {
             List<CSVRecord> allExpectedResults = parser.getRecords();
 
             CSVRecord firstRecord = allExpectedResults.get(0);
-            // setExpectedResultsMetadata() has side affects of setting
+            // setExpectedResultsMetadata() has side effect of setting
             // BenchmarkScore.TESTSUITENAME, BenchmarkScore.TESTCASENAME, and
             // ExpectedResultsProvider.standardBenchmarkStyleScoring
             setExpectedResultsMetadata(parser, firstRecord, tr);
@@ -75,9 +76,16 @@ public class ExpectedResultsProvider {
                                     + cwe
                                     + " specified in results file: "
                                     + resultFile.filename()
-                                    + ". Add missing data to categories.xml to address.");
+                                    + ". Add missing data to "
+                                    + Categories.FILENAME
+                                    + " to address.");
                     System.exit(-1);
                 }
+
+                // Map this expected test case result CWE to its associated CategoryGroup, if
+                // CategoryGroups enabled
+                tcr.setCategoryGroup(cwe);
+
                 // This method sets the expected result testID based on the scoring style,
                 // previously determined
                 // DRW TODO: Combine with setTestCaseName in future?

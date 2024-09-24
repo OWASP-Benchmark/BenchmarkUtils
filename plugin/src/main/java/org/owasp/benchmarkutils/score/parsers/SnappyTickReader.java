@@ -21,7 +21,6 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -101,7 +100,7 @@ public class SnappyTickReader extends Reader {
     }
 
     private int extractTestNumber(String testfile) {
-        if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
+        if (isTestCaseFile(testfile)) {
             int testno = getBenchmarkStyleTestCaseNumber(testfile);
             return testno;
         }

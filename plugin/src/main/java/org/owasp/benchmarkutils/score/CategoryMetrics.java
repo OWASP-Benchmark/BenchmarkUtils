@@ -17,7 +17,8 @@
  */
 package org.owasp.benchmarkutils.score;
 
-public class CategoryResults {
+/** This class contains overall metrics for a single vulnerability category for a single tool. */
+public class CategoryMetrics {
     public final String category;
     public final double precision; // TP / TP + FP
     public final double truePositiveRate; // AKA Recall
@@ -27,7 +28,7 @@ public class CategoryResults {
     public final double score;
 
     /**
-     * The overall results for a single vulnerability category for a single tool. F-Score and score
+     * The overall metrics for a single vulnerability category for a single tool. F-score and score
      * are automatically calculated for these results when this is created.
      *
      * @param category - The vulnerability category.
@@ -36,7 +37,7 @@ public class CategoryResults {
      * @param fpr - The false positive rate
      * @param totalTestCases - The total number of TP, FP, TN, FN in this category
      */
-    public CategoryResults(
+    public CategoryMetrics(
             String category, double precision, double tpr, double fpr, int totalTestCases) {
         if (Double.isNaN(precision)) {
             throw new IllegalArgumentException(

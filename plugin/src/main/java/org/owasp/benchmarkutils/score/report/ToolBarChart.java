@@ -19,7 +19,8 @@ package org.owasp.benchmarkutils.score.report;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import org.jfree.chart.ChartFactory;
@@ -33,17 +34,18 @@ import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.owasp.benchmarkutils.helpers.Categories;
+import org.owasp.benchmarkutils.helpers.CategoryGroups;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CategoryResults;
+import org.owasp.benchmarkutils.score.CategoryMetrics;
 import org.owasp.benchmarkutils.score.Tool;
 import org.owasp.benchmarkutils.score.report.html.ToolBarChartProvider;
 
+/** Used by ToolScorecard to generate a BarChart when desired. */
 public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
 
     private static final Color BLUECOLUMN = Color.decode("#4572a7"); // Blue
     private static final Color PURPLECOLUMN = Color.decode("#7851a9"); // Royal purple
 
-    private final Map<String, CategoryResults> overallAveToolResults;
     private final File scoreCardDir;
 
     enum BarChartType {
@@ -51,8 +53,12 @@ public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
         Recall
     }
 
-    public ToolBarChart(Map<String, CategoryResults> overallAveToolResults, File scoreCardDir) {
-        this.overallAveToolResults = overallAveToolResults;
+    /**
+     * Initialize the data required to generate a ToolBarChart.
+     *
+     * @param scoreCardDir The directory to write the generated chart to.
+     */
+    public ToolBarChart(File scoreCardDir) {
         this.scoreCardDir = scoreCardDir;
     }
 
@@ -100,17 +106,21 @@ public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
      * @param dataset - The dataset that contains this tool's results and the results to compare it
      *     to.
      * @param type - The Type of BarChart to create.
-     * @param scoreCardDir - The directory to write the created Chart file into.
+     * @param isCategoryGroups True if chart is for CategoryGroups, false for vuln categories
      */
-    private static void createBarChart(
-            Tool tool, DefaultCategoryDataset dataset, BarChartType type, File scoreCardDir) {
+    private void createBarChart(
+            Tool tool,
+            DefaultCategoryDataset dataset,
+            BarChartType type,
+            boolean isCategoryGroups) {
 
         JFreeChart chart =
                 ChartFactory.createBarChart(
                         tool.getToolNameAndVersion()
                                 + " "
                                 + type.name()
-                                + " Results by Weakness Class",
+                                + " Results per CWE"
+                                + (isCategoryGroups ? " Group" : ""), // TODO: Make Configurable
                         "",
                         type.name(),
                         dataset,
@@ -129,8 +139,8 @@ public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
                 break;
         }
 
-        String fileToCreate = generateBarChartFileName(tool, type);
-        File barChartFile = new File(scoreCardDir, fileToCreate);
+        String fileToCreate = generateBarChartFileName(tool, type, isCategoryGroups);
+        File barChartFile = new File(this.scoreCardDir, fileToCreate);
         try {
             writeChartToFile(barChartFile, chart, 800);
         } catch (IOException e) {
@@ -141,14 +151,15 @@ public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
 
     /**
      * createBarChart() uses this method to create the filenames for the generated .png files. So
-     * you can invoke this again outside the class to find those files. It generates these files in
-     * the scorecardDir directory.
+     * you can invoke this again outside the class to get the name of the generated file.
      *
      * @param tool - The tool to generate the Bar chart for.
      * @param type - The type of Bar chart to create.
+     * @param isCategoryGroups True if the chart is for CategoryGroups, false if for vuln categories
      * @return - The filename to write this type of Bar chart to.
      */
-    public static String generateBarChartFileName(Tool tool, BarChartType type) {
+    public static String generateBarChartFileName(
+            Tool tool, BarChartType type, boolean isCategoryGroups) {
         String filename =
                 BenchmarkScore.TESTSUITENAME.simpleName()
                         + " v"
@@ -157,6 +168,7 @@ public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
                         + type.name()
                         + " Chart for "
                         + tool.getToolNameAndVersion()
+                        + (isCategoryGroups ? "_groups" : "")
                         + ".png";
         filename = filename.replace(' ', '_');
         return filename;
@@ -167,20 +179,23 @@ public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
      * average scores across all tools.
      *
      * @param targetTool - The tool to create the chart for.
-     * @param aveToolResults - The average tool results across all tools.
+     * @param toolCatMetrics - The metrics for the categories/category groups being charted.
+     * @param overallAveToolMetrics The average metrics across all tools per the matching categories
+     * @param isCategoryGroups True if metrics are for CategoryGroups, false for vuln categories
      * @param type - The Type of Bar Chart to create.
      * @return The created DataSet.
      */
-    private static DefaultCategoryDataset createToolDataSet(
-            Tool targetTool, Map<String, CategoryResults> aveToolResults, BarChartType type) {
+    private DefaultCategoryDataset createToolDataSet(
+            Tool targetTool,
+            Collection<CategoryMetrics> toolCatMetrics,
+            Map<String, CategoryMetrics> overallAveToolMetrics,
+            boolean isCategoryGroups,
+            BarChartType type) {
         final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
         final String TOOLNAME = targetTool.getToolNameAndVersion();
 
-        Collection<CategoryResults> toolCatResults =
-                targetTool.getOverallResults().getCategoryResults();
-        for (CategoryResults catResults : toolCatResults) {
-
+        for (CategoryMetrics catResults : toolCatMetrics) {
             double data = -1.0;
             switch (type) {
                 case Precision:
@@ -191,11 +206,16 @@ public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
                     break;
             }
             dataset.addValue(
-                    data * 100, TOOLNAME, Categories.getByName(catResults.category).getShortName());
+                    data * 100,
+                    TOOLNAME,
+                    (isCategoryGroups
+                            ? CategoryGroups.getCategoryGroupByName(catResults.category).getAbbrev()
+                            : Categories.getCategoryByLongName(catResults.category)
+                                    .getShortName()));
         }
 
-        Collection<CategoryResults> aveCatResults = aveToolResults.values();
-        for (CategoryResults catResults : aveCatResults) {
+        Collection<CategoryMetrics> aveCatMetrics = overallAveToolMetrics.values();
+        for (CategoryMetrics catResults : aveCatMetrics) {
 
             double data = -1.0;
             switch (type) {
@@ -209,7 +229,10 @@ public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
             dataset.addValue(
                     data * 100,
                     "Average",
-                    Categories.getByName(catResults.category).getShortName());
+                    (isCategoryGroups
+                            ? CategoryGroups.getCategoryGroupByName(catResults.category).getAbbrev()
+                            : Categories.getCategoryByLongName(catResults.category)
+                                    .getShortName()));
         }
 
         return dataset;
@@ -220,24 +243,40 @@ public class ToolBarChart extends ScatterPlot implements ToolBarChartProvider {
      * the other tools and write those charts to tool/metric specific names.
      *
      * @param tool - The Tool to create the charts for.
+     * @param toolCatMetrics - The metrics for the categories/category groups being charted.
+     * @param overallAveToolMetrics The average metrics across all tools per the matching categories
+     * @param isCategoryGroups True if metrics are for CategoryGroups, false for vuln categories
      */
-    public void generateComparisonCharts(Tool tool) {
+    public void generateComparisonCharts(
+            Tool tool,
+            Collection<CategoryMetrics> toolCatMetrics,
+            Map<String, CategoryMetrics> overallAveToolMetrics,
+            boolean isCategoryGroups) {
+
         if (BenchmarkScore.config.includePrecision) {
             // Generate Precision Chart
             // First create the Dataset required for the chart
             DefaultCategoryDataset toolPrecisionData =
-                    ToolBarChart.createToolDataSet(
-                            tool, overallAveToolResults, ToolBarChart.BarChartType.Precision);
-            // Then create the chart
-            ToolBarChart.createBarChart(
-                    tool, toolPrecisionData, ToolBarChart.BarChartType.Precision, scoreCardDir);
+                    createToolDataSet(
+                            tool,
+                            toolCatMetrics,
+                            overallAveToolMetrics,
+                            isCategoryGroups,
+                            ToolBarChart.BarChartType.Precision);
+            // Then create the chart and write it to disk
+            this.createBarChart(
+                    tool, toolPrecisionData, ToolBarChart.BarChartType.Precision, isCategoryGroups);
 
-            // Generate Recall Chart
+            // Generate Recall Chart and write it to disk
             DefaultCategoryDataset toolRecallData =
-                    ToolBarChart.createToolDataSet(
-                            tool, overallAveToolResults, ToolBarChart.BarChartType.Recall);
-            ToolBarChart.createBarChart(
-                    tool, toolRecallData, ToolBarChart.BarChartType.Recall, scoreCardDir);
+                    createToolDataSet(
+                            tool,
+                            toolCatMetrics,
+                            overallAveToolMetrics,
+                            isCategoryGroups,
+                            ToolBarChart.BarChartType.Recall);
+            this.createBarChart(
+                    tool, toolRecallData, ToolBarChart.BarChartType.Recall, isCategoryGroups);
         }
     }
 }

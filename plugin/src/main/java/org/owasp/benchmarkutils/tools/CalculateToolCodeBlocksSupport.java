@@ -612,7 +612,7 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
             }
 
         } catch (Exception e) {
-            System.out.println("ERROR: Problem calculating code block support");
+            System.err.println("ERROR: Problem calculating code block support");
             e.printStackTrace();
         }
     }

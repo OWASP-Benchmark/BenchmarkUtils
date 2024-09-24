@@ -30,10 +30,17 @@ public class CommercialAveragesTable {
     private final List<ScatterVulns> entries = new ArrayList<>();
     private final TestSuiteName testSuiteName;
     private final String testSuiteVersion;
+    private final boolean useCategoryGroups;
 
     public CommercialAveragesTable(TestSuiteName testSuiteName, String testSuiteVersion) {
+        this(testSuiteName, testSuiteVersion, false);
+    }
+
+    public CommercialAveragesTable(
+            TestSuiteName testSuiteName, String testSuiteVersion, boolean useCategoryGroups) {
         this.testSuiteName = testSuiteName;
         this.testSuiteVersion = testSuiteVersion;
+        this.useCategoryGroups = useCategoryGroups;
     }
 
     public void add(ScatterVulns scatter) {
@@ -62,7 +69,8 @@ public class CommercialAveragesTable {
 
     private void addHeaderTo(HtmlStringBuilder htmlBuilder) {
         htmlBuilder.beginTr();
-        htmlBuilder.th("Vulnerability Category");
+        if (this.useCategoryGroups) htmlBuilder.th("Category Group");
+        else htmlBuilder.th("Vulnerability Category");
         htmlBuilder.th("Low Tool Type");
         htmlBuilder.th("Low Score");
         htmlBuilder.th("Ave Score");
@@ -133,7 +141,10 @@ public class CommercialAveragesTable {
 
     public String filename() {
         return format(
-                "{0}_v{1}_Scorecard_for_Commercial_Tools.html",
-                testSuiteName.simpleName(), testSuiteVersion);
+                "{0}_v{1}_Scorecard_for_Commercial_Tools"
+                        + (this.useCategoryGroups ? "_CategoryGroups" : "")
+                        + ".html",
+                testSuiteName.simpleName(),
+                testSuiteVersion);
     }
 }

@@ -20,7 +20,6 @@ package org.owasp.benchmarkutils.score.parsers;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -96,8 +95,8 @@ public class BurpJsonReader extends Reader {
             filename =
                     filename.split("\\.")[
                             0]; // If there is any extension on the filename, remove it
-            if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+            if (isTestCaseFile(filename)) {
+                tcr.setActualResultTestID(filename);
                 int rule = issue.getInt("type_index");
                 int cwe = BurpReader.cweLookup(new Integer(rule).toString());
                 tcr.setCWE(cwe);

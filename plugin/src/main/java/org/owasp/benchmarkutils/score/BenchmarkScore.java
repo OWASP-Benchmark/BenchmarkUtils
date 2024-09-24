@@ -44,6 +44,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.Category;
+import org.owasp.benchmarkutils.helpers.CategoryGroups;
 import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 import org.owasp.benchmarkutils.score.parsers.Reader;
@@ -97,9 +98,9 @@ public class BenchmarkScore extends AbstractMojo {
 
     // These Average Category values are computed as a side effect of running
     // generateVulnerabilityScorecards().
-    private static Map<String, CategoryResults> averageCommercialToolResults = null;
-    private static Map<String, CategoryResults> averageNonCommerciaToolResults = null;
-    private static Map<String, CategoryResults> overallAveToolResults = null;
+    private static Map<String, CategoryMetrics> averageCommercialToolMetrics = null;
+    private static Map<String, CategoryMetrics> averageNonCommerciaToolMetrics = null;
+    private static Map<String, CategoryMetrics> overallAveToolMetrics = null;
 
     public static Configuration config;
 
@@ -335,7 +336,7 @@ public class BenchmarkScore extends AbstractMojo {
             } else { // Not "mixed" - i.e., the 'Normal' way
 
                 // Step 4b: Read the expected results so we know what each tool 'should do'
-                File expected = new File(config.expectedResultsFileName);
+                File expected = new File(Configuration.expectedResultsFileName);
                 TestSuiteResults expectedResults = readExpectedResults(expected);
                 if (expectedResults == null) {
                     System.out.println("Couldn't read expected results file: " + expected);
@@ -419,47 +420,97 @@ public class BenchmarkScore extends AbstractMojo {
             e.printStackTrace();
         }
 
-        // Step 6: Generate scorecards for each type of vulnerability across all the tools now that
+        // Step 6: Generate scorecards for each vulnerability type across all the tools now that
         // the results for all the individual tools have been calculated.
 
-        // First, we have to figure out the set of vulnerability types that were scored
-        // A set is used here to eliminate duplicate categories across all the results
-        Set<String> catSet = new TreeSet<String>();
+        // First, we have to figure out all the vulnerability types that were scored
+        // A set is used here to eliminate duplicate vuln types across all the results
+        Set<String> vulnSet = new TreeSet<String>();
         for (Tool tool : tools) {
-            catSet.addAll(tool.getOverallResults().getCategories());
+            vulnSet.addAll(tool.getOverallMetrics().getCategories());
         }
 
-        // Then we generate each vulnerability scorecard
+        // Then we generate a scorecard for each vuln type
         CommercialAveragesTable commercialAveragesTable =
                 new CommercialAveragesTable(TESTSUITENAME, TESTSUITEVERSION);
         BenchmarkScore.generateVulnerabilityScorecards(
-                tools, catSet, scoreCardDir, commercialAveragesTable);
+                tools, vulnSet, scoreCardDir, commercialAveragesTable, false);
         System.out.println("Vulnerability scorecards computed.");
 
         // Step 7: Generate the tool scorecards now that the overall Vulnerability scorecards and
         // stats have been calculated
         ToolScorecard toolScorecard =
-                new ToolScorecard(overallAveToolResults, scoreCardDir, config, TESTSUITENAME);
+                new ToolScorecard(
+                        BenchmarkScore.overallAveToolMetrics, scoreCardDir, config, TESTSUITENAME);
 
-        tools.forEach(toolScorecard::generate);
+        for (Tool tool : tools) {
+            toolScorecard.generate(tool, tool.getOverallMetrics().getCategoryMetrics());
+        }
 
-        // Step 8: Update all the menus for all the generated pages to reflect the tools and
+        // Optional Step 8: If CategoryGroups are enabled do steps 8a & 8b
+        // Step 8a: generate scorecards for each CategoryGroup across all the tools
+
+        Set<String> catGroupsSet = new TreeSet<String>();
+        if (CategoryGroups.isCategoryGroupsEnabled()) {
+            try {
+                // Figure out the set of CategoryGroups that were scored
+                // A set is used here to eliminate duplicate category groups across all the results
+                for (Tool tool : tools) {
+                    catGroupsSet.addAll(tool.getCategoryGroups());
+                }
+
+                // Then we generate a scorecard for each category group
+                CommercialAveragesTable commercialCategoryGroupAveragesTable =
+                        new CommercialAveragesTable(TESTSUITENAME, TESTSUITEVERSION, true);
+                BenchmarkScore.generateVulnerabilityScorecards(
+                        tools,
+                        catGroupsSet,
+                        scoreCardDir,
+                        commercialCategoryGroupAveragesTable,
+                        true);
+                System.out.println("Category Group scorecards computed.");
+
+                // Step 8b: Generate the tool scorecards now that the overall Vulnerability
+                // scorecards and stats have been calculated for CategoryGroups
+                ToolScorecard toolScorecardCatGroups =
+                        new ToolScorecard(
+                                BenchmarkScore.overallAveToolMetrics,
+                                scoreCardDir,
+                                config,
+                                TESTSUITENAME);
+
+                for (Tool tool : tools) {
+                    toolScorecardCatGroups.generate(tool, tool.getCategoryGroupMetrics(), true);
+                }
+
+            } catch (Exception e) {
+                System.out.println(
+                        "Error invoking BenchmarkScore.generateVulnerabilityScorecards() w/CategoryGroups enabled.");
+                e.printStackTrace();
+                System.exit(-1);
+            }
+        }
+
+        // Step 9: Update all the menus for all the generated pages to reflect the tools and
         // vulnerability categories
         new MenuUpdater(
                         config,
                         TESTSUITENAME,
                         TESTSUITEVERSION,
                         commercialAveragesTable,
+                        // commercialCategoryGroupAveragesTable, - DRW TODO - Needed? Have to turn
+                        // on commercial averages to test.
                         tools,
-                        catSet,
+                        vulnSet,
+                        catGroupsSet,
                         scoreCardDir,
                         toolScorecard)
                 .updateMenus();
 
-        // Step 9: Generate the overall comparison chart for all the tools in this test
+        // Step 10: Generate the overall comparison chart for all the tools in this test
         ScatterHome.generateComparisonChart(tools, config.focus, scoreCardDir);
 
-        // Step 10: Generate the results table across all the tools in this test
+        // Step 11: Generate the results table across all the tools in this test
         try {
             OverallStatsTable overallStatsTable = new OverallStatsTable(config, TESTSUITENAME);
 
@@ -479,8 +530,7 @@ public class BenchmarkScore extends AbstractMojo {
             e.printStackTrace();
         }
 
-        // Step 11: Create the Interpretation Guide image with the name of this particular test
-        // suite
+        // Step 12: Create Interpretation Guide image with name of this particular test suite
         ScatterInterpretation scatter = new ScatterInterpretation(800);
         try {
             scatter.writeChartToFile(new File(scoreCardDir, "content/testsuite_guide.png"), 800);
@@ -524,11 +574,10 @@ public class BenchmarkScore extends AbstractMojo {
             // Figure out the actual results for this tool from the raw results file for this tool
             System.out.println("\nAnalyzing results from " + resultsFileName);
             TestSuiteResults rawToolResults = readActualResults(rawToolResultsFile);
-            // System.out.println("Computed actual results for tool: " + actualResults.getTool());
 
             if (expectedResults != null && rawToolResults != null) {
                 // note: side effect is that "pass/fail" value is set for each expected result so it
-                // can be used to produce scorecard for this tool
+                // can be used to produce scorecard for this tool. CweMatch details are set too.
                 TestSuiteResults actualResults = analyze(expectedResults, rawToolResults);
 
                 // Produce a .csv results file of the actual results, except if its a commercial
@@ -540,7 +589,7 @@ public class BenchmarkScore extends AbstractMojo {
 
                 Map<String, TP_FN_TN_FP_Counts> scores = calculateScores(actualResults);
 
-                ToolResults metrics = calculateMetrics(scores);
+                ToolMetrics metrics = calculateMetrics(scores);
                 metrics.setScanTime(rawToolResults.getTime());
 
                 Tool tool =
@@ -604,9 +653,10 @@ public class BenchmarkScore extends AbstractMojo {
         return tmp;
     }
 
-    private static ToolResults calculateMetrics(Map<String, TP_FN_TN_FP_Counts> results) {
+    private static ToolMetrics calculateMetrics(
+            Map<String, TP_FN_TN_FP_Counts> allCategoryResults) {
 
-        ToolResults metrics = new ToolResults();
+        ToolMetrics metrics = new ToolMetrics();
         double totalFPRate = 0;
         double totalTPRate = 0;
         int total = 0;
@@ -614,8 +664,9 @@ public class BenchmarkScore extends AbstractMojo {
         int totalFP = 0;
         int totalFN = 0;
         int totalTN = 0;
-        for (String category : results.keySet()) {
-            TP_FN_TN_FP_Counts c = results.get(category);
+        for (String category : allCategoryResults.keySet()) {
+            // Calculate the metrics for this category
+            TP_FN_TN_FP_Counts c = allCategoryResults.get(category);
             int rowTotal = c.tp + c.fn + c.tn + c.fp;
             double precision = (double) c.tp / (double) (c.tp + c.fp);
             // c.tp & c.fp can both be zero, creating a precision of NaN. So set to 0.0.
@@ -625,6 +676,11 @@ public class BenchmarkScore extends AbstractMojo {
             // c.fp & c.tn can both be zero, creating an fpr of NaN. So set to 0.0.
             if (Double.isNaN(fpr)) fpr = 0.0;
 
+            // Add the metrics for this particular category. This add() doesn't automatically
+            // update the tool's overall metrics, so those are calculated after this loop completes.
+            metrics.addCategoryMetrics(category, precision, tpr, fpr, rowTotal);
+
+            // Update the tool wide totals
             totalFPRate += fpr;
             totalTPRate += tpr;
             total += rowTotal;
@@ -632,21 +688,18 @@ public class BenchmarkScore extends AbstractMojo {
             totalFP += c.fp;
             totalFN += c.fn;
             totalTN += c.tn;
-
-            // Add the metrics for this particular category. But this add() doesn't automatically
-            // update the overall metrics, so those are set after this for loop completes.
-            metrics.add(category, precision, tpr, fpr, rowTotal);
         } // end for
 
-        int resultsSize = results.size();
+        // Calculate and set metrics across all categories
+        int numCategories = allCategoryResults.size();
         double totalPrecision = (double) totalTP / (double) (totalTP + totalFP);
         // tp & fp can both be zero, creating a precision of NaN. If so, set to 0.0.
         if (Double.isNaN(totalPrecision)) totalPrecision = 0.0;
         metrics.setPrecision(totalPrecision);
-        metrics.setFalsePositiveRate(totalFPRate / resultsSize);
-        metrics.setTruePositiveRate(totalTPRate / resultsSize);
+        metrics.setFalsePositiveRate(totalFPRate / numCategories);
+        metrics.setTruePositiveRate(totalTPRate / numCategories);
         metrics.setTotalTestCases(total);
-        metrics.setFindingCounts(totalTP, totalFP, totalFN, totalTN);
+        metrics.setOverallFindingCounts(totalTP, totalFP, totalFN, totalTN);
 
         return metrics;
     }
@@ -660,9 +713,9 @@ public class BenchmarkScore extends AbstractMojo {
     public static int translateNameToCWE(String categoryName) {
         int cwe;
 
-        Category category = Categories.getByName(categoryName);
+        Category category = Categories.getCategoryByLongName(categoryName);
         if (category == null) {
-            System.out.println("Error: Category: " + categoryName + " not supported.");
+            System.err.println("ERROR: Category: " + categoryName + " not supported.");
             cwe = -1;
         } else {
             cwe = category.getCWE();
@@ -684,7 +737,7 @@ public class BenchmarkScore extends AbstractMojo {
 
         for (String testcase : actualResults.keySet()) {
             TestCaseResult tcr = actualResults.getTestCaseResults(testcase).get(0); // only one
-            String cat = Categories.getById(tcr.getCategory()).getName();
+            String cat = Categories.getCategoryById(tcr.getCategory()).getName();
 
             TP_FN_TN_FP_Counts c = map.get(cat);
             if (c == null) {
@@ -735,18 +788,18 @@ public class BenchmarkScore extends AbstractMojo {
 
     /**
      * Go through each expected result, and figure out if this tool actually passed or not. This
-     * updates the expected results to reflect what passed/failed.
+     * updates the expected results to reflect what passed/failed and also add CweMatch details to
+     * each TestCaseResult so we know the details of exactly how a True Positive passed, or a False
+     * Positive failed.
      *
-     * <p>The vendor-specific category in TestSuiteResults actual is not used. The actual tests are
-     * matched to the corresponding expected tests by CWE numberBenchmark-specific category in
-     * TestResults expected, and the Benchmark-specific category in TestResults expected is used
-     * instead.
-     *
-     * <p>TODO: Do not cause the side effect by modifying expected.
+     * <p>The vendor-specific category in the actual TestSuiteResults is matched to the
+     * corresponding expected tests by CWE number in the expected TestResults, looking for either an
+     * exact CWE match or a ParentOf/ChildOf CWE match.
      *
      * @param expected - The expected results for this test suite.
      * @param rawToolResults - The actual results for this tool
-     * @return The scored results for this tool.
+     * @return The scored results for this tool, which is the expected results modified with the how
+     *     the tool did compared to the expected results.
      */
     private static TestSuiteResults analyze(
             TestSuiteResults expected, TestSuiteResults rawToolResults) {
@@ -762,21 +815,21 @@ public class BenchmarkScore extends AbstractMojo {
             rawToolResults.setAnonymous();
         }
 
-        boolean pass = false;
         for (String testcase : expected.keySet()) {
             TestCaseResult exp = expected.getTestCaseResults(testcase).get(0); // always only one!
             List<TestCaseResult> act =
                     rawToolResults.getTestCaseResults(
                             testcase); // could be lots of results for this test
 
-            pass = compare(exp, act, rawToolResults.getToolName());
+            CweMatchDetails cweMatch = compare(exp, act, rawToolResults.getToolName());
 
             // helpful in debugging
             // System.out.println( testcase + ", " + exp.getCategory() + ", " + exp.isTruePositive()
             // + "," + exp.getCWE() + ", " + pass + "\n");
 
-            // fill the result into the "expected" results in case we need it later
-            exp.setPassed(pass);
+            // Add the actual results to the "expected" results so we can score the tool
+            exp.setPassed(cweMatch.pass);
+            exp.addMatchDetails(cweMatch);
         }
 
         // Record the name and version of the tool whose pass/fail values were recorded in
@@ -789,53 +842,65 @@ public class BenchmarkScore extends AbstractMojo {
     }
 
     /**
-     * Check all actual results. If a real vulnerability matches, then exit. Otherwise keep going.
+     * Check all actual results. If a reported vulnerability matches, then exit. Otherwise keep
+     * going.
      *
      * @param exp The expected results
      * @param actList The list of actual results for this test case.
-     * @return true if the expected result is found in the actual result (i.e., If True Positive,
-     *     that results was found, If False Positive, that result was not found.)
+     * @return true if the expected result matches the actual result (i.e., If True Positive, that
+     *     results was found, If False Positive, that result was not found.)
      */
-    private static boolean compare(TestCaseResult exp, List<TestCaseResult> actList, String tool) {
+    private static CweMatchDetails compare(
+            TestCaseResult exp, List<TestCaseResult> actList, String tool) {
+
+        int expectedCWE = exp.getCWE();
+
         // return true if there are no actual results and this was a false positive test
         if (actList == null || actList.isEmpty()) {
-            return !exp.isTruePositive();
+            return new CweMatchDetails(
+                    expectedCWE, exp.isTruePositive(), !exp.isTruePositive(), -1, "");
         }
 
-        // otherwise check actual results
+        // Check actual results for an exact CWE match.
         for (TestCaseResult act : actList) {
             // Helpful in debugging
             // System.out.println( "  Evidence: " + act.getCWE() + " " + act.getEvidence() + "[" +
             // act.getConfidence() + "]");
 
             int actualCWE = act.getCWE();
-            int expectedCWE = exp.getCWE();
 
-            boolean match = actualCWE == expectedCWE;
-
-            // Special case: many tools report CWE 89 (sqli) for Hibernate Injection (hqli) rather
-            // than actual CWE of 564 So we accept either
-            if (!match && (expectedCWE == 564)) {
-                match = (actualCWE == 89);
+            // immediately return a value if we find an exact match
+            if (actualCWE == expectedCWE) {
+                return new CweMatchDetails(
+                        expectedCWE, exp.isTruePositive(), exp.isTruePositive(), actualCWE, "");
             }
+        }
 
-            // special hack since IBM/Veracode and CodeQL don't distinguish different kinds of weak
-            // algorithm
-            if (tool.startsWith("AppScan")
-                    || tool.startsWith("Vera")
-                    || tool.startsWith("CodeQL")) {
-                if (expectedCWE == 328 && actualCWE == 327) {
-                    match = true;
-                }
+        // If no exact match, we look through results again looking for a ChildOf or ParentOf match
+        for (TestCaseResult act : actList) {
+            int actualCWE = act.getCWE();
+            Category expectedCWECategory = Categories.getCategoryByCWE(expectedCWE);
+
+            if (expectedCWECategory.isChildOf(actualCWE)) {
+                return new CweMatchDetails(
+                        expectedCWE,
+                        exp.isTruePositive(),
+                        exp.isTruePositive(),
+                        actualCWE,
+                        "ChildOf");
             }
-
-            // return true if we find an exact match for a True Positive test
-            if (match) {
-                return exp.isTruePositive();
+            if (expectedCWECategory.isParentOf(actualCWE)) {
+                return new CweMatchDetails(
+                        expectedCWE,
+                        exp.isTruePositive(),
+                        exp.isTruePositive(),
+                        actualCWE,
+                        "ParentOf");
             }
         }
         // if we couldn't find a match, then return true if it's a False Positive test
-        return !exp.isTruePositive();
+        return new CweMatchDetails(
+                expectedCWE, exp.isTruePositive(), !exp.isTruePositive(), -1, "");
     }
 
     // Create a TestResults object that contains the expected results for this version
@@ -849,10 +914,10 @@ public class BenchmarkScore extends AbstractMojo {
 
             return tr;
         } catch (FileNotFoundException e) {
-            System.out.println("ERROR: Can't find expected results file: " + file);
+            System.err.println("ERROR: Can't find expected results file: " + file);
             System.exit(-1);
         } catch (IOException e) {
-            System.out.println("ERROR: Reading contents of expected results file: " + file);
+            System.err.println("ERROR: Reading contents of expected results file: " + file);
             e.printStackTrace();
             System.exit(-1);
         }
@@ -861,21 +926,30 @@ public class BenchmarkScore extends AbstractMojo {
     }
 
     /**
-     * Generate all the vulnerability scorecards. And then 1 commercial tool average scorecard if
-     * there are commercial tool results for at least 2 commercial tools. Also create the Tool
-     * objects for: averageCommercialToolResults, averageNonCommercialToolResults,
-     * overallAveToolResults.
+     * Generate all the vulnerability scorecards and 1 commercial tool average scorecard if there
+     * are commercial tool results for at least 2 commercial tools, and write them to disk. Also
+     * calculate the Tool metrics for: averageCommercialToolMetrics,
+     * averageNonCommercialToolMetrics, overallAveToolMetrics.
+     *
+     * @param tools The set of tool results for the tools to chart
+     * @param catSet The vuln categories or categoryGroups to generate this for
+     * @param scoreCardDir The directory to write the generated chart to
+     * @param commercialAveragesTable The average results of the commercial tools to compare each
+     *     commercial tool to
+     * @param useCategoryGroups If true, the specified category refers to a CategoryGroup not a vuln
+     *     Category
      */
     private static void generateVulnerabilityScorecards(
             Set<Tool> tools,
             Set<String> catSet,
             File scoreCardDir,
-            CommercialAveragesTable commercialAveragesTable) {
+            CommercialAveragesTable commercialAveragesTable,
+            boolean useCategoryGroups) {
 
         // A side effect of this method is to calculate these averages
-        averageCommercialToolResults = new HashMap<String, CategoryResults>();
-        averageNonCommerciaToolResults = new HashMap<String, CategoryResults>();
-        overallAveToolResults = new HashMap<String, CategoryResults>();
+        BenchmarkScore.averageCommercialToolMetrics = new HashMap<String, CategoryMetrics>();
+        BenchmarkScore.averageNonCommerciaToolMetrics = new HashMap<String, CategoryMetrics>();
+        BenchmarkScore.overallAveToolMetrics = new HashMap<String, CategoryMetrics>();
 
         final ClassLoader CL = BenchmarkScore.class.getClassLoader();
 
@@ -884,21 +958,21 @@ public class BenchmarkScore extends AbstractMojo {
 
         for (String cat : catSet) {
             try {
-                // Generate a comparison chart for all tools for this vuln category. When
-                // constructed, scatter contains the Overall, Non-commercial, and Commercial stats
-                // for this category across all tools.
+                // Generate a comparison chart for all tools for this vuln category or
+                // CategoryGroup. When constructed, scatter contains the Overall, Non-commercial,
+                // and Commercial stats for this category across all tools.
                 ScatterVulns scatter =
                         ScatterVulns.generateComparisonChart(
-                                cat, tools, config.focus, scoreCardDir);
+                                cat, tools, config.focus, scoreCardDir, useCategoryGroups);
 
-                // Before creating html for this vuln category, save the category level results into
-                // averageCommercialToolResults, averageNonCommerciaToolResults,
+                // Before creating HTML for this vuln category or category group, save the category
+                // level results into averageCommercialToolResults, averageNonCommerciaToolResults,
                 // overallAveToolResults
-                BenchmarkScore.averageCommercialToolResults.put(
-                        cat, scatter.getCommercialCategoryResults());
-                BenchmarkScore.averageNonCommerciaToolResults.put(
-                        cat, scatter.getNonCommercialCategoryResults());
-                BenchmarkScore.overallAveToolResults.put(cat, scatter.getOverallCategoryResults());
+                BenchmarkScore.averageCommercialToolMetrics.put(
+                        cat, scatter.getCommercialCategoryMetrics());
+                BenchmarkScore.averageNonCommerciaToolMetrics.put(
+                        cat, scatter.getNonCommercialCategoryMetrics());
+                BenchmarkScore.overallAveToolMetrics.put(cat, scatter.getOverallCategoryMetrics());
 
                 String filename =
                         TESTSUITENAME.simpleName()
@@ -908,7 +982,7 @@ public class BenchmarkScore extends AbstractMojo {
                                 + cat.replace(' ', '_');
                 File htmlFile = new File(scoreCardDir, filename + ".html");
 
-                // Resources in a jar file have to be loaded as streams. Not directly as Files.
+                // Resources in a jar file have to be loaded as streams, not directly as Files.
                 final String VULNTEMPLATERESOURCE = "scorecard/vulntemplate.html";
                 InputStream vulnTemplateStream = CL.getResourceAsStream(VULNTEMPLATERESOURCE);
                 if (vulnTemplateStream == null) {
@@ -919,19 +993,34 @@ public class BenchmarkScore extends AbstractMojo {
 
                 String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
                 html = html.replace("${testsuite}", BenchmarkScore.TESTSUITENAME.fullName());
+                String addCatalogGroupDetails = "";
+                if (CategoryGroups.isCategoryGroupsEnabled()) {
+                    addCatalogGroupDetails += (useCategoryGroups ? "CWE Group: " : "CWE: ");
+                }
                 String fullTitle =
-                        BenchmarkScore.TESTSUITENAME.fullName() + " Scorecard for " + cat;
+                        BenchmarkScore.TESTSUITENAME.fullName()
+                                + " Scorecard for "
+                                + addCatalogGroupDetails
+                                + cat;
 
                 html = html.replace("${image}", filename + ".png");
                 html = html.replace("${title}", fullTitle);
                 html =
                         html.replace(
                                 "${vulnerability}",
-                                cat + " (CWE #" + BenchmarkScore.translateNameToCWE(cat) + ")");
+                                cat
+                                        + (useCategoryGroups
+                                                ? ""
+                                                : " (CWE #"
+                                                        + BenchmarkScore.translateNameToCWE(cat)
+                                                        + ")"));
                 html = html.replace("${version}", TESTSUITEVERSION);
                 html = html.replace("${projectlink}", config.report.html.projectLinkEntry);
 
-                html = html.replace("${table}", vulnerabilityStatsTable.generateFor(cat));
+                html =
+                        html.replace(
+                                "${table}",
+                                vulnerabilityStatsTable.generateFor(cat, useCategoryGroups));
                 html = html.replace("${tprlabel}", config.tprLabel);
                 html =
                         html.replace(
@@ -941,7 +1030,7 @@ public class BenchmarkScore extends AbstractMojo {
 
                 Files.write(htmlFile.toPath(), html.getBytes());
 
-                // Only build commercial stats scorecard if there are at 2+ commercial tools
+                // Only build commercial stats scorecard if there are 2+ commercial tools
                 if (scatter.getCommercialToolCount() > 1) {
                     commercialAveragesTable.add(scatter);
                 }
@@ -959,7 +1048,7 @@ public class BenchmarkScore extends AbstractMojo {
                                 scoreCardDir.getAbsolutePath()
                                         + File.separator
                                         + commercialAveragesTable.filename());
-                // Resources in a jar file have to be loaded as streams. Not directly as Files.
+                // Resources in a jar file have to be loaded as streams, not directly as Files.
                 InputStream vulnTemplateStream =
                         CL.getResourceAsStream(scoreCardDir + "/commercialAveTemplate.html");
                 String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
@@ -981,6 +1070,6 @@ public class BenchmarkScore extends AbstractMojo {
                 System.out.println("Error generating commercial scorecard: " + e.getMessage());
                 e.printStackTrace();
             }
-        } // end if
+        } // end if commercialAveragesTable.hasEntries()
     }
 }

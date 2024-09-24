@@ -19,7 +19,6 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -128,16 +127,18 @@ public class SemgrepReader extends Reader {
             case 90:
                 return CweNumber.LDAP_INJECTION;
             case 326:
+                return 326; // Counts as Weak Crypto due to categories.xml mapping
             case 327:
-            case 329: // Generation of Predictable IV with CBC Mode - Has no affect on Benchmark -
+            case 329: // Generation of Predictable IV with CBC Mode - Has no effect on Benchmark -
                 // but leaving mapping in anyway
             case 696: // Incorrect Behavior Order
                 return CweNumber.WEAK_CRYPTO_ALGO; // weak encryption
             case 328:
                 return CweNumber.WEAK_HASH_ALGO;
             case 330: // Use of Insufficiently Random Values - Vuln mapping discouraged
-            case 338: // Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)
                 return CweNumber.WEAK_RANDOM;
+            case 338: // Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)
+                return 338; // Counts as Weak Random due to categories.xml mapping
             case 501:
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
             case 611: // Improper Restriction of XML External Entity Reference (XXE)
@@ -261,7 +262,7 @@ public class SemgrepReader extends Reader {
         try {
             String className = result.getString("path");
             className = (className.substring(className.lastIndexOf('/') + 1)).split("\\.")[0];
-            if (className.startsWith(BenchmarkScore.TESTCASENAME)) {
+            if (isTestCaseFile(className)) {
 
                 TestCaseResult tcr = new TestCaseResult();
 
@@ -286,8 +287,8 @@ public class SemgrepReader extends Reader {
 
                 tcr.setCWE(cwe);
                 tcr.setEvidence(category + "::" + evidence);
-                tcr.setConfidence(0);
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(className));
+                // tcr.setConfidence(0);
+                tcr.setActualResultTestID(className);
 
                 return tcr;
             }

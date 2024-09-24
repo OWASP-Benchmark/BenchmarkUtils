@@ -21,7 +21,6 @@ import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -140,7 +139,7 @@ public class CheckmarxReader extends Reader {
             return null;
         }
 
-        // Output xml file from Checkmarx (depends on version) sometimes does not contain attribute
+        // Output XML file from Checkmarx (depends on version) sometimes does not contain attribute
         // on the node "query" named SeverityIndex
         String SeverityIndex = getAttributeValue("SeverityIndex", result);
         boolean isGeneratedByCxWebClient = SeverityIndex != null && !SeverityIndex.equals("");
@@ -168,32 +167,31 @@ public class CheckmarxReader extends Reader {
 
         // If the result starts in a BenchmarkTest file
         String testcase = getAttributeValue("FileName", result);
-        // Output xml file from Checkmarx (depends on version) may use windows based '\\' or unix
+        // Output XML file from Checkmarx (depends on version) may use windows based '\\' or unix
         // based '/' delimiters for path
         if (isGeneratedByCxWebClient) {
             testcase = testcase.substring(testcase.lastIndexOf('/') + 1);
         } else {
             testcase = testcase.substring(testcase.lastIndexOf('\\') + 1);
         }
-        if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcase));
+        if (isTestCaseFile(testcase)) {
+            tcr.setActualResultTestID(testcase);
             return tcr;
         } else {
             // If not, then the last PastNode must end in a FileName that startsWith BenchmarkTest
-            // file
             // Skipping nodes with no filename specified <FileName></FileName>
             if (fileNameNode.getFirstChild() == null) return null;
 
             String testcase2 = fileNameNode.getFirstChild().getNodeValue();
-            // Output xml file from Checkmarx (depends on version) may use windows based '\\' or
+            // Output XML file from Checkmarx (depends on version) may use windows based '\\' or
             // unix based '/' delimiters for path
             if (isGeneratedByCxWebClient) {
                 testcase2 = testcase2.substring(testcase2.lastIndexOf('/') + 1);
             } else {
                 testcase2 = testcase2.substring(testcase2.lastIndexOf('\\') + 1);
             }
-            if (testcase2.startsWith(BenchmarkScore.TESTCASENAME)) {
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcase2));
+            if (isTestCaseFile(testcase2)) {
+                tcr.setActualResultTestID(testcase2);
                 return tcr;
             }
         }
@@ -201,16 +199,12 @@ public class CheckmarxReader extends Reader {
         return null;
     }
 
-    private int translate(int cwe) {
+    // Most translations aren't needed anymore because we now count childof or parentof CWEs as a
+    // match for expected CWE.
+    static int translate(int cwe) {
         switch (cwe) {
-            case 77:
             case 15:
                 return CweNumber.COMMAND_INJECTION;
-            case 36:
-            case 23:
-                return CweNumber.PATH_TRAVERSAL;
-            case 338:
-                return CweNumber.WEAK_RANDOM;
         }
         return cwe;
     }

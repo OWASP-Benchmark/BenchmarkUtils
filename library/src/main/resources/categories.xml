@@ -1,29 +1,32 @@
-<!-- Defines all the CWE categories understood by the generator. Simply add more if you need one.
-    isInjection is used to indicate CWEs where if a dataflow changes the input at all, it would likely break an exploit.
+<!-- Defines all the CWE categories understood by the generator and scoring. Simply add more if you need one.
+    This is an enhanced version which now includes parentof and childof entries for many of the defined CWE categories. If a
+    test suite is is expecting particular CWE, but the tool actually reports a child CWE # or a parent CWE # for the expected
+    CWE, then that is considered a match. This feature eliminates the need to map certain CWEs, in the native results parsers
+    for each tool, to the 'expected' CWE for a particular test suite.
+
+    isInjection is used to indicate CWEs where if a dataflow changes the input at all, it would likely break an exploit. This
+    can be used by the Generator to avoid using such dataflows when constructing injection test cases.
 -->
 <categories>
-    <!-- category> As this maps to the same CWE as missing Cache Control, we can't have both, so commenting this out.
-        <id>autocomp</id>
-        <name>Autocomplete Not Disabled</name>
-        <cwe>525</cwe>
-        <shortname>AUTO</shortname>
-        </category -->
     <category>
         <id>avail</id>
         <name>Availability</name>
         <cwe>400</cwe>
+        <parentof>405,770,771,779,920,1235,1246</parentof>
         <shortname>AVAIL</shortname>
     </category>
     <category>
         <id>cache</id>
         <name>Cache Control</name>
         <cwe>525</cwe>
+        <childof>524</childof>
         <shortname>CACHE</shortname>
     </category>
     <category>
         <id>cmdi</id>
         <name>Command Injection</name>
         <cwe>78</cwe>
+        <childof>77</childof>
         <isInjection>true</isInjection>
         <shortname>CMDI</shortname>
     </category>
@@ -31,37 +34,56 @@
         <id>codeinj</id>
         <name>Code Injection</name>
         <cwe>94</cwe>
+        <childof>74,913</childof>
+        <parentof>95,96,1336</parentof>
         <isInjection>true</isInjection>
-        <shortname>CODE</shortname>
+        <shortname>CODEINJ</shortname>
     </category>
     <category>
         <id>crypto</id>
         <name>Weak Encryption Algorithm</name>
         <cwe>327</cwe>
+        <parentof>328,1240</parentof>
+        <childof>326</childof>
         <shortname>ENCR</shortname>
+        <note>The childOf entry 326 added manually which is Inadequate Encryption Strength. That should count for Weak Crypto.</note>
+        <note2>The parentOf entry 329 was added manually which is Predictable IV w/ CBC Mode. That should count for Weak Crypto, but it caused both CheckMarx and FindSecBugs scores to go down, so we removed it.</note2>
     </category>
     <category>
         <id>deadcode</id>
         <name>Dead Code</name>
         <cwe>561</cwe>
-        <shortname>DEAD</shortname>
+        <childof>1164</childof>
+        <shortname>DEADCD</shortname>
+    </category>
+    <category>
+        <id>deserialization</id>
+        <name>Insecure Deserialization</name>
+        <cwe>502</cwe>
+        <isInjection>false</isInjection>
+        <shortname>DESER</shortname>
     </category>
     <category>
         <id>hardcode</id>
         <name>Hard-coded Credentials</name>
         <cwe>798</cwe>
+        <childof>1391</childof>
+        <parentof>259,321</parentof>
         <shortname>HARD</shortname>
     </category>
     <category>
         <id>hash</id>
         <name>Weak Hashing Algorithm</name>
         <cwe>328</cwe>
+        <childof>326,327</childof>
+        <parentof>916</parentof>
         <shortname>HASH</shortname>
     </category>
     <category>
         <id>headeri</id>
         <name>Header Injection</name>
         <cwe>113</cwe>
+        <childof>93</childof>
         <!-- isInjection>Don't set. Not a classic injection issue.</isInjection -->
         <shortname>HEADI</shortname>
     </category>
@@ -69,6 +91,7 @@
         <id>hqli</id>
         <name>Hibernate Injection</name>
         <cwe>564</cwe>
+        <childof>89</childof>
         <isInjection>true</isInjection>
         <shortname>HQLI</shortname>
     </category>
@@ -76,12 +99,15 @@
         <id>intoverflow</id>
         <name>Integer Overflow</name>
         <cwe>190</cwe>
+        <childof>682</childof>
+        <parentof>680</parentof>
         <shortname>INTOVER</shortname>
     </category>
     <category>
         <id>ldapi</id>
         <name>LDAP Injection</name>
         <cwe>90</cwe>
+        <childof>943</childof>
         <isInjection>true</isInjection>
         <shortname>LDAPI</shortname>
     </category>
@@ -89,6 +115,8 @@
         <id>pathtraver</id>
         <name>Path Traversal</name>
         <cwe>22</cwe>
+        <childof>668,706</childof>
+        <parentof>23,36</parentof>
         <!-- isInjection>Don't set. Not an injection issue.</isInjection -->
         <shortname>PATHT</shortname>
     </category>
@@ -96,6 +124,7 @@
         <id>privileges</id>
         <name>Improper Privileges</name>
         <cwe>269</cwe>
+        <parentof>250,266,267,268,270,271,274,648</parentof>
         <shortname>PRIV</shortname>
     </category>
     <category>
@@ -109,18 +138,21 @@
         <name>Unsafe Reflection</name>
         <cwe>470</cwe>
         <isInjection>true</isInjection>
-        <shortname>REFL</shortname>
+        <shortname>REFLECT</shortname>
     </category>
     <category>
         <id>securecookie</id>
         <name>Insecure Cookie</name>
         <cwe>614</cwe>
-        <shortname>COOKI</shortname>
+        <childof>319</childof>
+        <shortname>INSCOOKI</shortname>
     </category>
     <category>
         <id>sqli</id>
         <name>SQL Injection</name>
         <cwe>89</cwe>
+        <childof>943</childof>
+        <parentof>564</parentof>
         <isInjection>true</isInjection>
         <shortname>SQLI</shortname>
     </category>
@@ -134,12 +166,14 @@
         <id>weakrand</id>
         <name>Weak Randomness</name>
         <cwe>330</cwe>
+        <parentof>331,334,335,338,340,344,1204,1241</parentof>
         <shortname>RAND</shortname>
     </category>
     <category>
         <id>xpathi</id>
         <name>XPath Injection</name>
         <cwe>643</cwe>
+        <childof>91,943</childof>
         <isInjection>true</isInjection>
         <shortname>XPATH</shortname>
     </category>
@@ -147,6 +181,7 @@
         <id>xquery</id>
         <name>XQuery Injection</name>
         <cwe>652</cwe>
+        <childof>91,943</childof>
         <isInjection>true</isInjection>
         <shortname>XQRY</shortname>
     </category>
@@ -154,6 +189,7 @@
         <id>xss</id>
         <name>XSS (Cross-Site Scripting)</name>
         <cwe>79</cwe>
+        <parentof>80,81,83,84,85,86,87</parentof>
         <!-- isInjection>Don't set. Not a classic injection issue.</isInjection -->
         <shortname>XSS</shortname>
     </category>
@@ -163,12 +199,5 @@
         <cwe>611</cwe>
         <isInjection>true</isInjection>
         <shortname>XXE</shortname>
-    </category>
-    <category>
-        <id>deserialization</id>
-        <name>Insecure Deserialization</name>
-        <cwe>502</cwe>
-        <isInjection>false</isInjection>
-        <shortname>DESER</shortname>
     </category>
 </categories>

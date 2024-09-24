@@ -130,8 +130,8 @@ public class ContrastAssessReader extends Reader {
         TestCaseResult tcr = new TestCaseResult();
         tcr.setCWE(cweLookup(elements[0]));
 
-        if (tcr.getCWE() != 0 && elements[1].contains(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(elements[1]));
+        if (tcr.getCWE() != 0 && isTestCaseFile(elements[1])) {
+            tcr.setActualResultTestID(elements[1]);
             tr.put(tcr);
         }
     }
@@ -151,12 +151,12 @@ public class ContrastAssessReader extends Reader {
             JSONObject request = obj.getJSONObject("request");
             String uri = request.getString("uri");
 
-            if (tcr.getCWE() != 0 && uri.contains(BenchmarkScore.TESTCASENAME)) {
+            if (tcr.getCWE() != 0 && isTestCaseFile(uri)) {
                 // Normal uri's look like: "uri":"/benchmark/cmdi-00/BenchmarkTest00215", but for
                 // web services, they can look like:
                 // "uri":"/benchmark/rest/xxe-00/BenchmarkTest03915/send"
                 // At this point testNumber could contain '00215', or '03915/send'
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(uri));
+                tcr.setActualResultTestID(uri);
                 // System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                 // tcr.getCategory() );
                 tr.put(tcr);
@@ -180,10 +180,9 @@ public class ContrastAssessReader extends Reader {
             case "autocomplete-missing":
                 // Not sure the CWE for this.
             case "cache-controls-missing":
-                // return 525; // Web Browser Cache Containing Sensitive Info
+                return 525; // Web Browser Cache Containing Sensitive Info
             case "clickjacking-control-missing":
-                // return 1021; // Improper Restriction of Rendered UI Layers (i.e., Clickjacking)
-                return CweNumber.DONTCARE;
+                return 1021; // Improper Restriction of Rendered UI Layers (i.e., Clickjacking)
             case "unsafe-code-execution": // Note: This is technically CWE 95 'Eval Injection'
             case "cmd-injection":
                 return CweNumber.COMMAND_INJECTION;
@@ -203,8 +202,7 @@ public class ContrastAssessReader extends Reader {
             case "hql-injection":
                 return CweNumber.HIBERNATE_INJECTION;
             case "hsts-header-missing":
-                // return 319; // CWE-319: Cleartext Transmission of Sensitive Information
-                return CweNumber.DONTCARE;
+                return 319; // CWE-319: Cleartext Transmission of Sensitive Information
             case "insecure-jsp-access":
                 return CweNumber.DONTCARE;
             case "ldap-injection":
@@ -220,14 +218,12 @@ public class ContrastAssessReader extends Reader {
             case "reflection-injection":
                 return CweNumber.DONTCARE;
             case "redos":
-                // return 400; // regex denial of service - CWE-400: Uncontrolled Resource
-                // Consumption
-                return CweNumber.DONTCARE;
+            case "unsafe-readline":
+                return 400; // regex denial of service - CWE-400: Uncontrolled Resource Consumption
             case "sql-injection":
                 return CweNumber.SQL_INJECTION;
             case "trust-boundary-violation":
                 return CweNumber.TRUST_BOUNDARY_VIOLATION; // trust boundary
-            case "unsafe-readline":
             case "xcontenttype-header-missing":
                 return CweNumber.DONTCARE;
             case "xpath-injection":

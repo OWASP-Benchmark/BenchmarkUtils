@@ -52,7 +52,6 @@ public class FaastReader extends Reader {
         TestCaseResult tcr = new TestCaseResult();
         String url = "";
         int cwe = 0;
-        int testNumber = -1;
         String category = "";
         for (Object o : finding.keySet()) {
             String key = (String) o;
@@ -67,7 +66,6 @@ public class FaastReader extends Reader {
                         String keyres = (String) res_json;
                         if (keyres.matches("Value")) {
                             url = (String) jsonResObj.get(keyres);
-                            testNumber = getTestCase(url);
                             category = getCategory(url);
                         }
                     }
@@ -75,8 +73,8 @@ public class FaastReader extends Reader {
             }
         }
 
-        if (url.contains(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(testNumber);
+        if (isTestCaseFile(url)) {
+            tcr.setActualResultTestID(url);
             tcr.setCWE(cwe);
             tcr.setEvidence(category);
             return tcr;

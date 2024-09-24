@@ -80,10 +80,10 @@ public class CodeblockUtils {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder;
-            // Prevent XXE = Note, disabling this entirely breaks Permutation of
-            // Web Services, so have to use the alternate defense.
-            // dbFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl",
-            // true);
+            // Prevent XXE = Note, disabling this entirely with this option breaks Permutation of
+            // Web Services,
+            // dbFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            // So we use this alternate defense instead.
             dbFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
             dbFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 
@@ -104,10 +104,10 @@ public class CodeblockUtils {
             emetadata = (Element) metadata;
 
         } catch (ParserConfigurationException | SAXException e1) {
-            System.out.println("WARNING: Couldn't parse source metadata file.");
+            System.err.println("WARNING: Couldn't parse source metadata file.");
             e1.printStackTrace();
         } catch (IOException e) {
-            System.out.println("WARNING: Couldn't find source metadata file.");
+            System.err.println("WARNING: Couldn't find source metadata file.");
             e.printStackTrace();
         }
 

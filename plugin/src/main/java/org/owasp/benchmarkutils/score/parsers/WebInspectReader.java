@@ -18,7 +18,6 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -97,8 +96,8 @@ public class WebInspectReader extends Reader {
             testfile = testfile.substring(0, testfile.indexOf("?"));
         }
 
-        if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
+        if (isTestCaseFile(testfile)) {
+            tcr.setActualResultTestID(testfile);
             return tcr;
         }
         return null;

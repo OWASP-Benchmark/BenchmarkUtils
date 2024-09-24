@@ -20,7 +20,6 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.io.StringReader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -110,12 +109,12 @@ public class ReshiftReader extends Reader {
             String url = record.get("Issue-File");
 
             try {
-                if (url.contains(BenchmarkScore.TESTCASENAME)) {
+                if (isTestCaseFile(url)) {
                     TestCaseResult tcr = new TestCaseResult();
                     String category = record.get("Category");
                     tcr.setCWE(cweLookup(category));
                     tcr.setEvidence(category);
-                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(url));
+                    tcr.setActualResultTestID(url);
                     if (tcr.getCWE() != 0) {
                         tr.put(tcr);
                     }

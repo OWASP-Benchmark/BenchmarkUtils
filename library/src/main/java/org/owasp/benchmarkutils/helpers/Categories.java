@@ -22,8 +22,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -39,7 +41,7 @@ import org.xml.sax.SAXException;
  * name.
  */
 public class Categories {
-    public static final String FILENAME = "categories.xml";
+    public static String FILENAME = "categories.xml"; // Default
 
     private Map<Integer, Category> cweToCategoryMap;
     private Map<String, Category> idToCategoryMap;
@@ -54,28 +56,31 @@ public class Categories {
         InputStream categoriesFileStream =
                 Categories.class.getClassLoader().getResourceAsStream(Categories.FILENAME);
         if (categoriesFileStream == null) {
-            System.out.println(
+            System.err.println(
                     "FATAL ERROR: couldn't load categories resource file: " + Categories.FILENAME);
             System.exit(-1);
         }
-        initCategoriesFromXMLFile(categoriesFileStream, "resource file: " + Categories.FILENAME);
+        initVulnCategoriesFromXMLFile(
+                categoriesFileStream, "resource file: " + Categories.FILENAME);
     }
 
     /**
      * Allows external callers to reinitialize Category singleton to a custom Categories XML file.
-     * If there are any problems with the specified file, this call is Fatal and halts.
+     * This allows a user to change the Vuln types supported during scorecard generation. If there
+     * are any problems with the specified file, this call is Fatal and halts.
      *
-     * @param categoriesFileStream the InputStream to the XML Categories file
+     * @param vulnCategoriesFileStream the InputStream to the XML Categories file
      * @param xmlFileName The filename of the supplied InputStream (used for error messages)
      */
-    public static void initCategoriesFromXMLFile(
-            InputStream categoriesFileStream, String xmlFileName) {
+    public static void initVulnCategoriesFromXMLFile(
+            InputStream vulnCategoriesFileStream, String xmlFileName) {
 
         try {
-            new Categories(categoriesFileStream, true);
+            new Categories(vulnCategoriesFileStream, true);
+            Categories.FILENAME = xmlFileName;
         } catch (ParserConfigurationException | SAXException | IOException e1) {
-            System.out.println(
-                    "FATAL ERROR: couldn't load categories from categories config XML file: "
+            System.err.println(
+                    "FATAL ERROR: couldn't load vuln categories from custom XML file: "
                             + xmlFileName);
             e1.printStackTrace();
             System.exit(-1);
@@ -107,9 +112,9 @@ public class Categories {
      */
     public Categories(InputStream xmlFileStream, boolean reload)
             throws ParserConfigurationException, SAXException, IOException {
-        if (_instance == null || reload) {
+        if (Categories._instance == null || reload) {
             load(xmlFileStream);
-            _instance = this;
+            Categories._instance = this;
         } else {
             System.out.println(
                     "WARNING: Categories being initialized again by something, but reload ignored.");
@@ -130,6 +135,7 @@ public class Categories {
         Map<Integer, Category> cweToCategoryMap = new HashMap<Integer, Category>();
         Map<String, Category> idToCategoryMap = new HashMap<String, Category>();
         Map<String, Category> nameToCategoryMap = new HashMap<String, Category>();
+        Map<String, Category> shortnameToCategoryMap = new HashMap<String, Category>();
         List<Category> allCategories = new ArrayList<Category>();
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -145,66 +151,158 @@ public class Categories {
         // Get all categories
         NodeList nList = document.getElementsByTagName("category");
 
-        for (int temp = 0; temp < nList.getLength(); temp++) {
-            Node node = nList.item(temp);
+        int previousCWENum = -1; // Used for a special error message
+        for (int nodeIndex = 0; nodeIndex < nList.getLength(); nodeIndex++) {
+            Node node = nList.item(nodeIndex);
             if (node.getNodeType() == Node.ELEMENT_NODE) {
-                // Print each ecategory's detail
+                // Get each Category's details
                 Element eElement = (Element) node;
-                String id = eElement.getElementsByTagName("id").item(0).getTextContent();
-                String name = eElement.getElementsByTagName("name").item(0).getTextContent();
-                NodeList cweNodeList = eElement.getElementsByTagName("cwe");
-                // Default value -- CWEs included in expected results file. Might be used during
-                // scoring.
-                NodeList isInjectionNodeList = eElement.getElementsByTagName("isInjection");
-                boolean isInjection = false; // Default value
-                if (isInjectionNodeList.getLength() > 0) {
-                    isInjection =
-                            Boolean.parseBoolean(isInjectionNodeList.item(0).getTextContent());
+                NodeList nodeList = eElement.getElementsByTagName("id");
+                if (nodeList.getLength() == 0) {
+                    System.err.println(
+                            "FATAL ERROR: "
+                                    + Categories.FILENAME
+                                    + " file is missing required 'id' element for the CWE category right after CWE: "
+                                    + previousCWENum);
+                    System.exit(-1);
                 }
-                String shortname =
-                        eElement.getElementsByTagName("shortname").item(0).getTextContent();
+                String id = nodeList.item(0).getTextContent();
+
+                nodeList = eElement.getElementsByTagName("name");
+                if (nodeList.getLength() == 0) {
+                    System.err.println(
+                            "FATAL ERROR: "
+                                    + Categories.FILENAME
+                                    + " file is missing required 'name' element for CWE category with id: "
+                                    + id);
+                    System.exit(-1);
+                }
+                String name = nodeList.item(0).getTextContent();
+
+                NodeList cweNodeList = eElement.getElementsByTagName("cwe");
                 int cwe = -1;
                 if (cweNodeList.getLength() > 0) {
                     cwe = Integer.parseInt(cweNodeList.item(0).getTextContent());
                 } else {
-                    throw new IOException(
+                    System.err.println(
                             "FATAL ERROR: no CWE number provided for CWE category (id, name): ("
                                     + id
                                     + ", "
                                     + name
-                                    + ") in categories.xml.");
+                                    + ") in "
+                                    + Categories.FILENAME);
+                    System.exit(-1);
                 }
-                Category category = new Category(id, name, cwe, isInjection, shortname);
+
+                nodeList = eElement.getElementsByTagName("isInjection");
+                boolean isInjection = false; // Default value
+                if (nodeList.getLength() > 0) {
+                    isInjection = Boolean.parseBoolean(nodeList.item(0).getTextContent());
+                }
+
+                nodeList = eElement.getElementsByTagName("shortname");
+                if (nodeList.getLength() == 0) {
+                    System.err.println(
+                            "FATAL ERROR: no shortname provided for CWE category (id, cwe): ("
+                                    + id
+                                    + ", "
+                                    + cwe
+                                    + ") in "
+                                    + Categories.FILENAME);
+                    System.exit(-1);
+                }
+                String shortname = nodeList.item(0).getTextContent();
+
+                // Parse the optional childof and parent of nodes and create Sets for them.
+                Set<Integer> childOf = new HashSet<Integer>();
+                Set<Integer> parentOf = new HashSet<Integer>();
+
+                NodeList childOfNodeList = eElement.getElementsByTagName("childof");
+                if (childOfNodeList.getLength() > 0) {
+                    String[] childOfList = childOfNodeList.item(0).getTextContent().split(",");
+                    for (String childOfString : childOfList) {
+                        Integer childOfInt = Integer.valueOf(childOfString);
+                        if (!childOf.add(childOfInt)) {
+                            System.err.println(
+                                    "FATAL ERROR: file "
+                                            + Categories.FILENAME
+                                            + " contains duplicate childof value: "
+                                            + childOfInt
+                                            + " for CWE: "
+                                            + cwe);
+                            System.exit(-1);
+                        }
+                    }
+                }
+                NodeList parentOfNodeList = eElement.getElementsByTagName("parentof");
+                if (parentOfNodeList.getLength() > 0) {
+                    String[] parentOfList = parentOfNodeList.item(0).getTextContent().split(",");
+                    for (String parentOfString : parentOfList) {
+                        Integer parentOfInt = Integer.valueOf(parentOfString);
+                        if (!parentOf.add(parentOfInt)) {
+                            System.err.println(
+                                    "FATAL ERROR: file "
+                                            + Categories.FILENAME
+                                            + " contains duplicate parentof value: "
+                                            + parentOfInt
+                                            + " for CWE: "
+                                            + cwe);
+                            System.exit(-1);
+                        }
+                    }
+                }
+
+                Category category =
+                        new Category(id, name, cwe, isInjection, shortname, childOf, parentOf);
                 int cweNum = Integer.valueOf(cwe);
                 if (cweToCategoryMap.get(cweNum) == null) {
                     cweToCategoryMap.put(cweNum, category);
                 } else {
-                    throw new IOException(
+                    System.err.println(
                             "FATAL ERROR: duplicate CWE number: "
                                     + cwe
-                                    + " found in categories.xml.");
+                                    + " found in "
+                                    + Categories.FILENAME);
+                    System.exit(-1);
                 }
-                // Lowercase both the ID and name, and getByID() and getByName() do the same to
-                // facilitate matches
+                // Lowercase the ID, name, and shortname, and getByID() and getByName() do the same
+                // to facilitate matches
                 String idLower = id.toLowerCase();
                 if (idToCategoryMap.get(idLower) == null) {
                     idToCategoryMap.put(idLower, category);
                 } else {
-                    throw new IOException(
+                    System.err.println(
                             "FATAL ERROR: duplicate <id>: '"
-                                    + idLower
-                                    + "' found in categories.xml.");
+                                    + id
+                                    + "' found in "
+                                    + Categories.FILENAME);
+                    System.exit(-1);
                 }
                 String nameLower = name.toLowerCase();
                 if (nameToCategoryMap.get(nameLower) == null) {
                     nameToCategoryMap.put(nameLower, category);
                 } else {
-                    throw new IOException(
+                    System.err.println(
                             "FATAL ERROR: duplicate <name>: '"
-                                    + nameLower
-                                    + "' found in categories.xml.");
+                                    + name
+                                    + "' found in "
+                                    + Categories.FILENAME);
+                    System.exit(-1);
+                }
+                // We don't retain the shortname Map, we just check to detect duplication here
+                String shortnameLower = shortname.toLowerCase();
+                if (shortnameToCategoryMap.get(shortnameLower) == null) {
+                    shortnameToCategoryMap.put(shortnameLower, category);
+                } else {
+                    System.err.println(
+                            "FATAL ERROR: duplicate <shortname>: '"
+                                    + shortname
+                                    + "' found in "
+                                    + Categories.FILENAME);
+                    System.exit(-1);
                 }
                 allCategories.add(category);
+                previousCWENum = cwe;
             }
         }
 
@@ -216,17 +314,17 @@ public class Categories {
     }
 
     // NOTE: All these methods return the actual internal objects so COULD be modified by the caller
-    // causing unexpected side affects.
+    // causing unexpected side effects.
 
-    /** Get all the categories defined. They are returned in order by LONG name. */
+    /* Get all the categories defined. They are returned in order by LONG name. - Unused so commented out.
     public static List<Category> getAllCategories() {
         if (_instance == null) {
             throw new NullPointerException("ERROR: Categories singleton not initialized");
         }
         return _instance.allCategories;
-    }
+    } */
 
-    public static Category getByCWE(int cwe) {
+    public static Category getCategoryByCWE(int cwe) {
         if (_instance == null) {
             throw new NullPointerException("ERROR: Categories singleton not initialized");
         }
@@ -239,7 +337,7 @@ public class Categories {
      * @param id The ID to search for (e.g., hash, sqli, pathtraver)
      * @return The matching Category or null, if not found.
      */
-    public static Category getById(String id) {
+    public static Category getCategoryById(String id) {
         if (_instance == null) {
             throw new NullPointerException("ERROR: Categories singleton not initialized");
         }
@@ -252,7 +350,7 @@ public class Categories {
      * @param id The name to search for (e.g., 'LDAP Injection', 'Path Traversal')
      * @return The matching Category or null, if not found.
      */
-    public static Category getByName(String name) {
+    public static Category getCategoryByLongName(String name) {
         if (_instance == null) {
             throw new NullPointerException("ERROR: Categories singleton not initialized");
         }

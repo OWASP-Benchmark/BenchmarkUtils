@@ -22,13 +22,13 @@ import java.util.Map;
 import org.owasp.benchmarkutils.score.TP_FN_TN_FP_Counts;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.Tool;
-import org.owasp.benchmarkutils.score.ToolResults;
+import org.owasp.benchmarkutils.score.ToolMetrics;
 
 public class ToolBuilder {
 
     private TestSuiteResults testSuiteResults = TestSuiteResultsBuilder.builder().build();
     private Map<String, TP_FN_TN_FP_Counts> scores = new HashMap<>();
-    private ToolResults toolResults = new ToolResults();
+    private ToolMetrics toolMetrics = new ToolMetrics();
     private String actualCsvResultFileName = "";
     private boolean isCommercial = false;
 
@@ -56,8 +56,8 @@ public class ToolBuilder {
         return this;
     }
 
-    public ToolBuilder setToolResults(ToolResults toolResults) {
-        this.toolResults = toolResults;
+    public ToolBuilder setToolMetrics(ToolMetrics toolMetrics) {
+        this.toolMetrics = toolMetrics;
 
         return this;
     }
@@ -76,6 +76,6 @@ public class ToolBuilder {
 
     public Tool build() {
         return new Tool(
-                testSuiteResults, scores, toolResults, actualCsvResultFileName, isCommercial);
+                testSuiteResults, scores, toolMetrics, actualCsvResultFileName, isCommercial);
     }
 }

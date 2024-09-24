@@ -19,6 +19,8 @@ package org.owasp.benchmarkutils.score;
 
 import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.Category;
+import org.owasp.benchmarkutils.helpers.CategoryGroup;
+import org.owasp.benchmarkutils.helpers.CategoryGroups;
 import org.owasp.benchmarkutils.score.parsers.Reader;
 import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
 import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
@@ -29,6 +31,9 @@ import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
 
 public class TestCaseResult {
 
+    public static final String UNMAPPED_CATEGORY = "unmappedCWECategory";
+    private static final String TEST_ID_PAD_INT_wZEROS = "%0" + BenchmarkScore.TESTIDLENGTH + "d";
+
     private String testCaseName = ""; // The name of the test case (E.g., BenchmarkTest00001)
     // testID is the unique ID for this test case. For Benchmark Style, its a number (e.g., 1), for
     // nonBenchmark Style its the name of the entire test case (e.g., FooBar_TryThis02).
@@ -37,7 +42,8 @@ public class TestCaseResult {
     private boolean result = false; // Did a tool properly detect this as a true or false positive?
     private int CWE = 0;
     private String category = null; // pathtraver, hash, cmdi, etc.
-    public static final String UNMAPPED_CATEGORY = "unmappedCWECategory";
+    private CategoryGroup categoryGroup =
+            null; // Optional field used to group CWEs into groups of CWEs
     private String evidence = null;
     private int confidence = 0;
 
@@ -45,6 +51,10 @@ public class TestCaseResult {
     private String source = null;
     private String dataflow = null;
     private String sink = null;
+
+    // Used to store the details of how an actual tool matched (or did not match) against an
+    // expected TestCaseResult
+    private CweMatchDetails cweMatch = null;
 
     // This is a special 'magic' testcase number which indicates we aren't using test case numbers
     // for this particular scoring
@@ -64,7 +74,7 @@ public class TestCaseResult {
         this.testCaseName = request.getName();
         this.truePositive = request.isVulnerability();
         this.CWE = request.getCategory().getCWE();
-        this.category = Categories.getByCWE(this.CWE).getName();
+        this.category = Categories.getCategoryByCWE(this.CWE).getName();
 
         // fill in optional attributes since we have this data available
         this.source = request.getSourceFile();
@@ -72,16 +82,21 @@ public class TestCaseResult {
         this.sink = request.getSinkFile();
     }
 
-    /*
-     *  Set the name of the test case (E.g., BenchmarkTest00001). This is frequently only used for
-     *  expected results, not actual results. Expected to actual can be correlated by the test number.
+    /**
+     * Set the name of the test case (E.g., BenchmarkTest00001). This is frequently only used for
+     * expected results, not actual results. Expected to actual can be correlated by the test
+     * number.
+     *
+     * @name The name of the test case
      */
     public void setTestCaseName(String name) {
         this.testCaseName = name;
     }
 
-    /*
-     * The name of the test case. E.g., BenchmarkTest00001
+    /**
+     * Get the name of the test case. E.g., BenchmarkTest00001
+     *
+     * @return The test case name
      */
     public String getTestCaseName() {
         return this.testCaseName;
@@ -95,22 +110,29 @@ public class TestCaseResult {
         this.confidence = confidence;
     }
 
+    /**
+     * Return the unique testID for this test case. For Benchmark Style, its a number (e.g., 00001),
+     * for nonBenchmark Style its the name of the entire test case (e.g., FooBar_TryThis02).
+     *
+     * @return The testID for this test case.
+     */
     public String getTestID() {
         return this.testID;
     }
 
     /**
      * Sets the unique identifier for this test case. For Benchmark style scoring, its the test ID
-     * number, converted to a String.
+     * number, converted to a String. For nonBenchmark Style its the name of the entire test case
+     * (e.g., FooBar_TryThis02)
      *
-     * <p>The use of this method should be converted to use setActualResultTestID() for tool
-     * parsers.
+     * <p>Deprecated: The use of this method should be converted to use setActualResultTestID() for
+     * tool parsers.
      *
      * @param id The unique test case number for this Benchmark style test case.
      */
     @Deprecated
     public void setTestID(int id) {
-        this.testID = String.valueOf(id);
+        this.testID = String.format(TestCaseResult.TEST_ID_PAD_INT_wZEROS, id);
     }
 
     /**
@@ -122,13 +144,17 @@ public class TestCaseResult {
      * start with the same name, they will all match up against the expected result name with that
      * name.
      *
-     * @param id The test case file name, without path information.
+     * @param testCaseFileName The test case file name, without path information.
      */
     public void setActualResultTestID(String testCaseFileName) {
         if (ExpectedResultsProvider.isBenchmarkStyleScoring()) {
             // Sets the test ID to the test case # or -1 if not a match
+            // We format the int with leading zeros so it will sort the results array properly when
+            // its converted to a String
             this.testID =
-                    String.valueOf(Reader.getBenchmarkStyleTestCaseNumber(testCaseFileName.trim()));
+                    String.format(
+                            TestCaseResult.TEST_ID_PAD_INT_wZEROS,
+                            Reader.getBenchmarkStyleTestCaseNumber(testCaseFileName.trim()));
         } else {
             if (testCaseFileName.contains("/") || testCaseFileName.contains("\\")) {
                 new IllegalArgumentException(
@@ -142,8 +168,6 @@ public class TestCaseResult {
             String matchingID =
                     ExpectedResultsProvider.getExpectedResults()
                             .getMatchingTestCaseName(testCaseFileName);
-            // TODO: Maybe null is OK, and we should simply set the test ID to -1, like we do for
-            // Benchmark
             if (matchingID == null) {
                 new IllegalArgumentException(
                                 "FATAL ERROR: testCaseFileName value: "
@@ -159,7 +183,7 @@ public class TestCaseResult {
     /**
      * Sets the unique identifier for this test case. For non-Benchmark style scoring, its the name
      * of the test case. For Benchmark style, it parses out the test case number and uses that as
-     * the test ID.
+     * the test ID, padding with leading zeroes.
      *
      * @param id The test case file name, without path information.
      */
@@ -167,7 +191,9 @@ public class TestCaseResult {
         if (ExpectedResultsProvider.isBenchmarkStyleScoring()) {
             // Sets the test ID to the test case # or -1 if not a match
             this.testID =
-                    String.valueOf(Reader.getBenchmarkStyleTestCaseNumber(testCaseFileName.trim()));
+                    String.format(
+                            TestCaseResult.TEST_ID_PAD_INT_wZEROS,
+                            Reader.getBenchmarkStyleTestCaseNumber(testCaseFileName.trim()));
         } else {
             if (testCaseFileName.contains("/") || testCaseFileName.contains("\\")) {
                 new IllegalArgumentException(
@@ -204,12 +230,34 @@ public class TestCaseResult {
 
     public void setCWE(int cwe) {
         this.CWE = cwe;
-        Category category = Categories.getByCWE(cwe);
+        Category category = Categories.getCategoryByCWE(cwe);
         if (category != null) {
             this.category = category.getId();
         } else {
             this.category = TestCaseResult.UNMAPPED_CATEGORY;
         }
+    }
+
+    /**
+     * If CategoryGroups have been defined, this looks up the group this CWE belongs to and sets the
+     * Group for this test case. If there is no mapping for this CWE # to a Group, this is a fatal
+     * error. This should ONLY be called for Expected Results, not actual results.
+     *
+     * @param cwe The CWE to map to a Category Group
+     */
+    public void setCategoryGroup(int cwe) {
+        if (CategoryGroups.isCategoryGroupsEnabled()) {
+            this.categoryGroup = CategoryGroups.getCategoryGroupByCWE(cwe);
+        }
+    }
+
+    /**
+     * Returns the CategoryGroup this test case result has been mapped to, or null if not set.
+     *
+     * @return Its CategoryGroup
+     */
+    public CategoryGroup getCategoryGroup() {
+        return this.categoryGroup;
     }
 
     /**
@@ -226,7 +274,7 @@ public class TestCaseResult {
      */
     public void setCWEAndTestCaseID(int cwe, String filename) {
         if (ExpectedResultsProvider.getExpectedResults().isTestCaseFile(filename)) {
-            // TODO
+            // DRW TODO
         }
     }
 
@@ -247,7 +295,7 @@ public class TestCaseResult {
                 System.out.println(
                         "ERROR: Unknown vuln category provided to TestCaseResult.setCategory(): "
                                 + category);
-                throw new InvalidParameterException(
+                throw new IllegalArgumentException(
                         "ERROR: Unknown vuln category provided to TestCaseResult.setCategory(): "
                                 + category);
             }
@@ -283,6 +331,26 @@ public class TestCaseResult {
 
     public void setSink(String sink) {
         this.sink = sink;
+    }
+
+    /**
+     * This method is ONLY used for capturing the details of actual results against an expected
+     * result. As such, this should only be used on an expected TestCaseResult.
+     *
+     * @param cweMatch The CweMatch details for a tool against this expected result
+     */
+    public void addMatchDetails(CweMatchDetails cweMatch) {
+        this.cweMatch = cweMatch;
+    }
+
+    /**
+     * This method is ONLY used for retrieving the details of actual results against an expected
+     * result. As such, this should only be used on an expected TestCaseResult.
+     *
+     * @return The CweMatch details for a tool against this expected result. Null if not yet set.
+     */
+    public CweMatchDetails getMatchDetails() {
+        return this.cweMatch;
     }
 
     @Override

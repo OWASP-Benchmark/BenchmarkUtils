@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.StringUtils;
 import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
 
 /**
@@ -41,6 +42,10 @@ public class TestSuiteResults {
         Hybrid
     }
 
+    // The -1 is so we warn (currently) when there is over 10,000 test cases, not 100,000
+    private static final int MAX_TEST_CASE_WARNING_NUMBER =
+            (int) Math.pow(10, BenchmarkScore.TESTIDLENGTH - 1);
+
     private static int nextCommercialSAST_ToolNumber = 1;
     private static int nextCommercialDAST_ToolNumber = 1;
     private static int nextCommercialIAST_ToolNumber = 1;
@@ -52,9 +57,10 @@ public class TestSuiteResults {
 
     private String toolName = "Unknown Tool";
     private String toolVersion = null;
-    private String time = "Unknown"; // Scan time. e.g., '0:17:29'
+    private String scanTime = "Unknown"; // Scan time. e.g., '0:17:29'
     public final boolean isCommercial;
     public final ToolType toolType;
+    // Map of test case IDs to all the results for that particular test case
     private Map<String, List<TestCaseResult>> testCaseResults =
             new TreeMap<String, List<TestCaseResult>>();
 
@@ -63,7 +69,7 @@ public class TestSuiteResults {
 
     public TestSuiteResults(String toolname, boolean isCommercial, ToolType toolType) {
         if (toolname == null) {
-            System.out.println("ERROR: TestSuiteResults being created without toolname.");
+            System.err.println("ERROR: TestSuiteResults being created without toolname.");
         }
         this.setTool(toolname);
         this.isCommercial = isCommercial;
@@ -118,7 +124,7 @@ public class TestSuiteResults {
                 int testCaseNum = Integer.parseInt(testCaseKey);
                 // This warning message is added just in case. It can be caused by a buggy parser or
                 // invalid results file.
-                if ((testCaseNum <= 0 || testCaseNum > 10000)) {
+                if (testCaseNum <= 0 || testCaseNum > MAX_TEST_CASE_WARNING_NUMBER) {
                     System.out.println(
                             "WARNING: Did you really intend to add a test case result for test case: "
                                     + tcr.getTestCaseName()
@@ -152,8 +158,18 @@ public class TestSuiteResults {
         results.add(tcr);
     }
 
+    /**
+     * Get all the test case results for the specified test case
+     *
+     * @param The test case number, for Benchmark style test cases, or test case name, for
+     *     non-Benchmark style
+     * @return The set of results for this test case
+     */
     public List<TestCaseResult> getTestCaseResults(String tn) {
-        return this.testCaseResults.get(tn);
+        // Because Benchmark style test case IDs are now the ID number with leading zeroes, we have
+        // to pad any String that is too short so it matches properly. This is mostly for the unit
+        // tests, not when scoring actual tools
+        return this.testCaseResults.get(StringUtils.leftPad(tn, BenchmarkScore.TESTIDLENGTH, "0"));
     }
 
     /**
@@ -216,7 +232,8 @@ public class TestSuiteResults {
      * this test suite or not.
      *
      * @param testCaseFilename The name of the test case file to match against
-     * @return The corresponding test case name, or null if not a match
+     * @return The full name (not just test ID) of the corresponding test case name, or null if not
+     *     a match
      */
     public String getMatchingTestCaseName(String testCaseFilename) {
         testCaseFilename = getFileNameNoPath(testCaseFilename);
@@ -224,14 +241,15 @@ public class TestSuiteResults {
             if (testCaseFilename.startsWith(BenchmarkScore.TESTCASENAME)) return testCaseFilename;
         } else {
             // If filename exactly matches test case file name, return the filename.
-            // This is done as a quick short circuit, as it is MUCH faster than searching
-            // through ALL test cases to look for a match
             if (this.testCaseResults.get(testCaseFilename) != null) return testCaseFilename;
-            // Or filename starts with ANY expected results test case name, return the matching test
-            // case name.
-            Set<String> testcases = this.testCaseResults.keySet();
-            for (String testcasename : testcases) {
-                if (testCaseFilename.startsWith(testcasename)) return testcasename;
+            // If not a match, trim off 1 character at a time from the end of the testCaseFilename
+            // to see if there is a match. This is the equivalent of 'startswith', except it looks
+            // for exact matches by key, rather than searching through ALL the testcases to see if
+            // the current testCaseFilename starts with one of the expected testcase names.
+            int tcFileNameLength = testCaseFilename.length();
+            for (int i = 1; i < tcFileNameLength - 1; i++) {
+                String filenameToCheck = testCaseFilename.substring(0, tcFileNameLength - i);
+                if (this.testCaseResults.get(filenameToCheck) != null) return filenameToCheck;
             }
             // if no match, fall through to return null
         }
@@ -239,7 +257,7 @@ public class TestSuiteResults {
     }
 
     /**
-     * Returns the filename without any preceeding path info, for both Unix and Windows path
+     * Returns the filename without any preceding path info, for both Unix and Windows path
      * separators.
      *
      * @param filename
@@ -248,7 +266,7 @@ public class TestSuiteResults {
     private String getFileNameNoPath(String filename) {
         // We look for / and \ and strip off everything before and including the path separator. We
         // check both path chars because the results could be generated on one platform and scored
-        // on another with different path chars
+        // on another with different path separators.
         int length = filename.length();
         if (filename.contains("/")) {
             filename = filename.substring(filename.lastIndexOf('/') + 1, length);
@@ -315,10 +333,10 @@ public class TestSuiteResults {
     /**
      * Get the scan time for this tool if set.
      *
-     * @return The scan time, or 'unknown' if not set.
+     * @return The scan time, or 'Unknown' if not set.
      */
     public String getTime() {
-        return time;
+        return scanTime;
     }
 
     /**
@@ -328,7 +346,7 @@ public class TestSuiteResults {
      * @param elapsed The scan time.
      */
     public void setTime(String elapsed) {
-        this.time = elapsed;
+        this.scanTime = elapsed;
     }
 
     /**

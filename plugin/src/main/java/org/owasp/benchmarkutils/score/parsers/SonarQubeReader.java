@@ -21,7 +21,6 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -111,8 +110,8 @@ public class SonarQubeReader extends Reader {
 
         String testfile = getNamedChild("component", flaw).getTextContent().trim();
         testfile = testfile.substring(testfile.lastIndexOf('/') + 1);
-        if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
+        if (isTestCaseFile(testfile)) {
+            tcr.setActualResultTestID(testfile);
             return tcr;
         }
         return null;
@@ -129,8 +128,8 @@ public class SonarQubeReader extends Reader {
 
         String testfile = getNamedChild("component", flaw).getTextContent().trim();
         testfile = testfile.substring(testfile.lastIndexOf('/') + 1);
-        if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
+        if (isTestCaseFile(testfile)) {
+            tcr.setActualResultTestID(testfile);
             return tcr;
         }
         return null;

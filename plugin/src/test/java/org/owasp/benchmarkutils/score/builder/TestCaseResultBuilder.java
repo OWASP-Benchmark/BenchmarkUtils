@@ -17,6 +17,7 @@
  */
 package org.owasp.benchmarkutils.score.builder;
 
+import org.owasp.benchmarkutils.score.CweMatchDetails;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 
@@ -31,6 +32,10 @@ public class TestCaseResultBuilder {
     private String source = null;
     private String dataFlow = null;
     private String sink = null;
+
+    // Have to set CweMatch details for actual results, or you get a null pointer
+    // The actual values usually don't matter for these tests, so we create a default
+    private CweMatchDetails cweMatchDetails = new CweMatchDetails(1, true, true, -1, "");
 
     private TestCaseResultBuilder() {}
 
@@ -96,6 +101,7 @@ public class TestCaseResultBuilder {
         testCaseResult.setDataFlow(dataFlow);
         testCaseResult.setSink(sink);
         testCaseResult.setTruePositive(truePositive);
+        testCaseResult.addMatchDetails(cweMatchDetails);
         testCaseResult.setPassed(passed);
 
         return testCaseResult;

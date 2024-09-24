@@ -113,14 +113,14 @@ class ResultsFileCreatorTest {
         assertEquals(5, lines.size());
 
         assertEquals(
-                "# test name, category, CWE, real vulnerability, identified by tool, pass/fail, "
+                "# test name, category, CWE, real vulnerability, identified by tool, actual CWE reported, parent or child CWE?, pass/fail, "
                         + "TestSuite version: 1.2, Actual results generated: "
                         + sdf.format(new Date()),
                 lines.get(0));
-        assertEquals("BenchmarkTest00001, pathtraver, 22, true, true, pass", lines.get(1));
-        assertEquals("BenchmarkTest00002, trustbound, 501, false, true, fail", lines.get(2));
-        assertEquals("BenchmarkTest00003, sqli, 89, false, false, pass", lines.get(3));
-        assertEquals("BenchmarkTest00004, cmdi, 78, true, false, fail", lines.get(4));
+        assertEquals("BenchmarkTest00001, pathtraver, 22, true, true, , , pass", lines.get(1));
+        assertEquals("BenchmarkTest00002, trustbound, 501, false, true, , , fail", lines.get(2));
+        assertEquals("BenchmarkTest00003, sqli, 89, false, false, , , pass", lines.get(3));
+        assertEquals("BenchmarkTest00004, cmdi, 78, true, false, , , fail", lines.get(4));
     }
 
     @Test
@@ -201,20 +201,20 @@ class ResultsFileCreatorTest {
 
         assertEquals(
                 "# test name, category, CWE, source, data flow, sink, real vulnerability, identified "
-                        + "by tool, pass/fail, TestSuite version: 1.2, Actual results generated: "
+                        + "by tool, actual CWE reported, parent or child CWE?, pass/fail, TestSuite version: 1.2, Actual results generated: "
                         + sdf.format(new Date()),
                 lines.get(0));
         assertEquals(
-                "BenchmarkTest00001, pathtraver, 22, Source1, DataFlow1, Sink1, true, true, pass",
+                "BenchmarkTest00001, pathtraver, 22, Source1, DataFlow1, Sink1, true, true, , , pass",
                 lines.get(1));
         assertEquals(
-                "BenchmarkTest00002, trustbound, 501, Source2, DataFlow2, Sink2, false, true, fail",
+                "BenchmarkTest00002, trustbound, 501, Source2, DataFlow2, Sink2, false, true, , , fail",
                 lines.get(2));
         assertEquals(
-                "BenchmarkTest00003, sqli, 89, Source3, DataFlow3, Sink3, false, false, pass",
+                "BenchmarkTest00003, sqli, 89, Source3, DataFlow3, Sink3, false, false, , , pass",
                 lines.get(3));
         assertEquals(
-                "BenchmarkTest00004, cmdi, 78, Source4, DataFlow4, Sink4, true, false, fail",
+                "BenchmarkTest00004, cmdi, 78, Source4, DataFlow4, Sink4, true, false, , , fail",
                 lines.get(4));
     }
 }

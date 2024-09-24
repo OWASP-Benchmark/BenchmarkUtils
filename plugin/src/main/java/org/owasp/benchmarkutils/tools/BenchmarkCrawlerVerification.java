@@ -349,7 +349,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         if (thisInstance == null) thisInstance = this;
 
         if (null == this.crawlerFile) {
-            System.out.println("ERROR: An attack crawlerFile parameter must be specified.");
+            System.err.println("ERROR: An attack crawlerFile parameter must be specified.");
         } else {
             String[] mainArgs = {"-f", this.crawlerFile};
             main(mainArgs);

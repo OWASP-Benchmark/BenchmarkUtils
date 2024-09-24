@@ -18,7 +18,6 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -129,8 +128,8 @@ public class QualysWASReader extends Reader {
         testcase = testcase.split("\\.")[0];
         testcase = testcase.split("\\?")[0];
 
-        if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcase));
+        if (isTestCaseFile(testcase)) {
+            tcr.setActualResultTestID(testcase);
             return tcr;
         }
         return null;

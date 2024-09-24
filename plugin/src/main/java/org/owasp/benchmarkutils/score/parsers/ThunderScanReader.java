@@ -22,7 +22,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.ArrayList;
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -48,7 +47,7 @@ public class ThunderScanReader extends Reader {
                 .flatMap(
                         vulnerabilityType ->
                                 vulnerabilityType.vulnerabilities.stream()
-                                        .filter(v -> createsTestCaseResult(vulnerabilityType, v))
+                                        .filter(v -> createTestCaseResult(vulnerabilityType, v))
                                         .map(v -> toTestCaseResult(vulnerabilityType, v)))
                 .forEach(testResults::put);
 
@@ -62,18 +61,14 @@ public class ThunderScanReader extends Reader {
 
         tcResult.setCWE(
                 figureCwe(vulnerabilityType.name, vulnerability.function, vulnerability.filename));
-        int testcasenum = getBenchmarkStyleTestCaseNumber(vulnerability.filename);
-        if (testcasenum > 0) {
-            tcResult.setTestID(testcasenum);
-            tcResult.setEvidence(vulnerabilityType.name + "::" + lineNumber(vulnerability));
-            return tcResult;
-        }
-        return null; // Finding not in a test case
+        tcResult.setActualResultTestID(vulnerability.filename);
+        tcResult.setEvidence(vulnerabilityType.name + "::" + lineNumber(vulnerability));
+        return tcResult;
     }
 
-    private boolean createsTestCaseResult(
+    private boolean createTestCaseResult(
             Report.VulnerabilityType vulnerabilityType, Report.VulnerabilityType.Vulnerability v) {
-        return isBenchmarkTest(v.filename)
+        return isTestCaseFile(v.filename)
                 && isRealVulnerability(v.function)
                 && resultsInCwe(vulnerabilityType, v);
     }
@@ -85,10 +80,6 @@ public class ThunderScanReader extends Reader {
     private boolean resultsInCwe(
             Report.VulnerabilityType vulnerabilityType, Report.VulnerabilityType.Vulnerability v) {
         return figureCwe(vulnerabilityType.name, v.function, v.filename) != -1;
-    }
-
-    private boolean isBenchmarkTest(String filename) {
-        return filename.contains(BenchmarkScore.TESTCASENAME);
     }
 
     private boolean isRealVulnerability(String function) {

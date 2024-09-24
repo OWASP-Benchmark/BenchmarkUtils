@@ -135,8 +135,8 @@ public class HCLAppScanIASTReader extends Reader {
                     result.getJSONArray("variant-group").getJSONObject(0).getJSONObject("request");
             String uri = request.getString("uri");
 
-            if (uri.contains(BenchmarkScore.TESTCASENAME)) {
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(uri));
+            if (isTestCaseFile(uri)) {
+                tcr.setActualResultTestID(uri);
                 if (tcr.getCWE() != 0) {
                     // System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                     // tcr.getCategory() );

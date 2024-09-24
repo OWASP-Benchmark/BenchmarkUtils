@@ -99,8 +99,8 @@ public class ZapJsonReader extends Reader {
 
                 String testName = extractTestName(finding.getString("url"));
 
-                if (testName.contains(BenchmarkScore.TESTCASENAME)) {
-                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(testName));
+                if (isTestCaseFile(testName)) {
+                    tcr.setActualResultTestID(testName);
                     tcr.setCWE(figureCwe(finding));
 
                     tr.put(tcr);
@@ -186,17 +186,21 @@ public class ZapJsonReader extends Reader {
             case "-1": // Informational Alert
             case "0": // Informational Alert: Check for differences in response based on fuzzed User
                 // Agent
+                return CweNumber.DONTCARE;
+
             case "16": // Configuration
             case "20": // Improper Input Validation
             case "91": // XML Injection (aka Blind XPath Injection)
             case "120": // Classic Buffer Overflow (Not possible in Java)
             case "134": // Use of Externally-Controlled Format String
+            case "190": // Integer Overflow
             case "200": // Exposure of Sensitive Information to Unauthorized Actor - When 500 errors
                 // are returned
             case "345": // Insufficient Verification of Data Authenticity
             case "359": // Exposure of Private Personal Information to an Unauthorized Actor
             case "436": // Interpretation Conflict
             case "525": // Browser caching sensitive data
+            case "541": // Inclusion of Sensitive Info in Include File
             case "565": // Reliance on Cookies without Validation and Integrity Checking
             case "693": // Protection Mechanism Failure
             case "829": // Inclusion of Functionality from Untrusted Control Sphere (e.g., CDN)

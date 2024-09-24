@@ -45,7 +45,7 @@ public class PropertiesManager {
             try {
                 file.createNewFile();
             } catch (IOException e) {
-                System.out.println(
+                System.err.println(
                         "Problem creating new empty properties file: " + file.getAbsolutePath());
             }
         }
@@ -74,7 +74,7 @@ public class PropertiesManager {
             props.setProperty(key, value);
             props.store(out, null);
         } catch (IOException e) {
-            System.out.println("There was a problem saving a property in the properties file");
+            System.err.println("There was a problem saving a property in the properties file");
             e.printStackTrace();
         }
     }
@@ -85,7 +85,7 @@ public class PropertiesManager {
             props.remove(key);
             props.store(out, null);
         } catch (IOException e) {
-            System.out.println("There was a problem removing a property from the properties file");
+            System.err.println("There was a problem removing a property from the properties file");
             e.printStackTrace();
         }
     }
@@ -95,7 +95,7 @@ public class PropertiesManager {
         try (InputStream is = new FileInputStream(file)) {
             props.load(is);
         } catch (IOException e) {
-            System.out.println("Error loading properties file");
+            System.err.println("Error loading properties file");
             e.printStackTrace();
         }
         return props;

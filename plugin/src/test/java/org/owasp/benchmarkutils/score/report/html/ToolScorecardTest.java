@@ -30,10 +30,12 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CategoryMetrics;
 import org.owasp.benchmarkutils.score.Configuration;
 import org.owasp.benchmarkutils.score.TestSuiteResults.ToolType;
 import org.owasp.benchmarkutils.score.Tool;
@@ -45,6 +47,7 @@ import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 class ToolScorecardTest {
 
     private static File tmpDir;
+    private static final boolean isFalse = false;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -52,7 +55,7 @@ class ToolScorecardTest {
     }
 
     @Test
-    void createsScorecard() throws IOException {
+    void createScorecard() throws IOException {
         Configuration config =
                 ConfigurationBuilder.builder()
                         .setShowAveOnlyMode(false)
@@ -77,22 +80,15 @@ class ToolScorecardTest {
                                         .build())
                         .build();
 
-        toolScorecard.setToolBarChart(
-                tool -> {
-                    assertEquals(someTool.getToolNameAndVersion(), tool.getToolNameAndVersion());
-
-                    toolBarChartCalled.set(true);
-                });
-
         toolScorecard.setToolReport(
-                (currentTool, title, scorecardImageFile) ->
+                (currentTool, title, scorecardImageFile, isFalse) ->
                         currentTool.getToolNameAndVersion()
                                 + "\n"
                                 + title
                                 + "\n"
                                 + scorecardImageFile.getAbsolutePath());
 
-        toolScorecard.generate(someTool);
+        toolScorecard.generate(someTool, new TreeSet<CategoryMetrics>());
 
         File[] files = requireNonNull(tmpDir.listFiles());
         assertEquals(2, files.length);
@@ -112,8 +108,6 @@ class ToolScorecardTest {
                         + File.separator
                         + "Benchmark_v1.2_Scorecard_for_Some_Tool_v1.0.png",
                 htmlLines.get(2));
-
-        assertTrue(toolBarChartCalled.get());
     }
 
     private static Optional<File> fileWithEnding(File[] files, String ending) {
@@ -133,11 +127,11 @@ class ToolScorecardTest {
 
         Tool someTool = ToolBuilder.builder().setIsCommercial(true).build();
 
-        toolScorecard.setToolBarChart(tool -> fail("generateComparisonCharts has been called"));
         toolScorecard.setToolReport(
-                (currentTool, title, scorecardImageFile) -> fail("generateHtml has been called"));
+                (currentTool, title, scorecardImageFile, isFalse) ->
+                        fail("generateHtml has been called"));
 
-        toolScorecard.generate(someTool);
+        toolScorecard.generate(someTool, new TreeSet<CategoryMetrics>());
 
         File[] files = requireNonNull(tmpDir.listFiles());
         assertEquals(0, files.length);
@@ -168,11 +162,9 @@ class ToolScorecardTest {
                                         .build())
                         .build();
 
-        toolScorecard.setToolBarChart(tool -> {});
+        toolScorecard.setToolReport((currentTool, title, scorecardImageFile, isFalse) -> title);
 
-        toolScorecard.setToolReport((currentTool, title, scorecardImageFile) -> title);
-
-        toolScorecard.generate(someTool);
+        toolScorecard.generate(someTool, new TreeSet<CategoryMetrics>());
 
         File[] files = requireNonNull(tmpDir.listFiles());
 

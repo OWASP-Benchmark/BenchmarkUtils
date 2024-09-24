@@ -21,7 +21,6 @@ import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -60,7 +59,7 @@ public class HCLAppScanSourceReader extends Reader {
         Node version = getNamedChild("product-version", scanInfo);
         tr.setToolVersion(version.getTextContent());
 
-        // If the fliename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml) set the
+        // If the filename includes an elapsed time in seconds (e.g., TOOLNAME-seconds.xml) set the
         // compute time on the scorecard.
         tr.setTime(resultFile.file());
 
@@ -78,26 +77,13 @@ public class HCLAppScanSourceReader extends Reader {
             int tn = -1; // -1 means vuln not found in a Benchmark test case
             String filename = getAttributeValue("filename", vulnerability);
 
-            if (filename != null) {
-                // Parse out test number from: BenchmarkTest02603:99
-                try {
-                    if (filename.contains(BenchmarkScore.TESTCASENAME)) {
-                        tn = getBenchmarkStyleTestCaseNumber(filename);
-                        if (tn < 0) {
-                            throw new Exception("Failed to get test number from file: " + filename);
-                        }
-                    }
-                } catch (Exception e) {
-                    reportWarning(e.getMessage());
-                }
-            }
+            if (filename == null) break;
+            // Parse out file name from: org.owasp.benchmark.testcode.BenchmarkTest02603
+            filename = filename.substring(filename.lastIndexOf('.') + 1);
 
-            // Add the vuln found in a test case to the results for this tool
-            if (tn <= 0) {
-                reportWarning("TestCase Number is bad for file: " + filename);
-            } else {
+            if (isTestCaseFile(filename)) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setTestID(tn);
+                tcr.setActualResultTestID(filename);
                 tcr.setCWE(vtype);
                 tcr.setEvidence(issueType);
                 tr.put(tcr);
@@ -107,18 +93,6 @@ public class HCLAppScanSourceReader extends Reader {
         return tr;
     }
 
-    // e.g., 3 Hour(s) 7 Minute(s) 58 Second(s)
-    /*	private String parseTime(String message) {
-    	    String[] parts = message.split( "\\) ");
-            String hours = parts[0].substring( 0, parts[0].indexOf(' ') ).trim();
-            if ( hours.length() < 2 ) hours = "0" + hours;
-            String mins = parts[1].substring( 0, parts[1].indexOf(' ') ).trim();
-            if ( mins.length() < 2 ) mins = "0" + mins;
-            String secs = parts[2].substring( 0, parts[2].indexOf(' ') ).trim();
-            if ( secs.length() < 2 ) secs = "0" + secs;
-    	    return hours + ":" + mins + ":" + secs;
-        }
-    */
     private int cweLookup(String vtype) {
         switch (vtype) {
             case "AccessControl.InsecureFilePermissions":
@@ -148,7 +122,7 @@ public class HCLAppScanSourceReader extends Reader {
             case "Injection.XML":
                 return CweNumber.XPATH_INJECTION;
             case "OpenSource":
-                return 00; // Known vuln in open source lib.
+                return CweNumber.DONTCARE; // Known vuln in open source lib.
             case "PathTraversal":
                 return CweNumber.PATH_TRAVERSAL;
             case "SessionManagement.Cookies":
@@ -160,14 +134,9 @@ public class HCLAppScanSourceReader extends Reader {
             case "ErrorHandling.RevealDetails.StackTrace":
                 return CweNumber.SENSITIVE_LOGFILE;
             default:
-                reportWarning("WARNING: HCL AppScan Source-Unrecognized finding type: " + vtype);
+                System.out.println(
+                        "WARNING: HCL AppScan Source-Unrecognized finding type: " + vtype);
         }
-        return 0;
-    }
-
-    private void reportWarning(String message) {
-        if (System.getProperty("DEBUG") != null) {
-            System.out.println(message);
-        }
+        return CweNumber.UNKNOWN;
     }
 }

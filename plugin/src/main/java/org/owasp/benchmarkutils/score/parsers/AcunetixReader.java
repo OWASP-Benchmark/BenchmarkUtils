@@ -18,7 +18,6 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -116,7 +115,7 @@ public class AcunetixReader extends Reader {
             return tr;
         } // end if (root.getNodeName().equalsIgnoreCase("ScanGroup")) - Legacy format
         else
-            System.out.println(
+            System.err.println(
                     "XML file didn't match expected Acunetix format. Expected <acunetix-360"
                             + " or <ScanGroup ExportedOn ... to be first XML tag in file.");
         return null;
@@ -202,8 +201,8 @@ public class AcunetixReader extends Reader {
             testfile = testfile.substring(0, testfile.indexOf("?"));
         }
 
-        if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
+        if (isTestCaseFile(testfile)) {
+            tcr.setActualResultTestID(testfile);
             return tcr;
         }
         return null;
@@ -211,7 +210,7 @@ public class AcunetixReader extends Reader {
 
     private int cweLookup(String cweNum) {
         if (cweNum == null || cweNum.isEmpty()) {
-            System.out.println("ERROR: No CWE number supplied");
+            System.err.println("ERROR: No CWE number supplied");
             return CweNumber.UNKNOWN;
         }
         return cweLookup(cweNum, null);
@@ -219,7 +218,7 @@ public class AcunetixReader extends Reader {
 
     private int cweLookup(String cweNum, String name) {
         if (cweNum == null || cweNum.isEmpty()) {
-            System.out.println("ERROR: No CWE number supplied");
+            System.err.println("ERROR: No CWE number supplied");
             return CweNumber.UNKNOWN;
         }
         switch (cweNum) {
@@ -239,8 +238,11 @@ public class AcunetixReader extends Reader {
                         return CweNumber.LDAP_INJECTION;
                     case "Server-side template injection":
                         return CweNumber.SSTI;
+                    default:
+                        System.out.println(
+                                "INFO: Found subtype of CWE 20 we haven't seen before: " + name);
+                        return 20;
                 }
-                break;
 
             case "209": // Application error messages
                 return 209;

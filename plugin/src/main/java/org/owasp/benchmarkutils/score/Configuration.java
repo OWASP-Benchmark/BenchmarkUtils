@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.util.Map;
 import org.owasp.benchmarkutils.helpers.Categories;
+import org.owasp.benchmarkutils.helpers.CategoryGroups;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -126,19 +127,27 @@ public class Configuration {
         // with this library
         String categoriesXMLFileName = (String) yamlConfig.get("categoriesXMLfile");
         if (categoriesXMLFileName != null) {
-
             try {
                 InputStream categoriesFileStream = new FileInputStream(categoriesXMLFileName);
-                Categories.initCategoriesFromXMLFile(categoriesFileStream, categoriesXMLFileName);
+                Categories.initVulnCategoriesFromXMLFile(
+                        categoriesFileStream, categoriesXMLFileName);
                 System.out.println(
                         "INFO: CWE Categories loaded from custom XML file: "
                                 + categoriesXMLFileName);
             } catch (FileNotFoundException e) {
                 System.out.println(
-                        "FATAL ERROR: couldn't load custom categories.xml file: "
+                        "FATAL ERROR: couldn't find custom categories.xml file: "
                                 + categoriesXMLFileName);
                 System.exit(-1);
             }
+        }
+
+        // This is another special config item where, if set, we load/parse a mapping file that maps
+        // multiple CWEs to Groups of CWEs, so we can calculate scores for each category, rather
+        // than individual CWEs
+        String mapCategoriesXMLFileName = (String) yamlConfig.get("mapCategoriesXMLfile");
+        if (mapCategoriesXMLFileName != null) {
+            CategoryGroups.defineCategoryGroupsFromXMLFile(mapCategoriesXMLFileName);
         }
 
         expectedResultsFileName = (String) yamlConfig.get("expectedresults");
@@ -210,7 +219,7 @@ public class Configuration {
             public final String precisionKeyEntry;
 
             /**
-             * Key Entry for F-Score, which is added to the Key for tables that also include
+             * Key Entry for F-score, which is added to the Key for tables that also include
              * Precision. Is empty if includePrecision is set to false via config
              */
             public final String fsCoreEntry;

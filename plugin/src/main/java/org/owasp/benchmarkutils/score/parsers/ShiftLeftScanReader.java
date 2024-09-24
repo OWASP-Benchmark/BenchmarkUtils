@@ -24,7 +24,6 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.io.File;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -77,10 +76,9 @@ public class ShiftLeftScanReader extends Reader {
         try {
             String filename = filename(finding);
 
-            if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+            if (isTestCaseFile(filename)) {
                 TestCaseResult tcr = new TestCaseResult();
-
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+                tcr.setActualResultTestID(filename);
                 tcr.setCWE(cweNumber(finding));
 
                 return tcr;

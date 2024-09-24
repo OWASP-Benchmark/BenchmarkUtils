@@ -12,20 +12,33 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author David Anderson
- * @created 2021
+ * @author Dave Wichers
+ * @created 2024
  */
 package org.owasp.benchmarkutils.helpers;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+public class CWE {
+    private final int CWENumber; // e.g., 79
+    private final String
+            description; // e.g., Improper Neutralization of Input During Web Page Generation
+    // ('Cross-site Scripting')
 
-public class CategoryAdapter extends XmlAdapter<String, Category> {
-
-    public String marshal(Category category) {
-        return category.getId();
+    public CWE(int cwe, String description) {
+        this.CWENumber = cwe;
+        this.description = description;
     }
 
-    public Category unmarshal(String value) {
-        return Categories.getCategoryById(value);
+    public int getCWENumber() {
+        return this.CWENumber;
+    }
+
+    /**
+     * CWE Description, e.g., Improper Neutralization of Input During Web Page Generation
+     * ('Cross-site Scripting')
+     *
+     * @return The long description of this CWE type.
+     */
+    public String getDescription() {
+        return this.description;
     }
 }

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -49,12 +48,12 @@ public class Rapid7Reader extends Reader {
             try {
                 String testfile = extractFilenameWithoutEnding(vulnerability.url);
 
-                if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
+                if (isTestCaseFile(testfile)) {
                     TestCaseResult tcr = new TestCaseResult();
 
                     tcr.setEvidence(vulnerability.vulnType + "::" + vulnerability.attackType);
                     tcr.setCWE(cweLookup(vulnerability.cwe, vulnerability.attackType));
-                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
+                    tcr.setActualResultTestID(testfile);
 
                     tr.put(tcr);
                 }
@@ -100,7 +99,8 @@ public class Rapid7Reader extends Reader {
                             // If this prints out anything new, add to this mapping so we know it's
                             // mapped properly.
                             System.out.println(
-                                    "Found unmapped Rapid7 finding with evidence: " + evidence);
+                                    "Found unmapped CWE 0 Rapid7 finding with evidence: "
+                                            + evidence);
                             return CweNumber.DONTCARE; // In case they add any new mappings
                         }
                 }
@@ -136,13 +136,6 @@ public class Rapid7Reader extends Reader {
                             return CweNumber.XSS; // In case they add any new mappings
                         }
                 }
-            case 201: // SQL instruction files - This causes their TP rate to go up 4% but FP rate
-                // up 6.5%
-            case 209: // Find SQL query constructions - This causes their TP rate to go up 2.5% but
-                // FP rate up 7.75%
-                return CweNumber.SQL_INJECTION;
-            default:
-                System.out.println("Unmapped Rapid7 CWE found: " + cwe + ". Returning 'as is'.");
         }
         return cwe;
     }

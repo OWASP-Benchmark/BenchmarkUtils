@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -49,12 +48,12 @@ public class MendReader extends Reader {
                     try {
                         String testfile = extractFilenameWithoutEnding(vulnerability.filename);
 
-                        if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
+                        if (isTestCaseFile(testfile)) {
                             TestCaseResult tcr = new TestCaseResult();
 
                             tcr.setCWE(result.type.cwe.asNumber());
                             tcr.setEvidence(result.type.name);
-                            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
+                            tcr.setActualResultTestID(testfile);
 
                             tr.put(tcr);
                         }

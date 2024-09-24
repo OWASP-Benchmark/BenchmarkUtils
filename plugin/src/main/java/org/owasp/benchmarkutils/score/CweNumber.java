@@ -19,10 +19,10 @@ package org.owasp.benchmarkutils.score;
 
 public class CweNumber {
 
-    /** To be used when the CWE reported is one we don't care about in any test suite */
+    /** 0000: To be used when the CWE reported is one we don't care about in any test suite */
     public static int DONTCARE = 0000;
 
-    /** To be used when the CWE reported is unknown */
+    /** -1: To be used when the CWE reported is unknown */
     public static int UNKNOWN = -1;
 
     /** CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal') */
@@ -163,8 +163,16 @@ public class CweNumber {
      */
     public static int OBFUSCATION = 649;
 
+    /** CWE-652: Improper Neutralization of Data within XQuery Expressions ('XQuery Injection') */
+    public static int XQUERY_INJECTION = 652;
+
     /** CWE-754: Improper Check for Unusual or Exceptional Conditions */
     public static int IMPROPER_CHECK_FOR_CONDITIONS = 754;
+
+    /**
+     * CWE-776: Improper Restriction of Recursive Entity References in DTDs ('XML Entity Expansion')
+     */
+    public static int XEE = 776;
 
     /** CWE-783: Operator Precedence Logic Error */
     public static int OPERATOR_PRECEDENCE_LOGIC = 783;

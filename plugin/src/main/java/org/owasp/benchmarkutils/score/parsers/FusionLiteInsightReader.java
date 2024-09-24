@@ -26,7 +26,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -103,11 +102,10 @@ public class FusionLiteInsightReader extends Reader {
         String testfile = url.getPath();
         testfile = testfile.substring(testfile.lastIndexOf('/') + 1);
 
-        if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int testno = getBenchmarkStyleTestCaseNumber(testfile);
-            return testno;
+        if (isTestCaseFile(testfile)) {
+            return getBenchmarkStyleTestCaseNumber(testfile);
         }
-        return -1;
+        return -1; // if not a valid test case file, return -1
     }
 
     private static String removeQueryAndFragment(String uri) {

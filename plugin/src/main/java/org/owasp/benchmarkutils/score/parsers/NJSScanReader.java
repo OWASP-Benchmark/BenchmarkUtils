@@ -20,7 +20,6 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -188,7 +187,7 @@ public class NJSScanReader extends Reader {
         String filename = "";
         try {
             filename = file.getString("file_path");
-            if (!filename.contains(BenchmarkScore.TESTCASENAME)) return null;
+            if (!isTestCaseFile(filename)) return null;
 
             // This converts the string to a path, then uses the built in path function
             // to get the file name only (system independent!). Then, I strip out all non-numbers
@@ -200,7 +199,7 @@ public class NJSScanReader extends Reader {
             // filename = filename.replaceAll("[^0-9]", "");
 
             // Note: This code should be checked with test cases
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+            tcr.setActualResultTestID(filename);
 
         } catch (JSONException jsonE) {
             System.out.println("Issue with file JSON : " + jsonE.toString());

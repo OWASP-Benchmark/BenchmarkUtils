@@ -252,8 +252,7 @@ public abstract class SarifReader extends Reader {
 
         tcr.setCWE(cwe);
         tcr.setEvidence(evidence);
-        //        tcr.setConfidence(0);
-        //        tcr.setTestID(getBenchmarkStyleTestCaseNumber(className));
+        // tcr.setConfidence(0);
         tcr.setActualResultTestID(className);
 
         return tcr;

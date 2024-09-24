@@ -168,13 +168,13 @@ public class FortifyReader extends Reader {
         }
         tcr.setEvidence(vulnType + "::" + vulnSubType);
 
-        tcr.setCWE(cweLookup(vulnType, vulnSubType, un));
-
         Node context = getNamedNode("Context", un.getChildNodes());
         Node function = getNamedNode("Function", context.getChildNodes());
 
         // The first block looks for class names for Java findings.
         String tc = getAttributeValue("enclosingClass", function);
+
+        tcr.setCWE(cweLookup(vulnType, vulnSubType, un, tc));
 
         if (tc != null) {
             // Strip off inner class name from the test case file name if present
@@ -225,10 +225,11 @@ public class FortifyReader extends Reader {
         return null;
     }
 
-    private int cweLookup(String vtype, String subtype, Node unifiedNode) {
+    private int cweLookup(String vtype, String subtype, Node unifiedNode, String classname) {
 
         switch (vtype) {
             case "Access Control":
+            case "Access Specifier Manipulation":
                 return CweNumber.IMPROPER_ACCESS_CONTROL;
 
             case "Command Injection":
@@ -236,56 +237,107 @@ public class FortifyReader extends Reader {
 
             case "Cookie Security":
                 {
-                    // Verify its the exact type we are looking for (e.g., not HttpOnly finding)
-                    if ("Cookie not Sent Over SSL".equals(subtype))
-                        return CweNumber.INSECURE_COOKIE;
-                    else return 00;
+                    switch (subtype) {
+                        case "Cookie not Sent Over SSL":
+                            return CweNumber.INSECURE_COOKIE;
+                        case "HTTPOnly not Set":
+                            return CweNumber.COOKIE_WITHOUT_HTTPONLY;
+                        case "Persistent Cookie":
+                            return 539; // Use of Persistent Cookie Containing Sensitive Info
+                        default:
+                            if (classname != null)
+                                System.out.println(
+                                        "Fortify parser found vulnerability type: 'Cookie Security', with unmapped subtype: "
+                                                + subtype
+                                                + " in class: "
+                                                + classname);
+                    }
+                    return CweNumber.UNKNOWN;
                 }
 
             case "Cross-Site Request Forgery":
                 return CweNumber.CSRF;
 
             case "Cross-Site Scripting":
-                {
-                    switch (subtype) {
-                            // Not a type of XSS weakness we are testing for. Causes False Positives
-                            // for Fortify.
-                        case "Poor Validation":
-                            return 83;
-                    }
-                    return 79;
-                }
+                return CweNumber.XSS;
 
             case "Dead Code":
-                return 00;
+                return 561; // Dead Code
             case "Denial of Service":
-                return 400;
+                return 400; // Uncontrolled Resource Consumption
             case "Dynamic Code Evaluation":
-                return 95;
+                return 95; // Improper Neutralization of Directives in Dynamically Evaluated Code
+                // (Eval Injection)
             case "Header Manipulation":
-                return 113;
+                return 113; // HTTP Response Splitting
             case "Hidden Field":
-                return 472;
+                return 472; // External Control of Assumed-Immutable Web Parameter
             case "Insecure Randomness":
-                return 330;
+                {
+                    switch (subtype) {
+                        case "":
+                            return CweNumber.WEAK_RANDOM;
+                        case "Hardcoded Seed":
+                            return 336; // Same Seed in PRNG
+                        default:
+                            if (classname != null)
+                                System.out.println(
+                                        "Fortify parser found vulnerability type: 'Insecure Randomness', with unmapped subtype: "
+                                                + subtype
+                                                + " in class: "
+                                                + classname);
+                    }
+                    return CweNumber.WEAK_RANDOM;
+                }
+
+            case "Insecure Transport":
+                return 319; // Cleartext Transmission of Sensitive Info
+
+            case "J2EE Bad Practices":
+                {
+                    switch (subtype) {
+                        case "getConnection()":
+                            return 319; // Cleartest Transmission of Sensitive Info
+                        case "Insufficient Session Expiration":
+                            return 613; // Insufficient Session Expiration
+                        case "JVM Termination":
+                            return CweNumber.SYSTEM_EXIT;
+                        case "Sockets":
+                            return CweNumber.DONTCARE;
+                        case "Threads":
+                            return 383; // Direct Use of Threads
+                        default:
+                            if (classname != null)
+                                System.out.println(
+                                        "Fortify parser found vulnerability type: 'J2EE Bad Practices', with unmapped subtype: "
+                                                + subtype
+                                                + " in class: "
+                                                + classname);
+                    }
+                    return CweNumber.DONTCARE;
+                }
+
             case "Key Management":
-                return 320;
+                return 320; // Key Management Errors
 
             case "LDAP Injection":
-                return 90;
+                return CweNumber.LDAP_INJECTION;
+            case "Log Forging":
+                return 117; // Improper Output Neutralization for Logs
 
             case "Mass Assignment":
-                return 915;
+                return 915; // Improper Controlled Modif of Dynamically-Determined Obj Attributes
 
             case "Missing Check against Null":
             case "Missing Check for Null Parameter":
-                return 476;
+            case "Null Dereference":
+                return 476; // Null Pointer Dereference
 
             case "Missing XML Validation":
-                return 112;
+                return 112; // Missing XML Validation
 
-            case "Null Dereference":
-                return 476;
+            case "Object Model Violation":
+                return 581; // Object Model Violation: Just One of Equals and Hashcode Defined
 
                 // Fortify reports weak randomness issues under Obsolete by ESAPI, rather than in
                 // the Insecure Randomness category if it thinks you are using ESAPI. However, its
@@ -305,92 +357,164 @@ public class FortifyReader extends Reader {
                         // First check grants credit for flagging uses of: java.lang.Math.random()
                         if ("random()".equals(methodName)
                                 ||
-
                                 // Following grants credit for flagging use of any method that
                                 // generates random #'s using the java.util.Random or
                                 // java.security.SecureRandom classes. e.g., nextWHATEVER().
                                 (methodName != null && methodName.startsWith("next"))) {
-                            return 330;
+                            return CweNumber.WEAK_RANDOM;
                         }
                     }
-                    return 00; // If neither of these, then don't care
+                    return 477; // Use of Obsolete Function
                 }
 
+            case "Often Misused":
+                return 510; // Trapdoor
+            case "Open Redirect":
+                return CweNumber.OPEN_REDIRECT;
             case "Password Management":
-                return 00;
+                {
+                    switch (subtype) {
+                        case "Empty Password":
+                            return 256; // Plaintext Storage of a Password
+                        case "Hardcoded Password":
+                            return 259; // Use of Hard-coded Password
+                        case "Null Password":
+                            return 1391; // Weak Credentials
+                        case "": // Don't know what blank sub type means so can't map it
+                        case "Password in Comment":
+                            return CweNumber.DONTCARE;
+                        default:
+                            if (classname != null)
+                                System.out.println(
+                                        "Fortify parser found vulnerability type: 'Password Management', with unmapped subtype: "
+                                                + subtype
+                                                + " in class: "
+                                                + classname);
+                    }
+                    return CweNumber.UNKNOWN;
+                }
             case "Path Manipulation":
-                return 22;
-
+                return CweNumber.PATH_TRAVERSAL;
+            case "Process Control":
+                return 114; // Process Control
             case "Poor Error Handling":
-                return 703;
-            case "Poor Logging Practice":
-                return 478;
+                {
+                    switch (subtype) {
+                        default:
+                            System.out.println(
+                                    "Fortify parser found vulnerability type: 'Poor Error Handling', with unmapped subtype: "
+                                            + subtype
+                                            + " in class: "
+                                            + classname);
+                    }
+                    return 703; // Improper Check or Handling of Exceptional Conditions
+                }
             case "Privacy Violation":
-                return 359;
-            case "Resource Injection":
-                return 99;
+                return 359; // Exposure of Private Personal Info
 
+            case "Race Condition":
+                return 362;
+            case "Redundant Null Check":
+                return 1041; // Use of Redundant Code
+            case "Resource Injection":
+                return 99; // Resource Injection
+
+            case "Setting Manipulation":
+                return 15; // External Control of System or Config Setting
             case "SQL Injection":
                 return CweNumber.SQL_INJECTION;
             case "System Information Leak":
-                return 209;
+                return 209; // Generation of Error Msg Containing Sensitive Info
             case "Trust Boundary Violation":
-                return 501;
+                return CweNumber.TRUST_BOUNDARY_VIOLATION;
             case "Unchecked Return Value":
-                return 252;
+                return 252; // Unchecked Return value
             case "Unreleased Resource":
-                return 404;
+                return 404; // Improper Resource Shutdown or Release
+            case "Unsafe JNI":
+                return 111; // Direct Use of Unsafe JNI
             case "Unsafe Reflection":
-                return 470;
+                return 470; // Unsafe Reflection
 
             case "Weak Cryptographic Hash":
-                return 328;
+                {
+                    switch (subtype) {
+                        case "":
+                            return CweNumber.WEAK_HASH_ALGO;
+                        case "Missing Required Step":
+                            return 325; // Missing Required Step
+                        default:
+                            System.out.println(
+                                    "Fortify parser found vulnerability type: 'Cryptographic Hash', with unmapped subtype: "
+                                            + subtype
+                                            + " in class: "
+                                            + classname);
+                    }
+                    return CweNumber.WEAK_HASH_ALGO;
+                }
 
             case "Weak Encryption":
                 {
                     switch (subtype) {
+                        case "": // No subtype, so report as weak encryption
+                            return CweNumber.WEAK_CRYPTO_ALGO;
+
                             // These 2 are not types of Encryption weakness we are testing for.
                             // Cause False Positives for Fortify.
                         case "Missing Required Step":
-                            return 325;
+                            return 325; // Missing Required Step
                         case "Inadequate RSA Padding":
-                            return 780;
+                            return 780; // Use of RSA Algo w/out OAEP
+
+                        case "Insecure Initialization Vector":
+                        case "Insufficient Key Size":
+                            return 1204; // Generation of Weak Initialization Vector (IV)
+
                             // TODO: Assuming this Fortify rule is valid, we might need to fix
                             // Benchmark itself to eliminate unintended vulns.
                         case "Insecure Mode of Operation":
-                            return 0; // Disable so it doesn't count against Fortify.
+                            return CweNumber
+                                    .DONTCARE; // Disable so it doesn't count against Fortify.
+                        default:
+                            System.out.println(
+                                    "Fortify parser found vulnerability type: 'Weak Encryption', with unmapped subtype: "
+                                            + subtype
+                                            + " in class: "
+                                            + classname);
                     }
-                    return 327;
+                    return CweNumber.WEAK_CRYPTO_ALGO;
                 }
 
             case "XPath Injection":
-                return 643;
+                return CweNumber.XPATH_INJECTION;
 
             case "XQuery Injection":
-                return 652;
+                return CweNumber.XQUERY_INJECTION;
 
             case "XML Entity Expansion Injection":
-                return 776;
+                return CweNumber.XEE;
 
             case "XML External Entity Injection":
-                return 611;
+                return CweNumber.XXE;
 
                 // Things we don't care about
             case "Build Misconfiguration":
             case "Code Correctness":
             case "Hardcoded Domain in HTML":
-            case "J2EE Bad Practices":
             case "J2EE Misconfiguration":
-            case "Object Model Violation":
+            case "Poor Logging Practice":
             case "Poor Style":
             case "Portability Flaw":
-            case "Race Condition":
-            case "Redundant Null Check":
-                return 00;
+                return CweNumber.DONTCARE;
 
             default:
                 System.out.println(
-                        "Fortify parser encountered unknown vulnerability type: " + vtype);
+                        "Fortify parser found unknown vulnerability type: "
+                                + vtype
+                                + ", with subtype: "
+                                + subtype
+                                + " in class: "
+                                + classname);
         } // end switch
 
         return 0;

@@ -19,7 +19,6 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -106,28 +105,24 @@ public class VeracodeReader extends Reader {
         String cwe = getAttributeValue("cweid", flaw);
         if (cwe != null) {
             tcr.setCWE(translate(Integer.parseInt(cwe)));
+            tcr.setConfidence(Integer.parseInt(getAttributeValue("exploitLevel", flaw)));
+            tcr.setEvidence(getAttributeValue("categoryname", flaw));
+
+            String testcase = getAttributeValue("sourcefile", flaw);
+            if (isTestCaseFile(testcase)) {
+                tcr.setActualResultTestID(testcase);
+                return tcr;
+            }
         } else {
             System.out.println("WARNING: This Veracode flaw has no associated CWE: " + flaw);
-        }
-
-        tcr.setConfidence(Integer.parseInt(getAttributeValue("exploitLevel", flaw)));
-
-        tcr.setEvidence(getAttributeValue("categoryname", flaw));
-
-        String testcase = getAttributeValue("sourcefile", flaw);
-        if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcase));
-            return tcr;
         }
 
         return null;
     }
 
-    private int translate(int cwe) {
-        if (cwe == 73) return CweNumber.PATH_TRAVERSAL;
-        if (cwe == 80) return CweNumber.XSS;
-        if (cwe == 331) return CweNumber.WEAK_RANDOM;
-        if (cwe == 91) return CweNumber.XPATH_INJECTION;
+    private static int translate(int cwe) {
+        if (cwe == 73)
+            return CweNumber.PATH_TRAVERSAL; // CWE-73: External Control of File Name or Path
         return cwe;
     }
 }

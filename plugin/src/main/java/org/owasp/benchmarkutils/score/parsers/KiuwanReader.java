@@ -19,8 +19,6 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -88,8 +86,8 @@ public class KiuwanReader extends Reader {
             int propagationPathLength = dataFlow.length() - 1;
             String filename = dataFlow.getJSONObject(propagationPathLength).getString("file");
             filename = filename.substring(filename.lastIndexOf('/'));
-            if (filename.contains(BenchmarkScore.TESTCASENAME)) {
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+            if (isTestCaseFile(filename)) {
+                tcr.setActualResultTestID(filename);
 
                 int cwe = -1;
                 try {
@@ -97,8 +95,7 @@ public class KiuwanReader extends Reader {
                     for (int i = 0; i < mappings.length(); i++) {
                         String val = mappings.getJSONObject(i).getString("mappingType");
                         if (val.equalsIgnoreCase("CWE")) {
-                            // fixCWE maps the supplied CWE to the one we use, if necessary
-                            cwe = fixCWE(mappings.getJSONObject(i).getString("value"));
+                            cwe = Integer.parseInt(mappings.getJSONObject(i).getString("value"));
                             break;
                         }
                     }
@@ -120,18 +117,5 @@ public class KiuwanReader extends Reader {
             e.printStackTrace();
         }
         return null;
-    }
-
-    private int fixCWE(String cweNumber) {
-        int cwe = Integer.parseInt(cweNumber);
-
-        if (cwe == 564) {
-            cwe = CweNumber.SQL_INJECTION;
-        }
-
-        if (cwe == 77) {
-            cwe = CweNumber.COMMAND_INJECTION;
-        }
-        return cwe;
     }
 }

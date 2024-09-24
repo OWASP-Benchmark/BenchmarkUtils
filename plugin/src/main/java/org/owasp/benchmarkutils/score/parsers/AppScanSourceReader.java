@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -91,7 +90,8 @@ public class AppScanSourceReader extends Reader {
             if (filename.contains("/")) {
                 filename = filename.substring(filename.lastIndexOf('/') + 1);
             }
-            if (filename.endsWith(".java") && filename.startsWith(BenchmarkScore.TESTCASENAME)) {
+            // TODO / FIXME: This parser only works for java. Fix to work for all languages
+            if (filename.endsWith(".java") && isTestCaseFile(filename)) {
                 filename = filename.substring(0, filename.length() - 5);
                 tn = getBenchmarkStyleTestCaseNumber(filename);
             }
@@ -116,9 +116,8 @@ public class AppScanSourceReader extends Reader {
 
                     // Exclude Confidence 3 - apparently these are "scan coverage"
                     // We tried excluding Confidence 2 as well - as these are "suspect", but
-                    // AppScan's
-                    // score actually went down because it excludes ALL of the weak randomness
-                    // findings.
+                    // AppScan's score actually went down because it excludes ALL of the weak
+                    // randomness findings.
                     // Confidence 1 - are "definitive" findings
                     if (confidence < 3) {
                         tr.put(tcr);

@@ -21,7 +21,6 @@ import static java.lang.Integer.parseInt;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -83,14 +82,13 @@ public class HCLAppScanStandardReader extends Reader {
             int xmlCwe = parseInt(getNamedChild("cwe", variant).getTextContent());
             String variantIssueType = getNamedChild("issue-type", variant).getTextContent().trim();
 
-            // FIXME: The filter for startsWith needs to be fixed to support generalized scoring
             getNamedChildren("item", getNamedChild("variant-group", variant)).stream()
                     .map(node -> extractFilenameWithoutEnding(extractUrlFrom(node)))
-                    .filter(filename -> filename.startsWith(BenchmarkScore.TESTCASENAME))
+                    .filter(filename -> isTestCaseFile(filename))
                     .forEach(
                             filename -> {
                                 TestCaseResult tcr = new TestCaseResult();
-                                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+                                tcr.setActualResultTestID(filename);
                                 tcr.setCWE(cweLookup(variantIssueType, xmlCwe));
                                 tcr.setEvidence(variantIssueType);
 

@@ -58,7 +58,7 @@ public class CheckmarxIASTReader extends Reader {
             if (testCaseMatcher.find()) {
                 String testCase = testCaseMatcher.group(0);
                 tcr.setTestCaseName(testCase);
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(testCase));
+                tcr.setActualResultTestID(testCase);
                 if (tcr.getCWE() != 0) {
                     tr.put(tcr);
                 }

@@ -192,7 +192,7 @@ public class RegressionTesting {
                     out.println(IOUtils.toString(entity.getContent(), StandardCharsets.UTF_8));
                 }
             } catch (IOException e) {
-                System.out.println("ERROR: Could not parse HttpPost entities");
+                System.err.println("ERROR: Could not parse HttpPost entities");
                 e.printStackTrace();
             }
         }

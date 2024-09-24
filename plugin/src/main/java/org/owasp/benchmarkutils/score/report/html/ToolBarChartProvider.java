@@ -17,9 +17,24 @@
  */
 package org.owasp.benchmarkutils.score.report.html;
 
+import java.util.Collection;
+import java.util.Map;
+import org.owasp.benchmarkutils.score.CategoryMetrics;
 import org.owasp.benchmarkutils.score.Tool;
 
 public interface ToolBarChartProvider {
 
-    void generateComparisonCharts(Tool tool);
+    /**
+     * Generate Bar charts that compare a tool's Precision and Recall results to the average of all
+     * the other tools and write those charts to tool/metric specific names.
+     *
+     * @param tool - The Tool to create the charts for.
+     * @param toolCatMetrics - The metrics for the categories/category groups being charted.
+     * @param overallAveToolMetrics The average metrics across all tools per the matching categories
+     */
+    void generateComparisonCharts(
+            Tool tool,
+            Collection<CategoryMetrics> toolCatMetrics,
+            Map<String, CategoryMetrics> overallAveToolMetrics,
+            boolean isCategoryGroups);
 }

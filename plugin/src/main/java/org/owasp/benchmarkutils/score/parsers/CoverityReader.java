@@ -19,7 +19,6 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -46,9 +45,7 @@ public class CoverityReader extends Reader {
                         "Coverity Code Advisor",
                         true,
                         TestSuiteResults.ToolType
-                                .SAST); // Coverity's tool is called Code Advisor or Code Advisor On
-
-        // Demand
+                                .SAST); // Coverity is called Code Advisor or Code Advisor On Demand
         // Fixme: See if we can figure this out from some of the files they provide
         tr.setTime(resultFile.file());
 
@@ -71,8 +68,8 @@ public class CoverityReader extends Reader {
                 filename = finding.getString("mainEventFilePathname");
                 filename = filename.replaceAll("\\\\", "/");
                 filename = filename.substring(filename.lastIndexOf('/') + 1);
-                if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+                if (isTestCaseFile(filename)) {
+                    tcr.setActualResultTestID(filename);
                     JSONObject props = finding.getJSONObject("checkerProperties");
                     String cweNumber = props.getString("cweCategory");
                     if (cweNumber == null || cweNumber.equals("none")) {
@@ -97,8 +94,8 @@ public class CoverityReader extends Reader {
                                 .getString("mainEventFilePathname");
                 filename = filename.replaceAll("\\\\", "/");
                 filename = filename.substring(filename.lastIndexOf('/') + 1);
-                if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+                if (isTestCaseFile(filename)) {
+                    tcr.setActualResultTestID(filename);
                     if (finding.isNull("cweNumber")) {
                         return null;
                     }
@@ -135,9 +132,9 @@ public class CoverityReader extends Reader {
             filename = finding.getString("mainEventFilePathname");
             filename = filename.replaceAll("\\\\", "/");
             filename = filename.substring(filename.lastIndexOf('/') + 1);
-            if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
+            if (isTestCaseFile(filename)) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+                tcr.setActualResultTestID(filename);
                 //
                 // *** Warning: serious foefeling and cutting of corners ahead. ***
                 //

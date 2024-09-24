@@ -59,7 +59,7 @@ public class FluidAttacksReader extends Reader {
             String testCaseName = FilenameUtils.getBaseName(what);
 
             // We are only interested in results for the Benchmark test cases
-            if (testCaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
+            if (isTestCaseFile(testCaseName)) {
                 testCaseResult.setCWE(categoryToExpectedCwe(category));
                 testCaseResult.setEvidence(category);
                 testCaseResult.setTestID(

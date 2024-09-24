@@ -35,10 +35,10 @@ import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CategoryResults;
+import org.owasp.benchmarkutils.score.CategoryMetrics;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.Tool;
-import org.owasp.benchmarkutils.score.ToolResults;
+import org.owasp.benchmarkutils.score.ToolMetrics;
 
 public class ScatterVulns extends ScatterPlot {
 
@@ -49,7 +49,7 @@ public class ScatterVulns extends ScatterPlot {
     // Most of these Non-Commercial, Commercial, and Overall values are accessible via getters.
 
     // Non-Commercial Scores
-    private CategoryResults noncommercialCategResults;
+    private CategoryMetrics noncommercialCategoryMetrics;
     private int noncommercialToolCount = 0;
     private double noncommercialLow = 100;
     private TestSuiteResults.ToolType noncommercialLowToolType = null;
@@ -61,7 +61,7 @@ public class ScatterVulns extends ScatterPlot {
     private double noncommercialAveFPR = 0;
 
     // Commercial Scores
-    private CategoryResults commercialCategResults;
+    private CategoryMetrics commercialCategoryMetrics;
     private int commercialToolCount = 0;
     private double commercialLow = 100;
     private TestSuiteResults.ToolType commercialLowToolType = null;
@@ -73,7 +73,7 @@ public class ScatterVulns extends ScatterPlot {
     private double commercialAveFPR = 0;
 
     // Overall Scores
-    private CategoryResults overallCategResults;
+    private CategoryMetrics overallCategoryMetrics;
     private int overallToolCount = 0;
     private double overallLow = 100;
     private TestSuiteResults.ToolType overallLowToolType = null;
@@ -98,12 +98,39 @@ public class ScatterVulns extends ScatterPlot {
      */
     public ScatterVulns(
             String title, int height, String category, Set<Tool> toolResults, String focus) {
-        this.focus = focus;
-        this.CATEGORY = category;
-        display("          " + title, height, category, toolResults);
+        this(title, height, category, toolResults, focus, false);
     }
 
-    private JFreeChart display(String title, int height, String category, Set<Tool> toolResults) {
+    /**
+     * This calculates how all the tools did against the Benchmark in this vulnerability category or
+     * CategoryGroup
+     *
+     * @param title - The title of the chart to be produced.
+     * @param height - Height of the chart (typically 800)
+     * @param category - The vuln category or CategoryGroup this chart is being generated for.
+     * @param toolResults - A list of each individual tool's results
+     * @param focus - A tool to emphasize in the chart, if any.
+     * @param useCategoryGroups If true, the specified category refers to a CategoryGroup not a vuln
+     *     Category
+     */
+    public ScatterVulns(
+            String title,
+            int height,
+            String category,
+            Set<Tool> toolResults,
+            String focus,
+            boolean useCategoryGroups) {
+        this.focus = focus;
+        this.CATEGORY = category;
+        display("          " + title, height, category, toolResults, useCategoryGroups);
+    }
+
+    private JFreeChart display(
+            String title,
+            int height,
+            String category,
+            Set<Tool> toolResults,
+            boolean useCategoryGroups) {
 
         // averages
         ArrayList<Double> averageFalseRates = new ArrayList<Double>();
@@ -115,42 +142,42 @@ public class ScatterVulns extends ScatterPlot {
 
         for (Tool tool : toolResults) {
             if (!tool.isCommercial()) {
-                CategoryResults overallResult =
-                        tool.getOverallResults().getCategoryResults(category);
-                if (Double.isNaN(overallResult.falsePositiveRate)) {
+                CategoryMetrics categoryMetrics =
+                        tool.getCategoryMetrics(category, useCategoryGroups);
+                if (Double.isNaN(categoryMetrics.falsePositiveRate)) {
                     System.out.println(
                             "ERROR: false positive rate for category: " + category + " is NaN");
                 }
-                if (Double.isNaN(overallResult.truePositiveRate)) {
+                if (Double.isNaN(categoryMetrics.truePositiveRate)) {
                     System.out.println(
                             "ERROR: true positive rate for category: " + category + " is NaN");
                 }
                 series.add(
-                        overallResult.falsePositiveRate * 100,
-                        overallResult.truePositiveRate * 100);
+                        categoryMetrics.falsePositiveRate * 100,
+                        categoryMetrics.truePositiveRate * 100);
             }
         }
 
         for (Tool tool : toolResults) {
             if (tool.isCommercial()) {
-                CategoryResults overallResult =
-                        tool.getOverallResults().getCategoryResults(category);
+                CategoryMetrics categoryMetrics =
+                        tool.getCategoryMetrics(category, useCategoryGroups);
                 if (!BenchmarkScore.config.showAveOnlyMode) {
-                    if (Double.isNaN(overallResult.falsePositiveRate)) {
+                    if (Double.isNaN(categoryMetrics.falsePositiveRate)) {
                         System.out.println(
                                 "ERROR: false positive rate for category: " + category + " is NaN");
                     }
-                    if (Double.isNaN(overallResult.truePositiveRate)) {
+                    if (Double.isNaN(categoryMetrics.truePositiveRate)) {
                         System.out.println(
                                 "ERROR: true positive rate for category: " + category + " is NaN");
                     }
                     series.add(
-                            overallResult.falsePositiveRate * 100,
-                            overallResult.truePositiveRate * 100);
+                            categoryMetrics.falsePositiveRate * 100,
+                            categoryMetrics.truePositiveRate * 100);
                 }
                 commercialToolQuantity++;
-                averageFalseRates.add(overallResult.falsePositiveRate);
-                averageTrueRates.add(overallResult.truePositiveRate);
+                averageFalseRates.add(categoryMetrics.falsePositiveRate);
+                averageTrueRates.add(categoryMetrics.truePositiveRate);
             }
         }
 
@@ -193,8 +220,8 @@ public class ScatterVulns extends ScatterPlot {
 
         XYPlot xyplot = this.chart.getXYPlot();
 
-        makeDataLabels(category, toolResults, xyplot);
-        makeLegend(category, toolResults, 103, 100.5, dataset, xyplot);
+        makeDataLabels(category, toolResults, xyplot, useCategoryGroups);
+        makeLegend(category, toolResults, 103, 100.5, dataset, xyplot, useCategoryGroups);
 
         for (XYDataItem item : (List<XYDataItem>) series.getItems()) {
             double x = item.getX().doubleValue();
@@ -213,15 +240,18 @@ public class ScatterVulns extends ScatterPlot {
      *
      * @param tools - THe set of tool results.
      * @param xyplot - The chart to make the Data labels on.
+     * @param isCategoryGroups True if results are for CategoryGroups, false for vuln categories
      */
-    private void makeDataLabels(String category, Set<Tool> toolResults, XYPlot xyplot) {
-        HashMap<Point2D, String> map = makePointList(category, toolResults);
+    private void makeDataLabels(
+            String category, Set<Tool> toolResults, XYPlot xyplot, boolean isCategoryGroups) {
+        HashMap<Point2D, String> map = makePointList(category, toolResults, isCategoryGroups);
         addLabelsToPlotPoints(map, xyplot);
     }
 
     private SecureRandom sr = new SecureRandom();
 
-    private HashMap<Point2D, String> makePointList(String category, Set<Tool> toolResults) {
+    private HashMap<Point2D, String> makePointList(
+            String category, Set<Tool> toolResults, boolean isCategoryGroups) {
         HashMap<Point2D, String> map = new HashMap<Point2D, String>();
         char ch = ScatterHome.INITIAL_LABEL;
 
@@ -231,10 +261,11 @@ public class ScatterVulns extends ScatterPlot {
 
         for (Tool tool : toolResults) {
             if (!tool.isCommercial()) {
-                CategoryResults or = tool.getOverallResults().getCategoryResults(category);
+                CategoryMetrics categoryMetrics =
+                        tool.getCategoryMetrics(category, isCategoryGroups);
                 // this puts the label just below the point
-                double x = or.falsePositiveRate * 100 + sr.nextDouble() * .000001;
-                double y = or.truePositiveRate * 100 + sr.nextDouble() * .000001 - 1;
+                double x = categoryMetrics.falsePositiveRate * 100 + sr.nextDouble() * .000001;
+                double y = categoryMetrics.truePositiveRate * 100 + sr.nextDouble() * .000001 - 1;
                 Point2D p = new Point2D.Double(x, y);
                 String label = "" + ch;
                 map.put(p, label);
@@ -248,10 +279,12 @@ public class ScatterVulns extends ScatterPlot {
             if (tool.isCommercial()) {
                 commercialToolQuantity++;
                 if (!BenchmarkScore.config.showAveOnlyMode) {
-                    CategoryResults or = tool.getOverallResults().getCategoryResults(category);
+                    CategoryMetrics categoryMetrics =
+                            tool.getCategoryMetrics(category, isCategoryGroups);
                     // this puts the label just below the point
-                    double x = or.falsePositiveRate * 100 + sr.nextDouble() * .000001;
-                    double y = or.truePositiveRate * 100 + sr.nextDouble() * .000001 - 1;
+                    double x = categoryMetrics.falsePositiveRate * 100 + sr.nextDouble() * .000001;
+                    double y =
+                            categoryMetrics.truePositiveRate * 100 + sr.nextDouble() * .000001 - 1;
                     Point2D p = new Point2D.Double(x, y);
                     String label = "" + ch;
                     map.put(p, label);
@@ -277,7 +310,7 @@ public class ScatterVulns extends ScatterPlot {
 
     /**
      * Create the Legend for this chart. And as a side effect, calculate the overall commercial
-     * results for this vuln category.
+     * results for this vuln category or CategoryGroup.
      *
      * @param category
      * @param toolResults
@@ -285,6 +318,8 @@ public class ScatterVulns extends ScatterPlot {
      * @param y
      * @param dataset
      * @param xyplot
+     * @param useCategoryGroups True, if the specified category is a CategoryGroup. (default) False
+     *     is a vuln category.
      */
     private void makeLegend(
             String category,
@@ -292,7 +327,8 @@ public class ScatterVulns extends ScatterPlot {
             double x,
             double y,
             XYSeriesCollection dataset,
-            XYPlot xyplot) {
+            XYPlot xyplot,
+            boolean useCategoryGroups) {
 
         char ch = ScatterHome.INITIAL_LABEL;
         int i = -2;
@@ -314,7 +350,9 @@ public class ScatterVulns extends ScatterPlot {
                     printedNonCommercialLabel = true;
                 }
 
-                ToolResults or = tool.getOverallResults();
+                CategoryMetrics categoryMetrics =
+                        tool.getCategoryMetrics(category, useCategoryGroups);
+
                 // Special hack to make it line up better if the letter is an 'I' or 'i'
                 String label = (ch == 'I' || ch == 'i' ? ch + ":   " : ch + ": ");
                 // Another hack to make it line up better if the letter is a 'J' or 'j'
@@ -332,20 +370,20 @@ public class ScatterVulns extends ScatterPlot {
                         label,
                         tool.getToolNameAndVersion(),
                         // For ScatterVulns, these need to be the rates for this vuln cat
-                        or.getCategoryResults(category).truePositiveRate,
-                        or.getCategoryResults(category).falsePositiveRate);
+                        categoryMetrics.truePositiveRate,
+                        categoryMetrics.falsePositiveRate);
 
                 i++;
                 // Weak hack if there are more than 26 tools scored. This will only get us to 52.
                 if (ch == 'Z') ch = 'a';
                 else ch++;
 
-                noncommercialTotalScore += or.getCategoryResults(category).score;
-                noncommercialTotalPrecision += or.getCategoryResults(category).precision;
-                noncommercialTotalTPR += or.getCategoryResults(category).truePositiveRate;
-                noncommercialTotalFPR += or.getCategoryResults(category).falsePositiveRate;
+                noncommercialTotalScore += categoryMetrics.score;
+                noncommercialTotalPrecision += categoryMetrics.precision;
+                noncommercialTotalTPR += categoryMetrics.truePositiveRate;
+                noncommercialTotalFPR += categoryMetrics.falsePositiveRate;
 
-                double score = or.getCategoryResults(category).score * 100;
+                double score = categoryMetrics.score * 100;
                 if (score < noncommercialLow) {
                     this.noncommercialLow = score;
                     this.noncommercialLowToolType = tool.getToolType();
@@ -376,8 +414,8 @@ public class ScatterVulns extends ScatterPlot {
 
             // We don't track the number of test cases across all these results, only the # of
             // tools. So we set test case count to -1
-            this.noncommercialCategResults =
-                    new CategoryResults(
+            this.noncommercialCategoryMetrics =
+                    new CategoryMetrics(
                             this.CATEGORY,
                             this.noncommercialAvePrecision,
                             this.noncommercialAveTPR,
@@ -393,7 +431,9 @@ public class ScatterVulns extends ScatterPlot {
         double commercialTotalFPR = 0;
 
         for (Tool tool : toolResults) {
-            ToolResults or = tool.getOverallResults();
+            ToolMetrics toolMetrics = tool.getOverallMetrics(useCategoryGroups);
+            CategoryMetrics categoryMetrics = tool.getCategoryMetrics(category, useCategoryGroups);
+
             if (tool.isCommercial()) {
 
                 // print commercial label if there is at least one commercial tool
@@ -405,9 +445,9 @@ public class ScatterVulns extends ScatterPlot {
 
                 this.commercialToolCount++;
                 this.overallToolCount++;
-                double score = or.getCategoryResults(category).score * 100;
-                double tpr = or.getCategoryResults(category).truePositiveRate * 100;
-                double fpr = or.getCategoryResults(category).falsePositiveRate * 100;
+                double score = categoryMetrics.score * 100;
+                double tpr = categoryMetrics.truePositiveRate * 100;
+                double fpr = categoryMetrics.falsePositiveRate * 100;
                 // don't show the commercial tool results if in 'show ave only mode'
                 if (!BenchmarkScore.config.showAveOnlyMode) {
                     // Special hack to make it line up better if the letter is an 'I' or 'i'
@@ -423,8 +463,8 @@ public class ScatterVulns extends ScatterPlot {
                             i,
                             label,
                             tool.getToolNameAndVersion(),
-                            or.getTruePositiveRate(),
-                            or.getFalsePositiveRate());
+                            toolMetrics.getTruePositiveRate(),
+                            toolMetrics.getFalsePositiveRate());
 
                     i++; // increment the location of the label
                     // Weak hack if more than 26 tools scored. This will only get us to 52
@@ -432,7 +472,7 @@ public class ScatterVulns extends ScatterPlot {
                     else ch++;
                 }
                 commercialTotalScore += score;
-                commercialTotalPrecision += or.getCategoryResults(category).precision * 100;
+                commercialTotalPrecision += categoryMetrics.precision * 100;
                 commercialTotalTPR += tpr;
                 commercialTotalFPR += fpr;
 
@@ -457,9 +497,10 @@ public class ScatterVulns extends ScatterPlot {
 
             // Add color emphasis to the tool of focus
             if (tool.getToolName().replace(' ', '_').equalsIgnoreCase(this.focus)) {
-                CategoryResults orc = tool.getOverallResults().getCategoryResults(category);
                 Point2D focusPoint =
-                        new Point2D.Double(orc.falsePositiveRate * 100, orc.truePositiveRate * 100);
+                        new Point2D.Double(
+                                categoryMetrics.falsePositiveRate * 100,
+                                categoryMetrics.truePositiveRate * 100);
                 Color green = new Color(0, 1, 0, 0.5f);
                 makePoint(xyplot, focusPoint, 3, green);
             }
@@ -475,8 +516,8 @@ public class ScatterVulns extends ScatterPlot {
 
         // We don't track the number of test cases across all these results, only the # of
         // tools. So we set test case count to -1
-        this.commercialCategResults =
-                new CategoryResults(
+        this.commercialCategoryMetrics =
+                new CategoryMetrics(
                         this.CATEGORY,
                         this.commercialAvePrecision,
                         this.commercialAveTPR,
@@ -520,8 +561,8 @@ public class ScatterVulns extends ScatterPlot {
 
         // We don't track the number of test cases across all these results, only the # of
         // tools. So we set test case count to -1
-        this.overallCategResults =
-                new CategoryResults(
+        this.overallCategoryMetrics =
+                new CategoryMetrics(
                         this.CATEGORY,
                         this.overallAvePrecision,
                         this.overallAveTPR,
@@ -529,8 +570,37 @@ public class ScatterVulns extends ScatterPlot {
                         -1);
     }
 
+    /**
+     * Generates a ScatterVulns chart
+     *
+     * @param category The vuln category to generate this for.
+     * @param toolResults The set of tool results for the tools to chart
+     * @param focus The tool to focus on, if any
+     * @param scoreCardDir The directory to write the chart to
+     * @return The generated ScatterVulns chart.
+     */
     public static ScatterVulns generateComparisonChart(
             String category, Set<Tool> toolResults, String focus, File scoreCardDir) {
+        return generateComparisonChart(category, toolResults, focus, scoreCardDir, false);
+    }
+
+    /**
+     * Generates a ScatterVulns chart for this category of vulnerabilities or this CategoryGroup
+     *
+     * @param category The vuln category or categoryGroup to generate this for.
+     * @param toolResults The set of tool results for the tools to chart
+     * @param focus The tool to focus on, if any
+     * @param scoreCardDir The directory to write the chart to
+     * @param useCategoryGroups If true, the specified category refers to a CategoryGroup not a vuln
+     *     Category
+     * @return The generated ScatterVulns chart.
+     */
+    public static ScatterVulns generateComparisonChart(
+            String category,
+            Set<Tool> toolResults,
+            String focus,
+            File scoreCardDir,
+            boolean useCategoryGroups) {
         try {
             String scatterTitle =
                     BenchmarkScore.TESTSUITENAME.fullName()
@@ -541,7 +611,8 @@ public class ScatterVulns extends ScatterPlot {
                             + category
                             + " Comparison";
             ScatterVulns scatter =
-                    new ScatterVulns(scatterTitle, 800, category, toolResults, focus);
+                    new ScatterVulns(
+                            scatterTitle, 800, category, toolResults, focus, useCategoryGroups);
             scatter.writeChartToFile(
                     new File(
                             scoreCardDir,
@@ -564,8 +635,8 @@ public class ScatterVulns extends ScatterPlot {
     // This should be calculated and accessed through results stored in Tool (which needs a refactor
     // to be a better DB)
 
-    public CategoryResults getCommercialCategoryResults() {
-        return this.commercialCategResults;
+    public CategoryMetrics getCommercialCategoryMetrics() {
+        return this.commercialCategoryMetrics;
     }
 
     public int getCommercialToolCount() {
@@ -592,8 +663,8 @@ public class ScatterVulns extends ScatterPlot {
         return this.commercialHighToolType;
     }
 
-    public CategoryResults getNonCommercialCategoryResults() {
-        return this.noncommercialCategResults;
+    public CategoryMetrics getNonCommercialCategoryMetrics() {
+        return this.noncommercialCategoryMetrics;
     }
 
     public int getNonCommercialToolCount() {
@@ -620,8 +691,8 @@ public class ScatterVulns extends ScatterPlot {
         return this.noncommercialHighToolType;
     }
 
-    public CategoryResults getOverallCategoryResults() {
-        return this.overallCategResults;
+    public CategoryMetrics getOverallCategoryMetrics() {
+        return this.overallCategoryMetrics;
     }
 
     public int getOverallToolCount() {

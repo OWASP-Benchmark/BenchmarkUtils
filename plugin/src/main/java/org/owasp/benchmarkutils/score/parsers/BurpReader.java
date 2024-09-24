@@ -18,7 +18,6 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -55,7 +54,7 @@ public class BurpReader extends Reader {
         for (Node issue : issueList) {
             TestCaseResult tcr = parseBurpVulnerability(issue);
             if (tcr != null) {
-                //                System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
+                // System.out.println( tcr.getNumber() + "\t" + tcr.getCWE() + "\t" +
                 // tcr.getEvidence() );
                 tr.put(tcr);
             }
@@ -91,8 +90,8 @@ public class BurpReader extends Reader {
         String testcase = getNamedChild("path", issue).getTextContent();
         testcase = testcase.substring(testcase.lastIndexOf('/') + 1);
         testcase = testcase.split("\\.")[0];
-        if (testcase.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcase));
+        if (isTestCaseFile(testcase)) {
+            tcr.setActualResultTestID(testcase);
             return tcr;
         }
 
@@ -137,8 +136,7 @@ public class BurpReader extends Reader {
             case "5243392":
                 return CweNumber.INSECURE_COOKIE;
             case "5244416":
-                return 9998; // Cookie without HttpOnly flag set - There is no CWE defined for this
-                // weakness
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY; // Cookie without HttpOnly flag set
             case "5245344":
                 return 1021; // Clickjacking
             case "5245360":
@@ -146,7 +144,6 @@ public class BurpReader extends Reader {
             case "5245952":
                 return CweNumber
                         .DONTCARE; // Ajax request header manipulation (DOM-based) - Map to nothing
-                // right
             case "5247488":
                 return CweNumber
                         .DONTCARE; // DOM Trust Boundary Violation - Map to nothing right now.
@@ -166,6 +163,6 @@ public class BurpReader extends Reader {
                 return CweNumber.DONTCARE; // TLS Certificate Problem
         } // end switch(id)
         System.out.println("Unknown Burp rule id: " + id);
-        return -1;
+        return CweNumber.UNKNOWN;
     }
 }

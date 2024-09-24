@@ -18,7 +18,6 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import java.util.List;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -94,8 +93,8 @@ public class NetsparkerReader extends Reader {
             testfile = testfile.substring(0, testfile.indexOf("?"));
         }
 
-        if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(testfile));
+        if (isTestCaseFile(testfile)) {
+            tcr.setActualResultTestID(testfile);
             return tcr;
         }
         return null;
@@ -103,28 +102,12 @@ public class NetsparkerReader extends Reader {
 
     private int cweLookup(String cweNum) {
         if (cweNum == null || cweNum.isEmpty()) {
-            return 0000;
+            return CweNumber.UNKNOWN;
         }
         int cwe = Integer.parseInt(cweNum);
         switch (cwe) {
-            case 80: // TODO - Is this correct? Shouldn't this be mapped to XSS?
+            case 80: // TODO/FIXME - Is this correct? Shouldn't this be mapped to XSS?
                 return CweNumber.INSECURE_COOKIE; // insecure cookie use
-                //        case "insecure-cookie"           :  return 614;  // insecure cookie use
-                //        case "sql-injection"             :  return 89;   // sql injection
-                //        case "cmd-injection"             :  return 78;   // command injection
-                //        case "ldap-injection"            :  return 90;   // ldap injection
-                //        case "header-injection"          :  return 113;  // header injection
-                //        case "hql-injection"             :  return 0000; // hql injection
-                //        case "unsafe-readline"           :  return 0000; // unsafe readline
-                //        case "reflection-injection"      :  return 0000; // reflection injection
-                //        case "reflected-xss"             :  return 79;   // xss
-                //        case "xpath-injection"           :  return 643;  // xpath injection
-                //        case "path-traversal"            :  return 22;   // path traversal
-                //        case "crypto-bad-mac"            :  return 328;  // weak hash
-                //        case "crypto-weak-randomness"    :  return 330;  // weak random
-                //        case "crypto-bad-ciphers"        :  return 327;  // weak encryption
-                //        case "trust-boundary-violation"  :  return 501;  // trust boundary
-                //        case "xxe"                       :  return 611;  // xml entity
         }
         return cwe;
     }

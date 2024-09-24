@@ -17,9 +17,12 @@
  */
 package org.owasp.benchmarkutils.helpers;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /*
  * This class contains a single vulnerability category. And is Comparable to other Category instances
- * via its 'name' attribute (i.e., the long nname).
+ * via its 'name' attribute (i.e., the long name).
  */
 public class Category implements Comparable<Category> {
 
@@ -28,28 +31,47 @@ public class Category implements Comparable<Category> {
     private final int CWE;
     private final boolean isInjection;
     private final String shortName; // The shortname from categories.xml, e.g., PATHT, XSS, AUTH
+    private final Set<Integer> childOf;
+    private final Set<Integer> parentOf;
 
     /**
      * Create a vuln category.
      *
-     * @param id The short name for the category, e.g., xss.
-     * @param name The long name of the category, e.g., Cross Site Scripting
+     * @param id The short name for the category, e.g., pathtraver
+     * @param name The long name of the category, e.g., Path Traversal
      * @param cwe The associated CWE number.
      * @param isInjection Whether this vuln category is a type of injection attack.
+     * @param shortname The shortname for the category. Used where keeping length to a minimum is
+     *     helpful, e.g., PATHT
+     * @param childOf CWEs that are children of this CWE (per MITRE CWE db). Can be null or an empty
+     *     Set if there are none.
+     * @param parentOf CWEs that are parents of this CWE (per MITRE CWE db). Can be null or an empty
+     *     Set if there are none.
      */
-    public Category(String id, String name, int cwe, boolean isInjection, String shortname) {
+    public Category(
+            String id,
+            String name,
+            int cwe,
+            boolean isInjection,
+            String shortname,
+            Set<Integer> childOf,
+            Set<Integer> parentOf) {
         this.id = id;
         if (name.contains("/") || name.contains("\\")) {
-            System.out.println(
-                    "FATAL ERROR: CWE name from provided categories.xml file: '"
+            System.err.println(
+                    "FATAL ERROR: CWE name '"
                             + name
-                            + "' contains a path character, which breaks scorecard generation.");
+                            + "' from provided "
+                            + Categories.FILENAME
+                            + " file: contains a path character, which breaks scorecard generation.");
             System.exit(-1);
         }
         this.name = name;
         this.CWE = cwe;
         this.isInjection = isInjection;
-        this.shortName = shortname;
+        this.shortName = shortname.toUpperCase();
+        this.childOf = (childOf == null ? new HashSet<Integer>() : childOf);
+        this.parentOf = (parentOf == null ? new HashSet<Integer>() : parentOf);
     }
 
     public String getId() {
@@ -71,6 +93,26 @@ public class Category implements Comparable<Category> {
 
     public boolean isInjection() {
         return this.isInjection;
+    }
+
+    /**
+     * Determines if the supplied CWE is a child of this CWE category.
+     *
+     * @param cwe Potential child CWE number.
+     * @return True if supplied CWE is a child CWE of this CWE category, false otherwise.
+     */
+    public boolean isChildOf(int cwe) {
+        return this.childOf.contains(Integer.valueOf(cwe));
+    }
+
+    /**
+     * Determines if the supplied CWE is a parent of this CWE category.
+     *
+     * @param cwe Potential parent CWE number.
+     * @return True if supplied CWE is a parent CWE of this CWE category, false otherwise.
+     */
+    public boolean isParentOf(int cwe) {
+        return this.parentOf.contains(Integer.valueOf(cwe));
     }
 
     /**

@@ -55,6 +55,6 @@ public class KiuwanReaderTest extends ReaderTestBase {
         assertEquals(2, result.getTotalResults());
 
         assertEquals(CweNumber.XSS, result.getTestCaseResults("1").get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("2").get(0).getCWE());
+        assertEquals(CweNumber.HIBERNATE_INJECTION, result.getTestCaseResults("2").get(0).getCWE());
     }
 }

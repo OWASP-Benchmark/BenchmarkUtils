@@ -19,8 +19,6 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -58,11 +56,7 @@ public class CheckmarxESReader extends Reader {
 
             // cwe
             int cwe = query.getJSONObject("Metadata").getInt("CweId");
-            try {
-                cwe = translate(cwe);
-            } catch (NumberFormatException ex) {
-                System.out.println("flaw: " + query);
-            }
+            cwe = CheckmarxReader.translate(cwe);
 
             // category
             String category = query.getJSONObject("Metadata").getString("QueryName");
@@ -87,7 +81,7 @@ public class CheckmarxESReader extends Reader {
         return tr;
     }
 
-    private boolean isIrrelevant(String name) {
+    private static boolean isIrrelevant(String name) {
         return name.equals("Dynamic_SQL_Queries")
                 || name.equals("Heuristic_2nd_Order_SQL_Injection")
                 || name.equals("Heuristic_SQL_Injection")
@@ -116,21 +110,7 @@ public class CheckmarxESReader extends Reader {
                 || name.equals("Unprotected_Cookie");
     }
 
-    private int translate(int cwe) {
-        switch (cwe) {
-            case 77:
-            case 15:
-                return CweNumber.COMMAND_INJECTION;
-            case 36:
-            case 23:
-                return CweNumber.PATH_TRAVERSAL;
-            case 338:
-                return CweNumber.WEAK_RANDOM;
-        }
-        return cwe;
-    }
-
-    private TestCaseResult parseCheckmarxFindings(
+    private static TestCaseResult parseCheckmarxFindings(
             int cwe, String category, String evidence, JSONObject result) {
         try {
             TestCaseResult tcr = new TestCaseResult();
@@ -142,8 +122,8 @@ public class CheckmarxESReader extends Reader {
             JSONArray nodes = result.getJSONArray("Nodes");
             String resultFileName = nodes.getJSONObject(0).getString("FileName").replace("\\", "/");
             String testcaseName = resultFileName.substring(resultFileName.lastIndexOf('/') + 1);
-            if (testcaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcaseName));
+            if (isTestCaseFile(testcaseName)) {
+                tcr.setActualResultTestID(testcaseName);
                 return tcr;
             } else {
                 resultFileName =
@@ -151,8 +131,8 @@ public class CheckmarxESReader extends Reader {
                                 .getString("FileName")
                                 .replace("\\", "/");
                 testcaseName = resultFileName.substring(resultFileName.lastIndexOf('/') + 1);
-                if (testcaseName.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(testcaseName));
+                if (isTestCaseFile(testcaseName)) {
+                    tcr.setActualResultTestID(testcaseName);
                     return tcr;
                 }
             }

@@ -19,7 +19,6 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -126,9 +125,9 @@ public class SonarQubeJsonReader extends Reader {
             String filename = finding.getString("component");
             filename = filename.replaceAll("\\\\", "/");
             filename = filename.substring(filename.lastIndexOf('/'));
-            if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+            if (isTestCaseFile(filename)) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+                tcr.setActualResultTestID(filename);
                 String rule = finding.getString("rule");
                 String squid = rule.substring(rule.indexOf(":") + 1);
                 if (squid == null || squid.equals("none")) {
@@ -179,9 +178,9 @@ public class SonarQubeJsonReader extends Reader {
                     filename.replaceAll(
                             "\\\\", "/"); // In case there are \ instead of / in the path
             filename = filename.substring(filename.lastIndexOf('/'));
-            if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+            if (isTestCaseFile(filename)) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+                tcr.setActualResultTestID(filename);
                 String secCat = finding.getString("securityCategory");
                 if (secCat == null || secCat.equals("none")) {
                     return null;

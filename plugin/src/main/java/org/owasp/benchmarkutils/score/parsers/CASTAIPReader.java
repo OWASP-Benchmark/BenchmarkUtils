@@ -21,7 +21,6 @@ import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -89,8 +88,8 @@ public class CASTAIPReader extends Reader {
         String filename = getAttributeValue("name", flaw);
         filename = filename.replaceAll("\\\\", "/");
         filename = filename.substring(filename.lastIndexOf('/') + 1);
-        if (filename.startsWith(BenchmarkScore.TESTCASENAME)) {
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+        if (isTestCaseFile(filename)) {
+            tcr.setActualResultTestID(filename);
             return tcr;
         }
         return null;
@@ -98,7 +97,7 @@ public class CASTAIPReader extends Reader {
 
     private int cweLookup(String name) {
         if (name == null || name.isEmpty()) {
-            return 0000;
+            return CweNumber.UNKNOWN;
         }
         switch (name.trim()) {
             case "614":
@@ -111,32 +110,21 @@ public class CASTAIPReader extends Reader {
                 return CweNumber.SQL_INJECTION;
             case "90":
                 return CweNumber.LDAP_INJECTION;
-                //        case "header-injection"          :  return 113;  // header injection
-                //        case "hql-injection"             :  return 0000; // hql injection
-                //        case "unsafe-readline"           :  return 0000; // unsafe readline
-                //        case "reflection-injection"      :  return 0000; // reflection injection
-                //        case "reflected-xss"             :  return 79;   // xss
             case "91":
             case "643":
                 return CweNumber.XPATH_INJECTION;
             case "73": // This tool calls this CWE-73 "External Control of File"
             case "22":
                 return CweNumber.PATH_TRAVERSAL;
-                // Name or Path"
-                //        case "crypto-bad-mac"            :  return 328;  // weak hash
-                //        case "crypto-weak-randomness"    :  return 330;  // weak random
-                //        case "crypto-bad-ciphers"        :  return 327;  // weak encryption
             case "501":
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
-                //        case "xxe"                       :  return 611;  // xml entity
             case "134":
                 return CweNumber
                         .EXTERNALLY_CONTROLLED_STRING; // Use of Externally-Controlled Format String
-                // - Which really isn't a
             default:
                 System.out.println(
                         "No matching CWE # found in CAST AIP Reader for: 'CWE-" + name + "'");
         }
-        return 0000;
+        return Integer.parseInt(name.trim());
     }
 }

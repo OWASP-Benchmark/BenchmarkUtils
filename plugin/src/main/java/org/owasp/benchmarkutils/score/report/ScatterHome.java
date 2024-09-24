@@ -22,7 +22,6 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.security.SecureRandom;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +36,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.Tool;
-import org.owasp.benchmarkutils.score.ToolResults;
+import org.owasp.benchmarkutils.score.ToolMetrics;
 
 public class ScatterHome extends ScatterPlot {
 
@@ -68,13 +67,13 @@ public class ScatterHome extends ScatterPlot {
         XYSeries series = new XYSeries("Scores");
         for (Tool toolReport : tools) {
             if (!toolReport.isCommercial()) {
-                ToolResults overallResults = toolReport.getOverallResults();
+                ToolMetrics overallMetrics = toolReport.getOverallMetrics();
                 series.add(
-                        overallResults.getFalsePositiveRate() * 100,
-                        overallResults.getTruePositiveRate() * 100);
+                        overallMetrics.getFalsePositiveRate() * 100,
+                        overallMetrics.getTruePositiveRate() * 100);
                 if (toolReport.isCommercial()) {
-                    averageCommercialFalseRates.add(overallResults.getFalsePositiveRate());
-                    averageCommercialTrueRates.add(overallResults.getTruePositiveRate());
+                    averageCommercialFalseRates.add(overallMetrics.getFalsePositiveRate());
+                    averageCommercialTrueRates.add(overallMetrics.getTruePositiveRate());
                 }
             }
         }
@@ -83,15 +82,15 @@ public class ScatterHome extends ScatterPlot {
         for (Tool toolReport : tools) {
             if (toolReport.isCommercial()) {
                 commercialToolCount++;
-                ToolResults overallResults = toolReport.getOverallResults();
+                ToolMetrics overallMetrics = toolReport.getOverallMetrics();
                 if (!BenchmarkScore.config.showAveOnlyMode) {
                     series.add(
-                            overallResults.getFalsePositiveRate() * 100,
-                            overallResults.getTruePositiveRate() * 100);
+                            overallMetrics.getFalsePositiveRate() * 100,
+                            overallMetrics.getTruePositiveRate() * 100);
                 }
                 if (toolReport.isCommercial()) {
-                    averageCommercialFalseRates.add(overallResults.getFalsePositiveRate());
-                    averageCommercialTrueRates.add(overallResults.getTruePositiveRate());
+                    averageCommercialFalseRates.add(overallMetrics.getFalsePositiveRate());
+                    averageCommercialTrueRates.add(overallMetrics.getTruePositiveRate());
                 }
             }
         }
@@ -170,10 +169,10 @@ public class ScatterHome extends ScatterPlot {
         int commercialToolCount = 0;
         for (Tool r : tools) {
             if (!r.isCommercial()) {
-                ToolResults or = r.getOverallResults();
-                double x = or.getFalsePositiveRate() * 100 + sr.nextDouble() * .000001;
+                ToolMetrics overallMetrics = r.getOverallMetrics();
+                double x = overallMetrics.getFalsePositiveRate() * 100 + sr.nextDouble() * .000001;
                 double y =
-                        or.getTruePositiveRate() * 100
+                        overallMetrics.getTruePositiveRate() * 100
                                 + sr.nextDouble() * .000001
                                 - 1; // this puts the label just below the point
                 Point2D p = new Point2D.Double(x, y);
@@ -189,10 +188,11 @@ public class ScatterHome extends ScatterPlot {
             if (r.isCommercial()) {
                 commercialToolCount++;
                 if (!BenchmarkScore.config.showAveOnlyMode) {
-                    ToolResults or = r.getOverallResults();
-                    double x = or.getFalsePositiveRate() * 100 + sr.nextDouble() * .000001;
+                    ToolMetrics overallMetrics = r.getOverallMetrics();
+                    double x =
+                            overallMetrics.getFalsePositiveRate() * 100 + sr.nextDouble() * .000001;
                     double y =
-                            or.getTruePositiveRate() * 100
+                            overallMetrics.getTruePositiveRate() * 100
                                     + sr.nextDouble() * .000001
                                     - 1; // this puts the label just below the point
                     Point2D p = new Point2D.Double(x, y);
@@ -231,7 +231,7 @@ public class ScatterHome extends ScatterPlot {
 
         // non-commercial results
         for (Tool r : tools) {
-            ToolResults or = r.getOverallResults();
+            ToolMetrics overallMetrics = r.getOverallMetrics();
             if (!r.isCommercial()) {
                 // print non-commercial label if there is at least one non-commercial tool
                 if (!printedNonCommercialLabel) {
@@ -253,8 +253,8 @@ public class ScatterHome extends ScatterPlot {
                         i,
                         label,
                         r.getToolNameAndVersion(),
-                        or.getTruePositiveRate(),
-                        or.getFalsePositiveRate());
+                        overallMetrics.getTruePositiveRate(),
+                        overallMetrics.getFalsePositiveRate());
                 i++;
                 // Weak hack if there are more than 26 tools scored. This will only get us to 52.
                 if (ch == 'Z') ch = 'a';
@@ -265,11 +265,9 @@ public class ScatterHome extends ScatterPlot {
         // commercial tools - Their averages have already been calculated
         boolean printedCommercialLabel = false;
         int commercialToolCount = 0;
-        final DecimalFormat DF = new DecimalFormat("#0.0");
 
         for (Tool r : tools) {
-
-            ToolResults or = r.getOverallResults();
+            ToolMetrics overallMetrics = r.getOverallMetrics();
             if (r.isCommercial()) {
 
                 // print commercial label if there is at least one commercial tool
@@ -293,8 +291,8 @@ public class ScatterHome extends ScatterPlot {
                             i,
                             label,
                             r.getToolNameAndVersion(),
-                            or.getTruePositiveRate(),
-                            or.getFalsePositiveRate());
+                            overallMetrics.getTruePositiveRate(),
+                            overallMetrics.getFalsePositiveRate());
                     i++;
                     // Weak hack if more than 26 tools scored. This will only get us to 52.
                     if (ch == 'Z') ch = 'a';
@@ -304,10 +302,11 @@ public class ScatterHome extends ScatterPlot {
 
             // This highlights the tool of focus, making that plot point green. Rarely used.
             if (r.getToolName().replace(' ', '_').equalsIgnoreCase(focus)) {
-                ToolResults orc = r.getOverallResults();
+                ToolMetrics overallMetrics2 = r.getOverallMetrics();
                 Point2D focusPoint =
                         new Point2D.Double(
-                                orc.getFalsePositiveRate() * 100, orc.getTruePositiveRate() * 100);
+                                overallMetrics2.getFalsePositiveRate() * 100,
+                                overallMetrics2.getTruePositiveRate() * 100);
                 Color green = new Color(0, 1, 0, 0.5f);
                 makePoint(xyplot, focusPoint, 3, green);
             }

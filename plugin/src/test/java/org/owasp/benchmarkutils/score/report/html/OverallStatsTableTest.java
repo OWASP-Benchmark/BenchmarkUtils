@@ -29,7 +29,7 @@ import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.Configuration;
 import org.owasp.benchmarkutils.score.TestSuiteResults.ToolType;
 import org.owasp.benchmarkutils.score.Tool;
-import org.owasp.benchmarkutils.score.ToolResults;
+import org.owasp.benchmarkutils.score.ToolMetrics;
 import org.owasp.benchmarkutils.score.builder.ConfigurationBuilder;
 import org.owasp.benchmarkutils.score.builder.TestSuiteResultsBuilder;
 import org.owasp.benchmarkutils.score.builder.ToolBuilder;
@@ -60,7 +60,7 @@ class OverallStatsTableTest {
                                         .setToolVersion("1.0")
                                         .setToolType(ToolType.SAST)
                                         .build())
-                        .setToolResults(
+                        .setToolMetrics(
                                 ToolResultsBuilder.builder()
                                         .setTruePositiveRate(0.7)
                                         .setFalsePositiveRate(0.5)
@@ -75,7 +75,7 @@ class OverallStatsTableTest {
                                         .setToolVersion("2.0")
                                         .setToolType(ToolType.DAST)
                                         .build())
-                        .setToolResults(
+                        .setToolMetrics(
                                 ToolResultsBuilder.builder()
                                         .setTruePositiveRate(0.8)
                                         .setFalsePositiveRate(0.6)
@@ -125,7 +125,7 @@ class OverallStatsTableTest {
                                         .setToolVersion("1.0")
                                         .setToolType(ToolType.SAST)
                                         .build())
-                        .setToolResults(
+                        .setToolMetrics(
                                 ToolResultsBuilder.builder()
                                         .setTruePositiveRate(0.8)
                                         .setFalsePositiveRate(0.1)
@@ -159,7 +159,7 @@ class OverallStatsTableTest {
                                         .setToolVersion("1.0")
                                         .setToolType(ToolType.SAST)
                                         .build())
-                        .setToolResults(
+                        .setToolMetrics(
                                 ToolResultsBuilder.builder()
                                         .setTruePositiveRate(0.2)
                                         .setFalsePositiveRate(0.2)
@@ -201,7 +201,7 @@ class OverallStatsTableTest {
                                         .setToolname("Tool B")
                                         .setIsCommercial(false)
                                         .build())
-                        .setToolResults(
+                        .setToolMetrics(
                                 ToolResultsBuilder.builder()
                                         .setTruePositiveRate(0)
                                         .setFalsePositiveRate(0)
@@ -233,7 +233,7 @@ class OverallStatsTableTest {
                                         .setToolVersion("1.0")
                                         .setTestSuiteVersion("1.2")
                                         .build())
-                        .setToolResults(
+                        .setToolMetrics(
                                 ToolResultsBuilder.builder()
                                         .setTruePositiveRate(0.7)
                                         .setFalsePositiveRate(0.5)
@@ -248,7 +248,7 @@ class OverallStatsTableTest {
                                         .setToolVersion("2.0")
                                         .setTestSuiteVersion("1.3")
                                         .build())
-                        .setToolResults(
+                        .setToolMetrics(
                                 ToolResultsBuilder.builder()
                                         .setTruePositiveRate(0.8)
                                         .setFalsePositiveRate(0.6)
@@ -273,7 +273,7 @@ class OverallStatsTableTest {
                         .setIncludePrecision(true)
                         .build();
 
-        ToolResults firstToolResults =
+        ToolMetrics firstToolResults =
                 ToolResultsBuilder.builder()
                         .setTruePositiveRate(0.7)
                         .setFalsePositiveRate(0.5)
@@ -287,10 +287,10 @@ class OverallStatsTableTest {
                                         .setToolVersion("1.0")
                                         .setToolType(ToolType.SAST)
                                         .build())
-                        .setToolResults(firstToolResults)
+                        .setToolMetrics(firstToolResults)
                         .setIsCommercial(true)
                         .build();
-        ToolResults secondToolResults =
+        ToolMetrics secondToolResults =
                 ToolResultsBuilder.builder()
                         .setTruePositiveRate(0.8)
                         .setFalsePositiveRate(0.6)
@@ -304,7 +304,7 @@ class OverallStatsTableTest {
                                         .setToolVersion("2.0")
                                         .setToolType(ToolType.DAST)
                                         .build())
-                        .setToolResults(secondToolResults)
+                        .setToolMetrics(secondToolResults)
                         .build();
 
         OverallStatsTable table = new OverallStatsTable(config, new TestSuiteName("Benchmark"));

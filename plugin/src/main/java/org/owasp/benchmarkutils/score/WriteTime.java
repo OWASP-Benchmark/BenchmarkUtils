@@ -53,7 +53,7 @@ public class WriteTime extends AbstractMojo {
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (null == toolName) {
-            System.out.println("ERROR: A 'toolName' value must be specified.");
+            System.err.println("ERROR: A 'toolName' value must be specified.");
         } else {
             String[] mainArgs = {toolName};
             main(mainArgs);

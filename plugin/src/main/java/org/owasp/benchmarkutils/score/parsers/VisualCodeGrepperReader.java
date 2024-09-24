@@ -20,7 +20,6 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -91,9 +90,9 @@ public class VisualCodeGrepperReader extends Reader {
 
         String classname = getNamedChild("FileName", n).getTextContent();
         classname = (classname.substring(classname.lastIndexOf('\\') + 1)).split("\\.")[0];
-        if (classname.startsWith(BenchmarkScore.TESTCASENAME)) {
+        if (isTestCaseFile(classname)) {
             TestCaseResult tcr = new TestCaseResult();
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(classname));
+            tcr.setActualResultTestID(classname);
 
             Node catnode = getNamedNode("Title", n.getChildNodes());
             tcr.setCWE(figureCWE(tcr, catnode));

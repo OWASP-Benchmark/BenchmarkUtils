@@ -26,6 +26,7 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import org.owasp.benchmarkutils.score.CweMatchDetails;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.domain.TestSuiteName;
@@ -86,7 +87,7 @@ public class ResultsFileCreator {
         }
 
         ps.print(
-                "real vulnerability, identified by tool, pass/fail, "
+                "real vulnerability, identified by tool, actual CWE reported, parent or child CWE?, pass/fail, "
                         + testSuiteName.simpleName()
                         + " version: "
                         + testSuiteVersion);
@@ -99,6 +100,7 @@ public class ResultsFileCreator {
         TestCaseResult actualResult = actual.getTestCaseResults(testcaseID).get(0);
         boolean isReal = actualResult.isTruePositive();
         boolean passed = actualResult.isPassed();
+        CweMatchDetails cweMatchDetails = actualResult.getMatchDetails();
 
         ps.print(actualResult.getTestCaseName());
         ps.print(", " + actualResult.getCategory());
@@ -110,9 +112,16 @@ public class ResultsFileCreator {
             ps.print(", " + actualResult.getSink());
         }
 
-        ps.print(", " + isReal);
-        ps.print(", " + (isReal == passed));
-        ps.println(", " + (passed ? "pass" : "fail"));
+        ps.print(", " + isReal); // real vulnerability
+        ps.print(", " + (isReal == passed)); // identified by tool
+        // actual CWE reported
+        ps.print(
+                ", "
+                        + (cweMatchDetails.actualCWEreported == -1
+                                ? ""
+                                : cweMatchDetails.actualCWEreported));
+        ps.print(", " + cweMatchDetails.CWErelationship); // parent or child CWE?
+        ps.println(", " + (passed ? "pass" : "fail")); // pass/fail
     }
 
     private String resultsFilename(TestSuiteResults actual) {

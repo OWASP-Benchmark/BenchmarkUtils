@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -130,9 +129,9 @@ public class WapitiJsonReader extends Reader {
         try {
             String filename = getFilenameFromFinding(finding);
 
-            if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+            if (isTestCaseFile(filename)) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+                tcr.setActualResultTestID(filename);
                 tcr.setCWE(cwe);
                 return tcr;
             }

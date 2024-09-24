@@ -21,7 +21,6 @@ import java.io.StringReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -85,14 +84,14 @@ public class WapitiReader extends Reader {
                 String path = getNamedChild("path", entry).getTextContent();
                 // Note that Path is a URL, not a source code file. So there is no filename
                 // extension to trim off
-                if (path.contains(BenchmarkScore.TESTCASENAME)) {
+                if (isTestCaseFile(path)) {
                     TestCaseResult tcr = new TestCaseResult();
                     tcr.setCWE(cwe);
                     tcr.setEvidence(
                             getAttributeValue("name", vuln)
                                     + "::"
                                     + getNamedChild("curl_command", entry).getTextContent());
-                    tcr.setTestID(getBenchmarkStyleTestCaseNumber(path));
+                    tcr.setActualResultTestID(path);
                     tr.put(tcr);
                 }
             }

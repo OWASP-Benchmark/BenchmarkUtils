@@ -78,17 +78,13 @@ public class PMDReader extends Reader {
 
         List<Node> violationNodes = getNamedChildren("violation", fileNode);
         String testclass = filename.substring(filename.lastIndexOf(File.separator) + 1);
-        // System.out.println(
-        //        "DRW: " + violationNodes.size() + " potential violations for file: " + testclass);
         if (isTestCaseFile(testclass)) {
-            // System.out.println("DRW: " + testclass + " is test case file.");
             for (Node violationNode : violationNodes) {
 
                 TestCaseResult tcr = new TestCaseResult();
                 tcr.setActualResultTestID(testclass);
                 String violation =
                         violationNode.getAttributes().getNamedItem("rule").getNodeValue();
-                // System.out.println("DRW: looking up CWE for rule: " + violation);
                 tcr.setCWE(figureCWE(violation, testclass));
                 tcr.setEvidence(violation);
                 results.add(tcr);
@@ -103,35 +99,43 @@ public class PMDReader extends Reader {
             case "AtLeastOneConstructor":
             case "AvoidBranchingStatementAsLastInLoop":
             case "AvoidDeeplyNestedIfStmts":
-            case "AvoidDuplicateLiterals":
+            case "AvoidDuplicateLiterals": // Semi-replacement for AvoidFinalLocalVariable
             case "AvoidFileStream":
+            case "AvoidFinalLocalVariable": // Deprecated PMD rule. No replacement.
             case "AvoidInstantiatingObjectsInLoops":
             case "AvoidLiteralsInIfCondition":
-            case "AvoidReassigningParameters":
+            case "AvoidPrefixingMethodParameters": // Deprecated PMD rule, replaced with
+                // FormalParameterNamingConventions
             case "AvoidStringBufferField":
-            case "AvoidUsingHardCodedIP":
-            case "AvoidUsingNativeCode":
             case "AvoidUsingOctalValues":
+            case "AvoidUsingShortType": // Deprecated PMD rule. No replacement.
+            case "AvoidUsingVolatile":
+            case "BeanMembersShouldSerialize": // Deprecated PMD rule, replaced with
+                // NonSerializableClass
             case "ClassNamingConventions":
             case "ClassWithOnlyPrivateConstructorsShouldBeFinal":
             case "CloneMethodMustBePublic":
             case "CollapsibleIfStatements":
             case "CognitiveComplexity":
-            case "CommentDefaultAccessModifier": // What is this?
+            case "CommentDefaultAccessModifier": // Replacement for DefaultPackage
             case "ConfusingTernary":
-            case "ControlStatementBraces":
+            case "ConsecutiveAppendsShouldReuse":
             case "CyclomaticComplexity":
-            case "EmptyCatchBlock":
-            case "EmptyControlStatement":
-            case "EmptyFinallyBlock":
-            case "EmptyStatementNotInLoop":
-            case "EmptySwitchStatements":
+            case "DefaultPackage": // Deprecated PMD rule, replaced with
+                // CommentDefaultAccessModifier
+            case "DuplicateImports": // Deprecated PMD rule, replaced with Unnecessary Import
+            case "EmptyFinallyBlock": // Deprecated PMD rule, replaced with EmptyControlStatement
+            case "EmptySwitchStatements": // Deprecated PMD rule, replaced with
+                // EmptyControlStatement
             case "ExceptionAsFlowControl":
+            case "ExcessiveMethodLength": // Deprecated PMD rule, use NcssCount instead
             case "FieldDeclarationsShouldBeAtStartOfClass":
-            case "FieldNamingConventions":
-            case "GuardLogStatement":
+            case "ForLoopCanBeForeach":
+            case "FormalParameterNamingConventions":
+            case "GodClass":
             case "IdenticalCatchBranches":
             case "ImmutableField": // One of the static/final but not Immutable CWEs?
+            case "InsufficientStringBufferDeclaration":
             case "LawOfDemeter": // Principal of Least Knowledge
             case "LinguisticNaming":
             case "LocalVariableCouldBeFinal":
@@ -142,16 +146,21 @@ public class PMDReader extends Reader {
             case "MethodNamingConventions":
             case "MissingOverride":
             case "MissingSerialVersionUID":
-            case "NcssCount": // What is this?
+            case "MoreThanOneLogger":
+            case "NcssCount": // Generates non-commenting source statements (NCSS) metrics
+            case "NonThreadSafeSingleton":
             case "NonStaticInitializer":
             case "NPathComplexity":
+            case "OneDeclarationPerLine":
             case "OnlyOneReturn":
-            case "OverrideBothEqualsAndHashcode":
             case "PackageCase":
+            case "PrematureDeclaration":
             case "RedundantFieldInitializer":
+            case "ReplaceHashtableWithMap":
             case "ReplaceVectorWithList":
             case "ShortClassName":
             case "ShortVariable":
+            case "SimplifyBooleanReturns":
             case "SwitchDensity":
             case "SystemPrintln":
             case "TestClassWithoutTestCases":
@@ -159,7 +168,6 @@ public class PMDReader extends Reader {
             case "TooManyMethods":
             case "UnnecessaryAnnotationValueElement":
             case "UnnecessaryBoxing":
-            case "UnusedAssignment":
             case "UnnecessaryCast":
             case "UnnecessaryConversionTemporary":
             case "UnnecessaryFullyQualifiedName":
@@ -167,132 +175,174 @@ public class PMDReader extends Reader {
             case "UnnecessaryLocalBeforeReturn":
             case "UnnecessaryModifier":
             case "UnnecessaryReturn":
-            case "UnnecessarySemicolon":
             case "UnusedImports":
-            case "UnusedPrivateField":
-            case "UnusedPrivateMethod":
-            case "UseDiamondOperator":
             case "UseArrayListInsteadOfVector":
+            case "UseDiamondOperator":
+            case "UseIndexOfChar":
             case "UselessOperationOnImmutable":
             case "UselessParentheses":
             case "UselessStringValueOf":
             case "UseLocaleWithCaseConversions":
+            case "UseProperClassLoader":
             case "UseShortArrayInitializer":
-            case "UseTryWithResources": // CWE 772?
             case "UseUnderscoresInNumericLiterals":
+            case "UseUtilityClass":
             case "UseVarargs":
+            case "VariableNamingConventions": // Deprecated PMD rule, replaced w/ 3x more specific
+                // rules
                 return CweNumber.DONTCARE;
 
-                /*/ Some of these might map to CWEs
-                case "DoNotThrowExceptionInFinally":
-                case "LiteralsFirstInComparisons": // CWE for NullPointer?
-                case "PrematureDeclaration": // ???
-                case "UseIndexOfChar":
-                case "UseProperClassLoader":
-                    return CweNumber.DONTCARE;*/
-
-                // Are these the CWE for Expression Always True or False?
-            case "EmptyIfStmt":
-            case "UnconditionalIfStatement":
-                return CweNumber.DONTCARE;
+            case "AvoidUsingNativeCode":
+                return 111; // Direct Use of Unsafe JNI
 
             case "AvoidPrintStackTrace":
-                return 209;
-
-            case "AvoidThrowingRawExceptionTypes":
-                return 248;
+                return 209; // Generation of Error Msg Containing Sensitive Info
 
             case "HardCodedCryptoKey":
-                return 321;
+                return 321; // Use of Hard-coded Crypto Key
+            case "InsecureCryptoIv":
+                return 329; // Generate Predictable IV with CBC Mode
 
+            case "DoNotCallSystemExit": // Deprecated PMD rule, renamed to DoNotTerminateVM
             case "DoNotTerminateVM":
-                return 382;
+                return 382; // Use of System.exit()
             case "DoNotUseThreads":
-                return 383;
+                return 383; // Direct Use of Threads
+
+            case "EmptyIfStmt": // Deprecated PMD rule, replaced with EmptyControlStatement
+            case "EmptyCatchBlock":
+                return 390; // Detection of Error Condition w/out Action
             case "AvoidCatchingNPE":
-                return 395;
+                return 395; // Use of NPE Catch to Detect NULL Pointer Dereference
 
             case "AvoidCatchingGenericException":
             case "AvoidCatchingThrowable":
-                return 396;
+                return 396; // Declaration of Catch for Generic Exception
 
+            case "AvoidThrowingRawExceptionTypes":
+            case "SignatureDeclareThrowsException":
+                return 397; // Declaration of Throws for Generic Exception
+
+            case "EmptyControlStatement":
+            case "EmptyStatementBlock": // Deprecated PMD rule, replaced with EmptyControlStatement
+            case "EmptyWhileStmt": // Deprecated PMD rule, replaced with EmptyControlStatement
+            case "EmptyStatementNotInLoop": // Deprecated PMD rule, replaced w/ UnnecessarySemicolon
             case "IdempotentOperations":
-                return 398;
+            case "UnnecessarySemicolon":
+                return 398; // Code Quality - prohibited mapping category
+
+            case "RESOURCE_LEAK": // FbInfer Additional rule
+                return 400; // Uncontrolled Resource Consumption
 
             case "CloseResource":
-                return 400;
+                return 404; // Improper Resource Shutdown or Release
 
             case "BrokenNullCheck":
+            case "LiteralsFirstInComparisons":
             case "NullAssignment":
-                return 476;
+            case "NULL_DEREFERENCE": // FbInfer Additional rule
+            case "PositionLiteralsFirstInComparisons": // Replaced by LiteralsFirstInComparisons
+                return 476; // NULL Pointer Dereference
 
             case "SwitchStmtsShouldHaveDefault":
-                return 478;
+                return 478; // Missing Default Case in Multiple Condition Expression
 
-            case "OneDeclarationPerLine":
-                return 483;
+            case "AssignmentInOperand":
+                return 481; // Assigning instead of Comparing
+
+            case "SimplifyBooleanExpressions":
+                return 482; // Comparing Instead of Assigning
+
+            case "IfStmtsMustUseBraces": // Deprecated PMD Rule, replaced by ControlStatementBraces
+            case "ControlStatementBraces":
+                return 483; // Incorrect Block Delimitation
+
             case "ImplicitSwitchFallThrough":
-                return 484;
+            case "MissingBreakInSwitch": // Deprecated: replaced by ImplicitSwitchFallThrough
+                return 484; // Omitted Break Statement in Switch
 
+            case "CloneMethodReturnTypeMustMatchClassName":
+                return 491; // Public cloneable Method without Final (Object Hijack)
+
+            case "FieldNamingConventions":
+            case "SuspiciousConstantFieldName": // Deprecated: replaced by FieldNamingConventions
+                return 500; // Pub Static Field Not Marked Final
+
+            case "AvoidAccessibilityAlteration":
+                return 506; // Embedded Malicious Code
+            case "AvoidUsingHardCodedIP":
+                return 510; // Trapdoor, child of CWE-506: Malicious Code
+            case "GuardLogStatement":
+                return 532; // Info Exposure Through Server Log Files
+
+            case "UnusedPrivateMethod":
+                return 561; // Dead Code
+
+            case "AvoidReassigningParameters":
+            case "DataflowAnomalyAnalysis": // Deprecated: replaced by UnusedAssignment
+            case "SingularField":
+            case "UnusedAssignment":
             case "UnusedFormalParameter":
             case "UnusedLocalVariable":
-                return 563;
+            case "UnusedPrivateField":
+                return 563; // Unused Variable
 
+            case "EmptyFinalizer":
             case "FinalizeDoesNotCallSuperFinalize":
-                return 568;
+                return 568; // finalize() without super.finalize()
+
+                // CWE 570 is Expression Always False - 571 is Expression Always True
+                // Return parent of 570, 571, since this doesn't distinguish between them
+            case "UnconditionalIfStatement":
+                return 710; // Improper Adherence to Coding Standards
 
             case "DontCallThreadRun":
-                return 572;
+                return 572; // Call to Thread run() instead of start()
 
             case "ProperCloneImplementation":
                 return 580;
-
+            case "OverrideBothEqualsAndHashcode":
+                return 581;
             case "ReturnFromFinallyBlock":
-                return 584;
+                return 584; // Return Inside Finally Block
+            case "DoNotThrowExceptionInFinally": // Has same effect as ReturnFromFinallyBlock
+                return 705; // Incorrect Control Flow Scoping (parent of 584)
 
+            case "EmptySynchronizedBlock": // Deprecated: replaced by EmptyControlStatement
+                return 585; // Empty Synchronized Block
             case "AvoidCallingFinalize":
-                return 586;
+                return 586; // Explicit Call to Finalize()
 
             case "CompareObjectsWithEquals":
             case "UseEqualsToCompareStrings":
-                return 597;
+                return 597; // Use of Wrong Operator in String Comparison
 
             case "MutableStaticState":
-                return 607; // Or 582?
+                return 607; // Pub Stat Final Field References Mutable Object - could also be
+                // 582-Array Declared Public, Final, Static
 
-                // Should any of these be 609??
-                // case "AvoidSynchronizedAtMethodLevel":
-                // case "DoNotUseThreads":
-                // case "NonThreadSafeSingleton":
             case "DoubleCheckedLocking":
-                return 609;
+                return 609; // Double-Checked Locking
 
-                // Don't think PMD reports any of these:
-            case "??1":
+            case "UseTryWithResources":
+                return 772; // Missing Release of Resource after Effective Lifetime
+
+            case "AvoidSynchronizedAtMethodLevel":
+                return 833; // Deadlock
+
+            case "WhileLoopWithLiteralBoolean":
+                return 835; // While True
+
+                /* Don't think PMD reports any of these:
                 return CweNumber.INSECURE_COOKIE;
-            case "??2":
                 return CweNumber.WEAK_RANDOM;
-            case "??3":
                 return CweNumber.LDAP_INJECTION;
-            case "??4":
                 return CweNumber.PATH_TRAVERSAL;
-            case "??5":
-                return CweNumber.PATH_TRAVERSAL;
-            case "??6":
                 return CweNumber.WEAK_CRYPTO_ALGO;
-            case "??7":
                 return CweNumber.XPATH_INJECTION;
-            case "??8":
                 return CweNumber.WEAK_HASH_ALGO;
-            case "??9":
                 return CweNumber.COMMAND_INJECTION;
-            case "??10":
-                return CweNumber.XSS;
-
-                // FbInfer additional rules
-            case "RESOURCE_LEAK":
-            case "NULL_DEREFERENCE":
-                return CweNumber.DONTCARE;
+                return CweNumber.XSS; */
 
             default:
                 System.out.println(

@@ -20,8 +20,6 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.util.Objects;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -53,42 +51,23 @@ public class BearerReader extends Reader {
         return tr;
     }
 
-    private int translate(int cwe) {
-        switch (cwe) {
-            case 326:
-                return CweNumber.WEAK_CRYPTO_ALGO;
-            case 327:
-                return CweNumber.WEAK_HASH_ALGO;
-            default:
-                return cwe;
-        }
-    }
-
     private TestCaseResult parseBearerFindings(JSONObject result) {
         try {
             String className = result.getString("filename");
             className = (className.substring(className.lastIndexOf('/') + 1)).split("\\.")[0];
-            if (className.startsWith(BenchmarkScore.TESTCASENAME)) {
+            if (isTestCaseFile(className)) {
                 TestCaseResult tcr = new TestCaseResult();
 
                 // CWE
                 String cweString = result.getJSONArray("cwe_ids").getString(0);
-                int cwe = Integer.parseInt(cweString);
-
-                try {
-                    cwe = translate(cwe);
-                } catch (NumberFormatException ex) {
-                    System.out.println(
-                            "CWE # not parseable from: " + result.getJSONObject("cwe_ids"));
-                }
+                tcr.setCWE(Integer.parseInt(cweString));
 
                 // evidence
                 String evidence = result.getString("id");
 
-                tcr.setCWE(cwe);
                 tcr.setEvidence(evidence);
-                tcr.setConfidence(0);
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(className));
+                // tcr.setConfidence(0);
+                tcr.setActualResultTestID(className);
 
                 return tcr;
             }

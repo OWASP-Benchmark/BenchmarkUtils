@@ -87,7 +87,7 @@ public class BenchmarkCrawler extends AbstractMojo {
         try {
             crawl(testSuite);
         } catch (Exception e) {
-            System.out.println("ERROR: Problem crawling");
+            System.err.println("ERROR: Problem crawling");
             e.printStackTrace();
         }
     }
@@ -340,7 +340,7 @@ public class BenchmarkCrawler extends AbstractMojo {
         if (thisInstance == null) thisInstance = this;
 
         if (null == this.crawlerFile) {
-            System.out.println("ERROR: A crawlerFile parameter must be specified.");
+            System.err.println("ERROR: A crawlerFile parameter must be specified.");
         } else {
             String[] mainArgs = {"-f", this.crawlerFile};
             main(mainArgs);

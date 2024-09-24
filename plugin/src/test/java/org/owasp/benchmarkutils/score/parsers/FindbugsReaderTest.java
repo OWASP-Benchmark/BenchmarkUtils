@@ -76,6 +76,8 @@ public class FindbugsReaderTest extends ReaderTestBase {
         assertEquals(2, result.getTotalResults());
 
         assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("1").get(0).getCWE());
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.getTestCaseResults("2").get(0).getCWE());
+        assertEquals(
+                23,
+                result.getTestCaseResults("2").get(0).getCWE()); // 23 is Relative Path Traversal
     }
 }

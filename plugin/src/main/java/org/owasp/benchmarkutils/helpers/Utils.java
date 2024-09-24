@@ -68,7 +68,7 @@ public class Utils {
             safeDocBuilderFactory.setFeature(
                     "http://apache.org/xml/features/disallow-doctype-decl", true);
         } catch (ParserConfigurationException e) {
-            System.out.println(
+            System.err.println(
                     "ERROR: couldn't set http://apache.org/xml/features/disallow-doctype-decl");
             e.printStackTrace();
         }
@@ -123,7 +123,7 @@ public class Utils {
      */
     public static List<String> getLinesFromFile(File file) {
         if (file == null) {
-            System.out.println("ERROR: getLinesFromFile() invoked with null file parameter.");
+            System.err.println("ERROR: getLinesFromFile() invoked with null file parameter.");
             return null;
         }
         String filename = file.getName();
@@ -135,7 +135,7 @@ public class Utils {
             }
             return getLinesFromStream(new FileInputStream(file), filename);
         } catch (FileNotFoundException e) {
-            System.out.println("Can't find file to get lines from: " + filename);
+            System.err.println("Can't find file to get lines from: " + filename);
             return null;
         }
     }
@@ -159,8 +159,8 @@ public class Utils {
             while ((line = br.readLine()) != null) {
                 sourceLines.add(line);
             }
-        } catch (Exception e) {
-            System.out.println("Problem reading contents of file stream: " + sourceFileName);
+        } catch (IOException e) {
+            System.err.println("Problem reading contents of file stream: " + sourceFileName);
             e.printStackTrace();
         }
 
@@ -233,7 +233,7 @@ public class Utils {
         final URL srcURL = CL.getResource(sourceLoc);
 
         if (srcURL == null) {
-            System.out.printf(
+            System.err.printf(
                     "ERROR: copyFilesFromDirRecursively() can't find source resource: %s%n",
                     sourceLoc);
             return;
@@ -256,7 +256,7 @@ public class Utils {
                     try {
                         FileUtils.copyDirectory(sourceFile, target.toFile(), false);
                     } catch (IOException e) {
-                        System.out.println("ERROR: couldn't copyDirectory()");
+                        System.err.println("ERROR: couldn't copyDirectory()");
                         e.printStackTrace();
                     }
                 else
@@ -267,11 +267,11 @@ public class Utils {
                                 Paths.get(target.toString(), sourceFile.getName()),
                                 StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
-                        System.out.println("ERROR: couldn't copy source file to target directory,");
+                        System.err.println("ERROR: couldn't copy source file to target directory,");
                         e.printStackTrace();
                     }
             else
-                System.out.printf(
+                System.err.printf(
                         "ERROR: copyFilesFromDirRecursively() can't find source File: %s%n",
                         sourceLoc);
 
@@ -279,7 +279,7 @@ public class Utils {
         }
 
         if (!srcURL.getProtocol().equals("jar")) {
-            System.out.printf(
+            System.err.printf(
                     "ERROR: source resource not a file: or jar: resource. It is: %s%n", srcURL);
             return;
         }
@@ -291,7 +291,7 @@ public class Utils {
             //            resource = CL.getResource("").toURI();
             resource = CL.getResource(sourceLoc).toURI();
         } catch (URISyntaxException e2) {
-            System.out.printf("ERROR: couldn't find resource: %s%n", sourceLoc);
+            System.err.printf("ERROR: couldn't find resource: %s%n", sourceLoc);
             e2.printStackTrace();
             return;
         }
@@ -365,7 +365,7 @@ public class Utils {
                         }
                     });
         } catch (IOException e) {
-            System.out.println("ERROR trying to copy resources from JAR file to file system.");
+            System.err.println("ERROR trying to copy resources from JAR file to file system.");
             e.printStackTrace();
         }
     }

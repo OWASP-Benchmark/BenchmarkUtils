@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CategoryResults;
+import org.owasp.benchmarkutils.score.CategoryMetrics;
 import org.owasp.benchmarkutils.score.Configuration;
 import org.owasp.benchmarkutils.score.Tool;
 import org.owasp.benchmarkutils.score.builder.ConfigurationBuilder;
@@ -78,10 +78,11 @@ class MenuUpdaterTest {
                         emptyCommercialAveragesTable(),
                         asSet(firstTool, secondTool),
                         asSet("Path Traversal", "Command Injection"),
+                        emptySet(),
                         tmpDir,
                         new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")) {
                             @Override
-                            public String filenameFor(Tool tool) {
+                            public String filenameFor(Tool tool, boolean forCategoryGroups) {
                                 return "filename-for-" + tool.getToolName();
                             }
                         });
@@ -201,6 +202,7 @@ class MenuUpdaterTest {
                         emptyCommercialAveragesTable(),
                         emptySet(),
                         emptySet(),
+                        emptySet(),
                         tmpDir,
                         new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")));
 
@@ -233,6 +235,7 @@ class MenuUpdaterTest {
                         emptyCommercialAveragesTable(),
                         emptySet(),
                         emptySet(),
+                        emptySet(),
                         tmpDir,
                         new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")));
 
@@ -253,10 +256,10 @@ class MenuUpdaterTest {
                 asSet(
                         ToolBuilder.builder()
                                 .setIsCommercial(true)
-                                .setToolResults(
+                                .setToolMetrics(
                                         ToolResultsBuilder.builder()
                                                 .addCategoryResult(
-                                                        new CategoryResults("", 0, 0, 0, 0))
+                                                        new CategoryMetrics("", 0, 0, 0, 0))
                                                 .build())
                                 .build());
 
@@ -270,13 +273,9 @@ class MenuUpdaterTest {
                         commercialAveragesTable,
                         emptySet(),
                         emptySet(),
+                        emptySet(),
                         tmpDir,
-                        new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")) {
-                            @Override
-                            public String filenameFor(Tool tool) {
-                                return "filename-for-" + tool.getToolName();
-                            }
-                        });
+                        new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")) {});
 
         writeDummyHtmlTo("some-file.html", "some header");
 
@@ -302,10 +301,11 @@ class MenuUpdaterTest {
                         emptyCommercialAveragesTable(),
                         asSet(freeToolWithName("Tool A"), commercialToolWithName("Tool B")),
                         emptySet(),
+                        emptySet(),
                         tmpDir,
                         new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")) {
                             @Override
-                            public String filenameFor(Tool tool) {
+                            public String filenameFor(Tool tool, boolean forCategoryGroups) {
                                 return "filename-for-" + tool.getToolName();
                             }
                         });
@@ -316,10 +316,16 @@ class MenuUpdaterTest {
 
         String file = Files.readString(pathToFile("some-file.html"));
 
+        final String testStringA =
+                "<li><a href=\"filename-for-Tool A.html\">Tool A v47.11</a></li>";
+        final String testStringB =
+                "<li><a href=\"filename-for-Tool B.html\">Tool B v47.11</a></li>";
         assertTrue(
-                file.contains("<li><a href=\"filename-for-Tool A.html\">Tool A v47.11</a></li>"));
+                file.contains(testStringA),
+                "Couldn't find: '" + testStringA + "' in file contents: " + file);
         assertTrue(
-                file.contains("<li><a href=\"filename-for-Tool B.html\">Tool B v47.11</a></li>"));
+                file.contains(testStringB),
+                "Couldn't find: '" + testStringB + "' in file contents: " + file);
     }
 
     @Test
@@ -335,10 +341,11 @@ class MenuUpdaterTest {
                         emptyCommercialAveragesTable(),
                         asSet(freeToolWithName("Tool A"), commercialToolWithName("Tool B")),
                         emptySet(),
+                        emptySet(),
                         tmpDir,
                         new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")) {
                             @Override
-                            public String filenameFor(Tool tool) {
+                            public String filenameFor(Tool tool, boolean forCategoryGroups) {
                                 return "filename-for-" + tool.getToolName();
                             }
                         });
@@ -348,10 +355,15 @@ class MenuUpdaterTest {
         menuUpdater.updateMenus();
 
         String file = Files.readString(pathToFile("some-file.html"));
-
+        final String testStringA =
+                "<li><a href=\"filename-for-Tool A.html\">Tool A v47.11</a></li>";
+        final String testStringB =
+                "<li><a href=\"filename-for-Tool B.html\">Tool B v47.11</a></li>";
         assertTrue(
-                file.contains("<li><a href=\"filename-for-Tool A.html\">Tool A v47.11</a></li>"));
+                file.contains(testStringA),
+                "Couldn't find: '" + testStringA + "' in file contents: " + file);
         assertFalse(
-                file.contains("<li><a href=\"filename-for-Tool B.html\">Tool B v47.11</a></li>"));
+                file.contains(testStringB),
+                "Didn't expect to find: '" + testStringB + "' in file contents: " + file);
     }
 }

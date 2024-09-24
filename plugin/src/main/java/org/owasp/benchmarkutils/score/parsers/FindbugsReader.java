@@ -95,14 +95,10 @@ public class FindbugsReader extends Reader {
             Node cl = getNamedNode("Class", n.getChildNodes());
             String classname = cl.getAttributes().getNamedItem("classname").getNodeValue();
             classname = classname.substring(classname.lastIndexOf('.') + 1);
-            // TODO: Globally replace all instances like this across all parsers.
-            // if (classname.startsWith(BenchmarkScore.TESTCASENAME)) {
             if (isTestCaseFile(classname)) {
                 // System.out.println("Class: " + classname + " IS a test case file.");
                 TestCaseResult tcr = new TestCaseResult();
                 try {
-                    // TODO: Globally replace all instances like this across all parsers.
-                    //  tcr.setTestID(getBenchmarkStyleTestCaseNumber(classname));
                     tcr.setActualResultTestID(classname);
                     Node cwenode = attrs.getNamedItem("cweid");
                     Node catnode = attrs.getNamedItem("abbrev");
@@ -134,22 +130,14 @@ public class FindbugsReader extends Reader {
         }
         tcr.setEvidence("FB:" + cwe + "::" + cat);
 
+        // Current FindBugs/SpotBugs/FindSecBugs all report a CWE, so we use those if provided.
+        // All important bug patterns have their CWE ID associated in later versions (1.4.3+).
         if (cwe != null) {
-            // Map 2x path traversal CWEs to the standard CWE
-            if (cwe.equals("23") || cwe.equals("36")) {
-                cwe = "22";
-            }
-            // FSB identify DES/DESede as CWE-326 (Inadequate Encryption Strength) while Benchmark
-            // marked it as CWE-327 (Use of a Broken or Risky Cryptographic Algorithm)
-            else if (cwe.equals("326")) {
-                cwe = "327";
-            }
             return Integer.parseInt(cwe);
         }
 
-        // This is a fallback mapping for unsupported/old versions of the Find Security Bugs plugin
+        // Fallback mapping for unsupported/old versions of the Find Security Bugs plugin
         // as defined in: findsecbugs-plugin/src/main/resources/metadata/findbugs.xml
-        // All important bug patterns have their CWE ID associated in later versions (1.4.3+).
         switch (cat) {
                 // Cookies
             case "SECIC":

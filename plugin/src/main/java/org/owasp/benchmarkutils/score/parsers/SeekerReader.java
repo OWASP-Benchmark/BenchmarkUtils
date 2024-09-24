@@ -42,13 +42,14 @@ public class SeekerReader extends Reader {
         for (CSVRecord record : records) {
             String checkerKey = record.get("CheckerKey");
             String url = record.get("LastDetectionURL");
-
-            TestCaseResult tcr = new TestCaseResult();
-            tcr.setCWE(cweLookup(checkerKey));
-            tcr.setEvidence(checkerKey);
-            tcr.setTestID(getBenchmarkStyleTestCaseNumber(url));
-            if (tcr.getCWE() != 0) {
-                tr.put(tcr);
+            if (isTestCaseFile(url)) {
+                TestCaseResult tcr = new TestCaseResult();
+                tcr.setCWE(cweLookup(checkerKey));
+                tcr.setEvidence(checkerKey);
+                tcr.setActualResultTestID(url);
+                if (tcr.getCWE() != 0) {
+                    tr.put(tcr);
+                }
             }
         }
 

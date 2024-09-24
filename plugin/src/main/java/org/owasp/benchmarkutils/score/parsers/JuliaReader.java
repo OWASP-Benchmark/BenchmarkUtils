@@ -68,7 +68,11 @@ public class JuliaReader extends Reader {
         NodeList nl = root.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
-            if (n.getNodeName().equals("warning")) tr.put(parseJuliaBug(n));
+            if (n.getNodeName().equals("warning")) {
+                // Returns null if finding is not in a test case file
+                TestCaseResult tcr = parseJuliaBug(n);
+                if (tcr != null) tr.put(tcr);
+            }
         }
 
         return tr;
@@ -82,9 +86,13 @@ public class JuliaReader extends Reader {
             Node child = nl.item(i);
             String childName = child.getNodeName();
             if (childName.equals("source")) {
-                String where = child.getTextContent().replace('/', '.');
-                // "org.owasp.benchmark.testcode.BenchmarkTest00042.java"
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(where));
+                String where = child.getTextContent();
+                // where "org/owasp/benchmark/testcode/BenchmarkTest00042.java"
+                if (isTestCaseFile(where)) {
+                    tcr.setActualResultTestID(where);
+                } else {
+                    return null; // As finding is not in a test case
+                }
 
             } else if (childName.equals("CWEid"))
                 tcr.setCWE(Integer.parseInt(child.getTextContent()));

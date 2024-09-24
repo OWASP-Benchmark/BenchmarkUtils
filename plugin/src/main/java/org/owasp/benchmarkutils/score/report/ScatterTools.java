@@ -32,15 +32,15 @@ import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.owasp.benchmarkutils.score.CategoryResults;
-import org.owasp.benchmarkutils.score.ToolResults;
+import org.owasp.benchmarkutils.score.CategoryMetrics;
+import org.owasp.benchmarkutils.score.ToolMetrics;
 
 public class ScatterTools extends ScatterPlot {
 
     private double atpr, afpr;
 
-    public ScatterTools(String title, int height, ToolResults toolResults) {
-        display("          " + title, height, toolResults);
+    public ScatterTools(String title, int height, ToolMetrics toolMetrics) {
+        display("          " + title, height, toolMetrics);
     }
 
     /**
@@ -48,26 +48,26 @@ public class ScatterTools extends ScatterPlot {
      *
      * @param title - Title of chart being created. This is included at top of generated chat.
      * @param height - The height of the chart to create. Width is a fixed ratio of height.
-     * @param toolResults - The scores for this tool.
+     * @param toolMetrics - The metrics for this tool.
      * @return The generated scatter chart for this tool's results.
      */
-    private JFreeChart display(String title, int height, ToolResults toolResults) {
+    private JFreeChart display(String title, int height, ToolMetrics toolMetrics) {
 
         XYSeriesCollection dataset = new XYSeriesCollection();
         XYSeries series = new XYSeries("Scores");
         int totalTools = 0;
         double totalToolTPR = 0;
         double totalToolFPR = 0;
-        for (CategoryResults r : toolResults.getCategoryResults()) {
-            series.add(r.falsePositiveRate * 100, r.truePositiveRate * 100);
+        for (CategoryMetrics cm : toolMetrics.getCategoryMetrics()) {
+            series.add(cm.falsePositiveRate * 100, cm.truePositiveRate * 100);
             totalTools++;
-            totalToolTPR += r.truePositiveRate;
-            totalToolFPR += r.falsePositiveRate;
+            totalToolTPR += cm.truePositiveRate;
+            totalToolFPR += cm.falsePositiveRate;
         }
         atpr = totalToolTPR / totalTools;
         afpr = totalToolFPR / totalTools;
 
-        if (toolResults.getCategoryResults().size() > 1) {
+        if (toolMetrics.getCategoryMetrics().size() > 1) {
             series.add(afpr * 100, atpr * 100);
         }
 
@@ -88,12 +88,12 @@ public class ScatterTools extends ScatterPlot {
 
         XYPlot xyplot = this.chart.getXYPlot();
 
-        makeDataLabels(toolResults, xyplot);
+        makeDataLabels(toolMetrics, xyplot);
         double yCoordinate = 93; // default
         // If there are more than 30 rows to plot, move the legend up to the very top of the legend
         // box so more rows can be displayed
-        if (toolResults.getCategories().size() > 30) yCoordinate = 108;
-        makeLegend(toolResults, 103, yCoordinate, dataset, xyplot);
+        if (toolMetrics.getCategories().size() > 30) yCoordinate = 108;
+        makeLegend(toolMetrics, 103, yCoordinate, dataset, xyplot);
 
         // TODO: Make this into a method, or add it to makeDataLabels
         for (XYDataItem item : (List<XYDataItem>) series.getItems()) {
@@ -105,7 +105,7 @@ public class ScatterTools extends ScatterPlot {
         }
 
         XYTextAnnotation time =
-                new XYTextAnnotation("Tool run time: " + toolResults.getScanTime(), 12, -5.6);
+                new XYTextAnnotation("Tool run time: " + toolMetrics.getScanTime(), 12, -5.6);
         time.setTextAnchor(TextAnchor.TOP_LEFT);
         time.setFont(theme.getRegularFont());
         time.setPaint(Color.red);
@@ -121,25 +121,25 @@ public class ScatterTools extends ScatterPlot {
      * @param tools - THe set of tool results.
      * @param xyplot - The chart to make the Data labels on.
      */
-    private void makeDataLabels(ToolResults toolResults, XYPlot xyplot) {
-        HashMap<Point2D, String> map = makePointList(toolResults);
+    private void makeDataLabels(ToolMetrics toolMetrics, XYPlot xyplot) {
+        HashMap<Point2D, String> map = makePointList(toolMetrics);
         addLabelsToPlotPoints(map, xyplot);
     }
 
     private SecureRandom sr = new SecureRandom();
 
-    private HashMap<Point2D, String> makePointList(ToolResults toolResults) {
+    private HashMap<Point2D, String> makePointList(ToolMetrics toolMetrics) {
         HashMap<Point2D, String> map = new HashMap<Point2D, String>();
         char ch = ScatterHome.INITIAL_LABEL;
         int size = 0;
         // make a list of all points. Add in a tiny random to prevent exact
         // duplicate coordinates in map
         int wrapNumber = 1;
-        for (CategoryResults r : toolResults.getCategoryResults()) {
+        for (CategoryMetrics categoryMetrics : toolMetrics.getCategoryMetrics()) {
             size++;
-            double x = r.falsePositiveRate * 100 + sr.nextDouble() * .000001;
+            double x = categoryMetrics.falsePositiveRate * 100 + sr.nextDouble() * .000001;
             // this puts the label just below the point
-            double y = r.truePositiveRate * 100 + sr.nextDouble() * .000001 - 1;
+            double y = categoryMetrics.truePositiveRate * 100 + sr.nextDouble() * .000001 - 1;
             Point2D p = new Point2D.Double(x, y);
             String label = (wrapNumber == 1 ? "" + ch : ch + String.valueOf(wrapNumber));
             map.put(p, label);
@@ -166,21 +166,25 @@ public class ScatterTools extends ScatterPlot {
     /**
      * Add the vulnerability results per category to this tool's scorecard.
      *
-     * @param or The set of results for this tool.
+     * @param toolMetrics The set of metrics for this tool.
      * @param x The X coordinate to start writing the legend.
      * @param y The Y coordinate to start writing the legend.
      * @param dataset The dataset to plot
      * @param xyplot The XYPlot to use to plot this.
      */
     private void makeLegend(
-            ToolResults or, double x, double y, XYSeriesCollection dataset, XYPlot xyplot) {
+            ToolMetrics toolMetrics,
+            double x,
+            double y,
+            XYSeriesCollection dataset,
+            XYPlot xyplot) {
         char ch = ScatterHome.INITIAL_LABEL;
         int i = 0;
         int toolCount = 0;
         double totalTPR = 0;
         double totalFPR = 0;
         int wrapNumber = 1;
-        for (CategoryResults r : or.getCategoryResults()) {
+        for (CategoryMetrics cm : toolMetrics.getCategoryMetrics()) {
             toolCount++;
             // Special hack to make it line up better for these skinny letters
             // By default, don't add a number unless there are over 52 entries
@@ -198,12 +202,12 @@ public class ScatterTools extends ScatterPlot {
                     y,
                     i,
                     label,
-                    r.category,
-                    r.truePositiveRate,
-                    r.falsePositiveRate);
+                    cm.category,
+                    cm.truePositiveRate,
+                    cm.falsePositiveRate);
 
-            totalTPR += r.truePositiveRate; // From 0-1, additive
-            totalFPR += r.falsePositiveRate; // From 0-1, additive;
+            totalTPR += cm.truePositiveRate; // From 0-1, additive
+            totalFPR += cm.falsePositiveRate; // From 0-1, additive;
             i++;
             // Weak hack if there are more than 26 tools scored. This will only get us to 52.
             if (ch == 'Z') ch = 'a';

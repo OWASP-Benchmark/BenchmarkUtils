@@ -25,7 +25,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -78,9 +77,9 @@ public class HorusecReader extends Reader {
 
             String filename = filename(vuln);
 
-            if (filename.contains(BenchmarkScore.TESTCASENAME)) {
+            if (isTestCaseFile(filename)) {
                 TestCaseResult tcr = new TestCaseResult();
-                tcr.setTestID(getBenchmarkStyleTestCaseNumber(filename));
+                tcr.setActualResultTestID(filename);
                 tcr.setCWE(figureCwe(vuln));
                 return tcr;
             }
@@ -129,6 +128,8 @@ public class HorusecReader extends Reader {
                 return CweNumber.XPATH_INJECTION;
             case "649":
                 return CweNumber.OBFUSCATION;
+            case "1004":
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
             default:
                 System.out.println("WARN: Horusec reported CWE not yet mapped: " + cwe);
                 return Integer.parseInt(cwe);

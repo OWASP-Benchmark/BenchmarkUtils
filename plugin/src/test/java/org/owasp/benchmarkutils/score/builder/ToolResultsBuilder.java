@@ -2,12 +2,12 @@ package org.owasp.benchmarkutils.score.builder;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.owasp.benchmarkutils.score.CategoryResults;
-import org.owasp.benchmarkutils.score.ToolResults;
+import org.owasp.benchmarkutils.score.CategoryMetrics;
+import org.owasp.benchmarkutils.score.ToolMetrics;
 
 public class ToolResultsBuilder {
 
-    private Set<CategoryResults> categoryResults = new HashSet<>();
+    private Set<CategoryMetrics> categoryMetrics = new HashSet<>();
     private double truePositiveRate = 0;
     private double falsePositiveRate = 0;
     private double precision = 0;
@@ -18,16 +18,16 @@ public class ToolResultsBuilder {
         return new ToolResultsBuilder();
     }
 
-    public ToolResults build() {
-        ToolResults results = new ToolResults();
+    public ToolMetrics build() {
+        ToolMetrics results = new ToolMetrics();
 
         results.setTruePositiveRate(truePositiveRate);
         results.setFalsePositiveRate(falsePositiveRate);
         results.setPrecision(precision);
 
-        categoryResults.forEach(
+        categoryMetrics.forEach(
                 cr ->
-                        results.add(
+                        results.addCategoryMetrics(
                                 cr.category,
                                 cr.precision,
                                 cr.truePositiveRate,
@@ -37,14 +37,14 @@ public class ToolResultsBuilder {
         return results;
     }
 
-    public ToolResultsBuilder setCategoryResults(Set<CategoryResults> categoryResultsMap) {
-        this.categoryResults = categoryResultsMap;
+    public ToolResultsBuilder setCategoryMetrics(Set<CategoryMetrics> categoryMetricsMap) {
+        this.categoryMetrics = categoryMetricsMap;
 
         return this;
     }
 
-    public ToolResultsBuilder addCategoryResult(CategoryResults result) {
-        this.categoryResults.add(result);
+    public ToolResultsBuilder addCategoryResult(CategoryMetrics result) {
+        this.categoryMetrics.add(result);
 
         return this;
     }

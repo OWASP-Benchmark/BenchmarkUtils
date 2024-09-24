@@ -206,16 +206,12 @@ public abstract class Reader {
         return null;
     }
 
-    private static String manipulateTestcase(String path) {
-        if (path.startsWith(BenchmarkScore.TESTCASENAME)) {
-            int latest = path.indexOf(".");
-            String toReplace = path.substring(0, latest);
-            path = path.replaceAll(toReplace, BenchmarkScore.TESTCASENAME);
-            System.out.println(path);
-        }
-        return path;
-    }
-
+    /**
+     * Utility method for finding the first non-numeric character in the supplied path.
+     *
+     * @param path
+     * @return The index of the first non-numeric char.
+     */
     private static int findFirstNonNumeric(String path) {
         for (int i = 0; i < path.length(); i++) {
             if (!Character.isDigit(path.charAt(i))) {
@@ -226,7 +222,7 @@ public abstract class Reader {
     }
 
     /**
-     * Determined whether this file is part of a test case.
+     * Determines whether this file is part of a test case.
      *
      * @param testCaseFileName The filename reported by the tool
      * @return True if file is part of a test case, false otherwise
@@ -300,6 +296,14 @@ public abstract class Reader {
         }
     }
 
+    /**
+     * If the path starts with http(s), it removes that part, then converts Windows file paths to
+     * Unix paths (when running on Unix), then gets just the filename, and removes the file
+     * extension.
+     *
+     * @param path The filename path which can be a URL or normal filepath.
+     * @return Just the filename at the end, with no file extension.
+     */
     public static String extractFilenameWithoutEnding(String path) {
         try {
             String name = new File(fixWindowsPath(removeUrlPart(path))).getName();

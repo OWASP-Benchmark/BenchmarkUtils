@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
-import org.owasp.benchmarkutils.score.CategoryResults;
+import org.owasp.benchmarkutils.score.CategoryMetrics;
 import org.owasp.benchmarkutils.score.Tool;
 import org.owasp.benchmarkutils.score.builder.ConfigurationBuilder;
 import org.owasp.benchmarkutils.score.builder.ToolBuilder;
@@ -47,17 +47,17 @@ class CommercialAveragesTableTest {
         Tool firstTool =
                 ToolBuilder.builder()
                         .setIsCommercial(false)
-                        .setToolResults(
+                        .setToolMetrics(
                                 ToolResultsBuilder.builder()
                                         .addCategoryResult(
-                                                new CategoryResults(
+                                                new CategoryMetrics(
                                                         "first category",
                                                         0.5,
                                                         0.06666666666666667,
                                                         0.05,
                                                         35))
                                         .addCategoryResult(
-                                                new CategoryResults(
+                                                new CategoryMetrics(
                                                         "second category",
                                                         0.5185185185185185,
                                                         0.9333333333333333,
@@ -69,17 +69,17 @@ class CommercialAveragesTableTest {
         Tool secondTool =
                 ToolBuilder.builder()
                         .setIsCommercial(true)
-                        .setToolResults(
+                        .setToolMetrics(
                                 ToolResultsBuilder.builder()
                                         .addCategoryResult(
-                                                new CategoryResults(
+                                                new CategoryMetrics(
                                                         "first category",
                                                         0.7321428571428571,
                                                         1.0,
                                                         0.530622009569378,
                                                         455))
                                         .addCategoryResult(
-                                                new CategoryResults(
+                                                new CategoryMetrics(
                                                         "second category",
                                                         0.9523809523809523,
                                                         0.58130081300813008,
@@ -138,17 +138,17 @@ class CommercialAveragesTableTest {
         Tool tool =
                 ToolBuilder.builder()
                         .setIsCommercial(true)
-                        .setToolResults(
+                        .setToolMetrics(
                                 ToolResultsBuilder.builder()
                                         .addCategoryResult(
-                                                new CategoryResults(
+                                                new CategoryMetrics(
                                                         "first category",
                                                         0.5,
                                                         0.66666666666666667,
                                                         0.05,
                                                         35))
                                         .addCategoryResult(
-                                                new CategoryResults(
+                                                new CategoryMetrics(
                                                         "second category",
                                                         0.5185185185185185,
                                                         0.9333333333333333,
@@ -194,17 +194,17 @@ class CommercialAveragesTableTest {
         Tool tool =
                 ToolBuilder.builder()
                         .setIsCommercial(true)
-                        .setToolResults(
+                        .setToolMetrics(
                                 ToolResultsBuilder.builder()
                                         .addCategoryResult(
-                                                new CategoryResults(
+                                                new CategoryMetrics(
                                                         "first category",
                                                         0.5,
                                                         0.06666666666666667,
                                                         0.65,
                                                         35))
                                         .addCategoryResult(
-                                                new CategoryResults(
+                                                new CategoryMetrics(
                                                         "second category",
                                                         0.5185185185185185,
                                                         0.3333333333333333,

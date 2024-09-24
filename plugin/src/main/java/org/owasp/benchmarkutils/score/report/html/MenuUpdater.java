@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.owasp.benchmarkutils.helpers.CategoryGroups;
 import org.owasp.benchmarkutils.score.Configuration;
 import org.owasp.benchmarkutils.score.Tool;
 import org.owasp.benchmarkutils.score.domain.TestSuiteName;
@@ -37,9 +38,11 @@ public class MenuUpdater {
     private final String testSuiteVersion;
     private final CommercialAveragesTable commercialAveragesTable;
     private final Set<Tool> tools;
-    private final Set<String> catSet;
+    private final Set<String> vulnCatSet;
+    private final Set<String> categoryGroupSet;
     private final File scoreCardDir;
     private final ToolScorecard toolScorecard;
+    private final boolean includeCategoryGroups;
 
     public MenuUpdater(
             Configuration config,
@@ -47,7 +50,8 @@ public class MenuUpdater {
             String testSuiteVersion,
             CommercialAveragesTable commercialAveragesTable,
             Set<Tool> tools,
-            Set<String> catSet,
+            Set<String> vulnCatSet,
+            Set<String> categoryGroupSet,
             File scoreCardDir,
             ToolScorecard toolScorecard) {
         this.config = config;
@@ -55,9 +59,11 @@ public class MenuUpdater {
         this.testSuiteVersion = testSuiteVersion;
         this.commercialAveragesTable = commercialAveragesTable;
         this.tools = tools;
-        this.catSet = catSet;
+        this.vulnCatSet = vulnCatSet;
+        this.categoryGroupSet = categoryGroupSet;
         this.scoreCardDir = scoreCardDir;
         this.toolScorecard = toolScorecard;
+        this.includeCategoryGroups = CategoryGroups.isCategoryGroupsEnabled();
     }
 
     /**
@@ -68,10 +74,19 @@ public class MenuUpdater {
     public void updateMenus() {
         String toolMenu = toolMenu();
         String vulnerabilityMenu = vulnerabilityMenu();
+        String toolCatalogGroupsMenu = toolCatalogGroupsMenu();
+        String catalogGroupsMenu = catalogGroupsMenu();
 
         Arrays.stream(Objects.requireNonNull(scoreCardDir.listFiles()))
                 .filter(MenuUpdater::isHtmlFile)
-                .forEach(f -> updateMenuFor(f, toolMenu, vulnerabilityMenu));
+                .forEach(
+                        f ->
+                                updateMenuFor(
+                                        f,
+                                        toolMenu,
+                                        vulnerabilityMenu,
+                                        toolCatalogGroupsMenu,
+                                        catalogGroupsMenu));
     }
 
     private String toolMenu() {
@@ -79,7 +94,7 @@ public class MenuUpdater {
 
         tools.stream()
                 .filter(tool -> !(config.showAveOnlyMode && tool.isCommercial()))
-                .forEach(tool -> sb.append(toolMenuEntry(tool)));
+                .forEach(tool -> sb.append(toolMenuEntry(tool, false)));
 
         if (commercialAveragesTable.hasEntries()) {
             sb.append(commercialAveragesMenuEntry());
@@ -88,10 +103,26 @@ public class MenuUpdater {
         return sb.toString();
     }
 
-    private String toolMenuEntry(Tool tool) {
+    private String toolCatalogGroupsMenu() {
+        StringBuilder sb = new StringBuilder();
+        if (this.includeCategoryGroups) {
+
+            tools.stream()
+                    .filter(tool -> !(config.showAveOnlyMode && tool.isCommercial()))
+                    .forEach(tool -> sb.append(toolMenuEntry(tool, true)));
+
+            // DRW TODO2: Need to test this for CatagoryGroups
+            if (commercialAveragesTable.hasEntries()) {
+                sb.append(commercialAveragesMenuEntry());
+            }
+        }
+        return sb.toString();
+    }
+
+    private String toolMenuEntry(Tool tool, boolean forCategoryGroups) {
         return format(
                 "<li><a href=\"{0}.html\">{1}</a></li>{2}",
-                toolScorecard.filenameFor(tool),
+                toolScorecard.filenameFor(tool, forCategoryGroups),
                 tool.getToolNameAndVersion(),
                 System.lineSeparator());
     }
@@ -103,13 +134,19 @@ public class MenuUpdater {
     }
 
     private String vulnerabilityMenu() {
-        return catSet.stream().map(this::vulnerabilityMenuEntry).collect(Collectors.joining());
+        return vulnCatSet.stream().map(this::vulnerabilityMenuEntry).collect(Collectors.joining());
     }
 
     private String vulnerabilityMenuEntry(String cat) {
         return format(
                 "<li><a href=\"{0}.html\">{1}</a></li>{2}",
                 filenameFor(cat), cat, System.lineSeparator());
+    }
+
+    private String catalogGroupsMenu() {
+        return categoryGroupSet.stream()
+                .map(this::vulnerabilityMenuEntry)
+                .collect(Collectors.joining());
     }
 
     private String filenameFor(String cat) {
@@ -122,12 +159,47 @@ public class MenuUpdater {
         return !f.isDirectory() && f.getName().endsWith(".html");
     }
 
-    private void updateMenuFor(File f, String toolMenu, String vulnerabilityMenu) {
+    private static final String TOOL_GROUPS_MENU =
+            System.lineSeparator()
+                    + "<li class=\"dropdown\"><a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" "
+                    + "aria-haspopup=\"true\" aria-expanded=\"false\">ToolsByGrp<span class=\"caret\"></span></a>"
+                    + System.lineSeparator()
+                    + "                        <ul class=\"dropdown-menu\">${toolgrpsmenu}"
+                    + "                        </ul></li>";
+
+    private static final String GROUPS_MENU =
+            System.lineSeparator()
+                    + "<li class=\"dropdown\"><a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\" "
+                    + "aria-haspopup=\"true\" aria-expanded=\"false\">CWE Groups<span class=\"caret\"></span></a>"
+                    + System.lineSeparator()
+                    + "                        <ul class=\"dropdown-menu\">${groupsmenu}"
+                    + "                        </ul></li>";
+
+    private void updateMenuFor(
+            File f,
+            String toolMenu,
+            String vulnerabilityMenu,
+            String toolCatalogGroupsMenu,
+            String catalogGroupsMenu) {
         try {
+            // The 2 Catalog Group menus are special cases. If these menu's are empty, we don't want
+            // them to display at all, so we replace the tag with a blank string.
+            // If they are not empty, we set all the HTML required to create the entire menu item
+            toolCatalogGroupsMenu =
+                    ((toolCatalogGroupsMenu.length() > 0)
+                            ? TOOL_GROUPS_MENU.replace("${toolgrpsmenu}", toolCatalogGroupsMenu)
+                            : "");
+            catalogGroupsMenu =
+                    ((catalogGroupsMenu.length() > 0)
+                            ? GROUPS_MENU.replace("${groupsmenu}", catalogGroupsMenu)
+                            : "");
+
             String html =
                     new String(Files.readAllBytes(f.toPath()))
                             .replace("${toolmenu}", toolMenu)
                             .replace("${vulnmenu}", vulnerabilityMenu)
+                            .replace("${toolgrpsmenu}", toolCatalogGroupsMenu)
+                            .replace("${groupsmenu}", catalogGroupsMenu)
                             .replace("${testsuite}", testSuite.fullName())
                             .replace("${version}", testSuiteVersion)
                             .replace("${projectlink}", config.report.html.projectLinkEntry)

@@ -23,5 +23,7 @@ import org.owasp.benchmarkutils.score.Tool;
 
 public interface ToolReportProvider {
 
-    String generateHtml(Tool currentTool, String title, File scorecardImageFile) throws IOException;
+    String generateHtml(
+            Tool currentTool, String title, File scorecardImageFile, boolean forCategoryGroups)
+            throws IOException;
 }
