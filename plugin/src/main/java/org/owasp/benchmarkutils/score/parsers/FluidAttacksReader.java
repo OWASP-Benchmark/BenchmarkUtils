@@ -29,12 +29,26 @@ public class FluidAttacksReader extends Reader {
 
     @Override
     public boolean canRead(ResultFile resultFile) {
-        return resultFile.filename().endsWith("csv")
-                && resultFile
-                        .line(0)
-                        .trim()
-                        .equals(
-                                "title,cwe,description,cvss,finding,stream,kind,where,snippet,method");
+        if (!resultFile.filename().endsWith("csv")) {
+            return false;
+        }
+
+        String headerLine = resultFile.line(0).trim();
+        String[] headers = headerLine.split(",");
+
+        boolean hasCwe = false;
+        boolean hasDescription = false;
+
+        for (String header : headers) {
+            if (header.equalsIgnoreCase("cwe")) {
+                hasCwe = true;
+            }
+            if (header.equalsIgnoreCase("description")) {
+                hasDescription = true;
+            }
+        }
+
+        return hasCwe && hasDescription;
     }
 
     @Override
@@ -48,7 +62,14 @@ public class FluidAttacksReader extends Reader {
         for (CSVRecord record : records) {
             TestCaseResult testCaseResult = new TestCaseResult();
             // Read only useful rows of the csv results
-            if (record.get("description").split("OWASP").length < 2) {
+            String description;
+            try {
+                description = record.get("description");
+            } catch (IllegalArgumentException e) {
+                continue;
+            }
+
+            if (description == null || description.split("OWASP").length < 2) {
                 continue;
             }
             String what = record.get("description").split("OWASP")[1];

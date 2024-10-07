@@ -52,7 +52,7 @@ public class FluidAttacksReaderTest extends ReaderTestBase {
         assertTrue(result.isCommercial());
         assertEquals("Fluid Attacks", result.getToolName());
 
-        assertEquals(2, result.getTotalResults());
+        assertEquals(3, result.getTotalResults());
 
         assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.COMMAND_INJECTION, result.get(2).get(0).getCWE());
