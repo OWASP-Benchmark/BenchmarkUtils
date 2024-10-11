@@ -25,6 +25,10 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
+/**
+ * The Klocwork CSV reader parses the CSV generated when you go to a Klocwork project in the web
+ * portal and export a projects Issues using the CSV export button.
+ */
 public class KlocworkCSVReader extends Reader {
 
     @Override
@@ -39,11 +43,11 @@ public class KlocworkCSVReader extends Reader {
         TestSuiteResults tr =
                 new TestSuiteResults("Klocwork", true, TestSuiteResults.ToolType.SAST);
 
-        /* The start of a Klocwork .csv results file looks like this (where I've added the line #'s in front):
+        /* The start of a Klocwork .csv results file looks like this:
 
-        File,Path,Line,Method,Code,Severity,State,Status,Taxonomy,Owner
-        DataBaseServer.java,/opt/klocwork/projects_root/projects/BenchmarkJavaToo/src/main/java/org/owasp/benchmark/helpers/DataBaseServer.java,65,getAll(),RLK.SQLOBJ,Critical (1),New,Analyze,Java,unowned
-        DatabaseHelper.java,/opt/klocwork/projects_root/projects/BenchmarkJavaToo/src/main/java/org/owasp/benchmark/helpers/DatabaseHelper.java,174,executeSQLCommand(),EXC.BROADTHROWS,Review (4),New,Analyze,Java,unowned
+        ID,Status,Severity,Severity Code,Support Level,Support Level Code,State,Code,Title,Message,File,Method,Owner,Taxonomy,Date Originated,Line,URL,Issue Ids,Comment,Trace,Reference,Bug Tracker Id,Bug Tracker URL,Justification
+
+        1,Analyze,Review,4,Klocwork Supported,2,New,EXC.BROADTHROWS,Method has an overly broad throws declaration,The 'methodNAME' method throws a generic exception 'java.lang.Throwable',/PATHTO/src/main/java/testcases/DIR/TESTFILENAME.java,methodNAME,unowned,Java,1728492492310,,"http://klocwork:8080/review/insight-review.html#issuedetails_goto:problemid=1,project=PROJECTNAME,searchquery=",[],,,,,,
 
         */
         java.io.BufferedReader inReader =
@@ -60,7 +64,7 @@ public class KlocworkCSVReader extends Reader {
 
             TestCaseResult tcr = new TestCaseResult();
             if (isTestCaseFile(filename)) {
-                tcr.setActualResultTestID(filename);
+                tcr.setActualResultTestID(TestSuiteResults.getFileNameNoPath(filename));
                 tcr.setCWE(cweLookup(category));
                 tcr.setEvidence(category);
 
@@ -74,26 +78,27 @@ public class KlocworkCSVReader extends Reader {
         return tr;
     }
 
-    private int cweLookup(String checkerKey) {
-
-        // We don't care about non-vulnerability findings
-        if (!checkerKey.startsWith("SV.")) return CweNumber.DONTCARE;
+    static int cweLookup(String checkerKey) {
 
         switch (checkerKey) {
-                // These few are OBE because of the SV. check above, but left in, in case we want to
-                // check them all in the future. THis is only a very partial list.
-            case "ECC.EMPTY": // Empty Catch Clause
             case "ESCMP.EMPTYSTR": // Inefficient empty string comparison
-            case "JD.UNCAUGHT": // Uncaught exception
-            case "JD.VNU.NULL": // Variable was never read after being assigned
+            case "JD.CAST.DOWNCAST": // Possible ClassCastException for subtypes
+            case "NPE.RET": // Null Pointer Returned from Method
+            case "NPE.RET.UTIL": // Null Pointer Returned from Map or Collection
+            case "REDUN.FINAL": // Redundant Final Modifier
+            case "REDUN.NULL": // Use of Variable instead of Null Constant
+            case "REDUN.OP": // Suspicious operation w/ same expression on both sides
             case "RLK.IN": // Input stream not closed on exit
             case "RLK.OUT": // Output stream not closed on exit
-
-            case "SV.DATA.DB": // Data Injection - what does that mean? TODO
-            case "SV.PASSWD.HC": // Hardcoded Password
-            case "SV.PASSWD.HC.EMPTY": // Empty Password
-            case "SV.PASSWD.PLAIN": // Plain-text Password
-            case "SV.SENSITIVE.DATA": // Unencrypted sensitive data is written
+            case "SV.DATA.DB": // Data Injection - Untrusted data inserted into a Database
+            case "SV.IL.SESSION": // Logging of Session ID
+            case "SV.LOADLIB.INJ": // Untrusted call to loadLibrary method
+            case "SV.SERIAL.NON": // Class implements Serializable
+            case "SV.SERIAL.NOREAD": // Method readObject() should be defined for serializable class
+            case "SV.SERIAL.NOWRITE": // Method writeObject() should be defined for serializable
+                // class
+            case "SV.SHARED.VAR": // Unsynchronized access to static variable from servlet
+            case "SV.UMD.MAIN": // Unnecessary Main() method
                 return CweNumber.DONTCARE;
 
             case "SV.DATA.BOUND": // Untrusted Data leaks into trusted storage
@@ -113,6 +118,8 @@ public class KlocworkCSVReader extends Reader {
                 return CweNumber.PATH_TRAVERSAL;
             case "SV.RANDOM": // Use of insecure Random number generator
                 return CweNumber.WEAK_RANDOM;
+            case "SV.SSRF.URI":
+                return CweNumber.SSRF;
             case "SV.SQL": // SQL Injection
                 return CweNumber.SQL_INJECTION;
             case "SV.WEAK.CRYPT": // Use of a Broken or Risky Cryptographic Algorithm
@@ -131,6 +138,84 @@ public class KlocworkCSVReader extends Reader {
             case "SV.XXE.XIF":
             case "SV.XXE.XRF":
                 return CweNumber.XXE;
+
+            case "SV.TAINT_NATIVE":
+                return 111; // Direct Use of Unsafe JNI
+            case "SV.LOG_FORGING":
+                return 117; // Log Forging
+            case "SV.DOS.ARRINDEX":
+                return 129; // Improper Validation of Array Index
+            case "SV.INT_OVF":
+                return 190; // Integer Overflow
+            case "SV.SOCKETS":
+                return 246; // J2EE: Direct Use of Sockets
+            case "JD.UNCAUGHT":
+                return 248; // Uncaught Exception
+            case "RR.IGNORED":
+                return 252; // Unchecked Return Value
+            case "SV.PASSWD.HC":
+            case "SV.PASSWD.HC.MINLEN": // Minimum 15 char length Hardcoded pwd
+            case "SV.PASSWD.PLAIN.HC":
+                return 259; // Hardcoded Password
+            case "SV.PASSWD.PLAIN": // Plain-text Password
+            case "SV.SENSITIVE.DATA": // Unencrypted sensitive data is written
+                return 312; // Cleartext Storage of Sensitive Info
+            case "SV.UMC.THREADS":
+                return 383; // J2EE: Direct Use of Threads
+            case "ECC.EMPTY": // Empty Exception Block
+            case "JD.IFEMPTY":
+                return 390; // Detection of Error Condition w/out Action
+            case "JD.CATCH":
+                return 395; // Catch NullPointerException
+            case "EXC.BROADTHROWS":
+                return 397; // Decl of Throws for Generic Exception
+            case "REDUN.DEF": // Assignment of variable to itself
+                return 398; // Code quality
+            case "SV.DOS.TMPFILEDEL":
+            case "SV.DOS.TMPFILEEXIT":
+                return 459; // Incomplete Cleanup
+            case "NPE.CONST":
+            case "NPE.STAT":
+                return 476; // Null Pointer Dereference
+            case "JD.BITR":
+                return 481; // Assigning Instead of Comparing
+            case "JD.IFBAD": // Redundant 'if' statement
+                return 483; // Incorrect Block Delimitation
+            case "SV.PASSWD.HC.EMPTY": // Empty Password
+                return 521; // Weak Password
+            case "JD.RC.EXPR.DEAD":
+            case "JD.UN.PMET": // Unused Private Method
+                return 561; // Dead Code
+            case "JD.VNU":
+            case "JD.VNU.NULL":
+                return 563; // Assignment to Variable without Use
+            case "FIN.EMPTY":
+            case "FIN.NOSUPER":
+                return 568; // finalize() without super.finalize()
+            case "JD.RC.EXPR.CHECK":
+                return 571; // Expression always true
+            case "JD.THREAD.RUN":
+                return 572; // Call to Thread run() instead of start()
+            case "EHC.EQ":
+            case "EHC.HASH":
+                return 581; // Just One of Equals and Hashcode Defined
+            case "JD.FINRET":
+                return 584; // Return in Finally Block
+            case "JD.UMC.FINALIZE":
+                return 586; // Explicit Call to Finalize()
+            case "CMP.STR":
+                return 597; // Use of Wrong Operator in String Comparison
+            case "JD.SYNC.DCL":
+                return 609; // Double-Checked Locking
+            case "JD.INF.AREC":
+                return 674; // Uncontrolled Recursion
+            case "JD.BITCMP": // Questionable use of Bit compare operation
+                return 754; // Improper Check for Unusual or Exceptional Conditions
+            case "SV.DOS.ARRSIZE": // Unvalidated user input used for array size
+                return 789; // Memory alloc w/ Excessive Size Value
+            case "JD.SYNC.IN":
+            case "JD.LOCK.SLEEP":
+                return 833; // Deadlock
 
             default:
                 System.out.println(

@@ -77,6 +77,13 @@ public class Configuration {
     /** Indicates whether Precision score should be included in generated tables. By default, no. */
     public final boolean includePrecision;
 
+    /**
+     * This is a debug flag, which if set in yaml config file, causes all the CSVs for each test
+     * case to be included in the CSV results file if no CSV matches the expected result for that
+     * test case.
+     */
+    public static boolean includeAllCWEsInCSVFile = false;
+
     public final Report report;
 
     private static final Yaml yaml = new Yaml();
@@ -162,6 +169,10 @@ public class Configuration {
         tprLabel = (String) yamlConfig.get("tprlabel");
         includeProjectLink = (Boolean) yamlConfig.get("includeprojectlink");
         includePrecision = (Boolean) yamlConfig.get("includeprecision");
+
+        // Optional config parameter for debugging/testing only
+        if (yamlConfig.get("includecwesincsvresults") != null)
+            includeAllCWEsInCSVFile = (Boolean) yamlConfig.get("includecwesincsvresults");
 
         report = new Report(yamlConfig);
     }

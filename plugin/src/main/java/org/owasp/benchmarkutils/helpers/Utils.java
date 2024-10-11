@@ -239,7 +239,7 @@ public class Utils {
             return;
         }
 
-        if (srcURL.getProtocol().equals("file")) {
+        if ("file".equals(srcURL.getProtocol())) {
             // Copy the files from one directory to another using the normal
             // FileUtils.copyDirectory() method
 
@@ -278,7 +278,7 @@ public class Utils {
             return; // File(s) copied or it failed
         }
 
-        if (!srcURL.getProtocol().equals("jar")) {
+        if (!"jar".equals(srcURL.getProtocol())) {
             System.err.printf(
                     "ERROR: source resource not a file: or jar: resource. It is: %s%n", srcURL);
             return;

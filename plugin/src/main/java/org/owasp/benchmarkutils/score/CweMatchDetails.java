@@ -17,6 +17,8 @@
  */
 package org.owasp.benchmarkutils.score;
 
+import java.util.List;
+
 /**
  * This class contains the details of how a tool's result matches to a particular test case. With
  * CWE parent/child matching, we want to record exactly how a tool's finding matched. Was it an
@@ -39,18 +41,22 @@ public class CweMatchDetails {
     public final int actualCWEreported; // -1 if not found
     // Empty string if exact match or no match. ChildOF if a child CWE, ParentOf if parent CWE
     public final String CWErelationship;
+    // The full set of findings for this test case
+    public final List<TestCaseResult> actList;
 
     public CweMatchDetails(
             int expectedCWE,
             boolean truePositive,
             boolean pass,
             int actualCWEreported,
-            String CWErelationship) {
+            String CWErelationship,
+            List<TestCaseResult> actList) {
         this.expectedCWE = expectedCWE;
         this.truePositive = truePositive;
         this.pass = pass;
         this.actualCWEreported = actualCWEreported; // Suggest -1 if not found
         // Blank string if not found or exact CWE match
         this.CWErelationship = (CWErelationship == null ? "" : CWErelationship);
+        this.actList = actList;
     }
 }

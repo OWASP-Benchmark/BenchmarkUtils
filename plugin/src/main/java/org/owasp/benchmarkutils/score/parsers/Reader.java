@@ -81,6 +81,7 @@ public abstract class Reader {
                 new InsiderReader(),
                 new JuliaReader(),
                 new KlocworkCSVReader(),
+                new KlocworkXMLReader(),
                 new KiuwanReader(),
                 new MendReader(),
                 new NetsparkerReader(),

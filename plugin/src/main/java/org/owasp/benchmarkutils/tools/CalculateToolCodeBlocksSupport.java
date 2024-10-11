@@ -242,7 +242,7 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
 
                 // Get whether the tool passed/failed this test case and set that result
                 String passFail = records.get(i).get(" pass/fail").trim();
-                theResult.setPassed(passFail.equals("pass"));
+                theResult.setPassed("pass".equals(passFail));
 
                 // While we are spinning through all the test cases, populate the lists of the
                 // sources, dataflows, and sinks.
@@ -499,7 +499,7 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
                 if (!passed
                         && theResult.isTruePositive()
                         && sink.supported
-                        && dataflow.name.equals("")) {
+                        && "".equals(dataflow.name)) {
                     if (!source.reported)
                         System.out.println("Source causing FNs: " + source.toString());
                     foundFPorFN = source.reported = true;
@@ -511,7 +511,7 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
                         && !theResult.isTruePositive()
                         && sink.supported
                         && sink.truePositive
-                        && dataflow.name.equals("")) {
+                        && "".equals(dataflow.name)) {
                     if (!sink.reported && !source.truePositive) {
                         System.out.println("Source causing FP: " + source.toString());
                         System.out.println(" For: " + theResult.toString());

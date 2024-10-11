@@ -263,7 +263,7 @@ public class TestSuiteResults {
      * @param filename
      * @return The filename without any path info (if any)
      */
-    private String getFileNameNoPath(String filename) {
+    public static String getFileNameNoPath(String filename) {
         // We look for / and \ and strip off everything before and including the path separator. We
         // check both path chars because the results could be generated on one platform and scored
         // on another with different path separators.

@@ -56,15 +56,15 @@ public class SemgrepReader extends Reader {
     public static int translate(int cwe) {
 
         switch (cwe) {
-            case 16: // CWE vuln mapping PROHIBITED: Configuration
-            case 73: // External Control of File Name or Path
+            case 16: // CWE vuln mapping PROHIBITED: Configuration - no relationship to anything.
+            case 73: // External Control of File Name or Path - ChildOf 114 Process Control
             case 74: // CWE vuln mapping DISCOURAGED: Improper Neutralization of Special Elements in
                 // Output Used by a Downstream Component ('Injection')
             case 93: // Improper Neutralization of CRLF Sequences ('CRLF Injection')
             case 94: // Improper Control of Generation of Code ('Code Injection') - Reported when it
                 // sees JS eval() being used.
             case 95: // Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval
-                // Injection')
+                // Injection') - CLIENTSIDE - DON'T CARE
             case 96: // Improper Neutralization of Directives in Statically Saved Code ('Static Code
                 // Injection')
             case 113: // Header injection
@@ -103,7 +103,8 @@ public class SemgrepReader extends Reader {
             case 668: // CWE vuln mapping DISCOURAGED: Exposure of Resource to Wrong Sphere
             case 676: // Use of Potentially Dangerous Function
             case 704: // Incorrect Type Conversion or Cast
-            case 774: // Allocation of File Descriptors or Handles Without Limits or Throttling
+            case 774: // Allocation of File Descriptors or Handles Without Limits or Throttling -
+                // PARENT OF 770
             case 776: // XEE: Improper Restriction of Recursive Entity References in DTDs ('XML
                 // Entity Expansion')
             case 798: // Use of Hard-coded Credentials
@@ -116,39 +117,30 @@ public class SemgrepReader extends Reader {
             case 1333: // Inefficient Regular Expression Complexity (e.g., RegexDOS)
                 break; // Don't care - So return CWE 'as is'
 
-            case 22:
-                return CweNumber.PATH_TRAVERSAL;
-            case 78:
-                return CweNumber.COMMAND_INJECTION;
-            case 79:
-                return CweNumber.XSS;
-            case 89:
-                return CweNumber.SQL_INJECTION;
-            case 90:
-                return CweNumber.LDAP_INJECTION;
-            case 326:
-                return 326; // Counts as Weak Crypto due to categories.xml mapping
-            case 327:
-            case 329: // Generation of Predictable IV with CBC Mode - Has no effect on Benchmark -
-                // but leaving mapping in anyway
+                // Translated CWEs:
             case 696: // Incorrect Behavior Order
                 return CweNumber.WEAK_CRYPTO_ALGO; // weak encryption
-            case 328:
-                return CweNumber.WEAK_HASH_ALGO;
-            case 330: // Use of Insufficiently Random Values - Vuln mapping discouraged
-                return CweNumber.WEAK_RANDOM;
+
+                // Return these 'as is' as they do not require remapping.
+            case 22: // return CweNumber.PATH_TRAVERSAL
+            case 78: // CweNumber.COMMAND_INJECTION;
+            case 79: // CweNumber.XSS;
+            case 89: // CweNumber.SQL_INJECTION;
+            case 90: // CweNumber.LDAP_INJECTION;
+            case 326: // Counts as Weak Crypto due to categories.xml mapping
+            case 327: // CweNumber.WEAK_CRYPTO_ALGO
+            case 329: // Generation of Predictable IV with CBC Mode
+            case 328: // CweNumber.WEAK_HASH_ALGO;
+            case 330: // return CweNumber.WEAK_RANDOM;
             case 338: // Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)
-                return 338; // Counts as Weak Random due to categories.xml mapping
-            case 501:
-                return CweNumber.TRUST_BOUNDARY_VIOLATION;
-            case 611: // Improper Restriction of XML External Entity Reference (XXE)
-                return CweNumber.XXE;
-            case 614:
-                return CweNumber.INSECURE_COOKIE;
-            case 643:
-                return CweNumber.XPATH_INJECTION;
-            case 1004:
-                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
+                // 338 Counts as Weak Random due to categories.xml mapping
+            case 501: // CweNumber.TRUST_BOUNDARY_VIOLATION;
+            case 611: // CweNumber.XXE;
+            case 614: // CweNumber.INSECURE_COOKIE;
+            case 643: // CweNumber.XPATH_INJECTION;
+            case 1004: // CweNumber.COOKIE_WITHOUT_HTTPONLY;
+                return cwe;
+
             default:
                 System.out.println("WARNING: Found CWE in SemGrep we haven't seen before: " + cwe);
         }

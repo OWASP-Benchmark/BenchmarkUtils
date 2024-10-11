@@ -35,7 +35,7 @@ public class TestCaseResultBuilder {
 
     // Have to set CweMatch details for actual results, or you get a null pointer
     // The actual values usually don't matter for these tests, so we create a default
-    private CweMatchDetails cweMatchDetails = new CweMatchDetails(1, true, true, -1, "");
+    private CweMatchDetails cweMatchDetails = new CweMatchDetails(1, true, true, -1, "", null);
 
     private TestCaseResultBuilder() {}
 

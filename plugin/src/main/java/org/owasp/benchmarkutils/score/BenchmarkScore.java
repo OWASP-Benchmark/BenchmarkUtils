@@ -88,9 +88,6 @@ public class BenchmarkScore extends AbstractMojo {
     // scorecard dir normally created under current user directory
     public static final String SCORECARDDIRNAME = "scorecard";
 
-    // The values stored in this is pulled from the categories.xml config file
-    //    public static Categories CATEGORIES;
-
     /*
      * The set of all the Tools. Each Tool includes the results for that tool.
      */
@@ -416,7 +413,7 @@ public class BenchmarkScore extends AbstractMojo {
 
             // catch try for Steps 4 & 5
         } catch (Exception e) {
-            System.out.println("Error during processing: " + e.getMessage());
+            System.err.println("Error during processing: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -526,7 +523,7 @@ public class BenchmarkScore extends AbstractMojo {
 
             Files.write(homeFilePath, html.getBytes());
         } catch (IOException e) {
-            System.out.println("Error updating results table in: " + homeFilePath.getFileName());
+            System.err.println("Error updating results table in: " + homeFilePath.getFileName());
             e.printStackTrace();
         }
 
@@ -535,7 +532,7 @@ public class BenchmarkScore extends AbstractMojo {
         try {
             scatter.writeChartToFile(new File(scoreCardDir, "content/testsuite_guide.png"), 800);
         } catch (IOException e) {
-            System.out.println(
+            System.err.println(
                     "ERROR: Couldn't create content/testsuite_guide.png file for some reason.");
             e.printStackTrace();
         }
@@ -608,13 +605,13 @@ public class BenchmarkScore extends AbstractMojo {
                 // printExtraCWE( expectedResults, actualResults );
             } else {
                 if (expectedResults == null) {
-                    System.out.println("Error!!: expected results were null.");
+                    System.err.println("Error!!: expected results were null.");
                 } else
-                    System.out.println(
+                    System.err.println(
                             "Error!!: actual results were null for file: " + rawToolResultsFile);
             }
         } catch (Exception e) {
-            System.out.println("Error processing " + rawToolResultsFile + ". Continuing.");
+            System.err.println("Error processing " + rawToolResultsFile + ". Continuing.");
             e.printStackTrace();
         }
     }
@@ -858,7 +855,7 @@ public class BenchmarkScore extends AbstractMojo {
         // return true if there are no actual results and this was a false positive test
         if (actList == null || actList.isEmpty()) {
             return new CweMatchDetails(
-                    expectedCWE, exp.isTruePositive(), !exp.isTruePositive(), -1, "");
+                    expectedCWE, exp.isTruePositive(), !exp.isTruePositive(), -1, "", actList);
         }
 
         // Check actual results for an exact CWE match.
@@ -872,7 +869,12 @@ public class BenchmarkScore extends AbstractMojo {
             // immediately return a value if we find an exact match
             if (actualCWE == expectedCWE) {
                 return new CweMatchDetails(
-                        expectedCWE, exp.isTruePositive(), exp.isTruePositive(), actualCWE, "");
+                        expectedCWE,
+                        exp.isTruePositive(),
+                        exp.isTruePositive(),
+                        actualCWE,
+                        "",
+                        actList);
             }
         }
 
@@ -887,7 +889,8 @@ public class BenchmarkScore extends AbstractMojo {
                         exp.isTruePositive(),
                         exp.isTruePositive(),
                         actualCWE,
-                        "ChildOf");
+                        "ChildOf",
+                        actList);
             }
             if (expectedCWECategory.isParentOf(actualCWE)) {
                 return new CweMatchDetails(
@@ -895,12 +898,13 @@ public class BenchmarkScore extends AbstractMojo {
                         exp.isTruePositive(),
                         exp.isTruePositive(),
                         actualCWE,
-                        "ParentOf");
+                        "ParentOf",
+                        actList);
             }
         }
         // if we couldn't find a match, then return true if it's a False Positive test
         return new CweMatchDetails(
-                expectedCWE, exp.isTruePositive(), !exp.isTruePositive(), -1, "");
+                expectedCWE, exp.isTruePositive(), !exp.isTruePositive(), -1, "", actList);
     }
 
     // Create a TestResults object that contains the expected results for this version

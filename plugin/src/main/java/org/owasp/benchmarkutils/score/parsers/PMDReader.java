@@ -185,6 +185,9 @@ public class PMDReader extends Reader {
             case "UseLocaleWithCaseConversions":
             case "UseProperClassLoader":
             case "UseShortArrayInitializer":
+                // Use Try w/Resources doesn't necessarily mean: CWE 772: Missing Release of
+                // Resource after Effective Lifetime
+            case "UseTryWithResources":
             case "UseUnderscoresInNumericLiterals":
             case "UseUtilityClass":
             case "UseVarargs":
@@ -324,25 +327,12 @@ public class PMDReader extends Reader {
             case "DoubleCheckedLocking":
                 return 609; // Double-Checked Locking
 
-            case "UseTryWithResources":
-                return 772; // Missing Release of Resource after Effective Lifetime
-
             case "AvoidSynchronizedAtMethodLevel":
+            case "AvoidSynchronizedStatement":
                 return 833; // Deadlock
 
             case "WhileLoopWithLiteralBoolean":
                 return 835; // While True
-
-                /* Don't think PMD reports any of these:
-                return CweNumber.INSECURE_COOKIE;
-                return CweNumber.WEAK_RANDOM;
-                return CweNumber.LDAP_INJECTION;
-                return CweNumber.PATH_TRAVERSAL;
-                return CweNumber.WEAK_CRYPTO_ALGO;
-                return CweNumber.XPATH_INJECTION;
-                return CweNumber.WEAK_HASH_ALGO;
-                return CweNumber.COMMAND_INJECTION;
-                return CweNumber.XSS; */
 
             default:
                 System.out.println(

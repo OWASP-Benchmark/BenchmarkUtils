@@ -80,7 +80,12 @@ public class TestHelper implements BeforeAllCallback, ExtensionContext.Store.Clo
 
     public static ResultFile resultFileOf(String filename) {
         try {
-            return new ResultFile(filename, contentOf(filename));
+            ResultFile testResultFile = new ResultFile(filename, contentOf(filename));
+            // This is a side affect needed for the Fortify Parser to properly pass the tests, since
+            // this file is a resource, it has to be loaded a different way in the test suite
+            testResultFile.streamToFile =
+                    TestHelper.class.getClassLoader().getResourceAsStream(filename);
+            return testResultFile;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

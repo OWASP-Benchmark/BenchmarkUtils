@@ -178,7 +178,7 @@ class WriteFiles {
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line = "";
-            while (line.equals("")) {
+            while ("".equals(line)) {
                 line = br.readLine();
                 if (line.contains(toFind)) {
                     if (nextLine) return br.readLine();
@@ -208,7 +208,7 @@ class WriteFiles {
     }*/
 
     void deletePreviousResults(String toolName, String toolVersion, String testSuiteVersion) {
-        if (!toolName.equals("")) {
+        if (!"".equals(toolName)) {
             File targetDir = new File("results/");
             if (targetDir.exists()) {
                 File[] files = targetDir.listFiles();

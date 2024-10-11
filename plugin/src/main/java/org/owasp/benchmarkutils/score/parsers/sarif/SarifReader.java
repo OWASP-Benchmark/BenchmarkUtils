@@ -151,7 +151,7 @@ public abstract class SarifReader extends Reader {
             case CUSTOM:
                 return customRuleCweMappings(tool);
             default:
-                throw new IllegalArgumentException("Unknown cwe mapping source type");
+                throw new IllegalArgumentException("Unknown CWE mapping source type");
         }
     }
 
@@ -216,7 +216,7 @@ public abstract class SarifReader extends Reader {
 
     public Map<String, Integer> customRuleCweMappings(JSONObject driver) {
         throw new IllegalArgumentException(
-                "SARIF Reader using custom cwe mappings MUST overwrite mapping method.");
+                "SARIF Reader using custom CWE mappings MUST overwrite mapping method.");
     }
 
     private TestSuiteResults testSuiteResults(ResultFile resultFile) {
@@ -274,7 +274,7 @@ public abstract class SarifReader extends Reader {
         return cwe;
     }
 
-    /** Extracts any number from given string (assuming it's a CWE number) */
+    /** Extracts the first integer from given string (assuming it's a CWE number) */
     public static int extractCwe(String input) {
         Matcher matcher = Pattern.compile("\\d+").matcher(input);
 
@@ -297,6 +297,6 @@ public abstract class SarifReader extends Reader {
     public enum CweSourceType {
         TAG, // CWE-123, sometimes with prefix
         FIELD, // separate field containing CWE number
-        CUSTOM // custom mapping, e. g. static table
+        CUSTOM // custom mapping, e.g., static table
     }
 }

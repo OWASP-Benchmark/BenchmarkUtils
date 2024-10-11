@@ -60,6 +60,7 @@
         <id>deserialization</id>
         <name>Insecure Deserialization</name>
         <cwe>502</cwe>
+        <childof>913,915</childof>
         <isInjection>false</isInjection>
         <shortname>DESER</shortname>
     </category>
@@ -131,12 +132,14 @@
         <id>redirect</id>
         <name>Unchecked Redirect</name>
         <cwe>601</cwe>
+        <childof>610</childof>
         <shortname>REDIR</shortname>
     </category>
     <category>
         <id>reflecti</id>
         <name>Unsafe Reflection</name>
         <cwe>470</cwe>
+        <childof>610,913</childof>
         <isInjection>true</isInjection>
         <shortname>REFLECT</shortname>
     </category>
@@ -160,6 +163,7 @@
         <id>trustbound</id>
         <name>Trust Boundary</name>
         <cwe>501</cwe>
+        <childof>664</childof>
         <shortname>TRBO</shortname>
     </category>
     <category>
@@ -189,14 +193,16 @@
         <id>xss</id>
         <name>XSS (Cross-Site Scripting)</name>
         <cwe>79</cwe>
-        <parentof>80,81,83,84,85,86,87</parentof>
+        <parentof>80,81,82,83,84,85,86,87</parentof>
         <!-- isInjection>Don't set. Not a classic injection issue.</isInjection -->
         <shortname>XSS</shortname>
+        <note>82 added manually as its the child of 83.</note>
     </category>
     <category>
         <id>xxe</id>
         <name>XML eXternal Entity Injection</name>
         <cwe>611</cwe>
+        <childof>610</childof>
         <isInjection>true</isInjection>
         <shortname>XXE</shortname>
     </category>

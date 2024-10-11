@@ -17,10 +17,10 @@
  */
 package org.owasp.benchmarkutils.score;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -46,6 +46,10 @@ public class ResultFile {
     private final File originalFile;
     private JSONObject contentAsJson;
     private Document contentAsXml;
+    // This is a special stream only set by test cases, because they are resource files, not actual
+    // files on the file system. It is only used by the extract() method to pull files out of ZIP
+    // archives in test case. The normal code pulls the data out of the result file.
+    InputStream streamToFile = null; // If null, not used.
 
     public ResultFile(File fileToParse) throws IOException {
         this(fileToParse, readFileContent(fileToParse));
@@ -61,8 +65,8 @@ public class ResultFile {
 
     public ResultFile(File fileToParse, byte[] rawContent) throws IOException {
         this.rawContent = rawContent;
-        originalFile = fileToParse;
-        filename = originalFile.getName();
+        this.originalFile = fileToParse;
+        this.filename = originalFile.getName();
         parseJson();
         parseXml();
     }
@@ -191,16 +195,29 @@ public class ResultFile {
     }
 
     /**
-     * Extracts a file from a packed ResultFile.
+     * Finds the specified file in the zip file associated with this ResultFile, and returns an
+     * InputStream to the specified file.
      *
-     * @return
+     * @return An InputStream to the specified file.
      */
-    public ResultFile extract(String zipPath) {
-        try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(rawContent))) {
+    public InputStream extract(String zipPath) {
+        try {
+            ZipInputStream zipIn;
+            // Check to see if a stream to the file was set by a test case. If so, use that instead
+            // of the File reference.
+            if (this.streamToFile != null) zipIn = new ZipInputStream(this.streamToFile);
+            else zipIn = new ZipInputStream(new FileInputStream(this.originalFile));
+
             ZipEntry entry = zipIn.getNextEntry();
             while (entry != null) {
                 if (entry.getName().equals(zipPath)) {
-                    return readFileFromZip(zipPath, zipIn);
+                    // NOTE: Previously this method used to call another method that extracted the
+                    // file into a new ResultFile with just the ZIP file attached to it. However,
+                    // for VERY large Fortify files, you couldn't create a byte[] big enough to hold
+                    // the entire file (as its was > 2GB), so you got an OutOfMemoryError. So now we
+                    // return a Stream instead, and that gets passed to the DOM Parser directly,
+                    // which works fine for large files.
+                    return zipIn;
                 }
                 zipIn.closeEntry();
                 entry = zipIn.getNextEntry();
@@ -210,16 +227,5 @@ public class ResultFile {
         }
 
         throw new RuntimeException("ZipFile does not contain " + zipPath);
-    }
-
-    private ResultFile readFileFromZip(String zipPath, ZipInputStream zipIn) throws IOException {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            final byte[] buf = new byte[1024];
-            int length;
-            while ((length = zipIn.read(buf, 0, buf.length)) >= 0) {
-                bos.write(buf, 0, length);
-            }
-            return new ResultFile(zipPath, bos.toByteArray());
-        }
     }
 }

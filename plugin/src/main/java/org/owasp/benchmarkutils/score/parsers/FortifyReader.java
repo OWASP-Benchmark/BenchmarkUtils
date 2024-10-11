@@ -19,7 +19,8 @@ package org.owasp.benchmarkutils.score.parsers;
 
 import static org.owasp.benchmarkutils.score.TestSuiteResults.formatTime;
 
-import java.io.StringReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -42,13 +43,13 @@ public class FortifyReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultZip) throws Exception {
-        ResultFile resultFile = resultZip.extract("audit.fvdl");
+        InputStream stream = resultZip.extract("audit.fvdl");
 
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         // Prevent XXE
         docBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        InputSource is = new InputSource(new StringReader(resultFile.content()));
+        InputSource is = new InputSource(new InputStreamReader(stream));
         Document doc = docBuilder.parse(is);
 
         TestSuiteResults tr = new TestSuiteResults("Fortify", true, TestSuiteResults.ToolType.SAST);
@@ -197,7 +198,8 @@ public class FortifyReader extends Reader {
                         </Context>
             */
             if (tc == null) {
-                // TODO: Test with other test suite and fix use of deprecated API as appropriate.
+                // DRW TODO: Test with other test suite and fix use of deprecated API as
+                // appropriate.
                 Node functionDecl =
                         getNamedNode("FunctionDeclarationSourceLocation", context.getChildNodes());
                 if (functionDecl != null) {
@@ -293,6 +295,36 @@ public class FortifyReader extends Reader {
             case "Insecure Transport":
                 return 319; // Cleartext Transmission of Sensitive Info
 
+            case "Insider Threat":
+                {
+                    switch (subtype) {
+                        case "Email Spying":
+                        case "Hardcoded External Command":
+                        case "Network Communication":
+                        case "Network Port Listening":
+                        case "Time Bomb":
+                            return 506; // Embedded Malicious Code
+
+                        case "Redundant Condition":
+                            return 481; // Assigning instead of Comparing
+
+                        case "Reflection Abuse":
+                            return 470; // Unsafe Reflection
+
+                        case "Suspicious String": // Don't know what this means
+                            return CweNumber.UNKNOWN;
+
+                        default:
+                            if (classname != null)
+                                System.out.println(
+                                        "Fortify parser found vulnerability type: 'Insider Threat', with unmapped subtype: "
+                                                + subtype
+                                                + " in class: "
+                                                + classname);
+                    }
+                    return CweNumber.UNKNOWN;
+                }
+
             case "J2EE Bad Practices":
                 {
                     switch (subtype) {
@@ -302,6 +334,10 @@ public class FortifyReader extends Reader {
                             return 613; // Insufficient Session Expiration
                         case "JVM Termination":
                             return CweNumber.SYSTEM_EXIT;
+                        case "Leftover Debug Code":
+                            return 489; // Active Debug Code
+                        case "Non-Serializable Object Stored in Session":
+                            return 579; // Non-serializable Object Stored in Session
                         case "Sockets":
                             return CweNumber.DONTCARE;
                         case "Threads":
@@ -314,7 +350,7 @@ public class FortifyReader extends Reader {
                                                 + " in class: "
                                                 + classname);
                     }
-                    return CweNumber.DONTCARE;
+                    return CweNumber.UNKNOWN;
                 }
 
             case "Key Management":
@@ -400,6 +436,19 @@ public class FortifyReader extends Reader {
             case "Poor Error Handling":
                 {
                     switch (subtype) {
+                        case "Empty Catch Block":
+                            return 390; // Detection of Error Condition Without Action
+
+                        case "Overly Broad Catch":
+                        case "Overly Broad Throws":
+                            return 703; // Improper Check or Handling of Exceptional Conditions
+
+                        case "Program Catches NullPointerException":
+                            return 395; // Use of NullPointerException Catch to Detect NPE
+
+                        case "Return Inside Finally":
+                            return 584; // Return Inside Finally Block
+
                         default:
                             System.out.println(
                                     "Fortify parser found vulnerability type: 'Poor Error Handling', with unmapped subtype: "
@@ -409,9 +458,24 @@ public class FortifyReader extends Reader {
                     }
                     return 703; // Improper Check or Handling of Exceptional Conditions
                 }
+
+            case "Poor Style":
+                {
+                    switch (subtype) {
+                        case "Empty Synchronized Block":
+                            return 585; // Empty Synchronized Block
+                        default:
+                            System.out.println(
+                                    "Fortify parser found vulnerability type: 'Poor Style', with unmapped subtype: "
+                                            + subtype
+                                            + " in class: "
+                                            + classname);
+                    }
+                    return CweNumber.DONTCARE;
+                }
+
             case "Privacy Violation":
                 return 359; // Exposure of Private Personal Info
-
             case "Race Condition":
                 return 362;
             case "Redundant Null Check":
@@ -503,7 +567,6 @@ public class FortifyReader extends Reader {
             case "Hardcoded Domain in HTML":
             case "J2EE Misconfiguration":
             case "Poor Logging Practice":
-            case "Poor Style":
             case "Portability Flaw":
                 return CweNumber.DONTCARE;
 

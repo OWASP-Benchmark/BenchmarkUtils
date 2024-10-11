@@ -26,6 +26,8 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
+import org.owasp.benchmarkutils.score.Configuration;
 import org.owasp.benchmarkutils.score.CweMatchDetails;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -121,7 +123,21 @@ public class ResultsFileCreator {
                                 ? ""
                                 : cweMatchDetails.actualCWEreported));
         ps.print(", " + cweMatchDetails.CWErelationship); // parent or child CWE?
-        ps.println(", " + (passed ? "pass" : "fail")); // pass/fail
+        ps.print(", " + (passed ? "pass" : "fail")); // pass/fail
+
+        // Optionally include all the CWEs reported for this test case, for debugging/analysis
+        // purposes
+        if (Configuration.includeAllCWEsInCSVFile) {
+            List<TestCaseResult> actList = cweMatchDetails.actList;
+            if (actList != null && actList.size() > 0) {
+                ps.print(", allCWEsFound:");
+                for (TestCaseResult act : actList) {
+                    ps.print(" " + act.getCWE());
+                }
+            }
+        }
+
+        ps.println(""); // Terminate the line now that we are all done
     }
 
     private String resultsFilename(TestSuiteResults actual) {
