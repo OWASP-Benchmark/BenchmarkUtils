@@ -1,0 +1,104 @@
+{
+  "version": "2.1.0",
+  "$schema": "http://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Positive Technologies Application Inspector",
+          "version": "4.7.2.36549",
+          "organization": "Positive Technologies",
+          "informationUri": "https://www.ptsecurity.com/ww-en/products/ai/",
+          "rules": [
+            {
+              "id": "SQL Injection",
+              "name": "SQL Injection",
+              "properties": {
+                "cwe": [
+                  "CWE-89"
+                ]
+              },
+              "defaultConfiguration": {
+                "level": "error",
+                "enabled": true
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "SQL Injection"
+                }
+              }
+            },
+            {
+              "id": "Arbitrary File Reading",
+              "name": "Arbitrary File Reading",
+              "properties": {
+                "cwe": [
+                  "CWE-73"
+                ]
+              },
+              "defaultConfiguration": {
+                "level": "error",
+                "enabled": true
+              },
+              "messageStrings": {
+                "default": {
+                  "text": "Arbitrary File Reading"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "Arbitrary File Reading",
+          "suppressions": [
+          ],
+          "message": {
+            "id": "default",
+            "text": "Arbitrary File Reading"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "./src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java"
+                },
+                "region": {
+                  "startLine": 71,
+                  "snippet": {
+                    "text": "new java.io.FileInputStream(new java.io.File(fileName))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "SQL Injection",
+          "suppressions": [
+          ],
+          "message": {
+            "id": "default",
+            "text": "SQL Injection"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "./src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00008.java"
+                },
+                "region": {
+                  "startLine": 57,
+                  "snippet": {
+                    "text": "connection.prepareCall(sql)"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
