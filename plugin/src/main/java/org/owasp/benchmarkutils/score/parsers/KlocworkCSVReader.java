@@ -83,20 +83,16 @@ public class KlocworkCSVReader extends Reader {
         switch (checkerKey) {
             case "ESCMP.EMPTYSTR": // Inefficient empty string comparison
             case "JD.CAST.DOWNCAST": // Possible ClassCastException for subtypes
-            case "NPE.RET": // Null Pointer Returned from Method
-            case "NPE.RET.UTIL": // Null Pointer Returned from Map or Collection
+            case "JD.METHOD.CBS": // Method can be declared static
             case "REDUN.FINAL": // Redundant Final Modifier
-            case "REDUN.NULL": // Use of Variable instead of Null Constant
-            case "REDUN.OP": // Suspicious operation w/ same expression on both sides
-            case "RLK.IN": // Input stream not closed on exit
-            case "RLK.OUT": // Output stream not closed on exit
-            case "SV.DATA.DB": // Data Injection - Untrusted data inserted into a Database
+            case "SV.IL.FILE": // File Name Leaking
             case "SV.IL.SESSION": // Logging of Session ID
+            case "SV.IL.SESSION.CLIENT": // HttpServletRequest.getRequestedSessionId() should not be
+                // used
+            case "SV.EXPOSE.IFIELD": // Non-final public field could be changed by malicious code or
+                // accident
             case "SV.LOADLIB.INJ": // Untrusted call to loadLibrary method
             case "SV.SERIAL.NON": // Class implements Serializable
-            case "SV.SERIAL.NOREAD": // Method readObject() should be defined for serializable class
-            case "SV.SERIAL.NOWRITE": // Method writeObject() should be defined for serializable
-                // class
             case "SV.SHARED.VAR": // Unsynchronized access to static variable from servlet
             case "SV.UMD.MAIN": // Unnecessary Main() method
                 return CweNumber.DONTCARE;
@@ -108,9 +104,6 @@ public class KlocworkCSVReader extends Reader {
             case "SV.EXEC.LOCAL": // Process Injection. Local Arguments
             case "SV.EXEC.PATH": // Untrusted Search Path
                 return CweNumber.COMMAND_INJECTION;
-            case "SV.HASH.NO_SALT": // Use of a one-way cryptographic hash without a salt
-                return 759; // CWE-759: Use of a One-Way Hash without a Salt
-                // Not the same as: CweNumber.WEAK_HASH_ALGO; - CWE: 328 Weak Hashing
             case "SV.LDAP": // Unvalidated user input is used as LDAP filter
                 return CweNumber.LDAP_INJECTION;
             case "SV.PATH": // Path and file name injection
@@ -121,6 +114,7 @@ public class KlocworkCSVReader extends Reader {
             case "SV.SSRF.URI":
                 return CweNumber.SSRF;
             case "SV.SQL": // SQL Injection
+            case "SV.SQL.DBSOURCE": // Unchecked info from DB used in SQL Statement
                 return CweNumber.SQL_INJECTION;
             case "SV.WEAK.CRYPT": // Use of a Broken or Risky Cryptographic Algorithm
                 return CweNumber.WEAK_CRYPTO_ALGO;
@@ -128,6 +122,8 @@ public class KlocworkCSVReader extends Reader {
                 return CweNumber.XPATH_INJECTION;
             case "SV.XSS.COOKIE": // Sensitive cookie without setHttpOnly flag
                 return CweNumber.COOKIE_WITHOUT_HTTPONLY;
+            case "SV.XSS.COOKIE.SECURE":
+                return CweNumber.INSECURE_COOKIE;
             case "SV.XSS.DB": // Cross Site Scripting (Stored XSS)
             case "SV.XSS.REF": // Cross Site Scripting (Reflected XSS)
                 return CweNumber.XSS;
@@ -141,25 +137,35 @@ public class KlocworkCSVReader extends Reader {
 
             case "SV.TAINT_NATIVE":
                 return 111; // Direct Use of Unsafe JNI
+            case "SV.HTTP_SPLIT":
+                return 113; // HTTP Response Splitting
             case "SV.LOG_FORGING":
                 return 117; // Log Forging
             case "SV.DOS.ARRINDEX":
                 return 129; // Improper Validation of Array Index
             case "SV.INT_OVF":
                 return 190; // Integer Overflow
+                // case "SV.IL.DEV": // App reveals design info in param back to web interface
+                // return 209; // Generation of Error Message Containing Sensitive Info
+            case "SV.STRBUF.CLEAN": // Sensitive buffer not cleaned before garage collection
+                return 226; // Sensitive Info in Resource Not Removed Before Reuse
             case "SV.SOCKETS":
                 return 246; // J2EE: Direct Use of Sockets
             case "JD.UNCAUGHT":
                 return 248; // Uncaught Exception
             case "RR.IGNORED":
                 return 252; // Unchecked Return Value
+            case "SV.PASSWD.PLAIN": // Plain-text Password
+                return 256; // Plaintext Storage of a Password
             case "SV.PASSWD.HC":
             case "SV.PASSWD.HC.MINLEN": // Minimum 15 char length Hardcoded pwd
             case "SV.PASSWD.PLAIN.HC":
                 return 259; // Hardcoded Password
-            case "SV.PASSWD.PLAIN": // Plain-text Password
             case "SV.SENSITIVE.DATA": // Unencrypted sensitive data is written
                 return 312; // Cleartext Storage of Sensitive Info
+            case "SV.UMC.EXIT":
+            case "UMC.EXIT":
+                return 382; // J2EE: Use of System.exit()
             case "SV.UMC.THREADS":
                 return 383; // J2EE: Direct Use of Threads
             case "ECC.EMPTY": // Empty Exception Block
@@ -170,20 +176,29 @@ public class KlocworkCSVReader extends Reader {
             case "EXC.BROADTHROWS":
                 return 397; // Decl of Throws for Generic Exception
             case "REDUN.DEF": // Assignment of variable to itself
+            case "REDUN.OP": // Suspicious operation w/ same expression on both sides
                 return 398; // Code quality
             case "SV.DOS.TMPFILEDEL":
             case "SV.DOS.TMPFILEEXIT":
                 return 459; // Incomplete Cleanup
+            case "SV.TAINT": // Unvalidated user input passed to security sensitive method
+                return 470; // Unsafe Reflection
+            case "NPE.COND":
             case "NPE.CONST":
+            case "NPE.RET.UTIL": // Null Pointer Returned from Map or Collection
             case "NPE.STAT":
+            case "REDUN.NULL": // Use of Variable instead of Null Constant
                 return 476; // Null Pointer Dereference
             case "JD.BITR":
                 return 481; // Assigning Instead of Comparing
             case "JD.IFBAD": // Redundant 'if' statement
                 return 483; // Incorrect Block Delimitation
+            case "SV.EXPOSE.FIELD": // Non-final public static field could be changed
+                return 500; // Public Static Field Not Marked Final
             case "SV.PASSWD.HC.EMPTY": // Empty Password
                 return 521; // Weak Password
             case "JD.RC.EXPR.DEAD":
+            case "JD.UN.MET": // Method is never called
             case "JD.UN.PMET": // Unused Private Method
                 return 561; // Dead Code
             case "JD.VNU":
@@ -196,9 +211,15 @@ public class KlocworkCSVReader extends Reader {
                 return 571; // Expression always true
             case "JD.THREAD.RUN":
                 return 572; // Call to Thread run() instead of start()
+            case "SV.SERIAL.NOREAD": // Method readObject() should be defined for serializable class
+            case "SV.SERIAL.NOWRITE": // Method writeObject() should be defined for serializable
+                // class
+                return 573; // Improper Following of Spec by Caller
             case "EHC.EQ":
             case "EHC.HASH":
                 return 581; // Just One of Equals and Hashcode Defined
+            case "SV.EXPOSE.MUTABLEFIELD": // Public field references mutable object
+                return 582; // Array Declared Public, Final, Static
             case "JD.FINRET":
                 return 584; // Return in Finally Block
             case "JD.UMC.FINALIZE":
@@ -207,15 +228,32 @@ public class KlocworkCSVReader extends Reader {
                 return 597; // Use of Wrong Operator in String Comparison
             case "JD.SYNC.DCL":
                 return 609; // Double-Checked Locking
+            case "JD.LOCK": // Lock acquired but not released
+                return 667; // Improper Locking
             case "JD.INF.AREC":
                 return 674; // Uncontrolled Recursion
+            case "NPE.RET": // Null Pointer Returned from Method
+                return 690; // Unchecked Return Value to Null Pointer Dereference
             case "JD.BITCMP": // Questionable use of Bit compare operation
                 return 754; // Improper Check for Unusual or Exceptional Conditions
+            case "SV.HASH.NO_SALT": // Use of a one-way cryptographic hash without a salt
+                return 759; // CWE-759: Use of a One-Way Hash without a Salt
+                // Not the same as: CweNumber.WEAK_HASH_ALGO; - CWE: 328 Weak Hashing
+            case "RLK.SQLCON": // SQL Connection not closed on exit
+            case "RLK.SQLOBJ": // SQL Object not closed on exit
+                return 772; // Missing Release of Resource after Effective Lifetime
+            case "RLK.IN": // Input stream not closed on exit
+            case "RLK.OUT": // Output stream not closed on exit
+            case "RLK.ZIP":
+                return 775; // Missing Release of File Descriptor
+            case "JD.INF.ALLOC": // Memory alloc in infinite loop can lead to OutOfMemoryError
             case "SV.DOS.ARRSIZE": // Unvalidated user input used for array size
                 return 789; // Memory alloc w/ Excessive Size Value
             case "JD.SYNC.IN":
             case "JD.LOCK.SLEEP":
                 return 833; // Deadlock
+            case "SV.DATA.DB": // Data Injection - Untrusted data inserted into a Database
+                return 1287; // Improper Validation of Specified Type of Input
 
             default:
                 System.out.println(

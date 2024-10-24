@@ -129,8 +129,8 @@ public class SemgrepReader extends Reader {
             case 90: // CweNumber.LDAP_INJECTION;
             case 326: // Counts as Weak Crypto due to categories.xml mapping
             case 327: // CweNumber.WEAK_CRYPTO_ALGO
-            case 329: // Generation of Predictable IV with CBC Mode
             case 328: // CweNumber.WEAK_HASH_ALGO;
+            case 329: // Generation of Predictable IV with CBC Mode
             case 330: // return CweNumber.WEAK_RANDOM;
             case 338: // Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)
                 // 338 Counts as Weak Random due to categories.xml mapping

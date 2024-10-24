@@ -234,6 +234,33 @@ public class FortifyReader extends Reader {
             case "Access Specifier Manipulation":
                 return CweNumber.IMPROPER_ACCESS_CONTROL;
 
+            case "Code Correctness":
+                {
+                    switch (subtype) {
+                        case "Call to sleep() in Lock":
+                            return 833; // Deadlock
+                        case "Call to Thread.run()":
+                            return 572; // Call to Thread run() instead of start()
+                        case "Erroneous finalize() Method":
+                            return 568; // finalize() Method without super.finalize()
+                        case "Erroneous String Compare":
+                            return 597; // Use of Wrong Operator in String Comparison
+
+                        case "ToString on Array":
+                        case "Multiple Stream Commits":
+                            return CweNumber.DONTCARE;
+
+                        default:
+                            if (classname != null)
+                                System.out.println(
+                                        "Fortify parser found vulnerability type: 'Code Correctness', with unmapped subtype: "
+                                                + subtype
+                                                + " in class: "
+                                                + classname);
+                    }
+                    return CweNumber.UNKNOWN;
+                }
+
             case "Command Injection":
                 return CweNumber.COMMAND_INJECTION;
 
@@ -295,6 +322,7 @@ public class FortifyReader extends Reader {
             case "Insecure Transport":
                 return 319; // Cleartext Transmission of Sensitive Info
 
+                // Deprecated rule set last updated in 2017
             case "Insider Threat":
                 {
                     switch (subtype) {
@@ -367,6 +395,7 @@ public class FortifyReader extends Reader {
             case "Missing Check against Null":
             case "Missing Check for Null Parameter":
             case "Null Dereference":
+            case "Redundant Null Check":
                 return 476; // Null Pointer Dereference
 
             case "Missing XML Validation":
@@ -462,8 +491,16 @@ public class FortifyReader extends Reader {
             case "Poor Style":
                 {
                     switch (subtype) {
+                        case "Non-final Public Static Field":
+                            return 500; // Public Static Field Not Marked Final
+                        case "Value Never Read":
+                            return 563; // Assignment to Variable without Use
                         case "Empty Synchronized Block":
                             return 585; // Empty Synchronized Block
+                        case "Explicit Call to finalize()":
+                            return 586; // Explicit Call to finalize()
+                        case "Redundant Initialization":
+                            return CweNumber.DONTCARE;
                         default:
                             System.out.println(
                                     "Fortify parser found vulnerability type: 'Poor Style', with unmapped subtype: "
@@ -478,8 +515,6 @@ public class FortifyReader extends Reader {
                 return 359; // Exposure of Private Personal Info
             case "Race Condition":
                 return 362;
-            case "Redundant Null Check":
-                return 1041; // Use of Redundant Code
             case "Resource Injection":
                 return 99; // Resource Injection
 
@@ -563,7 +598,6 @@ public class FortifyReader extends Reader {
 
                 // Things we don't care about
             case "Build Misconfiguration":
-            case "Code Correctness":
             case "Hardcoded Domain in HTML":
             case "J2EE Misconfiguration":
             case "Poor Logging Practice":
