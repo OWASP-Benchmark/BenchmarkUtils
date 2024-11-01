@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -159,15 +160,24 @@ public abstract class SarifReader extends Reader {
         Map<String, Integer> mappings = new HashMap<>();
 
         for (JSONObject rule : extractRulesFrom(tool)) {
-            JSONArray tags = rule.getJSONObject("properties").getJSONArray("tags");
+            try {
+                JSONArray tags = rule.getJSONObject("properties").getJSONArray("tags");
 
-            for (int j = 0; j < tags.length(); j++) {
-                String tag = tags.getString(j).toLowerCase();
+                for (int j = 0; j < tags.length(); j++) {
+                    String tag = tags.getString(j).toLowerCase();
 
-                // only take first CWE id for rule
-                if (tag.contains("cwe") && !mappings.containsKey(rule.getString("id"))) {
-                    mappings.put(rule.getString("id"), mapCwe(extractCwe(tag)));
+                    // only take first CWE id for rule
+                    if (tag.contains("cwe") && !mappings.containsKey(rule.getString("id"))) {
+                        mappings.put(rule.getString("id"), mapCwe(extractCwe(tag)));
+                    }
                 }
+            } catch (JSONException e) {
+                System.err.println(
+                        "WARNING: "
+                                + e.getMessage()
+                                + " for rule: "
+                                + rule.toString()
+                                + ". Parser for this tool type needs to be fixed to handle this properly.");
             }
         }
 
@@ -214,7 +224,7 @@ public abstract class SarifReader extends Reader {
         return mappings;
     }
 
-    public Map<String, Integer> customRuleCweMappings(JSONObject driver) {
+    public Map<String, Integer> customRuleCweMappings(JSONObject tool) {
         throw new IllegalArgumentException(
                 "SARIF Reader using custom CWE mappings MUST overwrite mapping method.");
     }

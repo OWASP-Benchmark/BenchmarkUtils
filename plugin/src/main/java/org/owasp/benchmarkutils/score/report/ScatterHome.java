@@ -138,6 +138,17 @@ public class ScatterHome extends ScatterPlot {
         for (XYDataItem item : (List<XYDataItem>) series.getItems()) {
             double x = item.getX().doubleValue();
             double y = item.getY().doubleValue();
+
+            // This should only happen if we don't have all the CWEs mapped to CategoryGroups,
+            // or there are no actual findings for this category.
+            if (Double.isNaN(y)) {
+                System.err.println(
+                        "WARNING: Y PlotPoint for item: "
+                                + item.toString()
+                                + " is NaN, so setting it to 0.");
+                y = 0.0;
+            }
+
             double z = (x + y) / 2;
             XYLineAnnotation score = new XYLineAnnotation(x, y, z, z, dashed, Color.blue);
             xyplot.addAnnotation(score);

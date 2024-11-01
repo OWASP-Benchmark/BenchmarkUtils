@@ -178,6 +178,17 @@ public class ScatterPlot {
             if (e.getValue() != null) {
                 Point2D p = e.getKey();
                 String label = sort(e.getValue());
+
+                // This should only happen if we don't have all the CWEs mapped to CategoryGroups,
+                // or there are no actual findings for this category.
+                if (Double.isNaN(p.getY())) {
+                    System.err.println(
+                            "WARNING: Y PlotPoint for label: "
+                                    + label
+                                    + " is NaN, so setting it to 0.");
+                    p.setLocation(p.getX(), 0.0);
+                }
+
                 XYTextAnnotation annotation = new XYTextAnnotation(label, p.getX(), p.getY());
                 annotation.setTextAnchor(
                         p.getX() < 3 ? TextAnchor.TOP_LEFT : TextAnchor.TOP_CENTER);

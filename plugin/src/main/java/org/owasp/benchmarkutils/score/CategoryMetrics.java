@@ -44,8 +44,11 @@ public class CategoryMetrics {
                     "ERROR: precision for category: " + category + " is NaN");
         }
         if (Double.isNaN(tpr)) {
-            throw new IllegalArgumentException(
-                    "ERROR: true positive rate for category: " + category + " is NaN");
+            System.out.println(
+                    "WARNING: true positive rate for category: "
+                            + category
+                            + " is NaN. Setting it to 0.");
+            tpr = 0.0;
         }
         if (Double.isNaN(fpr)) {
             throw new IllegalArgumentException(
