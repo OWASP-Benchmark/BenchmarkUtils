@@ -46,8 +46,8 @@ public class PTAIReaderTest extends ReaderTestBase {
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
 
-        assertEquals("Positive Technologies Application Inspector", result.getToolName());
-        assertEquals("4.7.2.36549", result.getToolVersion());
+        assertEquals("PT Application Inspector", result.getToolName());
+        assertEquals("4.7.2", result.getToolVersion());
 
         assertEquals(2, result.getTotalResults());
 
