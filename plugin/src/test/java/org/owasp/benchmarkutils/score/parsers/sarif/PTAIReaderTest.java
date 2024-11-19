@@ -19,24 +19,24 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.*;
 import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
 public class PTAIReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private static ResultFile resultFile;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_PTAI-v4.7.2.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlyPTAIReaderTestReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, PTAIReader.class);
+        assertOnlyMatcherClassIs(resultFile, PTAIReader.class);
     }
 
     @Test
@@ -51,7 +51,7 @@ public class PTAIReaderTest extends ReaderTestBase {
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(8).get(0).getCWE());
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.getTestCaseResults("1").get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.getTestCaseResults("8").get(0).getCWE());
     }
 }
