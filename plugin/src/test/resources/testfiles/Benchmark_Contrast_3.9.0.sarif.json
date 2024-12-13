@@ -45,8 +45,16 @@
             }
           ]
         }
+      ],
+      "invocations": [
+        {
+          "commandLine": "some-cool-command",
+          "startTimeUtc": "2011-11-11T11:11:11.111+00:00",
+          "endTimeUtc": "2011-11-11T33:33:33.333+00:00",
+          "toolExecutionNotifications": [],
+          "executionSuccessful": true
+        }
       ]
     }
   ]
 }
-

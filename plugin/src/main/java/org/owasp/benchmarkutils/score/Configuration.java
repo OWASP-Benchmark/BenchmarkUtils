@@ -74,6 +74,8 @@ public class Configuration {
     /** Indicates whether Precision score should be included in generated tables. By default, no. */
     public final boolean includePrecision;
 
+    public final Report report;
+
     private static final Yaml yaml = new Yaml();
 
     public static Configuration fromDefaultConfig() {
@@ -110,7 +112,7 @@ public class Configuration {
     }
 
     private Configuration(Map<String, Object> yamlConfig) {
-        this.expectedResultsFileName = (String) yamlConfig.get("expectedresults");
+        expectedResultsFileName = (String) yamlConfig.get("expectedresults");
         focus = (String) yamlConfig.get("focustool");
         anonymousMode = (Boolean) yamlConfig.get("anonymousmode");
         mixedMode = (Boolean) yamlConfig.get("mixedmode");
@@ -120,6 +122,8 @@ public class Configuration {
         tprLabel = (String) yamlConfig.get("tprlabel");
         includeProjectLink = (Boolean) yamlConfig.get("includeprojectlink");
         includePrecision = (Boolean) yamlConfig.get("includeprecision");
+
+        report = new Report(yamlConfig);
     }
 
     public static Configuration fromFile(String pathToFile) {
@@ -135,5 +139,114 @@ public class Configuration {
         public ConfigCouldNotBeParsed(String message) {
             super(message);
         }
+    }
+
+    private Object deepGet(Map<?, ?> input, String... path) {
+        Map<?, ?> current = input;
+
+        for (int i = 0; i < path.length - 1; i++) {
+            current = (Map<?, ?>) current.get(path[i]);
+        }
+
+        return current.get(path[path.length - 1]);
+    }
+
+    private String getOrDefault(StringCallback sc, String defaultValue) {
+        try {
+            return sc.run();
+        } catch (Throwable ignored) {
+            return defaultValue;
+        }
+    }
+
+    public class Report {
+
+        public final Html html;
+
+        public Report(Map<String, Object> yamlConfig) {
+            this.html = new Html(yamlConfig);
+        }
+
+        public class Html {
+
+            /** Link to project, is empty if includeProjectLink is false */
+            public final String projectLinkEntry;
+
+            /**
+             * Key Entry for Precision, which is added to the Key for tables that include Precision.
+             * Is empty if includePrecision is set to false via config
+             */
+            public final String precisionKeyEntry;
+
+            /**
+             * Key Entry for F-Score, which is added to the Key for tables that also include
+             * Precision. Is empty if includePrecision is set to false via config
+             */
+            public final String fsCoreEntry;
+
+            private static final String DEFAULT_PROJECT_LINK =
+                    "            <p>\n"
+                            + "                For more information, please visit the <a href=\"https://owasp.org/www-project-benchmark/\">OWASP Benchmark Project Site</a>.\n"
+                            + "            </p>\n";
+
+            private static final String DEFAULT_PRECISION_KEY =
+                    "<tr>\n"
+                            + "                    <th>Precision = TP / ( TP + FP )</th>\n"
+                            + "                    <td>The percentage of reported vulnerabilities that are true positives. Defined at <a href=\"https://en.wikipedia.org/wiki/Precision_and_recall\">Wikipedia</a>.</td>\n"
+                            + "                </tr>\n";
+
+            private static final String DEFAULT_FS_CORE_ENTRY =
+                    "<tr>\n"
+                            + "                    <th>F-score = 2 * Precision * Recall / (Precision + Recall)</th>\n"
+                            + "                    <td>The harmonic mean of the precision and recall. A value of 1.0 indicates perfect precision and recall. Defined at <a href=\"https://en.wikipedia.org/wiki/F-score\">Wikipedia</a>.</td>\n"
+                            + "                </tr>\n";
+
+            public Html(Map<String, Object> yamlConfig) {
+                if ((Boolean) yamlConfig.get("includeprojectlink")) {
+                    projectLinkEntry =
+                            getOrDefault(
+                                    () ->
+                                            (String)
+                                                    deepGet(
+                                                            yamlConfig,
+                                                            "report",
+                                                            "html",
+                                                            "projectLinkEntry"),
+                                    DEFAULT_PROJECT_LINK);
+                } else {
+                    projectLinkEntry = "";
+                }
+
+                if ((Boolean) yamlConfig.get("includeprecision")) {
+                    precisionKeyEntry =
+                            getOrDefault(
+                                    () ->
+                                            (String)
+                                                    deepGet(
+                                                            yamlConfig,
+                                                            "report",
+                                                            "html",
+                                                            "precisionKeyEntry"),
+                                    DEFAULT_PRECISION_KEY);
+                    fsCoreEntry =
+                            getOrDefault(
+                                    () ->
+                                            (String)
+                                                    deepGet(
+                                                            yamlConfig,
+                                                            "report",
+                                                            "html",
+                                                            "fsCoreEntry"),
+                                    DEFAULT_FS_CORE_ENTRY);
+                } else {
+                    precisionKeyEntry = "";
+                    fsCoreEntry = "";
+                }
+            }
+        }
+    }
+
+    private interface StringCallback {
+        String run();
     }
 }

@@ -1,0 +1,3 @@
+# test name, category, real vulnerability, cwe, template, source, vuln src, data flow, vuln df, sink, vuln sink, UI Template, Benchmark version: 1.2, 2024-05-1
+BenchmarkTest00001,pathtraver,true,22,"_NoDataflowTemplate.code","RequestGetCookies.code",true,none,true,"FileInputStream-F.code",true,"UI_HTML_post_getCookies.code"
+BenchmarkTest00002,cmdi,true,78,"_NoDataflowTemplate.code","RequestGetHeader.code",true,none,true,"ProcessBuilderCommand-L.code",true,"UI_HTML_post_getHeader.code"

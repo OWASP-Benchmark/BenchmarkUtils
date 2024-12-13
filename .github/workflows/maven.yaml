@@ -17,9 +17,6 @@ jobs:
         java-version: '11'
         distribution: 'adopt'
         cache: maven
-    - name: Build and Install shared library
+    - name: Build, test, and Install shared library
       run: mvn install
-    - name: Run Spotless check
-      run: mvn spotless:check
-    - name: Run unit tests
-      run: mvn test
+

@@ -10,14 +10,15 @@
  *
  * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU General Public License for more details.
+ * PURPOSE. See the GNU General Public License for more details
  *
- * @author Nicolas Couraud
+ * @author Raj Barath
  * @created 2023
  */
-package org.owasp.benchmarkutils.score.parsers;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,50 +27,45 @@ import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
-public class CodeQLReaderTest extends ReaderTestBase {
+class SnykReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CodeQL-v2.13.sarif");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_SnykCodeCli.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyCodeQLReaderTestReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, CodeQLReader.class);
+    void onlySnykReaderReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, SnykReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        CodeQLReader reader = new CodeQLReader();
+        SnykReader reader = new SnykReader();
         TestSuiteResults result = reader.parse(resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
-
-        assertEquals("CodeQL", result.getToolName());
+        assertTrue(result.isCommercial());
+        assertEquals("SnykCode", result.getToolName());
+        assertEquals("1.0.0", result.getToolVersion());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.XPATH_INJECTION, result.get(2).get(0).getCWE());
     }
 
     @Test
-    void readerHandlesAlternativeResultFile() throws Exception {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CodeQL-v2.13.alternative.sarif");
-        CodeQLReader reader = new CodeQLReader();
-        TestSuiteResults result = reader.parse(resultFile);
-
-        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
-
-        assertEquals("CodeQL", result.getToolName());
-
-        assertEquals(2, result.getTotalResults());
-
-        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+    void readerMapsCwes() {
+        SnykReader reader = new SnykReader();
+        assertEquals(
+                CweNumber.WEAK_HASH_ALGO,
+                reader.mapCwe(CweNumber.PASSWORD_HASH_WITH_INSUFFICIENT_COMPUTATIONAL_EFFORT));
+        assertEquals(CweNumber.PATH_TRAVERSAL, reader.mapCwe(CweNumber.RELATIVE_PATH_TRAVERSAL));
     }
 }

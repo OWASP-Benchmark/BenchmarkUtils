@@ -32,6 +32,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -128,6 +130,34 @@ public class ResultFile {
 
     public File file() {
         return originalFile;
+    }
+
+    public CSVParser csvRecords() {
+        return csvRecords(content());
+    }
+
+    private static CSVParser csvRecords(String content) {
+        try {
+            return CSVFormat.DEFAULT
+                    .builder()
+                    .setHeader()
+                    .setSkipHeaderRecord(false)
+                    .setIgnoreEmptyLines(false)
+                    .build()
+                    .parse(new StringReader(content));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public CSVParser csvRecordsSkipFirstRows(int skipRows) {
+        List<String> rows = contentAsRows();
+
+        return csvRecords(String.join("\n", rows.subList(skipRows, rows.size())));
+    }
+
+    public List<String> contentAsRows() {
+        return Arrays.asList(content().split("\n"));
     }
 
     /**

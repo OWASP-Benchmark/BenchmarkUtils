@@ -12,13 +12,13 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Sascha Knoop
- * @created 2021
+ * @author Julien Delange
+ * @created 2024
  */
-package org.owasp.benchmarkutils.score.parsers;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,34 +27,35 @@ import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
-public class HdivReaderTest extends ReaderTestBase {
+public class DatadogSastReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_hdivAgentLog.hlg");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_DatadogSast.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyHdivReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, HdivReader.class);
+    public void canReadFile() {
+        assertOnlyMatcherClassIs(this.resultFile, DatadogSastReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        HdivReader reader = new HdivReader();
+        DatadogSastReader reader = new DatadogSastReader();
         TestSuiteResults result = reader.parse(resultFile);
 
-        assertEquals(TestSuiteResults.ToolType.IAST, result.getToolType());
-        assertTrue(result.isCommercial());
-        assertEquals("Hdiv", result.getToolName());
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertEquals("DatadogSast", result.getToolName());
+        assertEquals("0.2.9", result.getToolVersion());
+        assertFalse(result.isCommercial());
 
-        assertEquals(2, result.getTotalResults());
+        assertEquals(1, result.getTotalResults());
 
-        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.WEAK_HASH_ALGO, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.INSECURE_COOKIE, result.get(10).get(0).getCWE());
     }
 }

@@ -28,6 +28,14 @@ import java.util.List;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
+import org.owasp.benchmarkutils.score.parsers.csv.WhiteHatDynamicReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.CodeQLReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.ContrastScanReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.DatadogSastReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.PTAIReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.SemgrepSarifReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.SnykReader;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -61,6 +69,7 @@ public abstract class Reader {
                 new CoverityReader(),
                 new CrashtestReader(),
                 new DatadogReader(),
+                new DatadogSastReader(),
                 new FaastReader(),
                 new FindbugsReader(),
                 new FluidAttacksReader(),
@@ -69,24 +78,26 @@ public abstract class Reader {
                 new HCLAppScanIASTReader(),
                 new HCLAppScanSourceReader(),
                 new HCLAppScanStandardReader(),
-                new HdivReader(),
                 new HorusecReader(),
                 new InsiderReader(),
                 new JuliaReader(),
                 new KlocworkCSVReader(),
                 new KiuwanReader(),
-                new LGTMReader(),
                 new MendReader(),
                 new NetsparkerReader(),
                 new NJSScanReader(),
                 new NoisyCricketReader(),
                 new ParasoftReader(),
+                new PrecautionReader(),
                 new PMDReader(),
+                new PTAIReader(),
                 new QualysWASReader(),
                 new Rapid7Reader(),
                 new ReshiftReader(),
+                new ScnrReader(),
                 new SeekerReader(),
                 new SemgrepReader(),
+                new SemgrepSarifReader(),
                 new ShiftLeftReader(),
                 new ShiftLeftScanReader(),
                 new SnappyTickReader(),
@@ -101,6 +112,7 @@ public abstract class Reader {
                 new WapitiJsonReader(),
                 new WapitiReader(),
                 new WebInspectReader(),
+                new WhiteHatDynamicReader(),
                 new ZapJsonReader(),
                 new ZapReader());
     }
@@ -112,10 +124,12 @@ public abstract class Reader {
     public static Node getNamedNode(String name, NodeList list) {
         for (int i = 0; i < list.getLength(); i++) {
             Node n = list.item(i);
+
             if (n.getNodeName().equals(name)) {
                 return n;
             }
         }
+
         return null;
     }
     // Returns the node inside this nodelist whose name matches 'name', that also
@@ -123,8 +137,7 @@ public abstract class Reader {
     // called 'key' whose value matches 'keyvalue'
 
     public static Node getNamedNode(String name, String keyValue, NodeList list) {
-        if ((name == null) || (keyValue == null) || (list == null))
-            return null;
+        if ((name == null) || (keyValue == null) || (list == null)) return null;
         for (int i = 0; i < list.getLength(); i++) {
             Node n = list.item(i);
             if (n.getNodeName().equals(name)) {
@@ -139,6 +152,11 @@ public abstract class Reader {
     public static Node getNamedChild(String name, Node parent) {
         NodeList children = parent.getChildNodes();
         return getNamedNode(name, children);
+    }
+
+    public static boolean hasNamedChild(String name, Node parent) {
+        NodeList children = parent.getChildNodes();
+        return getNamedNode(name, children) != null;
     }
 
     public static List<Node> getNamedChildren(String name, List<Node> list) {
@@ -173,8 +191,7 @@ public abstract class Reader {
     }
 
     public static String getAttributeValue(String name, Node node) {
-        if (node == null)
-            return null;
+        if (node == null) return null;
         NamedNodeMap nnm = node.getAttributes();
         if (nnm != null) {
             Node attrnode = nnm.getNamedItem(name);
@@ -208,24 +225,24 @@ public abstract class Reader {
         return path.chars().filter(ch -> ch == c).count();
     }
 
-    /* get rid of everything except the test name */
     public static int testNumber(String path) {
+        return testNumber(path, BenchmarkScore.TESTCASENAME);
+    }
+
+    /** Get rid of everything except the test name. */
+    public static int testNumber(String path, String testCaseName) {
         try {
-            // System.out.println("Path: " + path);
             // No BenchmarkTest
-            if (path.indexOf(BenchmarkScore.TESTCASENAME) < 0) {
+            if (!path.contains(testCaseName)) {
                 return -1;
             }
-            int numberStart = path.indexOf(BenchmarkScore.TESTCASENAME)
-                    + BenchmarkScore.TESTCASENAME.length()
-                    + 1;
+            int numberStart = path.indexOf(testCaseName) + testCaseName.length() + 1;
             path = path.substring(numberStart);
             // System.out.println("After length: " + path);
             path = path.replaceAll("\\?.*", "");
             path = path.replaceAll(",.*", "");
 
-            path = path.replaceAll(
-                    BenchmarkScore.TESTCASENAME + "v[0-9]*", BenchmarkScore.TESTCASENAME);
+            path = path.replaceAll(testCaseName + "v[0-9]*", testCaseName);
 
             path = path.replaceAll("/send", "");
             if (path.contains(":")) {
@@ -261,11 +278,15 @@ public abstract class Reader {
         }
     }
 
-    public static String extractFilename(String path) {
+    public static String extractFilenameWithoutEnding(String path) {
         try {
-            path = removeUrlPart(path);
+            String name = new File(fixWindowsPath(removeUrlPart(path))).getName();
 
-            return new File(fixWindowsPath(path)).getName();
+            if (name.contains(".")) {
+                return name.substring(0, name.lastIndexOf("."));
+            } else {
+                return name;
+            }
         } catch (Throwable t) {
             return "";
         }

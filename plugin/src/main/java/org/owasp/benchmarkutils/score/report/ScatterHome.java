@@ -337,7 +337,7 @@ public class ScatterHome extends ScatterPlot {
     public static void generateComparisonChart(Set<Tool> tools, String focus, File scoreCardDir) {
         try {
             String scatterTitle =
-                    BenchmarkScore.fullTestSuiteName(BenchmarkScore.TESTSUITE)
+                    BenchmarkScore.TESTSUITENAME.fullName()
                             + (BenchmarkScore.config.mixedMode
                                     ? ""
                                     : " v" + BenchmarkScore.TESTSUITEVERSION)

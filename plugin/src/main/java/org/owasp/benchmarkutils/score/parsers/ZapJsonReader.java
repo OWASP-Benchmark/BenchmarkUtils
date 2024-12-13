@@ -181,6 +181,9 @@ public class ZapJsonReader extends Reader {
                 return CweNumber.COOKIE_WITHOUT_HTTPONLY;
 
                 // Don't care about these:
+            case "-1": // Informational Alert
+            case "0": // Informational Alert: Check for differences in response based on fuzzed User
+                // Agent
             case "16": // Configuration
             case "20": // Improper Input Validation
             case "91": // XML Injection (aka Blind XPath Injection)

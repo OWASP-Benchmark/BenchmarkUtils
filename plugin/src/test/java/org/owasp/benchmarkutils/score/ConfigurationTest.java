@@ -13,14 +13,17 @@
  * PURPOSE. See the GNU General Public License for more details.
  *
  * @author Sascha Knoop
- * @created 2022
+ * @created 2023
  */
 package org.owasp.benchmarkutils.score;
 
 import static java.io.File.createTempFile;
+import static java.util.UUID.randomUUID;
 import static org.apache.commons.lang.math.RandomUtils.nextBoolean;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -29,7 +32,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.DumperOptions;
@@ -98,20 +100,21 @@ public class ConfigurationTest {
 
     @Test
     void throwsExceptionIfResourceFileDoesNotExist() {
-        try {
-            Configuration.fromResourceFile("does-not-exist.yaml");
+        Configuration.ConfigCouldNotBeParsed e =
+                assertThrows(
+                        Configuration.ConfigCouldNotBeParsed.class,
+                        () -> Configuration.fromResourceFile("does-not-exist.yaml"),
+                        "No exception was thrown");
 
-            fail("No exception was thrown");
-        } catch (Configuration.ConfigCouldNotBeParsed e) {
-            assertEquals(
-                    "YAML scoring configuration file: 'does-not-exist.yaml' not found on classpath!",
-                    e.getMessage());
-        }
+        assertEquals(
+                "YAML scoring configuration file: 'does-not-exist.yaml' not found on classpath!",
+                e.getMessage());
     }
 
     @Test
     void canReadConfigFromFileByPath() throws IOException {
         Map<String, Object> testConfig = new HashMap<>();
+
         testConfig.put("expectedresults", randomString());
         testConfig.put("resultsfileordir", randomString());
         testConfig.put("focustool", randomString());
@@ -123,17 +126,22 @@ public class ConfigurationTest {
         testConfig.put("includeprojectlink", randomBoolean());
         testConfig.put("includeprecision", randomBoolean());
 
+        File tempConfigFile = createConfigFile(testConfig);
+
+        assertConfigEquals(testConfig, Configuration.fromFile(tempConfigFile.getAbsolutePath()));
+    }
+
+    private File createConfigFile(Map<String, Object> testConfig) throws IOException {
         File tempConfigFile = createTempFile("config", ".yaml");
 
         try (FileWriter writer = new FileWriter(tempConfigFile)) {
             yaml.dump(testConfig, writer);
         }
-
-        assertConfigEquals(testConfig, Configuration.fromFile(tempConfigFile.getAbsolutePath()));
+        return tempConfigFile;
     }
 
     private String randomString() {
-        return UUID.randomUUID().toString();
+        return randomUUID().toString();
     }
 
     private Boolean randomBoolean() {
@@ -149,15 +157,15 @@ public class ConfigurationTest {
 
     @Test
     void throwsExceptionIfFileDoesNotExist() {
-        try {
-            Configuration.fromFile("does-not-exist.yaml");
+        Configuration.ConfigCouldNotBeParsed e =
+                assertThrows(
+                        Configuration.ConfigCouldNotBeParsed.class,
+                        () -> Configuration.fromFile("does-not-exist.yaml"),
+                        "No exception was thrown");
 
-            fail("No exception was thrown");
-        } catch (Configuration.ConfigCouldNotBeParsed e) {
-            assertEquals(
-                    "YAML scoring configuration file: 'does-not-exist.yaml' not found!",
-                    e.getMessage());
-        }
+        assertEquals(
+                "YAML scoring configuration file: 'does-not-exist.yaml' not found!",
+                e.getMessage());
     }
 
     @Test
@@ -170,13 +178,8 @@ public class ConfigurationTest {
         testConfig.put("cwecategoryname", randomString());
         testConfig.put("includeprojectlink", !((Boolean) defaultConfig.get("includeprojectlink")));
 
-        File tempConfigFile = createTempFile("config", ".yaml");
-
-        try (FileWriter writer = new FileWriter(tempConfigFile)) {
-            yaml.dump(testConfig, writer);
-        }
-
-        Configuration actualConfig = Configuration.fromFile(tempConfigFile.getAbsolutePath());
+        Configuration actualConfig =
+                Configuration.fromFile(createConfigFile(testConfig).getAbsolutePath());
 
         assertEquals(testConfig.get("expectedresults"), actualConfig.expectedResultsFileName);
         assertEquals(defaultConfig.get("resultsfileordir"), actualConfig.resultsFileOrDirName);
@@ -198,13 +201,137 @@ public class ConfigurationTest {
 
     private File provideEmptyConfig() throws IOException {
         // Using config with dummy value (otherwise there'll be an exception)
-        File tempConfigFile = createTempFile("config", ".yaml");
         HashMap<String, Object> someConfig = new HashMap<>();
         someConfig.put("something", "value");
 
-        try (FileWriter writer = new FileWriter(tempConfigFile)) {
-            yaml.dump(someConfig, writer);
-        }
-        return tempConfigFile;
+        return createConfigFile(someConfig);
+    }
+
+    @Test
+    void usesDefaultValuesForHtmlReportStrings() throws IOException {
+        Map<String, Object> testConfig = new HashMap<>();
+
+        testConfig.put("includeprojectlink", true);
+        testConfig.put("includeprecision", true);
+
+        Configuration config =
+                Configuration.fromFile(createConfigFile(testConfig).getAbsolutePath());
+
+        assertTrue(config.report.html.projectLinkEntry.contains("OWASP Benchmark Project Site"));
+        assertTrue(config.report.html.precisionKeyEntry.contains("Precision = TP / ( TP + FP )"));
+        assertTrue(
+                config.report.html.fsCoreEntry.contains(
+                        "F-score = 2 * Precision * Recall / (Precision + Recall)"));
+    }
+
+    @Test
+    void usesDefaultValuesForHtmlReportStringsWithoutProjectLink() throws IOException {
+        Map<String, Object> testConfig = new HashMap<>();
+
+        testConfig.put("includeprojectlink", false);
+        testConfig.put("includeprecision", true);
+
+        Configuration config =
+                Configuration.fromFile(createConfigFile(testConfig).getAbsolutePath());
+
+        assertTrue(config.report.html.projectLinkEntry.isEmpty());
+        assertFalse(config.report.html.precisionKeyEntry.isEmpty());
+        assertFalse(config.report.html.fsCoreEntry.isEmpty());
+    }
+
+    @Test
+    void usesDefaultValuesForHtmlReportStringsWithoutPrecision() throws IOException {
+        Map<String, Object> testConfig = new HashMap<>();
+
+        testConfig.put("includeprojectlink", true);
+        testConfig.put("includeprecision", false);
+
+        Configuration config =
+                Configuration.fromFile(createConfigFile(testConfig).getAbsolutePath());
+
+        assertFalse(config.report.html.projectLinkEntry.isEmpty());
+        assertTrue(config.report.html.precisionKeyEntry.isEmpty());
+        assertTrue(config.report.html.fsCoreEntry.isEmpty());
+    }
+
+    @Test
+    void usesProvidedValuesForHtmlReportStrings() throws IOException {
+        Map<String, Object> testConfig = new HashMap<>();
+        Map<String, Object> report = new HashMap<>();
+        Map<String, Object> html = new HashMap<>();
+
+        testConfig.put("includeprojectlink", true);
+        testConfig.put("includeprecision", true);
+
+        html.put("projectLinkEntry", "<p>projectLinkEntry</p>");
+        html.put("precisionKeyEntry", "<p>precisionKeyEntry</p>");
+        html.put("fsCoreEntry", "<p>fsCoreEntry</p>");
+
+        report.put("html", html);
+        testConfig.put("report", report);
+
+        Configuration config =
+                Configuration.fromFile(createConfigFile(testConfig).getAbsolutePath());
+
+        assertEquals("<p>projectLinkEntry</p>", config.report.html.projectLinkEntry);
+        assertEquals("<p>precisionKeyEntry</p>", config.report.html.precisionKeyEntry);
+        assertEquals("<p>fsCoreEntry</p>", config.report.html.fsCoreEntry);
+    }
+
+    @Test
+    void usesProvidedValuesForHtmlReportStringsWithoutProjectLink() throws IOException {
+        Map<String, Object> testConfig = new HashMap<>();
+        Map<String, Object> report = new HashMap<>();
+        Map<String, Object> html = new HashMap<>();
+
+        testConfig.put("includeprojectlink", false);
+        testConfig.put("includeprecision", true);
+
+        html.put("projectLinkEntry", "<p>projectLinkEntry</p>");
+        html.put("precisionKeyEntry", "<p>precisionKeyEntry</p>");
+        html.put("fsCoreEntry", "<p>fsCoreEntry</p>");
+
+        report.put("html", html);
+        testConfig.put("report", report);
+
+        Configuration config =
+                Configuration.fromFile(createConfigFile(testConfig).getAbsolutePath());
+
+        assertTrue(config.report.html.projectLinkEntry.isEmpty());
+        assertEquals("<p>precisionKeyEntry</p>", config.report.html.precisionKeyEntry);
+        assertEquals("<p>fsCoreEntry</p>", config.report.html.fsCoreEntry);
+    }
+
+    @Test
+    void usesProvidedValuesForHtmlReportStringsWithoutPrecision() throws IOException {
+        Map<String, Object> testConfig = new HashMap<>();
+        Map<String, Object> report = new HashMap<>();
+        Map<String, Object> html = new HashMap<>();
+
+        testConfig.put("includeprojectlink", true);
+        testConfig.put("includeprecision", false);
+
+        html.put("projectLinkEntry", "<p>projectLinkEntry</p>");
+        html.put("precisionKeyEntry", "<p>precisionKeyEntry</p>");
+        html.put("fsCoreEntry", "<p>fsCoreEntry</p>");
+
+        report.put("html", html);
+        testConfig.put("report", report);
+
+        Configuration config =
+                Configuration.fromFile(createConfigFile(testConfig).getAbsolutePath());
+
+        assertEquals("<p>projectLinkEntry</p>", config.report.html.projectLinkEntry);
+        assertTrue(config.report.html.precisionKeyEntry.isEmpty());
+        assertTrue(config.report.html.fsCoreEntry.isEmpty());
+    }
+
+    @Test
+    void handlesMultiLineValuesInYaml() {
+        Configuration config = Configuration.fromResourceFile("report-html-config.yml");
+
+        assertEquals("<p>\n  projectLinkEntry\n</p>\n", config.report.html.projectLinkEntry);
+        assertEquals("<p>\n  precisionKeyEntry\n</p>\n", config.report.html.precisionKeyEntry);
+        assertEquals("<p>\n  fsCoreEntry\n</p>\n", config.report.html.fsCoreEntry);
     }
 }
