@@ -82,7 +82,7 @@ class CodeBlockSupportResults {
                 // Optionally add the vuln type if this codeblock is a SINK
                 + ("SINK".equals(type) ? " (" + vulnCat + ")" : "")
                 + ", name: "
-                + name
+                + (("DATAFLOW".equals(type) && "".equals(name)) ? "NoDataFlow" : name)
                 + ", truePositive: "
                 + truePositive
                 + ", True Positive - used: "
@@ -103,7 +103,7 @@ class CodeBlockSupportResults {
                 // Optionally add the vuln type if this codeblock is a SINK
                 + ("SINK".equals(type) ? " (" + vulnCat + ")" : "")
                 + ", name: "
-                + name
+                + (("DATAFLOW".equals(type) && "".equals(name)) ? "NoDataFlow" : name)
                 + ", truePositive: "
                 + truePositive
                 + ", Ignoring unsupported sinks: TPs - used: "
@@ -124,7 +124,7 @@ class CodeBlockSupportResults {
                 // Optionally add the vuln type if this codeblock is a SINK
                 + ("SINK".equals(type) ? " (" + vulnCat + ")" : "")
                 + ", name: "
-                + name
+                + (("DATAFLOW".equals(type) && "".equals(name)) ? "NoDataFlow" : name)
                 + ", truePositive: "
                 + truePositive
                 /*                + ", True Positive - used: "
