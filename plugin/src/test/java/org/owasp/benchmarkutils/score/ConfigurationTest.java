@@ -75,6 +75,7 @@ public class ConfigurationTest {
         assertEquals(expectedConfig.get("focustool"), actualConfig.focus);
         assertEquals(expectedConfig.get("anonymousmode"), actualConfig.anonymousMode);
         assertEquals(expectedConfig.get("averageonlymode"), actualConfig.showAveOnlyMode);
+        assertEquals(expectedConfig.get("combinetoolresults"), actualConfig.combineResultsMode);
         assertEquals(expectedConfig.get("mixedmode"), actualConfig.mixedMode);
         assertEquals(expectedConfig.get("cwecategoryname"), actualConfig.cweCategoryName);
         assertEquals(expectedConfig.get("tprlabel"), actualConfig.tprLabel);
@@ -124,6 +125,7 @@ public class ConfigurationTest {
         testConfig.put("focustool", randomString());
         testConfig.put("anonymousmode", randomBoolean());
         testConfig.put("averageonlymode", randomBoolean());
+        testConfig.put("combinetoolresults", randomBoolean());
         testConfig.put("mixedmode", randomBoolean());
         testConfig.put("cwecategoryname", randomString());
         testConfig.put("tprlabel", randomString());
@@ -179,6 +181,7 @@ public class ConfigurationTest {
         testConfig.put("expectedresults", randomString());
         testConfig.put("focustool", randomString());
         testConfig.put("averageonlymode", !((Boolean) defaultConfig.get("averageonlymode")));
+        testConfig.put("combinetoolresults", !((Boolean) defaultConfig.get("combinetoolresults")));
         testConfig.put("cwecategoryname", randomString());
         testConfig.put("includeprojectlink", !((Boolean) defaultConfig.get("includeprojectlink")));
 
@@ -190,6 +193,7 @@ public class ConfigurationTest {
         assertEquals(testConfig.get("focustool"), actualConfig.focus);
         assertEquals(defaultConfig.get("anonymousmode"), actualConfig.anonymousMode);
         assertEquals(testConfig.get("averageonlymode"), actualConfig.showAveOnlyMode);
+        assertEquals(testConfig.get("combinetoolresults"), actualConfig.combineResultsMode);
         assertEquals(defaultConfig.get("mixedmode"), actualConfig.mixedMode);
         assertEquals(testConfig.get("cwecategoryname"), actualConfig.cweCategoryName);
         assertEquals(defaultConfig.get("tprlabel"), actualConfig.tprLabel);

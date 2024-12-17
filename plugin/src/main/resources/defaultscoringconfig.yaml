@@ -14,6 +14,7 @@ focustool: none
 
 anonymousmode: false # If true, anonymize names of commercial tools
 averageonlymode: false # If true, show averages by tool category (SAST, DAST, IAST), but don't show individual tool results
+combinetoolresults: false # If true, combine results for the same tool and version if multiple results file of that type are found
 mixedmode: false # If true, create scorecard that uses results from two versions of the same test suite
 
 ## Configuration parameters for scorecard generation:

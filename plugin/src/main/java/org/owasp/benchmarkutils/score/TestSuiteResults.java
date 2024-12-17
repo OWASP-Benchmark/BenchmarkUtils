@@ -59,7 +59,9 @@ public class TestSuiteResults {
     private String toolVersion = null;
     private String scanTime = "Unknown"; // Scan time. e.g., '0:17:29'
     public final boolean isCommercial;
-    public final ToolType toolType;
+    // Normally, this field would be final, but when converting an expected results to actual
+    // results file, we have to set this field to its type.
+    public ToolType toolType;
     // Map of test case IDs to all the results for that particular test case
     private Map<String, List<TestCaseResult>> testCaseResults =
             new TreeMap<String, List<TestCaseResult>>();
@@ -102,6 +104,10 @@ public class TestSuiteResults {
 
     public ToolType getToolType() {
         return this.toolType;
+    }
+
+    public void setToolType(ToolType toolType) {
+        this.toolType = toolType;
     }
 
     public boolean isCommercial() {
@@ -179,6 +185,15 @@ public class TestSuiteResults {
      */
     public Set<String> keySet() {
         return this.testCaseResults.keySet();
+    }
+
+    /**
+     * Adds the results passed in to the set of existing results for this test suite.
+     *
+     * @param otherResults
+     */
+    public void combineResults(TestSuiteResults otherResults) {
+        this.testCaseResults.putAll(otherResults.testCaseResults);
     }
 
     /**
@@ -428,9 +443,5 @@ public class TestSuiteResults {
                     "Provided value must be in integer in milliseconds. Value was: " + millis);
         }
         return result;
-    }
-
-    public String getShortName() {
-        return this.toolName;
     }
 }

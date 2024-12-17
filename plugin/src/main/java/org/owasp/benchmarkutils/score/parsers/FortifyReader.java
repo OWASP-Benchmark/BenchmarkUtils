@@ -264,6 +264,9 @@ public class FortifyReader extends Reader {
             case "Command Injection":
                 return CweNumber.COMMAND_INJECTION;
 
+            case "Connection String Parameter Pollution":
+                return 15; // External Control of System or Configuration Setting
+
             case "Cookie Security":
                 {
                     switch (subtype) {
@@ -448,6 +451,8 @@ public class FortifyReader extends Reader {
                         case "": // Don't know what blank sub type means so can't map it
                         case "Password in Comment":
                             return CweNumber.DONTCARE;
+                        case "Weak Cryptography":
+                            return 522; // Insufficiently Protected Credentials
                         default:
                             if (classname != null)
                                 System.out.println(
@@ -602,6 +607,7 @@ public class FortifyReader extends Reader {
             case "J2EE Misconfiguration":
             case "Poor Logging Practice":
             case "Portability Flaw":
+            case "Registry Manipulation":
                 return CweNumber.DONTCARE;
 
             default:

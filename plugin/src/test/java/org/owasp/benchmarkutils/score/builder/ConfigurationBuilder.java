@@ -36,6 +36,7 @@ public class ConfigurationBuilder {
     private boolean anonymousMode;
     private boolean includePrecision;
     private boolean showAveOnlyMode;
+    private boolean combineResultsMode;
     private boolean mixedMode;
     private String cweCategoryName;
     private String tprLabel;
@@ -54,6 +55,7 @@ public class ConfigurationBuilder {
         this.anonymousMode = defaultConfig.anonymousMode;
         this.includePrecision = defaultConfig.includePrecision;
         this.showAveOnlyMode = defaultConfig.showAveOnlyMode;
+        this.combineResultsMode = defaultConfig.combineResultsMode;
         this.mixedMode = defaultConfig.mixedMode;
         this.cweCategoryName = defaultConfig.cweCategoryName;
         this.tprLabel = defaultConfig.tprLabel;

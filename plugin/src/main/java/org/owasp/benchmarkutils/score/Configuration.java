@@ -49,6 +49,13 @@ public class Configuration {
     public final boolean anonymousMode;
 
     /**
+     * Set if it is desired to combine results from multiple results files for the same version of
+     * the same tool. That way if a project is huge, it can be scanned in parts, and the results
+     * file results for each part combined.
+     */
+    public final boolean combineResultsMode;
+
+    /**
      * This is used to indicate that results from multiple versions of a test suite are included in
      * these results. Each set in their own directory with their associated expectedresults file.
      */
@@ -160,6 +167,7 @@ public class Configuration {
         expectedResultsFileName = (String) yamlConfig.get("expectedresults");
         focus = (String) yamlConfig.get("focustool");
         anonymousMode = (Boolean) yamlConfig.get("anonymousmode");
+        combineResultsMode = (Boolean) yamlConfig.get("combinetoolresults");
         mixedMode = (Boolean) yamlConfig.get("mixedmode");
         showAveOnlyMode = (Boolean) yamlConfig.get("averageonlymode");
         resultsFileOrDirName = (String) yamlConfig.get("resultsfileordir");

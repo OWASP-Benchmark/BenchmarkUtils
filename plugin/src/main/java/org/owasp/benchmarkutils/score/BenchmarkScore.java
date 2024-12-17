@@ -30,6 +30,7 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -211,6 +212,9 @@ public class BenchmarkScore extends AbstractMojo {
         // Steps 4 & 5: Read the expected results so we know what each tool 'should do' and each
         // tool's results file. a) is for 'mixed' mode, and b) is for normal mode
         try {
+            // Mixed mode allows us to produce results for multiple versions of Benchmark in a
+            // single scorecard. This was used years ago when versions of Benchmark were
+            // changing more rapidly but hasn't been used in years.
             if (config.mixedMode) {
 
                 if (!resultsFileOrDir.isDirectory()) {
@@ -330,7 +334,13 @@ public class BenchmarkScore extends AbstractMojo {
                 } // end for loop through all files in the directory
 
                 // process the results the normal way with a single results directory
-            } else { // Not "mixed" - i.e., the 'Normal' way
+            } else { // Not "mixed" - i.e., the 'Normal' way (being the same version of Benchmark
+                // for all results)
+
+                // Note that if there are two or more results files for the same version of the same
+                // tool, each result file processed overwrites the previous results file for that
+                // same tool, so you end up with only 1 scorecard for the last results file for that
+                // tool that was processed.
 
                 // Step 4b: Read the expected results so we know what each tool 'should do'
                 File expected = new File(Configuration.expectedResultsFileName);
@@ -573,6 +583,38 @@ public class BenchmarkScore extends AbstractMojo {
             TestSuiteResults rawToolResults = readActualResults(rawToolResultsFile);
 
             if (expectedResults != null && rawToolResults != null) {
+
+                // Combining results from multiple results files if the 'combine' results flag is
+                // enabled.
+                if (config.combineResultsMode) {
+
+                    // Get the toolname and version so you can look to find a match
+                    String toBeProcessedToolnameAndVersion = rawToolResults.getToolNameAndVersion();
+
+                    Iterator<Tool> toolsIterator = tools.iterator();
+                    while (toolsIterator.hasNext()) {
+                        Tool tool = toolsIterator.next();
+                        if (tool.getToolNameAndVersion().equals(toBeProcessedToolnameAndVersion)) {
+                            Tool sameToolAndVersion = tool;
+                            System.out.println(
+                                    "Combining results for matching tool and version: "
+                                            + toBeProcessedToolnameAndVersion);
+
+                            // Merge the results together so we can calculate combined results.
+                            TestSuiteResults prevToolResults = tool.getActualResults();
+                            rawToolResults.combineResults(prevToolResults);
+
+                            // Now that we've combined the previous results into a single results
+                            // set,
+                            // remove the existing Tool results so we can calculated combined
+                            // results below, and add a new result to the set of tool results.
+                            tools.remove(sameToolAndVersion);
+                            break;
+                        }
+                    } // end while. If we don't find a match, we simply drop through as this is a
+                    // new tool
+                }
+
                 // note: side effect is that "pass/fail" value is set for each expected result so it
                 // can be used to produce scorecard for this tool. CweMatch details are set too.
                 TestSuiteResults actualResults = analyze(expectedResults, rawToolResults);
@@ -591,6 +633,9 @@ public class BenchmarkScore extends AbstractMojo {
 
                 Tool tool =
                         new Tool(
+                                // TODO FIXME: When sending in the 'actual' results, this causes ALL
+                                // the TPs and FPs to be reported for each tool, so leaving as
+                                // rawToolResults for now.
                                 rawToolResults,
                                 scores,
                                 metrics,
@@ -829,10 +874,11 @@ public class BenchmarkScore extends AbstractMojo {
             exp.addMatchDetails(cweMatch);
         }
 
-        // Record the name and version of the tool whose pass/fail values were recorded in
+        // Record the name, version, and type of the tool whose pass/fail values were recorded in
         // 'expected' results
         expected.setTool(rawToolResults.getToolName());
         expected.setToolVersion(rawToolResults.getToolVersion());
+        expected.setToolType(rawToolResults.getToolType());
 
         // Return the modified expected as the actual.  Beware of the side effect!
         return expected;
