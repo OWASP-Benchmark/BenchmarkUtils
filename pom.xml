@@ -292,7 +292,7 @@
 
                         <!-- apply a specific flavor of google-java-format -->
                         <googleJavaFormat>
-                            <version>1.10.0</version>
+                            <version>1.17.0</version>
                             <style>AOSP</style>
                         </googleJavaFormat>
                     </java>
