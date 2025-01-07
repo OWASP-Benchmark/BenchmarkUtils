@@ -246,8 +246,11 @@ public class FortifyReader extends Reader {
                         case "Erroneous String Compare":
                             return 597; // Use of Wrong Operator in String Comparison
 
-                        case "ToString on Array":
+                        case "Byte Array to String Conversion":
+                        case "Constructor Invokes Overridable Function":
                         case "Multiple Stream Commits":
+                        case "String Comparison of Float":
+                        case "ToString on Array":
                             return CweNumber.DONTCARE;
 
                         default:
@@ -475,6 +478,7 @@ public class FortifyReader extends Reader {
 
                         case "Overly Broad Catch":
                         case "Overly Broad Throws":
+                        case "Throw Inside Finally":
                             return 703; // Improper Check or Handling of Exceptional Conditions
 
                         case "Program Catches NullPointerException":
@@ -544,12 +548,13 @@ public class FortifyReader extends Reader {
                 {
                     switch (subtype) {
                         case "":
+                        case "User-Controlled Algorithm":
                             return CweNumber.WEAK_HASH_ALGO;
                         case "Missing Required Step":
                             return 325; // Missing Required Step
                         default:
                             System.out.println(
-                                    "Fortify parser found vulnerability type: 'Cryptographic Hash', with unmapped subtype: "
+                                    "Fortify parser found vulnerability type: 'Weak Cryptographic Hash', with unmapped subtype: "
                                             + subtype
                                             + " in class: "
                                             + classname);

@@ -48,11 +48,16 @@ public class ReaderTest {
                 "This is a test line for the /BenchmarkTest00042 test.",
                 "This is a test line for the /BenchmarkTest00042 test another testing. .",
                 "05:41:58,220 ANL [FINE] benchmark SourceCodeVulnerability [origin=REQUEST, type=PATH_TRAVERSAL, url=/benchmark/pathtraver-01/BenchmarkTest00042, httpParameterName=BenchmarkTest00042, httpOriginalValue=FileName, taintedValue=SomeValue, className=org.owasp.benchmark.testcode.BenchmarkTest00001, lineNumber=1, score=1.0, hash=0000000000]",
-                "https://localhost:8443/benchmark/xss-05/BenchmarkTest00042?BenchmarkTest00042=%3Cscript%3Ealert%281%29%3B%3C%2Fscript%3E&password=ZAP&username=ZAP"
+                "https://localhost:8443/benchmark/xss-05/BenchmarkTest00042?BenchmarkTest00042=%3Cscript%3Ealert%281%29%3B%3C%2Fscript%3E&password=ZAP&username=ZAP",
+                // SpotBugs Class Reference
+                "org.owasp.benchmark.testcode.BenchmarkTest00042$1"
             })
     public void readsTestNumberFromPath(String path) {
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
-        assertEquals(42, Reader.getBenchmarkStyleTestCaseNumber(path));
+        assertEquals(
+                42,
+                Reader.getBenchmarkStyleTestCaseNumber(path),
+                "Following path failed to resolve to test case 42: " + path);
     }
 
     @Test

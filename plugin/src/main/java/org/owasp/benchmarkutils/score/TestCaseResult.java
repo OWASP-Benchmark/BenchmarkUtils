@@ -287,20 +287,6 @@ public class TestCaseResult {
         return this.category;
     }
 
-    /*
-        public void setCategory(String category) {
-            if (Categories.getById(category) != null) {
-                this.category = category;
-            } else {
-                System.out.println(
-                        "ERROR: Unknown vuln category provided to TestCaseResult.setCategory(): "
-                                + category);
-                throw new IllegalArgumentException(
-                        "ERROR: Unknown vuln category provided to TestCaseResult.setCategory(): "
-                                + category);
-            }
-        }
-    */
     public String getEvidence() {
         return this.evidence;
     }

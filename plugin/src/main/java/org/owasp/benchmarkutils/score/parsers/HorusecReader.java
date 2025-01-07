@@ -155,10 +155,10 @@ public class HorusecReader extends Reader {
             case "Weak block mode for Cryptographic Hash Function":
             case "Message Digest":
                 return "328";
-            case "Cookie without the HttpOnly flag":
-                return "1004";
             case "Base64 Encode":
                 return "649";
+            case "Cookie without the HttpOnly flag":
+                return "1004";
             default:
                 throw new RuntimeException(details);
         }

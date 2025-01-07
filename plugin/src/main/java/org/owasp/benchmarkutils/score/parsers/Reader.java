@@ -30,6 +30,7 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.parsers.csv.WhiteHatDynamicReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.CodeQLReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.CodeSonarReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.ContrastScanReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.DatadogSastReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PTAIReader;
@@ -64,9 +65,11 @@ public abstract class Reader {
                 new CheckmarxIASTReader(),
                 new CheckmarxReader(),
                 new CodeQLReader(),
+                new CodeSonarReader(),
                 new ContrastAssessReader(),
                 new ContrastScanReader(),
                 new CoverityReader(),
+                new CppcheckXMLReader(),
                 new CrashtestReader(),
                 new DatadogReader(),
                 new DatadogSastReader(),
@@ -262,18 +265,51 @@ public abstract class Reader {
                 return -1;
             }
 
+            // Find where the test case number starts and strip out everything before that.
             int numberStart = path.indexOf(testCaseName) + testCaseName.length() + 1;
             path = path.substring(numberStart);
+
+            // Sometimes the testcase 'name' is actually a URL, so we strip out the irrelevant parts
+            // to get the testcase #
+            // If there are URL parameters after the test case name, strip them off
             path = path.replaceAll("\\?.*", "");
+
+            // If there is a , with anything after it, strip that off too. For example:
+            // "0042, httpParameterName=BenchmarkTest00042, httpOriginalValue=FileName,
+            // taintedValue=SomeValue, ..."
             path = path.replaceAll(",.*", "");
 
+            // TODO: Figure out and document what this replacement scenario is for
             path = path.replaceAll(testCaseName + "v[0-9]*", testCaseName);
 
+            // Web Service URLs can include /send after the endpoint name, so strip them out if
+            // present.
             path = path.replaceAll("/send", "");
             if (path.contains(":")) {
                 path = removeColon(path);
             }
+
+            // In the case of an innerclass, (e.g., 00042$Test), remove it from the end.
+            // Spotbugs, Rapid7, and possibly other tools actually report classnames like this
+            // sometimes: BenchmarkTest00042$1, so this inner class replacement has to be done
+            // before the next replacement, otherwise the non-numeric replacement causes 00042$1 to
+            // become 000421, which is an error.
+            int dollar = path.indexOf("$");
+            if (dollar != -1) {
+                path = path.substring(0, dollar);
+            }
+            // Same thing for anchor tags: e.g., 00042.java#example32
+            int equal = path.indexOf("#");
+            if (equal != -1) {
+                path = path.substring(0, equal);
+            }
+
+            // This matches any remaining characters that are NOT a digit or period, and removes
+            // them from the string.
             path = path.replaceAll("[^0-9.]", "");
+
+            // Rarely, there is another number in front of the test case number (e.g., 2.00042.)
+            // This removes that so only '00042.' is left.
             if (path.contains(".") && occurrences(path, '.') > 1) {
                 int start = path.indexOf(".") + 1;
                 int end = path.length();
@@ -281,17 +317,18 @@ public abstract class Reader {
                     path = path.substring(start, end);
                 }
             }
-            if (path.contains(".")) {
-                path = removeFileEnding(path);
-            }
 
-            // Remove remaining dots
+            // Remove anything trailing after the test case number (e.g., 00042.java)
+            // Note: this isn't needed anymore because the path.replaceAll("[^0-9.]", "") above,
+            // already rips all this out.
+            /*          if (path.contains(".")) {
+                            path = removeFileEnding(path);
+                        }
+            */
+
+            // Remove any remaining dots
             path = path.replace(".", "");
-            // In the case of an $innerclass
-            int dollar = path.indexOf("$");
-            if (dollar != -1) {
-                path = path.substring(0, dollar);
-            }
+
             return Integer.parseInt(path);
 
         } catch (Exception e) {

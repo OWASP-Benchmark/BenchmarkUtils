@@ -206,16 +206,14 @@ public class FindbugsReader extends Reader {
                 return CweNumber.WEAK_RANDOM;
 
             case "PADDING_ORACLE":
-                return 326; // Inadequate Encryption Strength - DRW TODO: Does this change Benchmark
-                // Score
+                return 326; // Inadequate Encryption Strength
 
                 // Weak encryption
             case "DES_USAGE": // weak encryption DES
                 return CweNumber.WEAK_CRYPTO_ALGO;
 
             case "CIPHER_INTEGRITY": // weak encryption - cipher with no integrity
-                return 353; // Missing support for Integrity Check - DRW TODO: Does this change
-                // Benchmark Score
+                return 353; // Missing support for Integrity Check
 
             case "STATIC_IV":
                 return 329; // static initialization vector for crypto
@@ -289,8 +287,7 @@ public class FindbugsReader extends Reader {
                 return 478; // Missing Default Case
             case "SA_LOCAL_SELF_ASSIGNMENT": // Style: Local Self Assignment
             case "UCF_USELESS_CONTROL_FLOW": // Style: Useless Control Flow
-                return 398; // Code Quality (DRW TODO: also 483, but can't be both. ~same # of
-                // each.)
+                return 398; // Code Quality
             case "UL_UNRELEASED_LOCK_EXCEPTION_PATH": // MT Correctness:
                 return 833; // Deadlock
             case "UPM_UNCALLED_PRIVATE_METHOD": // Performance: Uncalled Private Method
@@ -316,6 +313,7 @@ public class FindbugsReader extends Reader {
             case "RI_REDUNDANT_INTERFACES": // Style:
             case "SE_NO_SERIALVERSIONID": // Bad Practice:
             case "SE_TRANSIENT_FIELD_NOT_RESTORED": // Bad Practice:
+            case "SIC_INNER_SHOULD_BE_STATIC": // Performance:
             case "SIC_INNER_SHOULD_BE_STATIC_ANON": // Performance:
             case "SnVI_NO_SERIALVERSIONID": // Bad Practice:
             case "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD": // Style:
