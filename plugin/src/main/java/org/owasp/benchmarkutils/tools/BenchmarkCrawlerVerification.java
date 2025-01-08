@@ -22,9 +22,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -68,10 +72,12 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     private static boolean isTimingEnabled = false;
     // private boolean verifyFixed = false; // DEBUG
     private String configurationDirectory = Utils.DATA_DIR;
-    private String defaultOutputDirectory = Utils.DATA_DIR;
-    private String defaultBeforeFixOutputDirectory =
-            new File(new File(Utils.DATA_DIR).getParent(), "before_data")
-                    .getAbsolutePath(); // DEBUG: Utils.DATA_DIR;
+    private String defaultOutputDirectory = configurationDirectory;
+    // private String defaultFixedOutputDirectory = Paths.get(Utils.DATA_DIR,
+    // "fixstatus").toString();
+    // private String defaultUnfixedSrcDirectory =
+    //        new File(new File(Utils.DATA_DIR).getParent(), "before_data")
+    //                .getAbsolutePath(); // DEBUG: Utils.DATA_DIR;
     private static final String FILENAME_TIMES_ALL = "crawlerTimes.txt";
     private static final String FILENAME_TIMES = "crawlerSlowTimes.txt";
     private static final String FILENAME_NON_DISCRIMINATORY_LOG = "nonDiscriminatoryTestCases.txt";
@@ -88,20 +94,26 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     SimpleFileLogger eLogger;
     SimpleFileLogger uLogger;
 
-    @Parameter(property = "json", defaultValue = "false")
+    @Parameter(property = "generateJSONResults", defaultValue = "false")
     private String generateJSONResults;
 
     @Parameter(property = "verifyFixed", defaultValue = "false")
     private String verifyFixed;
 
-    @Parameter(property = "beforeFixOutputDirectory")
-    private String beforeFixOutputDirectory;
+    @Parameter(property = "unfixedSrcDirectory")
+    private String unfixedSourceDirectory;
+
+    @Parameter(property = "fixedSrcDirectory")
+    private String fixedSourceDirectory;
 
     @Parameter(property = "outputDirectory")
     private String outputDirectory;
 
     @Parameter(property = "testCaseName")
     private String selectedTestCaseName;
+
+    private Map<String, TestCaseVerificationResults> testCaseNameToTestCaseVerificationResultsMap =
+            new HashMap<>();
 
     BenchmarkCrawlerVerification() {
         // A default constructor required to support Maven plugin API.
@@ -352,7 +364,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
 
                     // Then generate JSON file with ALL verification results if generateJSONResults
                     // is enabled. This has to go at end because previous methods have some side
-                    // affects that fill in test case verification values.
+                    // effects that fill in test case verification values.
                     RegressionTesting.genAllTCResultsToJsonFile(
                             resultsCollection,
                             getOutputDirectory(),
@@ -391,7 +403,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
      * @param testSuite
      * @throws Exception
      */
-    protected void crawlToVerifyFix(TestSuite testSuite, String beforeFixOutputDirectory)
+    protected void crawlToVerifyFix(TestSuite testSuite, String unfixedOutputDirectory)
             throws Exception {
 
         // Get config directory for RUN 1 from CLI option
@@ -481,7 +493,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     /**
      * For the verification crawler, processing the result means verifying whether the test case is
      * actually vulnerable or not, relative to whether it is supposed to be vulnerable. This method
-     * has a side-affect of setting request.setPassed() for the current test case. Passing means it
+     * has a side-effect of setting request.setPassed() for the current test case. Passing means it
      * was exploitable for a True Positive and appears to not be exploitable for a False Positive.
      *
      * @param result - The results required to verify this test case.
@@ -489,7 +501,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
      * @throws LoggerConfigurationException
      */
     protected void handleResponse(TestCaseVerificationResults results)
-            throws FileNotFoundException, LoggerConfigurationException {
+            throws FileNotFoundException, IOException, LoggerConfigurationException {
 
         // Check to see if this specific test case has a specified expected response value.
         // If so, run it through verification using it's specific attackSuccessIndicator.
@@ -498,18 +510,46 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         RegressionTesting.verifyTestCase(results);
 
         if (Boolean.parseBoolean(verifyFixed)) {
-            TestCaseVerificationResultsCollection beforeFixResultsCollection =
-                    loadTestCaseVerificationResults(beforeFixOutputDirectory);
-            TestCaseVerificationResults beforeFixResults =
-                    beforeFixResultsCollection.getResultsObjects().get(0);
-            if (beforeFixResults.getTestCase().getName().equals(results.getTestCase().getName())) {
-                verifyFix(beforeFixResults, results);
+            String unfixedOutputDirectory = configurationDirectory;
+
+            TestCaseVerificationResults fixedResults = results;
+            TestCaseVerificationResultsCollection unfixedResultsCollection =
+                    loadTestCaseVerificationResults(unfixedOutputDirectory);
+            TestCaseVerificationResults unfixedResults =
+                    testCaseNameToTestCaseVerificationResultsMap.get(
+                            fixedResults.getTestCase().getName());
+            if (unfixedResults
+                    .getTestCase()
+                    .getName()
+                    .equals(fixedResults.getTestCase().getName())) {
+                // FIXME: Generalize this so it can support languages other than Java and multiple
+                // source files per testcase.
+                String unfixedSourceFile =
+                        Paths.get(unfixedSourceDirectory, unfixedResults.getTestCase().getName())
+                                        .toString()
+                                + ".java";
+                String fixedSourceFile =
+                        Paths.get(fixedSourceDirectory, fixedResults.getTestCase().getName())
+                                        .toString()
+                                + ".java";
+                String unfixedSourceFileContents =
+                        new String(Files.readAllBytes(Paths.get(unfixedSourceFile)));
+                String fixedSourceFileContents =
+                        new String(Files.readAllBytes(Paths.get(fixedSourceFile)));
+                if (!unfixedSourceFileContents.equals(fixedSourceFileContents)) {
+                    verifyFix(unfixedResults, fixedResults);
+                } else {
+                    System.out.println(
+                            "WARNING: Testcase "
+                                    + fixedResults.getTestCase().getName()
+                                    + " source file unmodified");
+                }
             } else {
                 System.out.println(
                         "WARNING: After fix testcase is "
-                                + results.getTestCase().getName()
+                                + fixedResults.getTestCase().getName()
                                 + " but before fix testcase is "
-                                + beforeFixResults.getTestCase().getName());
+                                + unfixedResults.getTestCase().getName());
             }
         }
     }
@@ -522,6 +562,11 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             results =
                     Utils.jsonToTestCaseVerificationResultsList(
                             new File(directory, FILENAME_TC_VERIF_RESULTS_JSON));
+            for (TestCaseVerificationResults testCaseResults : results.getResultsObjects()) {
+                testCaseNameToTestCaseVerificationResultsMap.put(
+                        testCaseResults.getTestCase().getName(), testCaseResults);
+            }
+
         } catch (JAXBException
                 | FileNotFoundException
                 | SAXException
@@ -554,6 +599,10 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             TestCaseVerificationResults beforeFixResults,
             TestCaseVerificationResults afterFixResults) {
 
+        boolean wasNotVerfiable =
+                afterFixResults.getTestCase().isVulnerability()
+                        && afterFixResults.getTestCase().isUnverifiable()
+                        && afterFixResults.isPassed();
         boolean wasExploited =
                 afterFixResults.getTestCase().isVulnerability()
                         && !afterFixResults.getTestCase().isUnverifiable()
@@ -563,6 +612,9 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         .getResponseToSafeValue()
                         .getResponseString()
                         .equals(afterFixResults.getResponseToSafeValue().getResponseString());
+        if (wasNotVerfiable) {
+            System.out.println("NOT FIXED: Vulnerability could not be verified");
+        }
         if (wasExploited) {
             System.out.println("NOT FIXED: Vulnerability was exploited");
         }
@@ -573,6 +625,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         File verifyFixResultFile = new File(getOutputDirectory(), FILENAME_VERIFY_FIX_RESULT);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(verifyFixResultFile))) {
             VerifyFixOutput verifyFixOutput = new VerifyFixOutput();
+            verifyFixOutput.setWasNotVerfiable(wasNotVerfiable);
             verifyFixOutput.setWasExploited(wasExploited);
             verifyFixOutput.setWasBroken(wasBroken);
             String output = Utils.objectToJson(verifyFixOutput);
@@ -587,7 +640,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             e.printStackTrace();
         }
 
-        return !wasExploited && !wasBroken;
+        return !wasNotVerfiable && !wasExploited && !wasBroken;
     }
 
     private boolean verifyFixes(
@@ -638,12 +691,18 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         Options options = new Options();
         options.addOption(
                 Option.builder("b")
-                        .longOpt("beforeFixOutputDirectory")
-                        .desc("output directory of a previous crawl before fixes")
+                        .longOpt("unfixedSrcDirectory")
+                        .desc("source directory before fixes")
                         .hasArg()
                         .build());
         options.addOption(
-                Option.builder("d")
+                Option.builder("a")
+                        .longOpt("fixedSrcDirectory")
+                        .desc("source directory after fixes")
+                        .hasArg()
+                        .build());
+        options.addOption(
+                Option.builder("o")
                         .longOpt("outputDirectory")
                         .desc("output directory")
                         .hasArg()
@@ -658,7 +717,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         options.addOption(Option.builder("h").longOpt("help").desc("Usage").build());
         options.addOption(
                 Option.builder("j")
-                        .longOpt("json")
+                        .longOpt("generateJSONResults")
                         .desc("generate json version of verification results")
                         .build());
         //        options.addOption("m", "verifyFixed", false, "verify fixed test suite");
@@ -682,15 +741,18 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             // Parse the command line arguments
             CommandLine line = parser.parse(options, args);
 
-            if (line.hasOption("b")) {
-                beforeFixOutputDirectory = line.getOptionValue("b");
-            } else {
-                beforeFixOutputDirectory = defaultBeforeFixOutputDirectory;
-            }
-            if (line.hasOption("d")) {
-                outputDirectory = line.getOptionValue("d");
+            if (line.hasOption("o")) {
+                outputDirectory = line.getOptionValue("o");
             } else {
                 outputDirectory = defaultOutputDirectory;
+            }
+            // Required if in verifyFix mode
+            if (line.hasOption("b")) {
+                unfixedSourceDirectory = line.getOptionValue("b");
+            }
+            // Required if in verifyFix mode
+            if (line.hasOption("a")) {
+                fixedSourceDirectory = line.getOptionValue("a");
             }
             if (line.hasOption("f")) {
                 this.crawlerFile = line.getOptionValue("f");
@@ -720,6 +782,11 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             if (line.hasOption("t")) {
                 maxTimeInSeconds = (Integer) line.getParsedOptionValue("t");
             }
+
+            // The default is different if we are in verifyFix mode
+            if (Boolean.parseBoolean(this.verifyFixed)) {
+                outputDirectory = Paths.get(Utils.DATA_DIR, "fixstatus").toString();
+            }
         } catch (ParseException e) {
             formatter.printHelp("BenchmarkCrawlerVerification", options);
             throw new RuntimeException("Error parsing arguments: ", e);
@@ -740,12 +807,16 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             mainArgs.add("-f");
             mainArgs.add(this.pluginFilenameParam);
             if (this.outputDirectory != null) {
-                mainArgs.add("-d");
+                mainArgs.add("-o");
                 mainArgs.add(this.outputDirectory);
             }
-            if (this.beforeFixOutputDirectory != null) {
+            if (this.unfixedSourceDirectory != null) {
                 mainArgs.add("-b");
-                mainArgs.add(this.beforeFixOutputDirectory);
+                mainArgs.add(this.unfixedSourceDirectory);
+            }
+            if (this.fixedSourceDirectory != null) {
+                mainArgs.add("-a");
+                mainArgs.add(this.fixedSourceDirectory);
             }
             if (this.pluginTestCaseNameParam != null) {
                 mainArgs.add("-n");

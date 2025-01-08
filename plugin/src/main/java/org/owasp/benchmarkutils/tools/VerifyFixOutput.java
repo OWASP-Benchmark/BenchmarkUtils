@@ -21,8 +21,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class VerifyFixOutput {
+    private boolean wasNotVerfiable;
     private boolean wasExploited;
     private boolean wasBroken;
+
+    public boolean isWasNotVerfiable() {
+        return wasNotVerfiable;
+    }
+
+    public void setWasNotVerfiable(boolean wasNotVerfiable) {
+        this.wasNotVerfiable = wasNotVerfiable;
+    }
 
     public boolean isWasExploited() {
         return wasExploited;
