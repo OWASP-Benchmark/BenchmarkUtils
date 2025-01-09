@@ -61,10 +61,10 @@ import org.eclipse.persistence.jaxb.UnmarshallerProperties;
 import org.eclipse.persistence.oxm.MediaType;
 import org.owasp.benchmarkutils.entities.ResponseInfo;
 import org.owasp.benchmarkutils.entities.TestSuite;
+import org.owasp.benchmarkutils.entities.VerifyFixOutput;
 import org.owasp.benchmarkutils.tools.TestCaseRequestFileParseException;
 import org.owasp.benchmarkutils.tools.TestCaseVerificationResults;
 import org.owasp.benchmarkutils.tools.TestCaseVerificationResultsCollection;
-import org.owasp.benchmarkutils.tools.VerifyFixOutput;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 

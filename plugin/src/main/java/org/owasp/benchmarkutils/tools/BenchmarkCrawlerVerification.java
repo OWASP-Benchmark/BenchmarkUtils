@@ -56,6 +56,7 @@ import org.owasp.benchmarkutils.entities.TestCase;
 import org.owasp.benchmarkutils.entities.TestCaseSetup;
 import org.owasp.benchmarkutils.entities.TestCaseSetupException;
 import org.owasp.benchmarkutils.entities.TestSuite;
+import org.owasp.benchmarkutils.entities.VerifyFixOutput;
 import org.owasp.benchmarkutils.helpers.Utils;
 import org.xml.sax.SAXException;
 
@@ -115,6 +116,10 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     private Map<String, TestCaseVerificationResults> testCaseNameToTestCaseVerificationResultsMap =
             new HashMap<>();
 
+    private List<VerifyFixOutput> exploitedFixedTestcases = new ArrayList<>();
+    private List<VerifyFixOutput> brokenFixedTestcases = new ArrayList<>();
+    private List<VerifyFixOutput> notVerifiableFixedTestcases = new ArrayList<>();
+
     BenchmarkCrawlerVerification() {
         // A default constructor required to support Maven plugin API.
         // The theCrawlerFile has to be instantiated before a crawl can be done.
@@ -133,6 +138,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             List<TestCaseVerificationResults> results =
                     new ArrayList<TestCaseVerificationResults>();
 
+            Files.createDirectories(Paths.get(getOutputDirectory()));
             final File FILE_NON_DISCRIMINATORY_LOG =
                     new File(getOutputDirectory(), FILENAME_NON_DISCRIMINATORY_LOG);
             final File FILE_ERRORS_LOG = new File(getOutputDirectory(), FILENAME_ERRORS_LOG);
@@ -391,12 +397,22 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             System.out.printf("Test case time measurements written to: %s%n", FILE_TIMES_LOG);
 
             RegressionTesting.printCrawlSummary(results);
+            printFixVerificationSummary();
             System.out.println();
             System.out.println(completionMessage);
         }
 
         // FIXME: Use a finally to cleanup all setup resources that were required
         // cleanupSetups(setups);
+    }
+
+    private void printFixVerificationSummary() {
+        System.out.println("Fix verification summary:");
+        System.out.println();
+        System.out.println("\tExploited fixed test cases:\t" + exploitedFixedTestcases.size());
+        System.out.println("\tBroken fixed test cases:\t" + brokenFixedTestcases.size());
+        System.out.println(
+                "\tNot verifiable fixed test cases:\t" + notVerifiableFixedTestcases.size());
     }
 
     /**
@@ -599,7 +615,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             TestCaseVerificationResults beforeFixResults,
             TestCaseVerificationResults afterFixResults) {
 
-        boolean wasNotVerfiable =
+        boolean wasNotVerifiable =
                 afterFixResults.getTestCase().isVulnerability()
                         && afterFixResults.getTestCase().isUnverifiable()
                         && afterFixResults.isPassed();
@@ -612,22 +628,32 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         .getResponseToSafeValue()
                         .getResponseString()
                         .equals(afterFixResults.getResponseToSafeValue().getResponseString());
-        if (wasNotVerfiable) {
+
+        VerifyFixOutput verifyFixOutput = new VerifyFixOutput();
+        verifyFixOutput.setTestCaseName(afterFixResults.getTestCase().getName());
+        verifyFixOutput.setUnfixedSafeResponseInfo(beforeFixResults.getResponseToSafeValue());
+        verifyFixOutput.setUnfixedAttackResponseInfo(beforeFixResults.getResponseToAttackValue());
+        verifyFixOutput.setFixedSafeResponseInfo(afterFixResults.getResponseToSafeValue());
+        verifyFixOutput.setFixedAttackResponseInfo(afterFixResults.getResponseToAttackValue());
+        verifyFixOutput.setWasNotVerifiable(wasNotVerifiable);
+        verifyFixOutput.setWasExploited(wasExploited);
+        verifyFixOutput.setWasBroken(wasBroken);
+
+        if (wasNotVerifiable) {
             System.out.println("NOT FIXED: Vulnerability could not be verified");
+            notVerifiableFixedTestcases.add(verifyFixOutput);
         }
         if (wasExploited) {
             System.out.println("NOT FIXED: Vulnerability was exploited");
+            exploitedFixedTestcases.add(verifyFixOutput);
         }
         if (wasBroken) {
             System.out.println("NOT FIXED: Functionality was broken");
+            brokenFixedTestcases.add(verifyFixOutput);
         }
 
         File verifyFixResultFile = new File(getOutputDirectory(), FILENAME_VERIFY_FIX_RESULT);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(verifyFixResultFile))) {
-            VerifyFixOutput verifyFixOutput = new VerifyFixOutput();
-            verifyFixOutput.setWasNotVerfiable(wasNotVerfiable);
-            verifyFixOutput.setWasExploited(wasExploited);
-            verifyFixOutput.setWasBroken(wasBroken);
             String output = Utils.objectToJson(verifyFixOutput);
             //            System.out.println(output);
             writer.write(output);
@@ -640,7 +666,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
             e.printStackTrace();
         }
 
-        return !wasNotVerfiable && !wasExploited && !wasBroken;
+        return !wasNotVerifiable && !wasExploited && !wasBroken;
     }
 
     private boolean verifyFixes(

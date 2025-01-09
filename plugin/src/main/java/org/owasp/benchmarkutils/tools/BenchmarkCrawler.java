@@ -139,7 +139,7 @@ public class BenchmarkCrawler extends AbstractMojo {
             new Categories(categoriesFileStream);
 
             this.testSuite = Utils.parseHttpFile(this.theCrawlerFile);
-            System.out.println("Test suite: " + this.testSuite);
+            // System.out.println("Test suite: " + this.testSuite);
             Collections.sort(
                     this.testSuite.getTestCases(),
                     TestCase.getNameComparator()); // Probably not necessary
