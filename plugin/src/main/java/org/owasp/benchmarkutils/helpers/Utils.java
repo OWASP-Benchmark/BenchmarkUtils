@@ -62,6 +62,7 @@ import org.eclipse.persistence.oxm.MediaType;
 import org.owasp.benchmarkutils.entities.ResponseInfo;
 import org.owasp.benchmarkutils.entities.TestSuite;
 import org.owasp.benchmarkutils.entities.VerifyFixOutput;
+import org.owasp.benchmarkutils.entities.VerifyFixesOutput;
 import org.owasp.benchmarkutils.tools.TestCaseRequestFileParseException;
 import org.owasp.benchmarkutils.tools.TestCaseVerificationResults;
 import org.owasp.benchmarkutils.tools.TestCaseVerificationResultsCollection;
@@ -418,7 +419,8 @@ public class Utils {
                     TestSuite.class,
                     TestCaseVerificationResults.class,
                     TestCaseVerificationResultsCollection.class,
-                    VerifyFixOutput.class
+                    VerifyFixOutput.class,
+                    VerifyFixesOutput.class
                 };
         JAXBContext jaxbContext =
                 org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(

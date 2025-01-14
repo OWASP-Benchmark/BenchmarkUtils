@@ -57,6 +57,7 @@ import org.owasp.benchmarkutils.entities.TestCaseSetup;
 import org.owasp.benchmarkutils.entities.TestCaseSetupException;
 import org.owasp.benchmarkutils.entities.TestSuite;
 import org.owasp.benchmarkutils.entities.VerifyFixOutput;
+import org.owasp.benchmarkutils.entities.VerifyFixesOutput;
 import org.owasp.benchmarkutils.helpers.Utils;
 import org.xml.sax.SAXException;
 
@@ -116,9 +117,16 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     private Map<String, TestCaseVerificationResults> testCaseNameToTestCaseVerificationResultsMap =
             new HashMap<>();
 
-    private List<VerifyFixOutput> exploitedFixedTestcases = new ArrayList<>();
-    private List<VerifyFixOutput> brokenFixedTestcases = new ArrayList<>();
-    private List<VerifyFixOutput> notVerifiableFixedTestcases = new ArrayList<>();
+    private List<VerifyFixOutput> vulnerableTestcases = new ArrayList<>();
+    private List<VerifyFixOutput> notVulnerableTestcases = new ArrayList<>();
+    private List<VerifyFixOutput> notVerifiableModifiedVulnerableTestcases = new ArrayList<>();
+    private List<VerifyFixOutput> exploitedModifiedVulnerableTestcases = new ArrayList<>();
+    private List<VerifyFixOutput> brokenModifiedVulnerableTestcases = new ArrayList<>();
+    private List<VerifyFixOutput> notVerifiableModifiedNotVulnerableTestcases = new ArrayList<>();
+    private List<VerifyFixOutput> exploitedModifiedNotVulnerableTestcases = new ArrayList<>();
+    private List<VerifyFixOutput> brokenModifiedNotVulnerableTestcases = new ArrayList<>();
+
+    private List<VerifyFixOutput> verifyFixesOutputList = new ArrayList<>();
 
     BenchmarkCrawlerVerification() {
         // A default constructor required to support Maven plugin API.
@@ -394,10 +402,30 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                         FILE_UNVERIFIABLE_LOG);
             }
 
+            VerifyFixesOutput verifyFixesOutput = new VerifyFixesOutput();
+            verifyFixesOutput.setList(verifyFixesOutputList);
+
+            File verifyFixResultFile = new File(getOutputDirectory(), FILENAME_VERIFY_FIX_RESULT);
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(verifyFixResultFile))) {
+                String output = Utils.objectToJson(verifyFixesOutput);
+                //            System.out.println(output);
+                writer.write(output);
+            } catch (IOException e) {
+                System.out.println(
+                        "ERROR: Could not write VerifyFixOutputList to file "
+                                + verifyFixResultFile);
+                e.printStackTrace();
+            } catch (JAXBException e) {
+                System.out.println("ERROR: Could not marshall VerifyFixOutputList to JSON");
+                e.printStackTrace();
+            }
+
             System.out.printf("Test case time measurements written to: %s%n", FILE_TIMES_LOG);
 
             RegressionTesting.printCrawlSummary(results);
-            printFixVerificationSummary();
+            if (Boolean.parseBoolean(verifyFixed)) {
+                printFixVerificationSummary();
+            }
             System.out.println();
             System.out.println(completionMessage);
         }
@@ -406,13 +434,51 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         // cleanupSetups(setups);
     }
 
+    private boolean isTestCaseModified(
+            String unfixedSourceDirectory, String fixedSourceDirectory, String testCaseName)
+            throws IOException {
+        // FIXME: Generalize this so it can support languages other than Java and multiple
+        // source files per testcase.
+        String unfixedSourceFile =
+                Paths.get(unfixedSourceDirectory, testCaseName).toString() + ".java";
+        String fixedSourceFile = Paths.get(fixedSourceDirectory, testCaseName).toString() + ".java";
+        String unfixedSourceFileContents =
+                new String(Files.readAllBytes(Paths.get(unfixedSourceFile)));
+        String fixedSourceFileContents = new String(Files.readAllBytes(Paths.get(fixedSourceFile)));
+
+        // Skip testcase in verifyFixed mode if fixed source code is unchanged.
+        return !unfixedSourceFileContents.equals(fixedSourceFileContents);
+    }
+
     private void printFixVerificationSummary() {
-        System.out.println("Fix verification summary:");
         System.out.println();
-        System.out.println("\tExploited fixed test cases:\t" + exploitedFixedTestcases.size());
-        System.out.println("\tBroken fixed test cases:\t" + brokenFixedTestcases.size());
+        System.out.println("Fix verification summary");
+        System.out.println();
+        System.out.println("Total vulnerable test cases: " + vulnerableTestcases.size());
         System.out.println(
-                "\tNot verifiable fixed test cases:\t" + notVerifiableFixedTestcases.size());
+                "\tProperly fixed (not exploitable):\t"
+                        + (vulnerableTestcases.size()
+                                - exploitedModifiedVulnerableTestcases.size()));
+        System.out.println(
+                "\tNot correctly fixed (still exploitable):\t"
+                        + exploitedModifiedVulnerableTestcases.size());
+        System.out.println(
+                "\tNot auto-verifiable (can't tell if exploitable):\t"
+                        + notVerifiableModifiedVulnerableTestcases.size());
+        System.out.println(
+                "\tFunctionality broken/modified:\t" + brokenModifiedVulnerableTestcases.size());
+        System.out.println();
+        System.out.println("Total not vulnerable test cases: " + notVulnerableTestcases.size());
+        System.out.println(
+                "\tStill not exploitable:\t"
+                        + (notVulnerableTestcases.size()
+                                - exploitedModifiedNotVulnerableTestcases.size()));
+        System.out.println("\tNow exploitable:\t" + exploitedModifiedNotVulnerableTestcases.size());
+        System.out.println(
+                "\tNot auto-verifiable (can't tell if exploitable):\t"
+                        + notVerifiableModifiedNotVulnerableTestcases.size());
+        System.out.println(
+                "\tFunctionality broken/modified:\t" + brokenModifiedNotVulnerableTestcases.size());
     }
 
     /**
@@ -538,27 +604,39 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                     .getTestCase()
                     .getName()
                     .equals(fixedResults.getTestCase().getName())) {
-                // FIXME: Generalize this so it can support languages other than Java and multiple
-                // source files per testcase.
-                String unfixedSourceFile =
-                        Paths.get(unfixedSourceDirectory, unfixedResults.getTestCase().getName())
-                                        .toString()
-                                + ".java";
-                String fixedSourceFile =
-                        Paths.get(fixedSourceDirectory, fixedResults.getTestCase().getName())
-                                        .toString()
-                                + ".java";
-                String unfixedSourceFileContents =
-                        new String(Files.readAllBytes(Paths.get(unfixedSourceFile)));
-                String fixedSourceFileContents =
-                        new String(Files.readAllBytes(Paths.get(fixedSourceFile)));
-                if (!unfixedSourceFileContents.equals(fixedSourceFileContents)) {
+
+                // // FIXME: Generalize this so it can support languages other than Java and
+                // multiple
+                // // source files per testcase.
+                // String unfixedSourceFile =
+                //         Paths.get(unfixedSourceDirectory, unfixedResults.getTestCase().getName())
+                //                         .toString()
+                //                 + ".java";
+                // String fixedSourceFile =
+                //         Paths.get(fixedSourceDirectory, fixedResults.getTestCase().getName())
+                //                         .toString()
+                //                 + ".java";
+                // String unfixedSourceFileContents =
+                //         new String(Files.readAllBytes(Paths.get(unfixedSourceFile)));
+                // String fixedSourceFileContents =
+                //         new String(Files.readAllBytes(Paths.get(fixedSourceFile)));
+
+                // // Skip testcase in verifyFixed mode if fixed source code is unchanged.
+                // if (Boolean.parseBoolean(verifyFixed)
+                //         && unfixedSourceFileContents.equals(fixedSourceFileContents)) {
+                //     // System.out.println(
+                //     //        "WARNING: Testcase "
+                //     //        + fixedResults.getTestCase().getName()
+                //     //        + " source file unmodified");
+                // } else {
+                //     verifyFix(unfixedResults, fixedResults);
+                // }
+                if (Boolean.parseBoolean(verifyFixed)
+                        && isTestCaseModified(
+                                unfixedSourceDirectory,
+                                fixedSourceDirectory,
+                                unfixedResults.getTestCase().getName())) {
                     verifyFix(unfixedResults, fixedResults);
-                } else {
-                    System.out.println(
-                            "WARNING: Testcase "
-                                    + fixedResults.getTestCase().getName()
-                                    + " source file unmodified");
                 }
             } else {
                 System.out.println(
@@ -612,59 +690,78 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
     }
 
     private boolean verifyFix(
-            TestCaseVerificationResults beforeFixResults,
-            TestCaseVerificationResults afterFixResults) {
+            TestCaseVerificationResults unfixedResults, TestCaseVerificationResults fixedResults) {
 
-        boolean wasNotVerifiable =
-                afterFixResults.getTestCase().isVulnerability()
-                        && afterFixResults.getTestCase().isUnverifiable()
-                        && afterFixResults.isPassed();
+        // DEBUG
+        try {
+            String unfixedResultsJson = Utils.objectToJson(unfixedResults);
+            System.out.println("unfixedResults JSON: " + unfixedResultsJson);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        boolean isVulnerable = fixedResults.getTestCase().isVulnerability();
+        // boolean wasNotVerifiable =
+        //        fixedResults.getTestCase().isVulnerability()
+        //                && fixedResults.getTestCase().isUnverifiable()
+        //                && fixedResults.isPassed();
+        boolean wasNotVerifiable = fixedResults.getTestCase().isUnverifiable();
         boolean wasExploited =
-                afterFixResults.getTestCase().isVulnerability()
-                        && !afterFixResults.getTestCase().isUnverifiable()
-                        && afterFixResults.isPassed();
-        boolean wasBroken =
-                !beforeFixResults
-                        .getResponseToSafeValue()
-                        .getResponseString()
-                        .equals(afterFixResults.getResponseToSafeValue().getResponseString());
+                fixedResults.getTestCase().isVulnerability()
+                        && !fixedResults.getTestCase().isUnverifiable()
+                        && fixedResults.isPassed();
+        boolean wasBroken = false;
+        if (fixedResults.getTestCase().isUnverifiable()) {
+            wasBroken = false;
+        } else {
+            // There will be no safe response info if testcase is not verifiable.
+            wasBroken =
+                    !unfixedResults
+                            .getResponseToSafeValue()
+                            .getResponseString()
+                            .equals(fixedResults.getResponseToSafeValue().getResponseString());
+        }
 
         VerifyFixOutput verifyFixOutput = new VerifyFixOutput();
-        verifyFixOutput.setTestCaseName(afterFixResults.getTestCase().getName());
-        verifyFixOutput.setUnfixedSafeResponseInfo(beforeFixResults.getResponseToSafeValue());
-        verifyFixOutput.setUnfixedAttackResponseInfo(beforeFixResults.getResponseToAttackValue());
-        verifyFixOutput.setFixedSafeResponseInfo(afterFixResults.getResponseToSafeValue());
-        verifyFixOutput.setFixedAttackResponseInfo(afterFixResults.getResponseToAttackValue());
+        verifyFixOutput.setTestCaseName(fixedResults.getTestCase().getName());
+        verifyFixOutput.setUnfixedSafeResponseInfo(unfixedResults.getResponseToSafeValue());
+        verifyFixOutput.setUnfixedAttackResponseInfo(unfixedResults.getResponseToAttackValue());
+        verifyFixOutput.setFixedSafeResponseInfo(fixedResults.getResponseToSafeValue());
+        verifyFixOutput.setFixedAttackResponseInfo(fixedResults.getResponseToAttackValue());
         verifyFixOutput.setWasNotVerifiable(wasNotVerifiable);
         verifyFixOutput.setWasExploited(wasExploited);
         verifyFixOutput.setWasBroken(wasBroken);
 
-        if (wasNotVerifiable) {
-            System.out.println("NOT FIXED: Vulnerability could not be verified");
-            notVerifiableFixedTestcases.add(verifyFixOutput);
-        }
-        if (wasExploited) {
-            System.out.println("NOT FIXED: Vulnerability was exploited");
-            exploitedFixedTestcases.add(verifyFixOutput);
-        }
-        if (wasBroken) {
-            System.out.println("NOT FIXED: Functionality was broken");
-            brokenFixedTestcases.add(verifyFixOutput);
+        if (isVulnerable) {
+            vulnerableTestcases.add(verifyFixOutput);
+            if (wasNotVerifiable) {
+                System.out.println("NOT FIXED: Vulnerability could not be verified");
+                notVerifiableModifiedVulnerableTestcases.add(verifyFixOutput);
+            } else {
+                if (wasExploited) {
+                    System.out.println("NOT FIXED: Vulnerability was exploited");
+                    exploitedModifiedVulnerableTestcases.add(verifyFixOutput);
+                }
+                if (wasBroken) {
+                    System.out.println("NOT FIXED: Functionality was broken");
+                    brokenModifiedVulnerableTestcases.add(verifyFixOutput);
+                }
+            }
+        } else {
+            notVulnerableTestcases.add(verifyFixOutput);
+            if (wasNotVerifiable) {
+                notVerifiableModifiedNotVulnerableTestcases.add(verifyFixOutput);
+            } else {
+                if (wasExploited) {
+                    exploitedModifiedNotVulnerableTestcases.add(verifyFixOutput);
+                }
+                if (wasBroken) {
+                    brokenModifiedNotVulnerableTestcases.add(verifyFixOutput);
+                }
+            }
         }
 
-        File verifyFixResultFile = new File(getOutputDirectory(), FILENAME_VERIFY_FIX_RESULT);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(verifyFixResultFile))) {
-            String output = Utils.objectToJson(verifyFixOutput);
-            //            System.out.println(output);
-            writer.write(output);
-        } catch (IOException e) {
-            System.out.println(
-                    "ERROR: Could not write VerifyFixOutput to file " + verifyFixResultFile);
-            e.printStackTrace();
-        } catch (JAXBException e) {
-            System.out.println("ERROR: Could not marshall VerifyFixOutput to JSON");
-            e.printStackTrace();
-        }
+        verifyFixesOutputList.add(verifyFixOutput);
 
         return !wasNotVerifiable && !wasExploited && !wasBroken;
     }
