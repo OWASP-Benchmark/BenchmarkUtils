@@ -620,6 +620,8 @@ public class BenchmarkScore extends AbstractMojo {
             // c.tp & c.fp can both be zero, creating a precision of NaN. So set to 0.0.
             if (Double.isNaN(precision)) precision = 0.0;
             double tpr = (double) c.tp / (double) (c.tp + c.fn);
+            // c.tp & c.fn can both be zero, creating an tpr of NaN. So set to 0.0.
+            if (Double.isNaN(tpr)) tpr = 0.0;
             double fpr = (double) c.fp / (double) (c.fp + c.tn);
             // c.fp & c.tn can both be zero, creating an fpr of NaN. So set to 0.0.
             if (Double.isNaN(fpr)) fpr = 0.0;
