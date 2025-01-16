@@ -63,11 +63,11 @@ public abstract class SarifReader extends Reader {
         return toolDriver(firstRun(resultFile)).getString("name");
     }
 
-    private static JSONObject firstRun(ResultFile resultFile) {
+    static JSONObject firstRun(ResultFile resultFile) {
         return resultFile.json().getJSONArray("runs").getJSONObject(0);
     }
 
-    private static JSONObject toolDriver(JSONObject run) {
+    static JSONObject toolDriver(JSONObject run) {
         return run.getJSONObject("tool").getJSONObject("driver");
     }
 
