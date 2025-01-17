@@ -68,7 +68,10 @@ public class JuliaReader extends Reader {
         NodeList nl = root.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
-            if (n.getNodeName().equals("warning")) tr.put(parseJuliaBug(n));
+            if (n.getNodeName().equals("warning")) {
+                TestCaseResult tcr = parseJuliaBug(n);
+                if (tcr.getNumber() > 0) tr.put(tcr);
+            }
         }
 
         return tr;

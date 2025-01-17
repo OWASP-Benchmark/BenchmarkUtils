@@ -50,6 +50,7 @@ public class ContrastScanReader extends SarifReader {
         ruleCweMap.put("trust-boundary-violation", CweNumber.TRUST_BOUNDARY_VIOLATION);
         ruleCweMap.put("xpath-injection", CweNumber.XPATH_INJECTION);
         ruleCweMap.put("xxe", CweNumber.XXE);
+        ruleCweMap.put("autocomplete-missing", 522); // CWE-522 Insufficiently Protected Creds
 
         return ruleCweMap;
     }

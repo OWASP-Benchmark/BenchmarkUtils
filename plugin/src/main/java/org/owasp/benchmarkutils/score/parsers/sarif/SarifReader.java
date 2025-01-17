@@ -247,6 +247,7 @@ public abstract class SarifReader extends Reader {
         int cwe = mappings.getOrDefault(ruleId, -1);
 
         if (cwe == -1) {
+            System.out.println("WARNING: No CWE mapping found for ruleID: " + ruleId);
             return null;
         }
 
