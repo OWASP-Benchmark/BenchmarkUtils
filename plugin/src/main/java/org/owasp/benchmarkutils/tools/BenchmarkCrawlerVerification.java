@@ -176,15 +176,27 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                 tLogger = tl;
 
                 List<TestCase> filteredList;
-                if (selectedTestCaseName != null) {
+
+                if (Boolean.parseBoolean(verifyFixed)) {
                     filteredList =
                             testSuite.getTestCases().stream()
                                     .filter(
                                             testCase ->
-                                                    testCase.getName().equals(selectedTestCaseName))
+                                                    !isTestCaseIdentical(
+                                                            unfixedSourceDirectory,
+                                                            fixedSourceDirectory,
+                                                            testCase.getName()))
                                     .collect(Collectors.toList());
                 } else {
                     filteredList = testSuite.getTestCases();
+                }
+                if (selectedTestCaseName != null) {
+                    filteredList =
+                            filteredList.stream()
+                                    .filter(
+                                            testCase ->
+                                                    testCase.getName().equals(selectedTestCaseName))
+                                    .collect(Collectors.toList());
                 }
                 for (TestCase testCase : filteredList) {
 
@@ -434,20 +446,40 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         // cleanupSetups(setups);
     }
 
-    private boolean isTestCaseModified(
-            String unfixedSourceDirectory, String fixedSourceDirectory, String testCaseName)
-            throws IOException {
+    private boolean isTestCaseIdentical(
+            String unfixedSourceDirectory, String fixedSourceDirectory, String testCaseName) {
         // FIXME: Generalize this so it can support languages other than Java and multiple
         // source files per testcase.
         String unfixedSourceFile =
                 Paths.get(unfixedSourceDirectory, testCaseName).toString() + ".java";
         String fixedSourceFile = Paths.get(fixedSourceDirectory, testCaseName).toString() + ".java";
-        String unfixedSourceFileContents =
-                new String(Files.readAllBytes(Paths.get(unfixedSourceFile)));
-        String fixedSourceFileContents = new String(Files.readAllBytes(Paths.get(fixedSourceFile)));
+        String unfixedSourceFileContents = null;
+        try {
+            unfixedSourceFileContents =
+                    new String(Files.readAllBytes(Paths.get(unfixedSourceFile)));
+        } catch (IOException e) {
+            System.out.println("ERROR: Could not read testcase source file " + unfixedSourceFile);
+            e.printStackTrace();
+        }
+        String fixedSourceFileContents = null;
+        try {
+            fixedSourceFileContents = new String(Files.readAllBytes(Paths.get(fixedSourceFile)));
+        } catch (IOException e) {
+            System.out.println("ERROR: Could not read testcase source file " + fixedSourceFile);
+            e.printStackTrace();
+        }
+        // DEBUG
+        // System.out.println(
+        //         testCaseName
+        //                 + ": isTestCaseIdentical() returning "
+        //                 + (unfixedSourceFileContents != null
+        //                         && fixedSourceFileContents != null
+        //                         && unfixedSourceFileContents.equals(fixedSourceFileContents)));
 
         // Skip testcase in verifyFixed mode if fixed source code is unchanged.
-        return !unfixedSourceFileContents.equals(fixedSourceFileContents);
+        return unfixedSourceFileContents != null
+                && fixedSourceFileContents != null
+                && unfixedSourceFileContents.equals(fixedSourceFileContents);
     }
 
     private void printFixVerificationSummary() {
@@ -583,7 +615,7 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
      * @throws LoggerConfigurationException
      */
     protected void handleResponse(TestCaseVerificationResults results)
-            throws FileNotFoundException, IOException, LoggerConfigurationException {
+            throws FileNotFoundException, LoggerConfigurationException {
 
         // Check to see if this specific test case has a specified expected response value.
         // If so, run it through verification using it's specific attackSuccessIndicator.
@@ -631,13 +663,14 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
                 // } else {
                 //     verifyFix(unfixedResults, fixedResults);
                 // }
-                if (Boolean.parseBoolean(verifyFixed)
-                        && isTestCaseModified(
-                                unfixedSourceDirectory,
-                                fixedSourceDirectory,
-                                unfixedResults.getTestCase().getName())) {
-                    verifyFix(unfixedResults, fixedResults);
-                }
+                // if (Boolean.parseBoolean(verifyFixed)
+                //         && !isTestCaseIdentical(
+                //                 unfixedSourceDirectory,
+                //                 fixedSourceDirectory,
+                //                 unfixedResults.getTestCase().getName())) {
+                //     verifyFix(unfixedResults, fixedResults);
+                // }
+                verifyFix(unfixedResults, fixedResults);
             } else {
                 System.out.println(
                         "WARNING: After fix testcase is "
@@ -731,6 +764,14 @@ public class BenchmarkCrawlerVerification extends BenchmarkCrawler {
         verifyFixOutput.setWasNotVerifiable(wasNotVerifiable);
         verifyFixOutput.setWasExploited(wasExploited);
         verifyFixOutput.setWasBroken(wasBroken);
+
+        // DEBUG
+        try {
+            String verifyFixOutputJson = Utils.objectToJson(verifyFixOutput);
+            System.out.println("verifyFixOutput JSON: " + verifyFixOutputJson);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if (isVulnerable) {
             vulnerableTestcases.add(verifyFixOutput);
