@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,11 +29,11 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class FindbugsReaderTest extends ReaderTestBase {
 
-    private static ResultFile findSecBugsResultFile;
-    private static ResultFile spotBugsResultFile;
+    private ResultFile findSecBugsResultFile;
+    private ResultFile spotBugsResultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         findSecBugsResultFile =
                 TestHelper.resultFileOf("testfiles/Benchmark_findsecbugs-v1.11.0-105.xml");
         spotBugsResultFile = TestHelper.resultFileOf("testfiles/Benchmark_spotbugs-v4.1.4-104.xml");
@@ -41,18 +41,18 @@ public class FindbugsReaderTest extends ReaderTestBase {
 
     @Test
     public void onlyFindbugsReaderReportsCanReadAsTrueForFindSecBugsFile() {
-        assertOnlyMatcherClassIs(findSecBugsResultFile, FindbugsReader.class);
+        assertOnlyMatcherClassIs(this.findSecBugsResultFile, FindbugsReader.class);
     }
 
     @Test
     public void onlyFindbugsReaderReportsCanReadAsTrueForSpotBugsFile() {
-        assertOnlyMatcherClassIs(spotBugsResultFile, FindbugsReader.class);
+        assertOnlyMatcherClassIs(this.spotBugsResultFile, FindbugsReader.class);
     }
 
     @Test
     void readerHandlesGivenFindSecBugsResultFile() throws Exception {
         FindbugsReader reader = new FindbugsReader();
-        TestSuiteResults result = reader.parse(findSecBugsResultFile);
+        TestSuiteResults result = reader.parse(this.findSecBugsResultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());
@@ -67,7 +67,7 @@ public class FindbugsReaderTest extends ReaderTestBase {
     @Test
     void readerHandlesGivenSpotBugsResultFile() throws Exception {
         FindbugsReader reader = new FindbugsReader();
-        TestSuiteResults result = reader.parse(spotBugsResultFile);
+        TestSuiteResults result = reader.parse(this.spotBugsResultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());

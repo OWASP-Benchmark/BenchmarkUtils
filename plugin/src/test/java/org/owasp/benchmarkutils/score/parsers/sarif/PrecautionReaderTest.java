@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -30,22 +30,22 @@ import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
 class PrecautionReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFile;
+    private ResultFile resultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Precaution.sarif");
     }
 
     @Test
     public void onlyPrecautionReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(resultFile, PrecautionReader.class);
+        assertOnlyMatcherClassIs(this.resultFile, PrecautionReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
         PrecautionReader reader = new PrecautionReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(this.resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());

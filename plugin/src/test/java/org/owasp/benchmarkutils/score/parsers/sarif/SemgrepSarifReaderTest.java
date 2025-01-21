@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -30,18 +30,18 @@ import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
 class SemgrepSarifReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFileOSS, resultFilePRO;
+    private ResultFile resultFileOSS, resultFilePRO;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFileOSS = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-oss-v1.67.0.sarif");
         resultFilePRO = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-pro-v1.68.1.sarif");
     }
 
     @Test
     public void onlySemgrepSarifReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(resultFileOSS, SemgrepSarifReader.class);
-        assertOnlyMatcherClassIs(resultFilePRO, SemgrepSarifReader.class);
+        assertOnlyMatcherClassIs(this.resultFileOSS, SemgrepSarifReader.class);
+        assertOnlyMatcherClassIs(this.resultFilePRO, SemgrepSarifReader.class);
     }
 
     @Test

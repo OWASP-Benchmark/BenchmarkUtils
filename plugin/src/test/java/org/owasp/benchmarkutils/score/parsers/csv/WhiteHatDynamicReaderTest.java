@@ -47,7 +47,7 @@ public class WhiteHatDynamicReaderTest extends ReaderTestBase {
     @Test
     void readerHandlesGivenResultFile() throws Exception {
         WhiteHatDynamicReader reader = new WhiteHatDynamicReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(this.resultFile);
 
         assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
         assertTrue(result.isCommercial());

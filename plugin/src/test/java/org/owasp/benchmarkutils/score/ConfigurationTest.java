@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.DumperOptions;
@@ -40,14 +39,14 @@ import org.yaml.snakeyaml.Yaml;
 
 public class ConfigurationTest {
 
-    private static Map<String, Object> defaultConfig;
-    private static Yaml yaml;
+    private Map<String, Object> defaultConfig;
+    private Yaml yaml;
+    private ByteArrayOutputStream out;
     private static final ClassLoader classLoader = Configuration.class.getClassLoader();
-    private static ByteArrayOutputStream out;
     private static final String SEP = System.getProperty("line.separator");
 
-    @BeforeAll
-    static void overallSetUp() {
+    @BeforeEach
+    void setUp() {
         // Prevent JSON-like output (https://stackoverflow.com/a/62305688)
         final DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
@@ -55,10 +54,7 @@ public class ConfigurationTest {
 
         yaml = new Yaml(options);
         defaultConfig = yaml.load(classLoader.getResourceAsStream(Configuration.DEFAULT_CONFIG));
-    }
 
-    @BeforeEach
-    void setUp() {
         out = new ByteArrayOutputStream();
         System.setOut(new PrintStream(out));
     }

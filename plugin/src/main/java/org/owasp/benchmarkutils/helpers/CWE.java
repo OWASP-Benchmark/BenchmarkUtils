@@ -21,6 +21,7 @@ public class CWE {
     private final int CWENumber; // e.g., 79
     private final String
             description; // e.g., Improper Neutralization of Input During Web Page Generation
+
     // ('Cross-site Scripting')
 
     public CWE(int cwe, String description) {

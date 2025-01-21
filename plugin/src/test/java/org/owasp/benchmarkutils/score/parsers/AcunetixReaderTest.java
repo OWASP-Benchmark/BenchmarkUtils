@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,18 +29,18 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class AcunetixReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFile_360, resultFile_WVS;
+    private ResultFile resultFile_360, resultFile_WVS;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFile_360 = TestHelper.resultFileOf("testfiles/Benchmark_Acunetix-v1.4.1.xml");
         resultFile_WVS = TestHelper.resultFileOf("testfiles/Benchmark_Acunetix-v15.3.xml");
     }
 
     @Test
     public void onlyAcunetixReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(resultFile_360, AcunetixReader.class);
-        assertOnlyMatcherClassIs(resultFile_WVS, AcunetixReader.class);
+        assertOnlyMatcherClassIs(this.resultFile_360, AcunetixReader.class);
+        assertOnlyMatcherClassIs(this.resultFile_WVS, AcunetixReader.class);
     }
 
     @Test

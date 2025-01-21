@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,11 +29,11 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 class ExpectedResultsProviderTest {
 
-    private static ResultFile simpleResultFile;
-    private static ResultFile extendedResultFile;
+    private ResultFile simpleResultFile;
+    private ResultFile extendedResultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         simpleResultFile = TestHelper.resultFileOf("expectedresults-1.2-simple.csv");
         extendedResultFile = TestHelper.resultFileOf("expectedresults-1.2-extended.csv");
     }

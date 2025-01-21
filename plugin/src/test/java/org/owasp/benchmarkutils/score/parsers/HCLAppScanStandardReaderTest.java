@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,23 +29,23 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class HCLAppScanStandardReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFile;
+    private ResultFile resultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFile =
                 TestHelper.resultFileOf("testfiles/Benchmark_HCLAppScanStandardReader-v10.0.6.xml");
     }
 
     @Test
     public void onlyHCLAppScanStandardReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(resultFile, HCLAppScanStandardReader.class);
+        assertOnlyMatcherClassIs(this.resultFile, HCLAppScanStandardReader.class);
     }
 
     @Test
     void readerHandlesGivenV10ResultFile() throws Exception {
         HCLAppScanStandardReader reader = new HCLAppScanStandardReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(this.resultFile);
 
         assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
         assertTrue(result.isCommercial());

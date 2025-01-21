@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,22 +29,22 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class DatadogReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFile;
+    private ResultFile resultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_1.2-Datadog.log");
     }
 
     @Test
     public void onlyDatadogReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(resultFile, DatadogReader.class);
+        assertOnlyMatcherClassIs(this.resultFile, DatadogReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
         DatadogReader reader = new DatadogReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(this.resultFile);
 
         assertEquals(TestSuiteResults.ToolType.IAST, result.getToolType());
         assertTrue(result.isCommercial());

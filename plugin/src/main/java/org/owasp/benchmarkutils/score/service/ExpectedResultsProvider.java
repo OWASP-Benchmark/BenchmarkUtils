@@ -42,8 +42,8 @@ public class ExpectedResultsProvider {
     private static final String CWE = " cwe";
 
     private static final String SOURCE = " source";
-    private static final String DATA_FLOW = " vuln src";
-    private static final String SINK = " vuln df";
+    private static final String DATA_FLOW = " data flow";
+    private static final String SINK = " sink";
 
     private static boolean standardBenchmarkStyleScoring;
     private static TestSuiteResults expectedResults;

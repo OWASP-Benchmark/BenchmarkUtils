@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,22 +29,22 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class NetsparkerReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFile;
+    private ResultFile resultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Netsparker.xml");
     }
 
     @Test
     public void onlyNetsparkerReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(resultFile, NetsparkerReader.class);
+        assertOnlyMatcherClassIs(this.resultFile, NetsparkerReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
         NetsparkerReader reader = new NetsparkerReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(this.resultFile);
 
         assertEquals(TestSuiteResults.ToolType.DAST, result.getToolType());
         assertTrue(result.isCommercial());

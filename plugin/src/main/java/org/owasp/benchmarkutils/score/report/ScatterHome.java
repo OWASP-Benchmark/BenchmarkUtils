@@ -170,6 +170,7 @@ public class ScatterHome extends ScatterPlot {
     }
 
     private static SecureRandom sr = new SecureRandom();
+
     // This method generates all the points put on the home page chart. One per tool.
     private HashMap<Point2D, String> makePointList(Set<Tool> tools) {
         HashMap<Point2D, String> map = new HashMap<Point2D, String>();

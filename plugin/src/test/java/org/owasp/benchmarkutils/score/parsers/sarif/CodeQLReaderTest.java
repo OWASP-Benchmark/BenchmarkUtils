@@ -19,7 +19,7 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,27 +29,27 @@ import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
 public class CodeQLReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFile;
+    private ResultFile resultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CodeQL-v2.13.sarif");
     }
 
     @Test
     public void onlyCodeQLReaderTestReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(resultFile, CodeQLReader.class);
+        assertOnlyMatcherClassIs(this.resultFile, CodeQLReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
         CodeQLReader reader = new CodeQLReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(this.resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
 
         assertEquals("CodeQL", result.getToolName());
-        assertEquals("2.13.1", result.getToolVersion());
+        assertEquals("2.13.1_w0.6.1rules", result.getToolVersion());
 
         assertEquals(2, result.getTotalResults());
 
@@ -61,7 +61,7 @@ public class CodeQLReaderTest extends ReaderTestBase {
     void readerHandlesAlternativeResultFile() throws Exception {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_CodeQL-v2.13.alternative.sarif");
         CodeQLReader reader = new CodeQLReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(this.resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
 

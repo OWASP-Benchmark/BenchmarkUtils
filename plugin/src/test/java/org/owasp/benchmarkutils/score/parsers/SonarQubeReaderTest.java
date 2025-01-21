@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,10 +29,10 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class SonarQubeReaderTest extends ReaderTestBase {
 
-    private static ResultFile pluginResultFile;
+    private ResultFile pluginResultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         pluginResultFile =
                 TestHelper.resultFileOf("testfiles/Benchmark_sonar-Java-Plugin-v3.14-1234.xml");
     }

@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,16 +29,16 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class BearerReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFileV1_30;
+    private ResultFile resultFileV1_30;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFileV1_30 = TestHelper.resultFileOf("testfiles/Benchmark_Bearer-v1.30.0.jsonv2");
     }
 
     @Test
     public void onlyBearerReaderReportsCanReadAsTrueForV1_30() {
-        assertOnlyMatcherClassIs(resultFileV1_30, BearerReader.class);
+        assertOnlyMatcherClassIs(this.resultFileV1_30, BearerReader.class);
     }
 
     @Test

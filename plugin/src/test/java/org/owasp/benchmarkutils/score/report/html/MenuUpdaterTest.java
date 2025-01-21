@@ -30,7 +30,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CategoryMetrics;
@@ -45,11 +45,11 @@ import org.owasp.benchmarkutils.score.report.ScatterVulns;
 
 class MenuUpdaterTest {
 
-    private static File tmpDir;
+    private File tmpDir;
 
-    @BeforeAll
-    static void setUp() throws IOException {
-        tmpDir = Files.createTempDirectory("Benchmark.MenuUpdaterTest").toFile();
+    @BeforeEach
+    void setUp() throws IOException {
+        this.tmpDir = Files.createTempDirectory("Benchmark.MenuUpdaterTest").toFile();
     }
 
     @Test
@@ -79,8 +79,8 @@ class MenuUpdaterTest {
                         asSet(firstTool, secondTool),
                         asSet("Path Traversal", "Command Injection"),
                         emptySet(),
-                        tmpDir,
-                        new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")) {
+                        this.tmpDir,
+                        new ToolScorecard(emptyMap(), this.tmpDir, config, new TestSuiteName("")) {
                             @Override
                             public String filenameFor(Tool tool, boolean forCategoryGroups) {
                                 return "filename-for-" + tool.getToolName();
@@ -178,7 +178,7 @@ class MenuUpdaterTest {
     }
 
     private Path pathToFile(String child) {
-        return new File(tmpDir, child).toPath();
+        return new File(this.tmpDir, child).toPath();
     }
 
     private Set<Tool> asSet(Tool... tools) {
@@ -203,8 +203,8 @@ class MenuUpdaterTest {
                         emptySet(),
                         emptySet(),
                         emptySet(),
-                        tmpDir,
-                        new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")));
+                        this.tmpDir,
+                        new ToolScorecard(emptyMap(), this.tmpDir, config, new TestSuiteName("")));
 
         writeDummyHtmlTo("some-file.txt", "some header");
 
@@ -236,10 +236,10 @@ class MenuUpdaterTest {
                         emptySet(),
                         emptySet(),
                         emptySet(),
-                        tmpDir,
-                        new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")));
+                        this.tmpDir,
+                        new ToolScorecard(emptyMap(), this.tmpDir, config, new TestSuiteName("")));
 
-        assertTrue(new File(tmpDir, "some-dir.html").mkdir());
+        assertTrue(new File(this.tmpDir, "some-dir.html").mkdir());
 
         assertDoesNotThrow(menuUpdater::updateMenus);
     }
@@ -274,8 +274,9 @@ class MenuUpdaterTest {
                         emptySet(),
                         emptySet(),
                         emptySet(),
-                        tmpDir,
-                        new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")) {});
+                        this.tmpDir,
+                        new ToolScorecard(
+                                emptyMap(), this.tmpDir, config, new TestSuiteName("")) {});
 
         writeDummyHtmlTo("some-file.html", "some header");
 
@@ -302,8 +303,8 @@ class MenuUpdaterTest {
                         asSet(freeToolWithName("Tool A"), commercialToolWithName("Tool B")),
                         emptySet(),
                         emptySet(),
-                        tmpDir,
-                        new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")) {
+                        this.tmpDir,
+                        new ToolScorecard(emptyMap(), this.tmpDir, config, new TestSuiteName("")) {
                             @Override
                             public String filenameFor(Tool tool, boolean forCategoryGroups) {
                                 return "filename-for-" + tool.getToolName();
@@ -342,8 +343,8 @@ class MenuUpdaterTest {
                         asSet(freeToolWithName("Tool A"), commercialToolWithName("Tool B")),
                         emptySet(),
                         emptySet(),
-                        tmpDir,
-                        new ToolScorecard(emptyMap(), tmpDir, config, new TestSuiteName("")) {
+                        this.tmpDir,
+                        new ToolScorecard(emptyMap(), this.tmpDir, config, new TestSuiteName("")) {
                             @Override
                             public String filenameFor(Tool tool, boolean forCategoryGroups) {
                                 return "filename-for-" + tool.getToolName();

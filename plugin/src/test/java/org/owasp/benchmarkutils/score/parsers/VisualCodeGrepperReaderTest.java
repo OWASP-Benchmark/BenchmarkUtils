@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,22 +29,22 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class VisualCodeGrepperReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFile;
+    private ResultFile resultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_visualcodegrepper-v2.2.0.xml");
     }
 
     @Test
     public void onlyFindbugsReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(resultFile, VisualCodeGrepperReader.class);
+        assertOnlyMatcherClassIs(this.resultFile, VisualCodeGrepperReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
         VisualCodeGrepperReader reader = new VisualCodeGrepperReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(this.resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());

@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,11 +29,11 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class SemgrepReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFileV65;
-    private static ResultFile resultFileV121;
+    private ResultFile resultFileV65;
+    private ResultFile resultFileV121;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFileV65 = TestHelper.resultFileOf("testfiles/Benchmark_semgrep-v0.65.0.json");
         resultFileV121 =
                 TestHelper.resultFileWithoutLineBreaksOf(
@@ -42,12 +42,12 @@ public class SemgrepReaderTest extends ReaderTestBase {
 
     @Test
     public void onlySemgrepReaderReportsCanReadAsTrueForV65() {
-        assertOnlyMatcherClassIs(resultFileV65, SemgrepReader.class);
+        assertOnlyMatcherClassIs(this.resultFileV65, SemgrepReader.class);
     }
 
     @Test
     public void onlySemgrepReaderReportsCanReadAsTrueForV121() {
-        assertOnlyMatcherClassIs(resultFileV121, SemgrepReader.class);
+        assertOnlyMatcherClassIs(this.resultFileV121, SemgrepReader.class);
     }
 
     @Test

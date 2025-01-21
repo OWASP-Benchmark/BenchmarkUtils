@@ -19,30 +19,30 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.*;
 import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
 public class PTAIReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFile;
+    private ResultFile resultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_PTAI-v4.7.2.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
     public void onlyPTAIReaderTestReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(resultFile, PTAIReader.class);
+        assertOnlyMatcherClassIs(this.resultFile, PTAIReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
         PTAIReader reader = new PTAIReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(this.resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
 

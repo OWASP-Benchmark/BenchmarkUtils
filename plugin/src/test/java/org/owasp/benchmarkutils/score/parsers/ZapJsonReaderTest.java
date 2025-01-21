@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,11 +29,11 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class ZapJsonReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFileOldFormat;
-    private static ResultFile resultFileNewFormat;
+    private ResultFile resultFileOldFormat;
+    private ResultFile resultFileNewFormat;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFileOldFormat =
                 TestHelper.resultFileOf("testfiles/Benchmark_ZAP-v2.10.0-oldfmt.json");
         resultFileNewFormat = TestHelper.resultFileOf("testfiles/Benchmark_ZAP-v2.11.1.json");
@@ -41,12 +41,12 @@ public class ZapJsonReaderTest extends ReaderTestBase {
 
     @Test
     public void onlyZapJsonReaderReportsCanReadAsTrueForOldFormat() {
-        assertOnlyMatcherClassIs(resultFileOldFormat, ZapJsonReader.class);
+        assertOnlyMatcherClassIs(this.resultFileOldFormat, ZapJsonReader.class);
     }
 
     @Test
     public void onlyZapJsonReaderReportsCanReadAsTrueForNewFormat() {
-        assertOnlyMatcherClassIs(resultFileNewFormat, ZapJsonReader.class);
+        assertOnlyMatcherClassIs(this.resultFileNewFormat, ZapJsonReader.class);
     }
 
     @Test

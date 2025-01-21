@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,22 +29,22 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class KlocworkCSVReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFile;
+    private ResultFile resultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Klocwork.csv");
     }
 
     @Test
     public void onlyKlocworkCSVReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(resultFile, KlocworkCSVReader.class);
+        assertOnlyMatcherClassIs(this.resultFile, KlocworkCSVReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
         KlocworkCSVReader reader = new KlocworkCSVReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(this.resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());

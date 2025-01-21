@@ -3,7 +3,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -12,11 +12,11 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class ScnrReaderTest extends ReaderTestBase {
 
-    private static ResultFile jsonResultFile;
-    private static ResultFile xmlResultFile;
+    private ResultFile jsonResultFile;
+    private ResultFile xmlResultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         jsonResultFile = TestHelper.resultFileOf("testfiles/Benchmark_SCNR.json");
         xmlResultFile = TestHelper.resultFileOf("testfiles/Benchmark_SCNR.xml");
     }

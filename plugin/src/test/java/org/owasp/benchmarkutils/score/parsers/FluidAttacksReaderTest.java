@@ -20,7 +20,7 @@ package org.owasp.benchmarkutils.score.parsers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
@@ -29,22 +29,22 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class FluidAttacksReaderTest extends ReaderTestBase {
 
-    private static ResultFile resultFile;
+    private ResultFile resultFile;
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Fluid-Attacks-v20210416.csv");
     }
 
     @Test
     public void onlyFluidReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(resultFile, FluidAttacksReader.class);
+        assertOnlyMatcherClassIs(this.resultFile, FluidAttacksReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
         FluidAttacksReader reader = new FluidAttacksReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(this.resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());

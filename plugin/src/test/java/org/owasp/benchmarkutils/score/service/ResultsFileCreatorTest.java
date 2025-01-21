@@ -26,7 +26,7 @@ import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
@@ -40,11 +40,11 @@ class ResultsFileCreatorTest {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-    private static File tmpDir;
+    private File tmpDir;
 
-    @BeforeAll
-    static void setUp() throws IOException {
-        tmpDir = Files.createTempDirectory("Benchmark.ResultsFileCreatorTest").toFile();
+    @BeforeEach
+    void setUp() throws IOException {
+        this.tmpDir = Files.createTempDirectory("Benchmark.ResultsFileCreatorTest").toFile();
     }
 
     @Test
@@ -96,7 +96,7 @@ class ResultsFileCreatorTest {
                         .build());
 
         ResultsFileCreator resultsFileCreator =
-                new ResultsFileCreator(tmpDir, new TestSuiteName("TestSuite"));
+                new ResultsFileCreator(this.tmpDir, new TestSuiteName("TestSuite"));
 
         resultsFileCreator.createFor(results);
 
@@ -104,7 +104,7 @@ class ResultsFileCreatorTest {
 
         assertEquals("TestSuite_v1.2_Scorecard_for_Simple_Result_File_v47.11.csv", resultFile);
 
-        File file = new File(tmpDir, resultFile);
+        File file = new File(this.tmpDir, resultFile);
 
         assertTrue(file.exists());
 
@@ -184,14 +184,14 @@ class ResultsFileCreatorTest {
                         .build());
 
         ResultsFileCreator resultsFileCreator =
-                new ResultsFileCreator(tmpDir, new TestSuiteName("TestSuite"));
+                new ResultsFileCreator(this.tmpDir, new TestSuiteName("TestSuite"));
 
         String resultFile = resultsFileCreator.createFor(results);
 
         assertEquals(
                 "TestSuite_v1.2_Scorecard_for_Full_Details_Result_File_v47.11.csv", resultFile);
 
-        File file = new File(tmpDir, resultFile);
+        File file = new File(this.tmpDir, resultFile);
 
         assertTrue(file.exists());
 
