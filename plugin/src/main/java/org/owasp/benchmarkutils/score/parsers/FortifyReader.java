@@ -79,7 +79,7 @@ public class FortifyReader extends Reader {
         return tr;
     }
 
-    private String fetchToolVersison(Node root) {
+    private static String fetchToolVersison(Node root) {
         Node eData = getNamedChild("EngineData", root);
         String version = getNamedChild("EngineVersion", eData).getTextContent();
         Node rps = getNamedChild("RulePacks", eData);
@@ -96,13 +96,13 @@ public class FortifyReader extends Reader {
      * @param root
      * @return
      */
-    private boolean isFortifyOnDemand(Node root) {
+    private static boolean isFortifyOnDemand(Node root) {
         return getNamedChild("SourceBasePath", getNamedChild("Build", root))
                 .getTextContent()
                 .contains("ronq");
     }
 
-    public String parseTime(String filename) {
+    public static String parseTime(String filename) {
         try {
             // to make the same as normal filenames, strip off the '.fvdl' at the end of the
             // filename
@@ -150,7 +150,7 @@ public class FortifyReader extends Reader {
     //            outputFile.delete();
     //        }
 
-    private TestCaseResult parseFortifyVulnerability(Node vuln) {
+    private static TestCaseResult parseFortifyVulnerability(Node vuln) {
         TestCaseResult tcr = new TestCaseResult();
 
         Node ci = getNamedNode("ClassInfo", vuln.getChildNodes());
@@ -218,7 +218,7 @@ public class FortifyReader extends Reader {
         return null;
     }
 
-    private int cweLookup(String vtype, String subtype, Node unifiedNode) {
+    public static int cweLookup(String vtype, String subtype, Node unifiedNode) {
 
         switch (vtype) {
             case "Access Control":
@@ -232,7 +232,7 @@ public class FortifyReader extends Reader {
                     // Verify its the exact type we are looking for (e.g., not HttpOnly finding)
                     if ("Cookie not Sent Over SSL".equals(subtype))
                         return CweNumber.INSECURE_COOKIE;
-                    else return 00;
+                    else return CweNumber.DONTCARE;
                 }
 
             case "Cross-Site Request Forgery":
@@ -250,7 +250,7 @@ public class FortifyReader extends Reader {
                 }
 
             case "Dead Code":
-                return 00;
+                return CweNumber.DONTCARE;
             case "Denial of Service":
                 return 400;
             case "Dynamic Code Evaluation":
@@ -306,11 +306,11 @@ public class FortifyReader extends Reader {
                             return 330;
                         }
                     }
-                    return 00; // If neither of these, then don't care
+                    return CweNumber.DONTCARE; // If neither of these, don't care
                 }
 
             case "Password Management":
-                return 00;
+                return CweNumber.DONTCARE;
             case "Path Manipulation":
                 return 22;
 
@@ -351,7 +351,8 @@ public class FortifyReader extends Reader {
                             // TODO: Assuming this Fortify rule is valid, we might need to fix
                             // Benchmark itself to eliminate unintended vulns.
                         case "Insecure Mode of Operation":
-                            return 0; // Disable so it doesn't count against Fortify.
+                            return CweNumber
+                                    .DONTCARE; // Disable so it doesn't count against Fortify.
                     }
                     return 327;
                 }
@@ -379,13 +380,13 @@ public class FortifyReader extends Reader {
             case "Portability Flaw":
             case "Race Condition":
             case "Redundant Null Check":
-                return 00;
+                return CweNumber.DONTCARE;
 
             default:
                 System.out.println(
                         "Fortify parser encountered unknown vulnerability type: " + vtype);
         } // end switch
 
-        return 0;
+        return CweNumber.UNMAPPED;
     }
 }

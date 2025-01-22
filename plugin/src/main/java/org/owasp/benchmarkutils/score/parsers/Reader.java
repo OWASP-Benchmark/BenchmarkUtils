@@ -32,6 +32,7 @@ import org.owasp.benchmarkutils.score.parsers.csv.WhiteHatDynamicReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.CodeQLReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.ContrastScanReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.DatadogSastReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.FortifySarifReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PTAIReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.SemgrepSarifReader;
@@ -45,10 +46,8 @@ public abstract class Reader {
     protected final ObjectMapper jsonMapper = new ObjectMapper();
     protected final XmlMapper xmlMapper = new XmlMapper();
 
-    // TODO: Figure out how to dynamically add all readers here without listing them
-    // out manually
-    // NOTE: There is a unit test that at least automatically verifies that any
-    // reader with a unit
+    // TODO: Figure out how to dynamically add all readers without listing them manually
+    // NOTE: There is a unit test that at least automatically verifies that any reader with a unit
     // test is in this list
     public static List<Reader> allReaders() {
         return Arrays.asList(
@@ -74,6 +73,7 @@ public abstract class Reader {
                 new FindbugsReader(),
                 new FluidAttacksReader(),
                 new FortifyReader(),
+                new FortifySarifReader(),
                 new FusionLiteInsightReader(),
                 new HCLAppScanIASTReader(),
                 new HCLAppScanSourceReader(),
@@ -132,9 +132,9 @@ public abstract class Reader {
 
         return null;
     }
+
     // Returns the node inside this nodelist whose name matches 'name', that also
-    // has an attribute
-    // called 'key' whose value matches 'keyvalue'
+    // has an attribute called 'key' whose value matches 'keyvalue'
 
     public static Node getNamedNode(String name, String keyValue, NodeList list) {
         if ((name == null) || (keyValue == null) || (list == null)) return null;
@@ -265,6 +265,7 @@ public abstract class Reader {
             // Remove remaining dots
             path = path.replace(".", "");
             // System.out.println("Final: " + path);
+
             // In the case of $innerclass
             int dollar = path.indexOf("$");
             if (dollar != -1) {
