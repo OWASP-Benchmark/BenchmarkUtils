@@ -61,7 +61,7 @@ public class KlocworkXMLReader extends Reader {
                 tcr.setEvidence(category);
 
                 int cwe = tcr.getCWE();
-                if (cwe != CweNumber.DONTCARE && cwe != CweNumber.UNKNOWN) {
+                if (cwe != CweNumber.DONTCARE && cwe != CweNumber.UNMAPPED) {
                     tr.put(tcr);
                 }
             }

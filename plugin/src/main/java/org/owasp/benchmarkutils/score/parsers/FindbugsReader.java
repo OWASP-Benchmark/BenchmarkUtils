@@ -406,6 +406,6 @@ public class FindbugsReader extends Reader {
                                 + classname);
         }
 
-        return CweNumber.UNKNOWN;
+        return CweNumber.UNMAPPED;
     }
 }

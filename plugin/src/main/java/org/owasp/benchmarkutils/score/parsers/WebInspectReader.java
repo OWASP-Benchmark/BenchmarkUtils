@@ -164,6 +164,6 @@ public class WebInspectReader extends Reader {
                 System.out.println("WARNING: Unknown WebInspect vuln category: " + rule);
         }
 
-        return CweNumber.UNKNOWN;
+        return CweNumber.UNMAPPED;
     }
 }

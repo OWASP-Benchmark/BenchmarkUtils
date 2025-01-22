@@ -102,7 +102,7 @@ public class NetsparkerReader extends Reader {
 
     private int cweLookup(String cweNum) {
         if (cweNum == null || cweNum.isEmpty()) {
-            return CweNumber.UNKNOWN;
+            return CweNumber.UNMAPPED;
         }
         int cwe = Integer.parseInt(cweNum);
         switch (cwe) {

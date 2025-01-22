@@ -163,6 +163,6 @@ public class BurpReader extends Reader {
                 return CweNumber.DONTCARE; // TLS Certificate Problem
         } // end switch(id)
         System.out.println("Unknown Burp rule id: " + id);
-        return CweNumber.UNKNOWN;
+        return CweNumber.UNMAPPED;
     }
 }

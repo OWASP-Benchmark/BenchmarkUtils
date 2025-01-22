@@ -100,13 +100,13 @@ public class W3AFReader extends Reader {
 
     private int cweLookup(String name) {
         if (name == null || name.isEmpty()) {
-            return CweNumber.UNKNOWN;
+            return CweNumber.UNMAPPED;
         }
         switch (name) {
             case "Cross site scripting vulnerability":
                 return CweNumber.XSS;
                 // Apparently the rest of the W3AF findings we don't care about so aren't mapped
         }
-        return CweNumber.UNKNOWN;
+        return CweNumber.UNMAPPED;
     }
 }

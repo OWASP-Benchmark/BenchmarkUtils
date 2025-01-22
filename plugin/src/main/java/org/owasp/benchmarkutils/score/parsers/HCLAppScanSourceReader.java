@@ -137,6 +137,6 @@ public class HCLAppScanSourceReader extends Reader {
                 System.out.println(
                         "WARNING: HCL AppScan Source-Unrecognized finding type: " + vtype);
         }
-        return CweNumber.UNKNOWN;
+        return CweNumber.UNMAPPED;
     }
 }

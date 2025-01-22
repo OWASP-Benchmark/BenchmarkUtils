@@ -143,6 +143,6 @@ public class WapitiReader extends Reader {
             default:
                 System.out.println("WARNING: Wapiti-Unmapped CWE number: " + cwe);
         }
-        return CweNumber.UNKNOWN;
+        return CweNumber.UNMAPPED;
     }
 }

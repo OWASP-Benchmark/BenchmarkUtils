@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -252,9 +253,10 @@ public abstract class SarifReader extends Reader {
         }
 
         String ruleId = result.getString("ruleId");
-        int cwe = mappings.getOrDefault(ruleId, -1);
 
-        if (cwe == -1) {
+        int cwe = mappings.getOrDefault(ruleId, CweNumber.UNMAPPED);
+
+        if (cwe == CweNumber.UNMAPPED) {
             System.out.println("WARNING: No CWE mapping found for ruleID: " + ruleId);
             return null;
         }

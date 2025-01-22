@@ -33,6 +33,7 @@ import org.owasp.benchmarkutils.score.parsers.sarif.CodeQLReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.CodeSonarReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.ContrastScanReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.DatadogSastReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.FortifySarifReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PTAIReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.SemgrepSarifReader;
@@ -47,10 +48,9 @@ public abstract class Reader {
     protected final ObjectMapper jsonMapper = new ObjectMapper();
     protected final XmlMapper xmlMapper = new XmlMapper();
 
-    // TODO: Figure out how to dynamically add all readers here without listing them
-    // out manually
-    // NOTE: There is a unit test that at least automatically verifies that any
-    // reader with a unit test is in this list
+    // TODO: Figure out how to dynamically add all readers without listing them manually
+    // NOTE: There is a unit test that at least automatically verifies that any reader with a unit
+    // test is in this list
     public static List<Reader> allReaders() {
         return Arrays.asList(
                 new AcunetixReader(),
@@ -77,6 +77,7 @@ public abstract class Reader {
                 new FindbugsReader(),
                 new FluidAttacksReader(),
                 new FortifyReader(),
+                new FortifySarifReader(),
                 new FusionLiteInsightReader(),
                 new HCLAppScanIASTReader(),
                 new HCLAppScanSourceReader(),

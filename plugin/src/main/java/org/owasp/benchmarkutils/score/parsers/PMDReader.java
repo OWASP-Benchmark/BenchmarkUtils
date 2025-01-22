@@ -342,6 +342,6 @@ public class PMDReader extends Reader {
                                 + testclass);
         }
 
-        return CweNumber.UNKNOWN;
+        return CweNumber.UNMAPPED;
     }
 }

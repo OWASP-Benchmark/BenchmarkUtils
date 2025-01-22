@@ -109,7 +109,7 @@ public class AppScanSourceReader extends Reader {
 
                     int cwe = cweLookup(vtype);
                     // Exclude unmapped findings
-                    if (cwe == CweNumber.DONTCARE || cwe == CweNumber.UNKNOWN) continue;
+                    if (cwe == CweNumber.DONTCARE || cwe == CweNumber.UNMAPPED) continue;
                     tcr.setCWE(cwe);
                     tcr.setEvidence(vtype);
                     tcr.setConfidence(confidence);
@@ -180,7 +180,7 @@ public class AppScanSourceReader extends Reader {
             default:
                 System.out.println("Unknown vuln type for AppScanSource: " + vtype);
         }
-        return CweNumber.UNKNOWN;
+        return CweNumber.UNMAPPED;
     }
 
     /**

@@ -97,7 +97,7 @@ public class CASTAIPReader extends Reader {
 
     private int cweLookup(String name) {
         if (name == null || name.isEmpty()) {
-            return CweNumber.UNKNOWN;
+            return CweNumber.UNMAPPED;
         }
         switch (name.trim()) {
             case "614":

@@ -80,7 +80,7 @@ public class FortifyReader extends Reader {
         return tr;
     }
 
-    private String fetchToolVersison(Node root) {
+    private static String fetchToolVersison(Node root) {
         Node eData = getNamedChild("EngineData", root);
         String version = getNamedChild("EngineVersion", eData).getTextContent();
         Node rps = getNamedChild("RulePacks", eData);
@@ -97,13 +97,13 @@ public class FortifyReader extends Reader {
      * @param root
      * @return
      */
-    private boolean isFortifyOnDemand(Node root) {
+    private static boolean isFortifyOnDemand(Node root) {
         return getNamedChild("SourceBasePath", getNamedChild("Build", root))
                 .getTextContent()
                 .contains("ronq");
     }
 
-    public String parseTime(String filename) {
+    public static String parseTime(String filename) {
         try {
             // to make the same as normal filenames, strip off the '.fvdl' at the end of the
             // filename
@@ -151,7 +151,7 @@ public class FortifyReader extends Reader {
     //            outputFile.delete();
     //        }
 
-    private TestCaseResult parseFortifyVulnerability(Node vuln) {
+    private static TestCaseResult parseFortifyVulnerability(Node vuln) {
         TestCaseResult tcr = new TestCaseResult();
 
         Node ci = getNamedNode("ClassInfo", vuln.getChildNodes());
@@ -227,7 +227,7 @@ public class FortifyReader extends Reader {
         return null;
     }
 
-    private int cweLookup(String vtype, String subtype, Node unifiedNode, String classname) {
+    public static int cweLookup(String vtype, String subtype, Node unifiedNode, String classname) {
 
         switch (vtype) {
             case "Access Control":
@@ -261,7 +261,7 @@ public class FortifyReader extends Reader {
                                                 + " in class: "
                                                 + classname);
                     }
-                    return CweNumber.UNKNOWN;
+                    return CweNumber.UNMAPPED;
                 }
 
             case "Command Injection":
@@ -287,15 +287,19 @@ public class FortifyReader extends Reader {
                                                 + " in class: "
                                                 + classname);
                     }
-                    return CweNumber.UNKNOWN;
+                    return CweNumber.UNMAPPED;
                 }
 
             case "Cross-Site Request Forgery":
                 return CweNumber.CSRF;
 
             case "Cross-Site Scripting":
-                return CweNumber.XSS;
-
+                switch (subtype) {
+                    case "Poor Validation":
+                        return 20; // CWE-20 Improper Input Validation
+                    default:
+                        return CweNumber.XSS;
+                }
             case "Dead Code":
                 return 561; // Dead Code
             case "Denial of Service":
@@ -346,7 +350,7 @@ public class FortifyReader extends Reader {
                             return 470; // Unsafe Reflection
 
                         case "Suspicious String": // Don't know what this means
-                            return CweNumber.UNKNOWN;
+                            return CweNumber.UNMAPPED;
 
                         default:
                             if (classname != null)
@@ -356,7 +360,7 @@ public class FortifyReader extends Reader {
                                                 + " in class: "
                                                 + classname);
                     }
-                    return CweNumber.UNKNOWN;
+                    return CweNumber.UNMAPPED;
                 }
 
             case "J2EE Bad Practices":
@@ -384,7 +388,7 @@ public class FortifyReader extends Reader {
                                                 + " in class: "
                                                 + classname);
                     }
-                    return CweNumber.UNKNOWN;
+                    return CweNumber.UNMAPPED;
                 }
 
             case "Key Management":
@@ -464,7 +468,7 @@ public class FortifyReader extends Reader {
                                                 + " in class: "
                                                 + classname);
                     }
-                    return CweNumber.UNKNOWN;
+                    return CweNumber.UNMAPPED;
                 }
             case "Path Manipulation":
                 return CweNumber.PATH_TRAVERSAL;
@@ -625,6 +629,6 @@ public class FortifyReader extends Reader {
                                 + classname);
         } // end switch
 
-        return 0;
+        return CweNumber.UNMAPPED;
     }
 }

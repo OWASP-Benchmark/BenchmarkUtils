@@ -69,7 +69,7 @@ public class KlocworkCSVReader extends Reader {
                 tcr.setEvidence(category);
 
                 int cwe = tcr.getCWE();
-                if (cwe != CweNumber.DONTCARE && cwe != CweNumber.UNKNOWN) {
+                if (cwe != CweNumber.DONTCARE && cwe != CweNumber.UNMAPPED) {
                     tr.put(tcr);
                 }
             }
@@ -431,7 +431,7 @@ public class KlocworkCSVReader extends Reader {
             default:
                 System.out.println(
                         "WARNING: Unmapped Klocwork Vuln category detected: " + checkerKey);
-                return CweNumber.UNKNOWN;
+                return CweNumber.UNMAPPED;
         }
     }
 }

@@ -211,7 +211,7 @@ public class AcunetixReader extends Reader {
     private int cweLookup(String cweNum) {
         if (cweNum == null || cweNum.isEmpty()) {
             System.err.println("ERROR: No CWE number supplied");
-            return CweNumber.UNKNOWN;
+            return CweNumber.UNMAPPED;
         }
         return cweLookup(cweNum, null);
     }
@@ -219,7 +219,7 @@ public class AcunetixReader extends Reader {
     private int cweLookup(String cweNum, String name) {
         if (cweNum == null || cweNum.isEmpty()) {
             System.err.println("ERROR: No CWE number supplied");
-            return CweNumber.UNKNOWN;
+            return CweNumber.UNMAPPED;
         }
         switch (cweNum) {
             case "22":
