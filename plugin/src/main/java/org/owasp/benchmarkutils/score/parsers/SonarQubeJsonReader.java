@@ -131,13 +131,18 @@ public class SonarQubeJsonReader extends Reader {
                 tcr.setNumber(testNumber(filename));
                 String rule = finding.getString("rule");
                 String squid = rule.substring(rule.indexOf(":") + 1);
-                if (squid == null || squid.equals("none")) {
+
+                if (squid.equals("none")) {
                     return null;
                 }
-                int cwe = SonarQubeReader.cweLookup(squid);
-                tcr.setCWE(cwe);
-                tcr.setCategory(finding.getJSONArray("tags").toString());
+
+                tcr.setCWE(SonarQubeReader.cweLookup(squid));
                 tcr.setEvidence(finding.getString("message"));
+
+                if (finding.has("tags")) {
+                    tcr.setCategory(finding.getJSONArray("tags").toString());
+                }
+
                 return tcr;
             }
 
