@@ -1,0 +1,48 @@
+{
+  "date": "Tuesday, Jan 01, 1970",
+  "inNewCodePeriod": false,
+  "allBugs": true,
+  "fixMissingRule": false,
+  "noSecurityHotspot": false,
+  "noRulesInReport": true,
+  "vulnerabilityPhrase": "Vulnerability",
+  "noCoverage": true,
+  "vulnerabilityPluralPhrase": "Vulnerabilities",
+  "sonarBaseURL": "http://localhost:9876",
+  "sonarComponent": "benchmark",
+  "rules": {},
+  "issues": [
+    {
+      "rule": "java:S2077",
+      "severity": "CRITICAL",
+      "status": "TO_REVIEW",
+      "component": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java",
+      "line": 57,
+      "description": "Formatting SQL queries is security-sensitive",
+      "message": "Make sure using a dynamically formatted SQL query is safe here.",
+      "key": "e1518810-c118-4cad-ae23-f337cf913d65"
+    },
+    {
+      "rule": "java:S5547",
+      "severity": "CRITICAL",
+      "status": "OPEN",
+      "component": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00002.java",
+      "line": 72,
+      "description": "Cipher algorithms should be robust",
+      "message": "Use a strong cipher algorithm.",
+      "key": "ffecce86-2afe-4fe3-b5b2-f06e24d549db"
+    }
+  ],
+  "hotspotKeys": [
+    "9012d4af-be33-4e0d-8c68-705d8fef08c4",
+    "0c0fbd12-b778-44b8-a0f6-dbfa9afc0872"
+  ],
+  "deltaAnalysis": "No",
+  "qualityGateStatus": false,
+  "summary": {
+    "blocker": 0,
+    "critical": 1015,
+    "major": 3072,
+    "minor": 6613
+  }
+}
