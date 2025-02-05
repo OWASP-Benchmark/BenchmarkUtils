@@ -516,8 +516,8 @@ public class SonarQubeReader extends Reader {
                 // with secure mode and padding scheme
             case "S5547":
             case "S4790":
-                return CweNumber
-                        .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Cipher algorithms should be robust
+                // Using weak hashing algorithms is security-sensitive
+                return CweNumber.WEAK_HASH_ALGO;
             case "S3330":
                 return CweNumber.COOKIE_WITHOUT_HTTPONLY;
 
