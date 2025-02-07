@@ -522,9 +522,11 @@ public class SonarQubeReader extends Reader {
                 return CweNumber.COOKIE_WITHOUT_HTTPONLY;
 
             case "S1153":
-            case "S6851":
-            case "S6853":
             case "S2119":
+            case "S2129":
+            case "S6541":
+            case "S6853":
+            case "S6851":
             case "CallToDeprecatedMethod":
             case "ClassVariableVisibilityCheck":
             case "DuplicatedBlocks":
