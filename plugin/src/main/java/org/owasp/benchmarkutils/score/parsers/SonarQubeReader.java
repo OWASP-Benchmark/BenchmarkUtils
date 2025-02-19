@@ -511,10 +511,10 @@ public class SonarQubeReader extends Reader {
                 return CweNumber
                         .DONTCARE; // "String#replace" should be preferred to "String#replaceAll"
             case "S5542":
+            case "S5547":
                 return CweNumber
                         .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Encryption algorithms should be used
                 // with secure mode and padding scheme
-            case "S5547":
             case "S4790":
                 // Using weak hashing algorithms is security-sensitive
                 return CweNumber.WEAK_HASH_ALGO;
