@@ -56,6 +56,7 @@ public abstract class Reader {
                 new AppScanSourceReader(),
                 new ArachniReader(),
                 new BearerReader(),
+                new BlackDuckReader(),
                 new BurpJsonReader(),
                 new BurpReader(),
                 new CASTAIPReader(),
