@@ -358,7 +358,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.target>11</java.target>
         <log.directory>${project.build.directory}/log</log.directory>
-        <version.fluido>2.0.1</version.fluido>
+        <version.fluido>2.1.0</version.fluido>
     </properties>
 
 </project>
