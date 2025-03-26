@@ -18,6 +18,7 @@
 package org.owasp.benchmarkutils.score.parsers;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
@@ -39,9 +40,16 @@ public class SemgrepReader extends Reader {
         TestSuiteResults tr =
                 new TestSuiteResults("Semgrep", false, TestSuiteResults.ToolType.SAST);
 
+        // get engine version
+        try {
+            String version = resultFile.json().getString("version");
+            tr.setToolVersion(version);
+        } catch (JSONException e) {
+            // If there is no version value, ignore it.
+        }
+
         JSONArray results = resultFile.json().getJSONArray("results");
 
-        // engine version
         // duration time
 
         // results
