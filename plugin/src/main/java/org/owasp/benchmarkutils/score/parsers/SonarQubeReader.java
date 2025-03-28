@@ -509,13 +509,22 @@ public class SonarQubeReader extends Reader {
                 return CweNumber
                         .DONTCARE; // "String#replace" should be preferred to "String#replaceAll"
             case "S5542":
+            case "S5547":
                 return CweNumber
                         .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Encryption algorithms should be used
                 // with secure mode and padding scheme
-            case "S5547":
-                return CweNumber
-                        .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Cipher algorithms should be robust
+            case "S4790":
+                // Using weak hashing algorithms is security-sensitive
+                return CweNumber.WEAK_HASH_ALGO;
+            case "S3330":
+                return CweNumber.COOKIE_WITHOUT_HTTPONLY;
 
+            case "S1153":
+            case "S2119":
+            case "S2129":
+            case "S6541":
+            case "S6853":
+            case "S6851":
             case "CallToDeprecatedMethod":
             case "ClassVariableVisibilityCheck":
             case "DuplicatedBlocks":

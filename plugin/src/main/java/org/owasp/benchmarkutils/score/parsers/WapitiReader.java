@@ -124,6 +124,8 @@ public class WapitiReader extends Reader {
                 return CweNumber.XSS;
             case "89": // Normal and Blind SQL Injection
                 return CweNumber.SQL_INJECTION;
+            case "90":
+                return CweNumber.LDAP_INJECTION;
             case "352":
                 return CweNumber.CSRF;
             case "611":

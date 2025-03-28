@@ -47,7 +47,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.4.0-jre</version>
+            <version>33.4.6-jre</version>
         </dependency>
 
         <dependency>
@@ -77,7 +77,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.13.0</version>
+            <version>1.14.0</version>
         </dependency>
 
         <dependency>
@@ -89,13 +89,13 @@
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
-            <version>5.4.1</version>
+            <version>5.4.3</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.httpcomponents.core5</groupId>
             <artifactId>httpcore5</artifactId>
-            <version>5.3.2</version>
+            <version>5.3.4</version>
         </dependency>
 
         <dependency>
@@ -140,7 +140,7 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>2.3</version>
+            <version>2.4</version>
         </dependency>
 
         <!-- The following dependency might be an upgrade/replacement for jaxb.xml.bind.JAXBContext,
@@ -192,10 +192,10 @@
     </build>
 
     <properties>
-        <version.fasterxml.jackson>2.18.2</version.fasterxml.jackson>
+        <version.fasterxml.jackson>2.18.3</version.fasterxml.jackson>
         <!-- 3.0.3+ version of eclipse.persistence requires jakarta.xml.bind instead of jaxb -->
         <version.eclipse.persistence>2.7.15</version.eclipse.persistence>
-        <version.junit.jupiter>5.11.4</version.junit.jupiter>
+        <version.junit.jupiter>5.12.1</version.junit.jupiter>
     </properties>
 
 </project>
