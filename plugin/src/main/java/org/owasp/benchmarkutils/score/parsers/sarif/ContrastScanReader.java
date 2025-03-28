@@ -145,6 +145,242 @@ public class ContrastScanReader extends SarifReader {
         ruleCweMap.put("OPT.JAVA.SEC_JAVA.WebXmlSecurityMisconfigurationsRule", CweNumber.DONTCARE);
         ruleCweMap.put("OPT.JAVA.SEC_JAVA.XPathInjectionRule", CweNumber.XPATH_INJECTION);
 
+        // The following are the ruleIds for Contrast scan for CSharp source code files
+        // See CSharp rules: https://docs.contrastsecurity.com/en/c--scan-rules.html
+
+        ruleCweMap.put(
+                "OPT.CSHARP.AvoidNullReferenceException", 395); // Use of NPE Catch to Detect NPE
+        ruleCweMap.put("OPT.CSHARP.AvoidSystemOutputStream", CweNumber.DONTCARE);
+        // CWE-582: Array Declared Public, Final, and Static
+        ruleCweMap.put("OPT.CSHARP.Csharp.ArrayFieldsShouldNotBeReadOnly", 582);
+        // CWE-94: Improper Control of Generation of Code ('Code Injection')
+        ruleCweMap.put("OPT.CSHARP.CodeInjection", 94);
+        // CWE-502: Deserialization of Untrusted Data
+        ruleCweMap.put("OPT.CSHARP.CodeInjectionWithDeserialization", 502);
+        ruleCweMap.put("OPT.CSHARP.CrossSiteScripting", CweNumber.XSS);
+        ruleCweMap.put("OPT.CSHARP.InsecureRandomness", CweNumber.WEAK_RANDOM);
+        ruleCweMap.put("OPT.CSHARP.LdapInjection", CweNumber.LDAP_INJECTION);
+        ruleCweMap.put("OPT.CSHARP.NullDereference", 476); // Null Pointer Dereference
+        ruleCweMap.put("OPT.CSHARP.OpenRedirect", 601); // CWE-601 Open Redirect
+        ruleCweMap.put("OPT.CSHARP.PathTraversal", CweNumber.PATH_TRAVERSAL);
+        // CWE-315: Cleartext Storage of Sensitive Info in Cookie
+        ruleCweMap.put("OPT.CSHARP.PlaintextStorageInACookie", 315);
+        ruleCweMap.put("OPT.CSHARP.PotentialInfiniteLoop", 835); // Infinite Loop
+        ruleCweMap.put("OPT.CSHARP.ResourceLeakDatabase", 400); // Uncontrolled Resource Consumption
+        ruleCweMap.put("OPT.CSHARP.ResourceLeakStream", 400); // Uncontrolled Resource Consumption
+        ruleCweMap.put(
+                "OPT.CSHARP.ResourceLeakUnmanaged", 400); // Uncontrolled Resource Consumption
+        // CWE-235: Improper Handling Extra Params
+        ruleCweMap.put("OPT.CSHARP.SEC.ConnectionStringParameterPollution", 235);
+        ruleCweMap.put("OPT.CSHARP.SEC.HardcodedCredential", 798); // Hardcoded Credentials
+        // CWE-1051: Initialization w/ Hard-Coded Network Resource Data (Prohibited Vuln Mapping)
+        ruleCweMap.put("OPT.CSHARP.SEC.HardcodedNetworkAddress", 1051);
+        ruleCweMap.put("OPT.CSHARP.SEC.HttpSplittingRule", 113); // HTTP Req/Resp Splitting
+        ruleCweMap.put("OPT.CSHARP.SEC.InformationExposureThroughErrorMessage", 209);
+        // CWE-319: Cleartext transmission of sensitive data
+        ruleCweMap.put("OPT.CSHARP.SEC.InsecureTransport", 319);
+        ruleCweMap.put(
+                "OPT.CSHARP.SEC.PlaintextStorageOfPassword", 256); // Plaintext Password Storage
+        // CWE-15: External Control of System or Configuration Setting
+        ruleCweMap.put("OPT.CSHARP.SEC.RegistryManipulation", 15);
+        // CWE-427: Uncontrolled Search Path - "attacker can change search path to resources"
+        ruleCweMap.put("OPT.CSHARP.SEC.SettingManipulation", 427);
+        ruleCweMap.put("OPT.CSHARP.SEC.TemporaryFilesLeft", 459); // Incomplete Cleanup
+        ruleCweMap.put("OPT.CSHARP.SEC.UnsafeCookieRule", 614); // No secure attribute
+        ruleCweMap.put("OPT.CSHARP.SqlInjection", CweNumber.SQL_INJECTION);
+        // CWE497: Exposure of Sensitive Info to Unauthorized Control Sphere
+        ruleCweMap.put("OPT.CSHARP.SystemInformationLeak", 497);
+        ruleCweMap.put(
+                "OPT.CSHARP.UncheckedInputInLoopCondition",
+                606); // Unchecked Input for Loop Condition
+        ruleCweMap.put("OPT.CSHARP.UncheckedReturnValue", 252); // Unchecked Return Value
+        ruleCweMap.put("OPT.CSHARP.WeakCryptographicHash", CweNumber.WEAK_HASH_ALGO);
+        ruleCweMap.put("OPT.CSHARP.WeakKeySize", CweNumber.WEAK_CRYPTO_ALGO);
+        ruleCweMap.put("OPT.CSHARP.WeakSymmetricEncryptionAlgorithm", CweNumber.WEAK_CRYPTO_ALGO);
+        ruleCweMap.put("OPT.CSHARP.XPathInjection", CweNumber.XPATH_INJECTION);
+
+        // The following are the ruleIds for Contrast scan for C source code files
+        // See the C rules: https://docs.contrastsecurity.com/en/c-scan-rules.html
+        // The bulk of these are mapped from:
+        //   - https://wiki.sei.cmu.edu/confluence/display/c/2+Rules
+        //   - https://wiki.sei.cmu.edu/confluence/display/c/3+Recommendations
+        // The 2008 version of the CERT C Secure Coding standard has these mappings for various
+        // INTxx rules:
+        //   - https://cwe.mitre.org/data/definitions/738.html
+
+        // Do not use out-of-bounds pointers/array subscripts on arrays
+        ruleCweMap.put("OPT.C.CERTC.ARR30", 119); // CWE-119 Improper Restrict of Ops in Mem Buff
+        // Guarantee copies are made into storage of sufficient size
+        ruleCweMap.put("OPT.C.CERTC.ARR33", 170); // CWE-170 Improper Null Termination
+        // DRW Test 129 below
+        ruleCweMap.put("OPT.C.CERTC.ARR35", 129); // Do not allow loops to iterate beyond array end
+
+        // Do not call system() if you don't need a command processor
+        ruleCweMap.put(
+                "OPT.C.CERTC.ENV04", 2223); // DRW TODO: Related to CWE-78 OS Command Injection?
+        ruleCweMap.put("OPT.C.CERTC.EXP01", 467); // CWE-467 Use of sizeof() on a Pointer Type
+        ruleCweMap.put("OPT.C.CERTC.EXP33", 457); // Use of Uninitialized Variable
+        ruleCweMap.put("OPT.C.CERTC.EXP34", 476); // Null Pointer Dereference
+
+        // Be careful using functions that use file names for identification
+        // SEI also suggests this maps to CWE-73 External control of file or path & CWE-367 TOCTOU
+        // Race Condition
+        ruleCweMap.put("OPT.C.CERTC.FIO01", 676); // CWE-676 Use of Potentially Dangerous Function
+        // Exclude unsanitized user input from format strings
+        ruleCweMap.put("OPT.C.CERTC.FIO30", 134); // CWE-134 Uncontrolled Format String
+        // Detect/Handle I/O errors resulting in undefined behavior
+        // DRW TODO: Test if this is right mapping
+        ruleCweMap.put("OPT.C.CERTC.FIO33", 475); // CWE-475 Undefined Behavior for Input to API
+        // DRW TODO: Test when real test suite available to test
+        ruleCweMap.put(
+                "OPT.C.CERTC.FIO36", 3334); // Do not assume new-line char read when using fgets()
+        // Do not assume fgets()/fgetws() returns a nonempty string when successful
+        // DRW TODO: Test if this is right mapping. CWE 241 is not mapped to any existing test case
+        // categories
+        ruleCweMap.put(
+                "OPT.C.CERTC.FIO37", 241); // CWE-241 Improper Handling of Unexpected Data type
+        // Creation of Temp File in Dir w/ Incorrect Permissions
+        ruleCweMap.put(
+                "OPT.C.CERTC.FIO43", 379); // CWE-379 Creation of Temp File in Dir w/Insecure Perms
+
+        // Use bitwise operators only on unsigned operands
+        ruleCweMap.put("OPT.C.CERTC.INT13", 682); // CWE-682 Incorrect Calculation
+
+        // Allocate/free memory in same module at same level of abstraction
+        // SEI suggests this maps to CWE-415 Double Free & CWE-416 Use after free -DRW TODO test
+        ruleCweMap.put("OPT.C.CERTC.MEM00", 666); // CWE-666 Operation on Resource Wrong Phase
+        // Do not access freed memory
+        ruleCweMap.put("OPT.C.CERTC.MEM30", 416); // CWE-416 Use After Free
+        // Free dynamically allocated memory when no longer needed
+        ruleCweMap.put("OPT.C.CERTC.MEM31", 401); // CWE-401 Memory Leak
+
+        // Detect and handle memory allocation errors - DRW TODO test
+        // SEI for the CPP MEM52 rule of the same name, suggests this maps to CWEs: 252, 391, 476,
+        // 690, 703, 754. But these are all related to error handling. Ultimately I think this
+        // results in a buffer overflow, so mapping to that. Test this made up mapping to see if it
+        // makes sense.
+        ruleCweMap.put("OPT.C.CERTC.MEM32", 7777); // CWE- TBD
+
+        // Only free memory allocated dynamically
+        ruleCweMap.put("OPT.C.CERTC.MEM34", 590); // CWE-590 Free of Memory Not on Heap
+        // DRW TODO: Test the test cases this maps to, to make sure its the right mapping
+        // Allocate sufficient memory for an object
+        ruleCweMap.put("OPT.C.CERTC.MEM35", 131); // CWE-131 Incorrect Calculation of Buffer Size
+        // DRW TODO - Prob don't care - Might be related to Path Traversal - Test w/real test suite
+        // SEI does not map this recommendation to any CWE
+        ruleCweMap.put("OPT.C.CERTC.PRE02", 3356);
+        // CweNumber.DONTCARE); // Macro replacement lists should be parenthesized
+
+        // Call only asynchronous-safe functions within signal handlers
+        ruleCweMap.put(
+                "OPT.C.CERTC.SIG30", 479); // CWE-479 Signal Handler Use of Non-reentrant Function
+
+        // Sanitize data passed to sensitive subsystems
+        // SEI suggests this maps to CWE-78 Failure to sanitize data to OS command & CWE-488
+        // Argument injection or modification
+        // DRW TODO: Test when real test suite available to test
+        ruleCweMap.put("OPT.C.CERTC.STR02", 6667);
+        // Make sure there is enough room for the string and its null terminator
+        ruleCweMap.put("OPT.C.CERTC.STR31", 120); // CWE-120 Buffer Overflow
+        // Null terminate byte strings as required
+        ruleCweMap.put("OPT.C.CERTC.STR32", 170); // CWE-170 Improper Null Termination
+        // Size wide char strings correctly
+        ruleCweMap.put(
+                "OPT.C.CERTC.STR33", 135); // CWE-135 Incorrect Calc of Multi-byte String Length
+        // Do not copy data from unbounded source to fixed-length array
+        ruleCweMap.put("OPT.C.CERTC.STR35", 120); // CWE-120 Buffer Overflow
+
+        // DRW TODO: Verify that CWE-170 Improper Null Termination is the right CWE
+        ruleCweMap.put(
+                "OPT.C.CERTC.STR36", 170); // Don't specify bound of char array init w/literal
+        ruleCweMap.put("OPT.C.CorrectUseMemoryLeaks", 401); // Missing Release of Memory
+        ruleCweMap.put("OPT.C.SEC.HardcodedUsernamePassword", 798); // Hardcoded Creds
+        ruleCweMap.put(
+                "OPT.C.SEC.InsufficientKeySize", 326); // CWE-326 Inadequate Encryption Strength
+        ruleCweMap.put("OPT.C.SEC.PathTraversal", CweNumber.PATH_TRAVERSAL);
+        ruleCweMap.put("OPT.C.SEC.WeakCryptographicHash", CweNumber.WEAK_HASH_ALGO);
+        ruleCweMap.put("OPT.C.SEC.WeakEncryption", CweNumber.WEAK_CRYPTO_ALGO);
+
+        // The following are the ruleIds for Contrast scan for C++ source code files
+        // See the C++ rules: https://docs.contrastsecurity.com/en/cpp-scan-rules.html
+        // The bulk of these are mapped from:
+        //   - https://wiki.sei.cmu.edu/confluence/display/cplusplus/2+Rules
+        //   - https://wiki.sei.cmu.edu/confluence/display/cplusplus/3+Recommendations
+
+        // Do not use out-of-bounds pointers/array subscripts on arrays
+        ruleCweMap.put("OPT.CPP.CERTC.ARR30", 119); // CWE-119 Improper Restrict of Ops in Mem Buff
+        // Guarantee copies are made into storage of sufficient size
+        ruleCweMap.put("OPT.CPP.CERTC.ARR33", 170); // CWE-170 Improper Null Termination
+        // DRW Test 129 below
+        ruleCweMap.put(
+                "OPT.CPP.CERTC.ARR35", 129); // Do not allow loops to iterate beyond array end
+        // Do not call system() if you don't need a command processor
+        ruleCweMap.put(
+                "OPT.CPP.CERTC.ENV04", 2222); // DRW TODO: Related to CWE-78 OS Command Injection?
+
+        ruleCweMap.put("OPT.CPP.CERTC.EXP01", 467); // CWE-467 Use of sizeof() on a Pointer Type
+        ruleCweMap.put("OPT.CPP.CERTC.EXP33", 457); // Use of Uninitialized Variable
+        ruleCweMap.put("OPT.CPP.CERTC.EXP34", 476); // Null Pointer Dereference
+
+        // Exclude unsanitized user input from format strings
+        ruleCweMap.put("OPT.CPP.CERTC.FIO30", 134); // CWE-134 Uncontrolled Format String
+        // Detect/Handle I/O errors resulting in undefined behavior
+        // DRW TODO: Test if this is right mapping
+        ruleCweMap.put("OPT.CPP.CERTC.FIO33", 475); // CWE-475 Undefined Behavior for Input to API
+        // DRW TODO: Test when real test suite available to test
+        ruleCweMap.put(
+                "OPT.CPP.CERTC.FIO36", 3333); // Do not assume new-line char read when using fgets()
+
+        // Use bitwise operators only on unsigned operands
+        ruleCweMap.put("OPT.CPP.CERTC.INT13", 682); // CWE-682 Incorrect Calculation
+
+        // Allocate/free memory in same module at same level of abstraction
+        // SEI suggests this maps to CWE-415 Double Free & CWE-416 Use after free -DRW TODO test
+        ruleCweMap.put("OPT.CPP.CERTC.MEM00", 666); // CWE-666 Operation on Resource Wrong Phase
+
+        // Do not access freed memory
+        ruleCweMap.put("OPT.CPP.CERTC.MEM30", 416); // CWE-416 Use After Free
+
+        // Detect and handle memory allocation errors - DRW TODO test
+        // SEI for the CPP MEM52 rule of the same name, suggests this maps to CWEs: 252, 391, 476,
+        // 690, 703, 754. But these are all related to error handling. Ultimately I think this
+        // results in a buffer overflow, so mapping to that. Test this made up mapping to see if it
+        // makes sense.
+        ruleCweMap.put("OPT.CPP.CERTC.MEM32", 7778); // CWE- TBD
+
+        // DRW TODO: Test the test cases this maps to, to make sure its the right mapping
+        // Allocate sufficient memory for an object
+        ruleCweMap.put("OPT.CPP.CERTC.MEM35", 131); // CWE-131 Incorrect Calculation of Buffer Size
+        // DRW TODO - Prob don't care - Might be related to Path Traversal - Test w/real test suite
+        // SEI does not map this recommendation to any CWE
+        ruleCweMap.put("OPT.CPP.CERTC.PRE02", 3355);
+        // CweNumber.DONTCARE); // Macro replacement lists should be parenthesized
+
+        // Sanitize data passed to sensitive subsystems
+        // SEI suggests this maps to CWE-78 Failure to sanitize data to OS command & CWE-488
+        // Argument injection or modification
+        // DRW TODO: Test when real test suite available to test
+        ruleCweMap.put(
+                "OPT.CPP.CERTC.STR02",
+                6666); // Avoid using signals to implement normal functionality
+
+        // Make sure there is enough room for the string and its null terminator
+        ruleCweMap.put("OPT.CPP.CERTC.STR31", 120); // CWE-120 Buffer Overflow
+        // Null terminate byte strings as required
+        ruleCweMap.put("OPT.CPP.CERTC.STR32", 170); // CWE-170 Improper Null Termination
+        // Size wide char strings correctly
+        ruleCweMap.put(
+                "OPT.CPP.CERTC.STR33", 135); // CWE-135 Incorrect Calc of Multi-byte String Length
+        // DRW TODO: Verify that CWE-170 Improper Null Termination is the right CWE
+        // This also causes CWE-125 Out of Bounds Read, so maybe that's the right CWE?
+        ruleCweMap.put(
+                "OPT.CPP.CERTC.STR36", 170); // Don't specify bound of char array init w/literal
+        ruleCweMap.put("OPT.CPP.CorrectUseMemoryLeaks", 401); // Missing Release of Memory
+        ruleCweMap.put("OPT.CPP.DontUseCast", 704); // Incorrect Type Conversion or Cast
+        ruleCweMap.put("OPT.CPP.SEC.HardcodedUsernamePassword", 798); // Hardcoded Creds
+        ruleCweMap.put("OPT.CPP.SEC.PathTraversal", CweNumber.PATH_TRAVERSAL);
+        ruleCweMap.put("OPT.CPP.SEC.ProcessControl", 114); // CWE-114 Process Control
+
         return ruleCweMap;
     }
 
