@@ -65,10 +65,18 @@ public class SemgrepReader extends Reader {
     public static int translate(int cwe) {
 
         switch (cwe) {
+            case 11: // ASP.NET Misconfiguration: Creating Debug Binary
+            case 14: // Compiler Removal of Code to Clear Buffers
             case 16: // CWE vuln mapping PROHIBITED: Configuration
+            case 20: // CWE vuln mapping DISCOURAGED: Improper Input Validation
             case 73: // External Control of File Name or Path
             case 74: // CWE vuln mapping DISCOURAGED: Improper Neutralization of Special Elements in
                 // Output Used by a Downstream Component ('Injection')
+            case 75: // CWE vuln mapping DISCOURAGED: Failure to Sanitize Special Elements into a
+                // Different Plane (Special Element Injection)
+            case 77: // Improper Neutralization of Special Elements used in a Command ('Command
+                // Injection') - TODO: Map to Command Injection?
+            case 91: // XML Injection (aka Blind XPath Injection)
             case 93: // Improper Neutralization of CRLF Sequences ('CRLF Injection')
             case 94: // Improper Control of Generation of Code ('Code Injection') - Reported when it
                 // sees JS eval() being used.
@@ -77,59 +85,140 @@ public class SemgrepReader extends Reader {
             case 96: // Improper Neutralization of Directives in Statically Saved Code ('Static Code
                 // Injection')
             case 113: // Header injection
+            case 114: // Process Control
+            case 115: // Misinterpretation of Input
             case 116: // Improper Encoding or Escaping of Output
+            case 117: // Improper Output Neutralization for Logs
             case 119: // CWE vuln mapping DISCOURAGED: Improper Restriction of Operations within the
                 // Bounds of a Memory Buffer
+            case 120: // Classic Buffer Overflow
+            case 125: // Out of bounds Read
+            case 131: // Incorrect Calculation of Buffer Size
             case 134: // Use of Externally-Controlled Format String
+            case 150: // Improper Neutralization of Escape, Meta, or Control Sequences
             case 155: // Improper Neutralization of Wildcards or Matching Symbols
             case 183: // Permissive List of Allowed Inputs
+            case 190: // Integer Overflow or Wraparound
             case 200: // Information Leak / Disclosure
+            case 209: // Generation of Error Message Containing Sensitive Information
             case 242: // Use of Inherently Dangerous Function
+            case 250: // Execution with Unnecessary Privileges
+            case 252: // Unchecked Return Value
+            case 259: // Use of Hard-coded Password
+            case 262: // Not Using Password Aging
             case 264: // CWE vuln mapping PROHIBITED: Permissions, Privileges, and Access Controls
             case 269: // CWE vuln mapping DISCOURAGED: Improper Privilege Management
+            case 272: // Least Privilege Violation
             case 276: // Incorrect Default Permissions
+            case 284: // CWE vuln mapping DISCOURAGED: Improper Access Control
             case 287: // CWE vuln mapping DISCOURAGED: Improper Authentication
             case 295: // Improper Certificate Validation
+            case 296: // Improper Following of Certificate's Chain of Trust
             case 297: // Improper Validation of Certificate with Host Mismatch
             case 300: // CWE vuln mapping DISCOURAGED: Channel Accessible by Non-Endpoint
+            case 305: // Authentication Bypass by Primary Weakness
+            case 306: // Missing Authentication for Critical Function
+            case 310: // CWE vuln mapping PROHIBITED: Cryptographic Issues
             case 311: // CWE vuln mapping DISCOURAGED: Missing Encryption of Sensitive Data
             case 319: // Cleartext Transmission of Sensitive Into (e.g., not using HTTPS)
+            case 320: // CWE vuln mapping PROHIBITED: Key Management Errors
+            case 321: // Hard-coded Crypto Key
             case 322: // Key Exchange without Entity Authentication
+            case 323: // Reusing a Nonce, Key Pair in Encryption
+            case 337: // Predictable Seed in Pseudo-Random Number Generator (PRNG)
+            case 341: // Predictable from Observable State
+            case 345: // CWE vuln mapping DISCOURAGED: Insufficient Verification of Data
+                // Authenticity
+            case 346: // Origin Validation Error
             case 353: // Missing Support for Integrity Check
             case 352: // CSRF
+            case 362: // Race Condition
+            case 367: // Time-of-check Time-of-use (TOCTOU) Race Condition
             case 369: // Divide By Zero
             case 377: // Insecure Temporary File
+            case 384: // Session Fixation
             case 400: // CWE vuln mapping DISCOURAGED: Uncontrolled Resource Consumption
+            case 406: // Insufficient Control of Network Message Volume (Network Amplification)
             case 415: // Double Free
             case 416: // Use After Free
             case 441: // Unintended Proxy or Intermediary ('Confused Deputy')
+            case 444: // HTTP Request/Response Smuggling
+            case 451: // User Interface (UI) Misrepresentation of Critical Information
+            case 454: // External Initialization of Trusted Variables or Data Stores
+            case 467: // Use of sizeof() on a Pointer Type
             case 470: // Unsafe Reflection
+            case 476: // NULL Pointer Dereference
+            case 477: // Use of Obsolete Function
             case 489: // Active Debug Code
             case 502: // Deserialization of Untrusted Data
             case 521: // Weak Password Requirements
+            case 522: // Insufficiently Protected Credentials
             case 523: // Unprotected Transport of Credentials
+            case 532: // Insertion of Sensitive Information into Log File
+            case 538: // Insertion of Sensitive Information into Externally-Accessible File or
+                // Directory
+            case 548: // Exposure of Information Through Directory Listing
+            case 553: // Command Shell in Externally Accessible Directory
             case 601: // URL Redirection to Untrusted Site ('Open Redirect')
+            case 613: // Insufficient Session Expiration
+            case 639: // Authorization Bypass Through User-Controlled Key
+            case 644: // Improper Neutralization of HTTP Headers for Scripting Syntax
+            case 665: // CWE vuln mapping DISCOURAGED: Improper Initialization
+            case 667: // Improper Locking
             case 668: // CWE vuln mapping DISCOURAGED: Exposure of Resource to Wrong Sphere
             case 676: // Use of Potentially Dangerous Function
+            case 681: // Incorrect Conversion between Numeric Types
+            case 682: // CWE vuln mapping DISCOURAGED: Incorrect Calculation
+            case 688: // Function Call With Incorrect Variable or Reference as Argument
+            case 693: // CWE vuln mapping DISCOURAGED: Protection Mechanism Failure
+            case 697: // CWE vuln mapping DISCOURAGED: Incorrect Comparison
             case 704: // Incorrect Type Conversion or Cast
+            case 706: // Use of Incorrectly-Resolved Name or Reference
+            case 732: // Incorrect Permission Assignment for Critical Resource
+            case 749: // Exposed Dangerous Method or Function
+            case 757: // Selection of Less-Secure Algorithm During Negotiation ('Algorithm
+                // Downgrade')
             case 774: // Allocation of File Descriptors or Handles Without Limits or Throttling
             case 776: // XEE: Improper Restriction of Recursive Entity References in DTDs ('XML
                 // Entity Expansion')
+            case 778: // Insufficient Logging
+            case 780: // Use of RSA Algorithm without OAEP
+                // TODO: Map to Weak Crypto?
+            case 787: // Out of bounds Write
             case 798: // Use of Hard-coded Credentials
+            case 837: // Improper Enforcement of a Single, Unique Action
+            case 841: // Improper Enforcement of Behavioral Workflow
             case 913: // Improper Control of Dynamically-Managed Code Resources
             case 915: // Improperly Controlled Modification of Dynamically-Determined Object
                 // Attributes
+            case 916: // Use of Password Hash With Insufficient Computational Effort
+            case 918: // SSRF
+            case 922: // Insecure Storage of Sensitive Information
+            case 926: // Improper Export of Android Application Components
             case 939: // Improper Authorization in Handler for Custom URL Scheme
             case 942: // Permissive Cross-domain Policy with Untrusted Domains
+            case 943: // Improper Neutralization of Special Elements in Data Query Logic
+                // TODO: Map this as parent of for various Injection flaw CWEs in Benchmark
             case 1021: // TapJacking: Improper Restriction of Rendered UI Layers or Frames
+            case 1104: // Use of Unmaintained Third Party Components
+            case 1204: // Generation of Weak Initialization Vector (IV)
+            case 1275: // Sensitive Cookie with Improper SameSite Attribute
+            case 1323: // Improper Management of Sensitive Trace Data
             case 1333: // Inefficient Regular Expression Complexity (e.g., RegexDOS)
+            case 1336: // Improper Neutralization of Special Elements Used in a Template Engine
+                // TODO: Map to some type of injection?
+            case 1390: // Weak Authentication
                 break; // Don't care - So return CWE 'as is'
 
-            case 22:
+            case 22: // Improper Limitation of a Pathname to a Restricted Directory ('Path
+                // Traversal')
+            case 23: // Relative Path Traversal
+            case 35: // Path Traversal: '.../...//'
                 return CweNumber.PATH_TRAVERSAL;
             case 78:
                 return CweNumber.COMMAND_INJECTION;
             case 79:
+            case 80: // Basic XSS
                 return CweNumber.XSS;
             case 89:
                 return CweNumber.SQL_INJECTION;
