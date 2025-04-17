@@ -57,6 +57,8 @@ public class ConfigurationTest {
 
         out = new ByteArrayOutputStream();
         System.setOut(new PrintStream(out));
+
+        Configuration.disableWarnOnDuplicateKeys();
     }
 
     @Test
