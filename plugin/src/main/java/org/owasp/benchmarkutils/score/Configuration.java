@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.util.Map;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -76,7 +77,30 @@ public class Configuration {
 
     public final Report report;
 
-    private static final Yaml yaml = new Yaml();
+    private static Yaml yaml = new Yaml(defaultLoaderOptions());
+
+    /**
+     * Custom loader options to disable warning for duplicate key (which is not helpful, because
+     * it's intended behaviour to merge keys from multiple files)
+     */
+    private static LoaderOptions defaultLoaderOptions() {
+        LoaderOptions loaderOptions = new LoaderOptions();
+
+        loaderOptions.setAllowDuplicateKeys(true);
+
+        return loaderOptions;
+    }
+
+    /**
+     * Used to disable warnings on duplicate keys. Occurs when providing an additional configuration file.
+     */
+    static void disableWarnOnDuplicateKeys() {
+        LoaderOptions loaderOptions = defaultLoaderOptions();
+
+        loaderOptions.setWarnOnDuplicateKeys(false);
+
+        yaml = new Yaml(loaderOptions);
+    }
 
     public static Configuration fromDefaultConfig() {
         return fromInputStream(resourceAsStream(DEFAULT_CONFIG), DEFAULT_SUCCESS_MESSAGE);
