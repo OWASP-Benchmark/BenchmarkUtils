@@ -205,20 +205,29 @@ public class FindbugsReader extends Reader {
             case "PREDICTABLE_RANDOM":
                 return CweNumber.WEAK_RANDOM;
 
+            case "THROWS_METHOD_THROWS_RUNTIMEEXCEPTION":
+                return 248; // Uncaught Exception
+
             case "PADDING_ORACLE":
                 return 326; // Inadequate Encryption Strength
 
-                // Weak encryption
+            case "STATIC_IV":
+                return 329; // static initialization vector for crypto
+
+                // Weak Encryption
             case "DES_USAGE": // weak encryption DES
                 return CweNumber.WEAK_CRYPTO_ALGO;
 
             case "CIPHER_INTEGRITY": // weak encryption - cipher with no integrity
                 return 353; // Missing support for Integrity Check
 
-            case "STATIC_IV":
-                return 329; // static initialization vector for crypto
+            case "THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION":
+                return 397; // Declaration of Throws for Generic Exception
 
-                // Path traversal
+            case "AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE":
+                return 667; // Improper Locking
+
+                // Path Traversal
             case "PATH_TRAVERSAL_IN":
             case "PATH_TRAVERSAL_OUT":
                 return CweNumber.PATH_TRAVERSAL;
@@ -318,6 +327,7 @@ public class FindbugsReader extends Reader {
             case "SnVI_NO_SERIALVERSIONID": // Bad Practice:
             case "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD": // Style:
             case "SWL_SLEEP_WITH_LOCK_HELD": // MT Correctness:
+            case "THROWS_METHOD_THROWS_CLAUSE_THROWABLE": // Bad Practice:
             case "UC_USELESS_CONDITION_TYPE": // Style
             case "UC_USELESS_OBJECT": // Style
             case "UC_USELESS_VOID_METHOD": // Style
@@ -325,7 +335,7 @@ public class FindbugsReader extends Reader {
             case "UWF_NULL_FIELD": // Correctness: Field only ever set to null
                 return CweNumber.DONTCARE;
 
-                // These mappings are for fb-contrib
+                // The following mappings are for fb-contrib
             case "AFBR_ABNORMAL_FINALLY_BLOCK_RETURN":
                 return 705; // Incorrect Control Flow Scoping (parent of 584)
 

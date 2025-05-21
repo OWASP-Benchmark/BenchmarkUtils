@@ -165,6 +165,7 @@ public class PMDReader extends Reader {
             case "SystemPrintln":
             case "TestClassWithoutTestCases":
             case "TooFewBranchesForASwitchStatement":
+            case "TooFewBranchesForSwitch":
             case "TooManyMethods":
             case "UnnecessaryAnnotationValueElement":
             case "UnnecessaryBoxing":
@@ -247,6 +248,7 @@ public class PMDReader extends Reader {
             case "PositionLiteralsFirstInComparisons": // Replaced by LiteralsFirstInComparisons
                 return 476; // NULL Pointer Dereference
 
+            case "NonExhaustiveSwitch":
             case "SwitchStmtsShouldHaveDefault":
                 return 478; // Missing Default Case in Multiple Condition Expression
 
