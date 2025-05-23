@@ -30,23 +30,31 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class SonarQubeJsonReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private ResultFile resultFileV9;
+    private ResultFile resultFileV25;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_sonarqube-v9.1.0.47736.json");
+        resultFileV9 = TestHelper.resultFileOf("testfiles/Benchmark_sonarqube-v9.1.0.47736.json");
+        resultFileV25 =
+                TestHelper.resultFileOf("testfiles/Benchmark_sonarqube-v25.1.0.102122.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlySonarQubeJsonReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, SonarQubeJsonReader.class);
+    public void onlySonarQubeJsonReaderReportsCanReadAsTrueForV9() {
+        assertOnlyMatcherClassIs(this.resultFileV9, SonarQubeJsonReader.class);
     }
 
     @Test
-    void readerHandlesGivenResultFile() throws Exception {
+    public void onlySonarQubeJsonReaderReportsCanReadAsTrueForV25() {
+        assertOnlyMatcherClassIs(this.resultFileV25, SonarQubeJsonReader.class);
+    }
+
+    @Test
+    void readerHandlesGivenV9ResultFile() throws Exception {
         SonarQubeJsonReader reader = new SonarQubeJsonReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(resultFileV9);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());
@@ -56,5 +64,20 @@ public class SonarQubeJsonReaderTest extends ReaderTestBase {
 
         assertEquals(CweNumber.WEAK_CRYPTO_ALGO, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+    }
+
+    @Test
+    void readerHandlesGivenV25ResultFile() throws Exception {
+        SonarQubeJsonReader reader = new SonarQubeJsonReader();
+        TestSuiteResults result = reader.parse(resultFileV25);
+
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertFalse(result.isCommercial());
+        assertEquals("SonarQube", result.getToolName());
+
+        assertEquals(2, result.getTotalResults());
+
+        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.WEAK_HASH_ALGO, result.get(2).get(0).getCWE());
     }
 }

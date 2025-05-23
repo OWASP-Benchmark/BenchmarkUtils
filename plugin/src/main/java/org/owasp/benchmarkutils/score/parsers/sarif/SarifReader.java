@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
+import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -63,11 +64,11 @@ public abstract class SarifReader extends Reader {
         return toolDriver(firstRun(resultFile)).getString("name");
     }
 
-    private static JSONObject firstRun(ResultFile resultFile) {
+    static JSONObject firstRun(ResultFile resultFile) {
         return resultFile.json().getJSONArray("runs").getJSONObject(0);
     }
 
-    private static JSONObject toolDriver(JSONObject run) {
+    static JSONObject toolDriver(JSONObject run) {
         return run.getJSONObject("tool").getJSONObject("driver");
     }
 
@@ -152,7 +153,7 @@ public abstract class SarifReader extends Reader {
             case CUSTOM:
                 return customRuleCweMappings(tool);
             default:
-                throw new IllegalArgumentException("Unknown cwe mapping source type");
+                throw new IllegalArgumentException("Unknown CWE mapping source type");
         }
     }
 
@@ -244,9 +245,10 @@ public abstract class SarifReader extends Reader {
 
         String ruleId = result.getString("ruleId");
 
-        int cwe = mappings.getOrDefault(ruleId, -1);
+        int cwe = mappings.getOrDefault(ruleId, CweNumber.UNMAPPED);
 
-        if (cwe == -1) {
+        if (cwe == CweNumber.UNMAPPED) {
+            System.out.println("WARNING: No CWE mapping found for ruleID: " + ruleId);
             return null;
         }
 

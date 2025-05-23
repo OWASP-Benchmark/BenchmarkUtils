@@ -32,16 +32,17 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class ExpectedResultsProvider {
 
-    private static final String PREFIX = " version: ";
+    // The following are column titles or elements in the expected results file
+    public static final String PREFIX = " version: ";
 
-    private static final String TEST_NAME = "# test name";
-    private static final String CATEGORY = " category";
-    private static final String REAL_VULNERABILITY = " real vulnerability";
-    private static final String CWE = " cwe";
+    public static final String TEST_NAME = "# test name";
+    public static final String CATEGORY = "category";
+    public static final String REAL_VULNERABILITY = "real vulnerability";
+    public static final String CWE = "cwe";
 
-    private static final String SOURCE = " source";
-    private static final String DATA_FLOW = " vuln src";
-    private static final String SINK = " vuln df";
+    public static final String SOURCE = "source";
+    public static final String DATA_FLOW = "data flow";
+    public static final String SINK = "sink";
 
     public static TestSuiteResults parse(ResultFile resultFile) throws IOException {
         TestSuiteResults tr = new TestSuiteResults("Expected", true, null);
@@ -55,16 +56,16 @@ public class ExpectedResultsProvider {
                 if (record.get(TEST_NAME).startsWith(tr.getTestSuiteName() + BenchmarkScore.TEST)) {
                     TestCaseResult tcr = new TestCaseResult();
 
-                    tcr.setTestCaseName(record.get(TEST_NAME).trim());
-                    tcr.setCategory(record.get(CATEGORY).trim());
-                    tcr.setTruePositive(parseBoolean(record.get(REAL_VULNERABILITY).trim()));
-                    tcr.setCWE(parseInt(record.get(CWE).trim()));
-                    tcr.setNumber(testNumber(record.get(TEST_NAME).trim(), testCaseName));
+                    tcr.setTestCaseName(record.get(TEST_NAME));
+                    tcr.setCategory(record.get(CATEGORY));
+                    tcr.setTruePositive(parseBoolean(record.get(REAL_VULNERABILITY)));
+                    tcr.setCWE(parseInt(record.get(CWE)));
+                    tcr.setNumber(testNumber(record.get(TEST_NAME), testCaseName));
 
                     if (isExtendedResultsFile(parser)) {
-                        tcr.setSource(record.get(SOURCE).trim());
-                        tcr.setDataFlow(record.get(DATA_FLOW).trim());
-                        tcr.setSink(record.get(SINK).trim());
+                        tcr.setSource(record.get(SOURCE));
+                        tcr.setDataFlow(record.get(DATA_FLOW));
+                        tcr.setSink(record.get(SINK));
                     }
 
                     tr.put(tcr);

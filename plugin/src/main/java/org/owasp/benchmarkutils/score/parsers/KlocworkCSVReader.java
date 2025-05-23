@@ -53,7 +53,7 @@ public class KlocworkCSVReader extends Reader {
         String header = inReader.readLine();
         CSVFormat.Builder CSVBuilder = CSVFormat.Builder.create(CSVFormat.RFC4180);
         CSVBuilder.setHeader(header.split(","));
-        Iterable<CSVRecord> records = CSVBuilder.build().parse(inReader);
+        Iterable<CSVRecord> records = CSVBuilder.get().parse(inReader);
 
         for (CSVRecord record : records) {
             String category = record.get("Code"); // e.g., RLK.SQLOBJ

@@ -206,7 +206,9 @@ public class Utils {
      * @throws TestCaseRequestFileParseException
      */
     public static TestSuite parseHttpFile(File file)
-            throws JAXBException, FileNotFoundException, SAXException,
+            throws JAXBException,
+                    FileNotFoundException,
+                    SAXException,
                     ParserConfigurationException {
 
         // Disable XXE
@@ -439,7 +441,9 @@ public class Utils {
 
     public static TestCaseVerificationResultsCollection jsonToTestCaseVerificationResultsList(
             File file)
-            throws JAXBException, FileNotFoundException, SAXException,
+            throws JAXBException,
+                    FileNotFoundException,
+                    SAXException,
                     ParserConfigurationException {
 
         // Disable XXE

@@ -85,6 +85,7 @@ public class RegressionTesting {
     // TODO: Since these logs are static, we might only be able to use (close) it once.
     static SimpleFileLogger tcJsonLogger;
     static SimpleFileLogger ftcLogger;
+
     /**
      * Write a log file containing the verification results of all test cases, as JSON.
      *
