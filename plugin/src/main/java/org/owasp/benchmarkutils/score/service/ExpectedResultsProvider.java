@@ -34,16 +34,17 @@ import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 
 public class ExpectedResultsProvider {
 
-    private static final String PREFIX = " version: ";
+    // The following are column titles or elements in the expected results file
+    public static final String PREFIX = " version: ";
 
-    private static final String TEST_NAME = "# test name";
-    // private static final String CATEGORY = " category";
-    private static final String REAL_VULNERABILITY = " real vulnerability";
-    private static final String CWE = " cwe";
+    public static final String TEST_NAME = "# test name";
+    public static final String CATEGORY = "category";
+    public static final String REAL_VULNERABILITY = "real vulnerability";
+    public static final String CWE = "cwe";
 
-    private static final String SOURCE = " source";
-    private static final String DATA_FLOW = " data flow";
-    private static final String SINK = " sink";
+    public static final String SOURCE = "source";
+    public static final String DATA_FLOW = "data flow";
+    public static final String SINK = "sink";
 
     private static boolean standardBenchmarkStyleScoring;
     private static TestSuiteResults expectedResults;
@@ -65,11 +66,14 @@ public class ExpectedResultsProvider {
             for (CSVRecord record : allExpectedResults) {
                 TestCaseResult tcr = new TestCaseResult();
 
-                String testCaseFileName = record.get(TEST_NAME).trim();
+                String testCaseFileName = record.get(TEST_NAME);
                 tcr.setTestCaseName(testCaseFileName);
-                tcr.setTruePositive(parseBoolean(record.get(REAL_VULNERABILITY).trim()));
-                int cwe = parseInt(record.get(CWE).trim());
+                //                tcr.setCategory(record.get(CATEGORY));
+                tcr.setTruePositive(parseBoolean(record.get(REAL_VULNERABILITY)));
+                int cwe = parseInt(record.get(CWE));
                 tcr.setCWE(cwe);
+                //                tcr.setNumber(testNumber(record.get(TEST_NAME), testCaseName));
+
                 if (TestCaseResult.UNMAPPED_CATEGORY.equals(tcr.getCategory())) {
                     System.out.println(
                             "FATAL ERROR: CWE metadata missing for CWE: "

@@ -45,6 +45,7 @@ import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.TestSuiteResults.ToolType;
+import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
 import org.w3c.dom.Element;
 
 @Mojo(
@@ -237,12 +238,13 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
                 TestCaseResult theResult = new TestCaseResult(theTestcases.get(i));
 
                 // Get whether this test case is a true or false positive and set that
-                String truePositive = records.get(i).get(" real vulnerability").trim();
+                String truePositive =
+                        records.get(i).get(ExpectedResultsProvider.REAL_VULNERABILITY);
                 theResult.setTruePositive(Boolean.parseBoolean(truePositive));
 
                 // Get whether the tool passed/failed this test case and set that result
-                String passFail = records.get(i).get(" pass/fail").trim();
-                theResult.setPassed("pass".equals(passFail));
+                String passFail = records.get(i).get("pass/fail");
+                theResult.setPassed(passFail.equals("pass"));
 
                 // While we are spinning through all the test cases, populate the lists of the
                 // sources, dataflows, and sinks.
@@ -338,7 +340,7 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
                                             + sinkCodeBlockFilename.replace(".code", ".xml"));
                     if (sinkMetaDataFile.exists()) {
                         // For sinks, we also add the vuln category to the CodeBlockSupportResults
-                        String vulnCategory = records.get(i).get(" category").trim();
+                        String vulnCategory = records.get(i).get(ExpectedResultsProvider.CATEGORY);
 
                         Element emetadata =
                                 CodeblockUtils.getSinkElementFromXMLFile(sinkMetaDataFile);

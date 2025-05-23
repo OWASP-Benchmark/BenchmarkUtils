@@ -147,7 +147,8 @@ public class ResultFile {
                     .setHeader()
                     .setSkipHeaderRecord(false)
                     .setIgnoreEmptyLines(false)
-                    .build()
+                    .setTrim(true) // trim leading/trailing blanks in column values
+                    .get()
                     .parse(new StringReader(content));
         } catch (IOException e) {
             throw new RuntimeException(e);

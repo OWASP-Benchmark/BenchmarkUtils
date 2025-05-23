@@ -103,7 +103,7 @@ public class ReshiftReader extends Reader {
 
         CSVFormat.Builder CSVBuilder = CSVFormat.Builder.create(CSVFormat.RFC4180);
         CSVBuilder.setHeader(header.split(","));
-        Iterable<CSVRecord> records = CSVBuilder.build().parse(inReader);
+        Iterable<CSVRecord> records = CSVBuilder.get().parse(inReader);
 
         for (CSVRecord record : records) {
             String url = record.get("Issue-File");
