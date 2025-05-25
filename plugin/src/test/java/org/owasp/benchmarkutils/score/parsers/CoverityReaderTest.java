@@ -40,14 +40,16 @@ public class CoverityReaderTest extends ReaderTestBase {
     }
 
     @Test
-    public void onlyCoverityReaderReportsCanReadAsTrue() {
+    public void onlyCoverityReaderReportsCanReadAsTrueForV3() {
         assertOnlyMatcherClassIs(this.resultFile_v3, CoverityReader.class);
+    }
+
+    public void onlyCoverityReaderReportsCanReadAsTrueForV10() {
         assertOnlyMatcherClassIs(this.resultFile_v10, CoverityReader.class);
     }
 
     @Test
-    void readerHandlesGivenResultFile() throws Exception {
-        // For Coverity v3.0
+    void readerHandlesGivenResultFileInV3() throws Exception {
         CoverityReader reader = new CoverityReader();
         TestSuiteResults result = reader.parse(resultFile_v3);
 
@@ -59,10 +61,12 @@ public class CoverityReaderTest extends ReaderTestBase {
 
         assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+    }
 
-        // For Coverity v10.0
-        reader = new CoverityReader();
-        result = reader.parse(resultFile_v10);
+    @Test
+    void readerHandlesGivenResultFileInV10() throws Exception {
+        CoverityReader reader = new CoverityReader();
+        TestSuiteResults result = reader.parse(resultFile_v10);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
