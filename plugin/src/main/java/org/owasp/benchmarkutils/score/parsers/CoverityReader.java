@@ -64,7 +64,7 @@ public class CoverityReader extends Reader {
             TestCaseResult tcr = new TestCaseResult();
             String filename = null;
 
-            if (version == 3) {
+            if (version >= 3) {
                 filename = finding.getString("mainEventFilePathname");
                 filename = filename.replaceAll("\\\\", "/");
                 filename = filename.substring(filename.lastIndexOf('/') + 1);
