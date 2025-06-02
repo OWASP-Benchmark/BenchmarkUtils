@@ -60,7 +60,7 @@ public class CodeSonarReader extends SarifReader {
 
                     int CWENum = parseInt(cwetext.substring(0, endIndex));
 
-                    mappings.put(ruleID, mapCwe(CWENum));
+                    mappings.put(ruleID, CWENum);
                 }
             } catch (JSONException e) {
                 System.err.println(
@@ -69,19 +69,5 @@ public class CodeSonarReader extends SarifReader {
         }
 
         return mappings;
-    }
-
-    @Override
-    public int mapCwe(int cwe) {
-        switch (cwe) {
-            case 120:
-                return 788;
-            case 128:
-                return 190;
-            case 570:
-                return 569;
-            default:
-                return cwe;
-        }
     }
 }

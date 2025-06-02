@@ -17,24 +17,9 @@
  */
 package org.owasp.benchmarkutils.score.parsers.sarif;
 
-import org.owasp.benchmarkutils.score.CweNumber;
-
 public class SnykReader extends SarifReader {
 
     public SnykReader() {
         super("SnykCode", true, CweSourceType.FIELD);
-    }
-
-    @Override
-    public int mapCwe(int cwe) {
-        if (cwe == CweNumber.PASSWORD_HASH_WITH_INSUFFICIENT_COMPUTATIONAL_EFFORT) {
-            return CweNumber.WEAK_HASH_ALGO;
-        }
-
-        if (cwe == CweNumber.RELATIVE_PATH_TRAVERSAL) {
-            return CweNumber.PATH_TRAVERSAL;
-        }
-
-        return super.mapCwe(cwe);
     }
 }
