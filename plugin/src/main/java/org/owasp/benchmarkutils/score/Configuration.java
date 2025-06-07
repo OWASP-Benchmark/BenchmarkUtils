@@ -77,29 +77,15 @@ public class Configuration {
 
     public final Report report;
 
-    private static Yaml yaml = new Yaml(defaultLoaderOptions());
+    private static final Yaml yaml = new Yaml(defaultLoaderOptions());
 
-    /**
-     * Custom loader options to disable warning for duplicate key (which is not helpful, because
-     * it's intended behaviour to merge keys from multiple files)
-     */
     private static LoaderOptions defaultLoaderOptions() {
         LoaderOptions loaderOptions = new LoaderOptions();
 
         loaderOptions.setAllowDuplicateKeys(true);
-
-        return loaderOptions;
-    }
-
-    /**
-     * Used to disable warnings on duplicate keys. Occurs when providing an additional configuration file.
-     */
-    static void disableWarnOnDuplicateKeys() {
-        LoaderOptions loaderOptions = defaultLoaderOptions();
-
         loaderOptions.setWarnOnDuplicateKeys(false);
 
-        yaml = new Yaml(loaderOptions);
+        return loaderOptions;
     }
 
     public static Configuration fromDefaultConfig() {

@@ -35,7 +35,6 @@ public class BenchmarkScoreTest {
     @BeforeEach
     public void setUpStreams() {
         System.setOut(new PrintStream(outContent));
-        Configuration.disableWarnOnDuplicateKeys();
     }
 
     @AfterEach
