@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 
 public class BenchmarkScoreTest {
 
-    private static final String SEP = System.getProperty("line.separator");
+    private static final String SEP = System.lineSeparator();
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final PrintStream originalOut = System.out;
 
