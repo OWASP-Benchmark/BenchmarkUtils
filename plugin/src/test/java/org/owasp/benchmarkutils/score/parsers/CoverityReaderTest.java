@@ -30,23 +30,43 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class CoverityReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private ResultFile resultFile_v3, resultFile_v10;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Coverity-v3.0.json");
+        resultFile_v3 = TestHelper.resultFileOf("testfiles/Benchmark_Coverity-v3.0.json");
+        resultFile_v10 = TestHelper.resultFileOf("testfiles/Benchmark_Coverity-v10.0.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyCoverityReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, CoverityReader.class);
+    public void onlyCoverityReaderReportsCanReadAsTrueForV3() {
+        assertOnlyMatcherClassIs(this.resultFile_v3, CoverityReader.class);
+    }
+
+    public void onlyCoverityReaderReportsCanReadAsTrueForV10() {
+        assertOnlyMatcherClassIs(this.resultFile_v10, CoverityReader.class);
     }
 
     @Test
-    void readerHandlesGivenResultFile() throws Exception {
+    void readerHandlesGivenResultFileInV3() throws Exception {
         CoverityReader reader = new CoverityReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(resultFile_v3);
+
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertTrue(result.isCommercial());
+        assertEquals("Coverity Code Advisor", result.getToolName());
+
+        assertEquals(2, result.getTotalResults());
+
+        assertEquals(CweNumber.PATH_TRAVERSAL, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
+    }
+
+    @Test
+    void readerHandlesGivenResultFileInV10() throws Exception {
+        CoverityReader reader = new CoverityReader();
+        TestSuiteResults result = reader.parse(resultFile_v10);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());

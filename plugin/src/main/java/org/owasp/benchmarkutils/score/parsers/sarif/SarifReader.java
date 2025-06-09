@@ -264,11 +264,26 @@ public abstract class SarifReader extends Reader {
     }
 
     private static String resultUri(JSONObject result) {
-        return result.getJSONArray("locations")
-                .getJSONObject(0)
-                .getJSONObject("physicalLocation")
-                .getJSONObject("artifactLocation")
-                .getString("uri");
+        // This try/catch was added because CodeSonar SARIF results sometimes don't have locations
+        // elements. The have fingerprints and partialFingerprints elements which might refer
+        // back to findings of the same type that do include proper locations elements
+        try {
+            return result.getJSONArray("locations")
+                    .getJSONObject(0)
+                    .getJSONObject("physicalLocation")
+                    .getJSONObject("artifactLocation")
+                    .getString("uri");
+        } catch (Exception e) {
+            System.err.println(
+                    "WARNING: "
+                            + e.getMessage()
+                            + " for rule: "
+                            + result.getString("ruleId")
+                            + " with message: \""
+                            + result.getJSONObject("message").getString("text")
+                            + "\". Skipping this finding.");
+            return "NoResultURIFound";
+        }
     }
 
     /**
