@@ -25,6 +25,7 @@ import java.io.SequenceInputStream;
 import java.util.Map;
 import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.CategoryGroups;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -93,7 +94,16 @@ public class Configuration {
 
     public final Report report;
 
-    private static final Yaml yaml = new Yaml();
+    private static final Yaml yaml = new Yaml(defaultLoaderOptions());
+
+    private static LoaderOptions defaultLoaderOptions() {
+        LoaderOptions loaderOptions = new LoaderOptions();
+
+        loaderOptions.setAllowDuplicateKeys(true);
+        loaderOptions.setWarnOnDuplicateKeys(false);
+
+        return loaderOptions;
+    }
 
     public static Configuration fromDefaultConfig() {
         return fromInputStream(resourceAsStream(DEFAULT_CONFIG), DEFAULT_SUCCESS_MESSAGE);
