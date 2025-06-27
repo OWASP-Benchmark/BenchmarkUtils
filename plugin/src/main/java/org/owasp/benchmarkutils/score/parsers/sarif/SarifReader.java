@@ -282,14 +282,16 @@ public abstract class SarifReader extends Reader {
                     .getJSONObject("artifactLocation")
                     .getString("uri");
         } catch (Exception e) {
-            System.err.println(
-                    "WARNING: "
-                            + e.getMessage()
-                            + " for rule: "
-                            + result.getString("ruleId")
-                            + " with message: \""
-                            + result.getJSONObject("message").getString("text")
-                            + "\". Skipping this finding.");
+            if (!e.getMessage().startsWith("JSONObject[\"locations\"] not found")) {
+                System.err.println(
+                        "WARNING: "
+                                + e.getMessage()
+                                + " for rule: "
+                                + result.getString("ruleId")
+                                + " with message: \""
+                                + result.getJSONObject("message").getString("text")
+                                + "\". Skipping this finding.");
+            }
             return "NoResultURIFound";
         }
     }

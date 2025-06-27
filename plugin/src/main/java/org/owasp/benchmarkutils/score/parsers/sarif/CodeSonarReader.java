@@ -24,6 +24,7 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.owasp.benchmarkutils.score.CweNumber;
 
 public class CodeSonarReader extends SarifReader {
 
@@ -68,6 +69,31 @@ public class CodeSonarReader extends SarifReader {
             }
         }
 
+        // CodeSonar has some non-security rules that don't map to CWEs. So we manaully add those as
+        // DONTCARES
+        mappings.put("Avoid zero-length array allocations (C#)", CweNumber.DONTCARE);
+        mappings.put("Do not initialize unnecessarily (C#)", CweNumber.DONTCARE);
+        mappings.put("Do not raise reserved exception types (C#)", CweNumber.DONTCARE);
+        mappings.put("Do not use 'WaitAll' with a single task (C#)", CweNumber.DONTCARE);
+        mappings.put("Identifiers should not contain underscores (C#)", CweNumber.DONTCARE);
+        mappings.put("Mark members as static (C#)", CweNumber.DONTCARE);
+        mappings.put("Seal internal types (C#)", CweNumber.DONTCARE); // Improves performance
+        mappings.put(
+                "Specify IFormatProvider (C#)", CweNumber.DONTCARE); // Localization Issue (fonts)
+        mappings.put("Use ordinal string comparison (C#)", CweNumber.DONTCARE);
+        mappings.put("Use XmlReader for XPathDocument constructor (C#)", CweNumber.DONTCARE);
+
+        // CodeSonar has numerous security rules that map to ROSLYN.SECURITY rules. For example,
+        // they have a rule: "ROSLYN.SECURITY.CA5350 : Do Not Use Weak Cryptographic Algorithms
+        // (C#)" that is described at:
+        // https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca5350
+        // Unfortunately, they don't seem to be mapped to CWEs, so we have to map them manually.
+        mappings.put("Do Not Use Broken Cryptographic Algorithms (C#)", CweNumber.WEAK_CRYPTO_ALGO);
+        mappings.put("Do Not Use Weak Cryptographic Algorithms (C#)", CweNumber.WEAK_CRYPTO_ALGO);
+        mappings.put("Insecure DTD processing in XML (C#)", CweNumber.XXE);
+        mappings.put(
+                "Rethrow to preserve stack details (C#)",
+                392); // CWE-392: Missing Report of Error Condition
         return mappings;
     }
 }
