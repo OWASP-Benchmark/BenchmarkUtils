@@ -30,7 +30,7 @@ public class CodeSonarReader extends SarifReader {
 
     // Setting CweSourceType.CUSTOM causes the customRuleCweMappings() method to be invoked
     public CodeSonarReader() {
-        super("CodeSonar", false, CweSourceType.CUSTOM);
+        super("CodeSonar", true, CweSourceType.CUSTOM);
     }
 
     @Override
@@ -71,6 +71,7 @@ public class CodeSonarReader extends SarifReader {
 
         // CodeSonar has some non-security rules that don't map to CWEs. So we manaully add those as
         // DONTCARES
+        mappings.put("Avoid constant arrays as arguments (C#)", CweNumber.DONTCARE);
         mappings.put("Avoid zero-length array allocations (C#)", CweNumber.DONTCARE);
         mappings.put("Do not initialize unnecessarily (C#)", CweNumber.DONTCARE);
         mappings.put("Do not raise reserved exception types (C#)", CweNumber.DONTCARE);
@@ -80,6 +81,9 @@ public class CodeSonarReader extends SarifReader {
         mappings.put("Seal internal types (C#)", CweNumber.DONTCARE); // Improves performance
         mappings.put(
                 "Specify IFormatProvider (C#)", CweNumber.DONTCARE); // Localization Issue (fonts)
+        mappings.put(
+                "Use concrete types when possible for improved performance (C#)",
+                CweNumber.DONTCARE);
         mappings.put("Use ordinal string comparison (C#)", CweNumber.DONTCARE);
         mappings.put("Use XmlReader for XPathDocument constructor (C#)", CweNumber.DONTCARE);
 

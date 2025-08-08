@@ -24,7 +24,6 @@ import java.io.InputStreamReader;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -154,13 +153,10 @@ public class FortifyReader extends Reader {
     private static TestCaseResult parseFortifyVulnerability(Node vuln) {
         TestCaseResult tcr = new TestCaseResult();
 
+        // Get the vulnerability type and subtype, if specified
         Node ci = getNamedNode("ClassInfo", vuln.getChildNodes());
         Node type = getNamedNode("Type", ci.getChildNodes());
         String vulnType = type.getTextContent();
-
-        // We grab this as sometimes we need to dig into this to verify the details of an issue
-        Node ai = getNamedNode("AnalysisInfo", vuln.getChildNodes());
-        Node un = getNamedNode("Unified", ai.getChildNodes());
 
         Node subtype = getNamedNode("Subtype", ci.getChildNodes());
         String vulnSubType = "";
@@ -168,6 +164,10 @@ public class FortifyReader extends Reader {
             vulnSubType = subtype.getTextContent();
         }
         tcr.setEvidence(vulnType + "::" + vulnSubType);
+
+        // We grab this as sometimes we need to dig into this to verify the details of an issue
+        Node ai = getNamedNode("AnalysisInfo", vuln.getChildNodes());
+        Node un = getNamedNode("Unified", ai.getChildNodes());
 
         Node context = getNamedNode("Context", un.getChildNodes());
         Node function = getNamedNode("Function", context.getChildNodes());
@@ -186,9 +186,18 @@ public class FortifyReader extends Reader {
             if (isTestCaseFile(tc)) {
                 tcr.setActualResultTestID(tc);
                 return tcr;
-            }
+            } /* commented out - DEBUG only - else
+                         System.out.println(
+                                 "DEBUG: Fortify parser found vulnerability of type: "
+                                         + vulnType
+                                         + " with subType: "
+                                         + vulnSubType
+                                         + " but its enclosingClass value is: "
+                                         + tc
+                                         + " so its being discarded");
+              */
         } else {
-            /* if tc is null (from attribute enclosingClass), then this might be a NodeJS finding
+            /* if tc is null (from attribute enclosingClass), then this might be a NodeJS finding, or C/C++
                that looks like this:
                     <AnalysisInfo>
                       <Unified>
@@ -197,32 +206,52 @@ public class FortifyReader extends Reader {
                           <FunctionDeclarationSourceLocation path="testcode/TestSuiteTest00010.js" line="21" lineEnd="33" colStart="34" colEnd="0"/>
                         </Context>
             */
-            if (tc == null) {
-                // DRW TODO: Test with other test suite and fix use of deprecated API as
-                // appropriate.
-                Node functionDecl =
-                        getNamedNode("FunctionDeclarationSourceLocation", context.getChildNodes());
-                if (functionDecl != null) {
-                    String path = getAttributeValue("path", functionDecl);
-                    if (path != null) {
-                        int i = path.indexOf(BenchmarkScore.TESTCASENAME);
-                        if (i >= 0) {
-                            tc = path.substring(i);
-                            tc =
-                                    tc.substring(
-                                            BenchmarkScore.TESTCASENAME.length(),
-                                            tc.lastIndexOf('.'));
-                            // This strips off inner classes from the test case file name I believe
-                            int dollar = tc.indexOf('$');
-                            if (dollar != -1) {
-                                tc = tc.substring(0, dollar);
-                            }
-                            tcr.setTestID(Integer.parseInt(tc));
-                            return tcr;
+            Node functionDecl =
+                    getNamedNode("FunctionDeclarationSourceLocation", context.getChildNodes());
+            if (functionDecl != null) {
+                String path = getAttributeValue("path", functionDecl);
+                if (path != null) {
+                    if (isTestCaseFile(path)) {
+                        path = extractFilenameWithoutEnding(path);
+                        tcr.setActualResultTestID(path);
+                        return tcr;
+                    } /* Comment out debug code
+                      else
+                        System.out.println(
+                                "DEBUG: Fortify parser found vulnerability of type: "
+                                        + vulnType
+                                        + " with subType: "
+                                        + vulnSubType
+                                        + " but its FunctionDeclarationSourceLocation value is: "
+                                        + path
+                                        + " so its being discarded");
+                      */
+                    // DRW TODO: Remove this OLD / commented out code
+                    /* The following is the old code being replaced:
+                    int i = path.indexOf(BenchmarkScore.TESTCASENAME); // todo: Replace with StartsWith Match for Juliet style test cases.
+                    if (i >= 0) {
+                        tc = path.substring(i);
+                        tc =
+                                tc.substring(
+                                        BenchmarkScore.TESTCASENAME.length(),
+                                        tc.lastIndexOf('.'));
+                        // This strips off inner classes from the test case file name I believe
+                        int dollar = tc.indexOf('$');
+                        if (dollar != -1) {
+                            tc = tc.substring(0, dollar);
                         }
+                        tcr.setTestID(Integer.parseInt(tc));
+                        return tcr;
                     }
+                    old code commented out */
                 }
-            }
+            } else if (!"Password in Comment".equals(vulnSubType))
+                System.out.println(
+                        "WARNING: Fortify parser found vulnerability of type: "
+                                + vulnType
+                                + " with subType: "
+                                + vulnSubType
+                                + " but it has no FunctionDeclarationSourceLocation Node, so can't determine where the vuln was found.");
         }
         return null;
     }
@@ -233,6 +262,31 @@ public class FortifyReader extends Reader {
             case "Access Control":
             case "Access Specifier Manipulation":
                 return CweNumber.IMPROPER_ACCESS_CONTROL;
+
+            case "Buffer Overflow":
+                {
+                    switch (subtype) {
+                            // The following are all mapped to CWE-119 since Fortify is
+                            // specifically saying this is a buffer overflow
+                        case "":
+                        case "Format String": // NOT specifying CWE 134: Use of
+                            // Externally-Controlled Format String
+                        case "Off-by-One": // NOT specifying CWE 193: Off-by-one error
+                        case "Signed Comparison": // NOT specifying CWE-839: Numeric Range
+                            // Comparison w/out minimum check
+                            return 119; // Improper Restriction of Operations within Bounds of
+                            // Memory Buffer
+
+                        default:
+                            System.out.println(
+                                    "Fortify parser found vulnerability type: 'Buffer Overflow', with unmapped subtype: '"
+                                            + subtype
+                                            + "' in class: "
+                                            + classname);
+                            return 119; // Improper Restriction of Operations within Bounds of
+                            // Memory Buffer
+                    }
+                }
 
             case "Code Correctness":
                 {
@@ -256,9 +310,9 @@ public class FortifyReader extends Reader {
                         default:
                             if (classname != null)
                                 System.out.println(
-                                        "Fortify parser found vulnerability type: 'Code Correctness', with unmapped subtype: "
+                                        "Fortify parser found vulnerability type: 'Code Correctness', with unmapped subtype: '"
                                                 + subtype
-                                                + " in class: "
+                                                + "' in class: "
                                                 + classname);
                     }
                     return CweNumber.UNMAPPED;
@@ -282,9 +336,9 @@ public class FortifyReader extends Reader {
                         default:
                             if (classname != null)
                                 System.out.println(
-                                        "Fortify parser found vulnerability type: 'Cookie Security', with unmapped subtype: "
+                                        "Fortify parser found vulnerability type: 'Cookie Security', with unmapped subtype: '"
                                                 + subtype
-                                                + " in class: "
+                                                + "' in class: "
                                                 + classname);
                     }
                     return CweNumber.UNMAPPED;
@@ -300,6 +354,9 @@ public class FortifyReader extends Reader {
                     default:
                         return CweNumber.XSS;
                 }
+            case "Dangerous Function": // CWE-1177 Use of Prohibited Code is parent of both:
+                return 1177; // CWE-242 Use of Inherently Dangerous Function and CWE-676 Use of
+                // Potentially Dangerous Function
             case "Dead Code":
                 return 561; // Dead Code
             case "Denial of Service":
@@ -321,9 +378,9 @@ public class FortifyReader extends Reader {
                         default:
                             if (classname != null)
                                 System.out.println(
-                                        "Fortify parser found vulnerability type: 'Insecure Randomness', with unmapped subtype: "
+                                        "Fortify parser found vulnerability type: 'Insecure Randomness', with unmapped subtype: '"
                                                 + subtype
-                                                + " in class: "
+                                                + "' in class: "
                                                 + classname);
                     }
                     return CweNumber.WEAK_RANDOM;
@@ -355,9 +412,9 @@ public class FortifyReader extends Reader {
                         default:
                             if (classname != null)
                                 System.out.println(
-                                        "Fortify parser found vulnerability type: 'Insider Threat', with unmapped subtype: "
+                                        "Fortify parser found vulnerability type: 'Insider Threat', with unmapped subtype: '"
                                                 + subtype
-                                                + " in class: "
+                                                + "' in class: "
                                                 + classname);
                     }
                     return CweNumber.UNMAPPED;
@@ -383,9 +440,9 @@ public class FortifyReader extends Reader {
                         default:
                             if (classname != null)
                                 System.out.println(
-                                        "Fortify parser found vulnerability type: 'J2EE Bad Practices', with unmapped subtype: "
+                                        "Fortify parser found vulnerability type: 'J2EE Bad Practices', with unmapped subtype: '"
                                                 + subtype
-                                                + " in class: "
+                                                + "' in class: "
                                                 + classname);
                     }
                     return CweNumber.UNMAPPED;
@@ -463,9 +520,9 @@ public class FortifyReader extends Reader {
                         default:
                             if (classname != null)
                                 System.out.println(
-                                        "Fortify parser found vulnerability type: 'Password Management', with unmapped subtype: "
+                                        "Fortify parser found vulnerability type: 'Password Management', with unmapped subtype: '"
                                                 + subtype
-                                                + " in class: "
+                                                + "' in class: "
                                                 + classname);
                     }
                     return CweNumber.UNMAPPED;
@@ -493,9 +550,9 @@ public class FortifyReader extends Reader {
 
                         default:
                             System.out.println(
-                                    "Fortify parser found vulnerability type: 'Poor Error Handling', with unmapped subtype: "
+                                    "Fortify parser found vulnerability type: 'Poor Error Handling', with unmapped subtype: '"
                                             + subtype
-                                            + " in class: "
+                                            + "' in class: "
                                             + classname);
                     }
                     return 703; // Improper Check or Handling of Exceptional Conditions
@@ -516,9 +573,9 @@ public class FortifyReader extends Reader {
                             return CweNumber.DONTCARE;
                         default:
                             System.out.println(
-                                    "Fortify parser found vulnerability type: 'Poor Style', with unmapped subtype: "
+                                    "Fortify parser found vulnerability type: 'Poor Style', with unmapped subtype: '"
                                             + subtype
-                                            + " in class: "
+                                            + "' in class: "
                                             + classname);
                     }
                     return CweNumber.DONTCARE;
@@ -535,6 +592,8 @@ public class FortifyReader extends Reader {
                 return 15; // External Control of System or Config Setting
             case "SQL Injection":
                 return CweNumber.SQL_INJECTION;
+            case "String Termination Error":
+                return 170; // Improper Null Termination
             case "System Information Leak":
                 return 209; // Generation of Error Msg Containing Sensitive Info
             case "Trust Boundary Violation":
@@ -558,9 +617,9 @@ public class FortifyReader extends Reader {
                             return 325; // Missing Required Step
                         default:
                             System.out.println(
-                                    "Fortify parser found vulnerability type: 'Weak Cryptographic Hash', with unmapped subtype: "
+                                    "Fortify parser found vulnerability type: 'Weak Cryptographic Hash', with unmapped subtype: '"
                                             + subtype
-                                            + " in class: "
+                                            + "' in class: "
                                             + classname);
                     }
                     return CweNumber.WEAK_HASH_ALGO;
@@ -590,9 +649,9 @@ public class FortifyReader extends Reader {
                                     .DONTCARE; // Disable so it doesn't count against Fortify.
                         default:
                             System.out.println(
-                                    "Fortify parser found vulnerability type: 'Weak Encryption', with unmapped subtype: "
+                                    "Fortify parser found vulnerability type: 'Weak Encryption', with unmapped subtype: '"
                                             + subtype
-                                            + " in class: "
+                                            + "' in class: "
                                             + classname);
                     }
                     return CweNumber.WEAK_CRYPTO_ALGO;
@@ -623,9 +682,9 @@ public class FortifyReader extends Reader {
                 System.out.println(
                         "Fortify parser found unknown vulnerability type: "
                                 + vtype
-                                + ", with subtype: "
+                                + ", with subtype: '"
                                 + subtype
-                                + " in class: "
+                                + "' in class: "
                                 + classname);
         } // end switch
 
