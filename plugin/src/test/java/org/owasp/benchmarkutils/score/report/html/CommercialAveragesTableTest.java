@@ -51,17 +51,17 @@ class CommercialAveragesTableTest {
                                 ToolResultsBuilder.builder()
                                         .addCategoryResult(
                                                 new CategoryMetrics(
-                                                        "first category",
-                                                        0.5,
-                                                        0.06666666666666667,
-                                                        0.05,
+                                                        "Availability",
+                                                        50.0,
+                                                        6.666666666666667,
+                                                        5.0,
                                                         35))
                                         .addCategoryResult(
                                                 new CategoryMetrics(
-                                                        "second category",
-                                                        0.5185185185185185,
-                                                        0.9333333333333333,
-                                                        0.65,
+                                                        "Command Injection",
+                                                        51.85185185185185,
+                                                        93.33333333333333,
+                                                        65.0,
                                                         35))
                                         .build())
                         .build();
@@ -73,17 +73,17 @@ class CommercialAveragesTableTest {
                                 ToolResultsBuilder.builder()
                                         .addCategoryResult(
                                                 new CategoryMetrics(
-                                                        "first category",
-                                                        0.7321428571428571,
-                                                        1.0,
-                                                        0.530622009569378,
+                                                        "Availability",
+                                                        73.21428571428571,
+                                                        100.0,
+                                                        53.0622009569378,
                                                         455))
                                         .addCategoryResult(
                                                 new CategoryMetrics(
-                                                        "second category",
-                                                        0.9523809523809523,
-                                                        0.58130081300813008,
-                                                        0.204784688995215311,
+                                                        "Command Injection",
+                                                        95.23809523809523,
+                                                        58.130081300813008,
+                                                        20.4784688995215311,
                                                         455))
                                         .build())
                         .build();
@@ -93,28 +93,40 @@ class CommercialAveragesTableTest {
 
         Set<Tool> tools = asSet(firstTool, secondTool);
 
-        commercialAveragesTable.add(new ScatterVulns("", 0, "first category", tools, null));
-        commercialAveragesTable.add(new ScatterVulns("", 0, "second category", tools, null));
+        commercialAveragesTable.add(new ScatterVulns("", 0, "Availability", tools, null));
+        commercialAveragesTable.add(new ScatterVulns("", 0, "Command Injection", tools, null));
 
         assertTrue(commercialAveragesTable.hasEntries());
 
         String actual = commercialAveragesTable.render();
 
+        final String test1 =
+                "CWE</th><th>Vulnerability Category</th>"
+                        + "<th>Low Tool Type</th><th>Low Score</th><th>Ave Score</th><th>High Score</th>"
+                        + "<th>High Tool Type</th></tr>";
         assertTrue(
-                actual.startsWith(
-                        "<table class=\"table\"><tr><th>Vulnerability Category</th>"
-                                + "<th>Low Tool Type</th><th>Low Score</th><th>Ave Score</th><th>High Score</th>"
-                                + "<th>High Tool Type</th></tr>"));
+                actual.contains(test1),
+                "FAILURE: Expected to contain: '" + test1 + "' but actual is: '" + actual + "'");
+
+        final String test2 =
+                "<td>Availability</td><td>SAST</td><td>47</td><td>47</td><td>47</td><td>SAST</td></tr>";
         assertTrue(
-                actual.contains(
-                        "<tr><td>first category</td><td>SAST</td><td>47</td><td>47</td><td>47</td><td>SAST</td></tr>"));
+                actual.contains(test2),
+                "FAILURE: Expected to contain: '" + test2 + "' but actual is: '" + actual + "'");
+
+        final String test3 =
+                "<td>Command Injection</td><td>SAST</td><td>38</td><td>38</td><td>38</td><td>SAST</td></tr>";
         assertTrue(
-                actual.contains(
-                        "<tr><td>second category</td><td>SAST</td><td>38</td><td>38</td><td>38</td><td>SAST</td></tr>"));
+                actual.contains(test3),
+                "FAILURE: Expected to contain: '" + test3 + "' but actual is: '" + actual + "'");
+
+        final String test4 =
+                "<td>Average across all categories for 1 tools</td><td></td><td>42.5</td><td>42.5</td>"
+                        + "<td>42.5</td><td></td></tr>";
         assertTrue(
-                actual.contains(
-                        "<tr><td>Average across all categories for 1 tools</td><td></td><td>42.5</td><td>42.5</td>"
-                                + "<td>42.5</td><td></td></tr>"));
+                actual.contains(test4),
+                "FAILURE: Expected to contain: '" + test4 + "' but actual is: '" + actual + "'");
+
         assertTrue(actual.endsWith("</table>"));
     }
 
@@ -142,17 +154,17 @@ class CommercialAveragesTableTest {
                                 ToolResultsBuilder.builder()
                                         .addCategoryResult(
                                                 new CategoryMetrics(
-                                                        "first category",
-                                                        0.5,
-                                                        0.66666666666666667,
-                                                        0.05,
+                                                        "Availability",
+                                                        50.0,
+                                                        66.666666666666667,
+                                                        5.0,
                                                         35))
                                         .addCategoryResult(
                                                 new CategoryMetrics(
-                                                        "second category",
-                                                        0.5185185185185185,
-                                                        0.9333333333333333,
-                                                        0.35,
+                                                        "Command Injection",
+                                                        51.85185185185185,
+                                                        93.33333333333333,
+                                                        35.0,
                                                         35))
                                         .build())
                         .build();
@@ -162,8 +174,8 @@ class CommercialAveragesTableTest {
 
         Set<Tool> tools = asSet(tool);
 
-        commercialAveragesTable.add(new ScatterVulns("", 0, "first category", tools, null));
-        commercialAveragesTable.add(new ScatterVulns("", 0, "second category", tools, null));
+        commercialAveragesTable.add(new ScatterVulns("", 0, "Availability", tools, null));
+        commercialAveragesTable.add(new ScatterVulns("", 0, "Command Injection", tools, null));
 
         assertTrue(commercialAveragesTable.hasEntries());
 
@@ -171,15 +183,15 @@ class CommercialAveragesTableTest {
 
         assertTrue(
                 actual.contains(
-                        "<tr><td>first category</td><td>SAST</td><td class=\"success\">62</td><td>62</td>"
+                        "<td>Availability</td><td>SAST</td><td class=\"success\">62</td><td>62</td>"
                                 + "<td class=\"success\">62</td><td>SAST</td></tr>"));
         assertTrue(
                 actual.contains(
-                        "<tr><td>second category</td><td>SAST</td><td class=\"success\">58</td><td>58</td>"
+                        "<td>Command Injection</td><td>SAST</td><td class=\"success\">58</td><td>58</td>"
                                 + "<td class=\"success\">58</td><td>SAST</td></tr>"));
         assertTrue(
                 actual.contains(
-                        "<tr><td>Average across all categories for 1 tools</td><td></td><td>60.0</td><td>60.0</td>"
+                        "<td>Average across all categories for 1 tools</td><td></td><td>60.0</td><td>60.0</td>"
                                 + "<td>60.0</td><td></td></tr>"));
     }
 
@@ -198,17 +210,17 @@ class CommercialAveragesTableTest {
                                 ToolResultsBuilder.builder()
                                         .addCategoryResult(
                                                 new CategoryMetrics(
-                                                        "first category",
-                                                        0.5,
-                                                        0.06666666666666667,
-                                                        0.65,
+                                                        "Availability",
+                                                        5.0,
+                                                        6.66666666666667,
+                                                        65.0,
                                                         35))
                                         .addCategoryResult(
                                                 new CategoryMetrics(
-                                                        "second category",
-                                                        0.5185185185185185,
-                                                        0.3333333333333333,
-                                                        0.95,
+                                                        "Command Injection",
+                                                        51.85185185185185,
+                                                        33.33333333333333,
+                                                        95.0,
                                                         35))
                                         .build())
                         .build();
@@ -218,8 +230,8 @@ class CommercialAveragesTableTest {
 
         Set<Tool> tools = asSet(tool);
 
-        commercialAveragesTable.add(new ScatterVulns("", 0, "first category", tools, null));
-        commercialAveragesTable.add(new ScatterVulns("", 0, "second category", tools, null));
+        commercialAveragesTable.add(new ScatterVulns("", 0, "Availability", tools, null));
+        commercialAveragesTable.add(new ScatterVulns("", 0, "Command Injection", tools, null));
 
         assertTrue(commercialAveragesTable.hasEntries());
 
@@ -227,15 +239,15 @@ class CommercialAveragesTableTest {
 
         assertTrue(
                 actual.contains(
-                        "<tr><td>first category</td><td>SAST</td><td class=\"danger\">-58</td><td>-58</td>"
-                                + "<td class=\"danger\">0</td><td>null</td></tr>"));
+                        "<td>Availability</td><td>SAST</td><td class=\"danger\">-58</td><td>-58</td>"
+                                + "<td class=\"danger\">0</td>"));
         assertTrue(
                 actual.contains(
-                        "<tr><td>second category</td><td>SAST</td><td class=\"danger\">-62</td><td>-62</td>"
-                                + "<td class=\"danger\">0</td><td>null</td></tr>"));
+                        "<td>Command Injection</td><td>SAST</td><td class=\"danger\">-62</td><td>-62</td>"
+                                + "<td class=\"danger\">0</td>"));
         assertTrue(
                 actual.contains(
-                        "<tr><td>Average across all categories for 1 tools</td><td></td><td>-60.0</td><td>-60.0</td>"
+                        "<td>Average across all categories for 1 tools</td><td></td><td>-60.0</td><td>-60.0</td>"
                                 + "<td>0.0</td><td></td></tr>"));
     }
 
@@ -246,6 +258,6 @@ class CommercialAveragesTableTest {
 
         assertEquals(
                 "Benchmark_v1.2_Scorecard_for_Commercial_Tools.html",
-                commercialAveragesTable.filename());
+                commercialAveragesTable.filename(false));
     }
 }

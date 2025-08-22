@@ -97,7 +97,7 @@ public class MenuUpdater {
                 .forEach(tool -> sb.append(toolMenuEntry(tool, false)));
 
         if (commercialAveragesTable.hasEntries()) {
-            sb.append(commercialAveragesMenuEntry());
+            sb.append(commercialAveragesMenuEntry(false));
         }
 
         return sb.toString();
@@ -111,9 +111,8 @@ public class MenuUpdater {
                     .filter(tool -> !(config.showAveOnlyMode && tool.isCommercial()))
                     .forEach(tool -> sb.append(toolMenuEntry(tool, true)));
 
-            // DRW TODO2: Need to test this for CatagoryGroups
             if (commercialAveragesTable.hasEntries()) {
-                sb.append(commercialAveragesMenuEntry());
+                sb.append(commercialAveragesMenuEntry(true));
             }
         }
         return sb.toString();
@@ -127,10 +126,10 @@ public class MenuUpdater {
                 System.lineSeparator());
     }
 
-    private String commercialAveragesMenuEntry() {
+    private String commercialAveragesMenuEntry(boolean forCategoryGroups) {
         return format(
                 "<li><a href=\"{0}\">Commercial Average</a></li>{1}",
-                commercialAveragesTable.filename(), System.lineSeparator());
+                commercialAveragesTable.filename(forCategoryGroups), System.lineSeparator());
     }
 
     private String vulnerabilityMenu() {

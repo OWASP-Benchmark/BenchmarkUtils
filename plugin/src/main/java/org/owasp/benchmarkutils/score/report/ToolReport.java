@@ -122,7 +122,7 @@ public class ToolReport implements ToolReportProvider {
         return html;
     }
 
-    /** Generate a Detailed results table for whatever tool's results are passed in. */
+    // Generate a Detailed results table for whatever tool's results are passed in.
     private static String generateDetailedResultsTableForTool(
             Tool tool,
             Map<String, CategoryMetrics> overallAveToolMetrics,
@@ -183,7 +183,8 @@ public class ToolReport implements ToolReportProvider {
             else if (categoryMetrics.truePositiveRate > .7
                     && categoryMetrics.falsePositiveRate < .3) style = "class=\"success\"";
 
-            // We use a lineBuff so we can sort the lines in different ways before output the table
+            // We use a lineBuff so we can sort the lines in different ways before outputting the
+            // table
             StringBuffer lineBuff = new StringBuffer();
             lineBuff.append("<tr " + style + ">");
             if (CategoryGroups.isCategoryGroupsEnabled()) {
@@ -224,7 +225,7 @@ public class ToolReport implements ToolReportProvider {
                 // default value hard spaces equal to triangle width
                 String precisionBonus = "&nbsp;&nbsp;&nbsp;&nbsp;";
                 // r.precision has range 0-1, but currentCategoryMetrics.precision is 1 to 100.
-                // FIXME: Fix precision calculations so they are the same units
+                // FIXME: Fix r.precision calculations so they are the same units
                 double precisionDiff =
                         100 * categoryMetrics.precision - currentCategoryMetrics.precision;
                 if (precisionDiff >= 5)
@@ -257,6 +258,7 @@ public class ToolReport implements ToolReportProvider {
                 // default value hard spaces equal to triangle width
                 recallBonus = "&nbsp;&nbsp;&nbsp;&nbsp;";
                 // FIXME: Fix truePositiveRate calculations so they are the same units
+                // Note: This might be done already.
                 double recallDiff =
                         100 * categoryMetrics.truePositiveRate
                                 - currentCategoryMetrics.truePositiveRate;

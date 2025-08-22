@@ -445,9 +445,9 @@ public class ScatterVulns extends ScatterPlot {
 
                 this.commercialToolCount++;
                 this.overallToolCount++;
-                double score = categoryMetrics.score * 100;
-                double tpr = categoryMetrics.truePositiveRate * 100;
-                double fpr = categoryMetrics.falsePositiveRate * 100;
+                double score = categoryMetrics.score;
+                double tpr = categoryMetrics.truePositiveRate;
+                double fpr = categoryMetrics.falsePositiveRate;
                 // don't show the commercial tool results if in 'show ave only mode'
                 if (!BenchmarkScore.config.showAveOnlyMode) {
                     // Special hack to make it line up better if the letter is an 'I' or 'i'
@@ -463,8 +463,8 @@ public class ScatterVulns extends ScatterPlot {
                             i,
                             label,
                             tool.getToolNameAndVersion(),
-                            toolMetrics.getTruePositiveRate(),
-                            toolMetrics.getFalsePositiveRate());
+                            tpr,
+                            fpr);
 
                     i++; // increment the location of the label
                     // Weak hack if more than 26 tools scored. This will only get us to 52
@@ -472,7 +472,7 @@ public class ScatterVulns extends ScatterPlot {
                     else ch++;
                 }
                 commercialTotalScore += score;
-                commercialTotalPrecision += categoryMetrics.precision * 100;
+                commercialTotalPrecision += categoryMetrics.precision;
                 commercialTotalTPR += tpr;
                 commercialTotalFPR += fpr;
 
@@ -536,8 +536,8 @@ public class ScatterVulns extends ScatterPlot {
                     i,
                     ch + ": ",
                     "Commercial Average",
-                    commercialAveTPR / 100,
-                    commercialAveFPR / 100);
+                    commercialAveTPR,
+                    commercialAveFPR);
 
             Point2D averagePoint =
                     new Point2D.Double(aveFalsePosRates * 100, aveTruePosRates * 100);

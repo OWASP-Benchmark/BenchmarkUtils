@@ -22,6 +22,7 @@ import static org.owasp.benchmarkutils.score.report.Formats.singleDecimalPlaceNu
 
 import java.util.ArrayList;
 import java.util.List;
+import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
 
@@ -70,7 +71,10 @@ public class CommercialAveragesTable {
     private void addHeaderTo(HtmlStringBuilder htmlBuilder) {
         htmlBuilder.beginTr();
         if (this.useCategoryGroups) htmlBuilder.th("Category Group");
-        else htmlBuilder.th("Vulnerability Category");
+        else {
+            htmlBuilder.th(50, "CWE");
+            htmlBuilder.th("Vulnerability Category");
+        }
         htmlBuilder.th("Low Tool Type");
         htmlBuilder.th("Low Score");
         htmlBuilder.th("Ave Score");
@@ -81,6 +85,7 @@ public class CommercialAveragesTable {
 
     private void appendRowTo(HtmlStringBuilder htmlBuilder, ScatterVulns scatter) {
         htmlBuilder.beginTr();
+        if (!this.useCategoryGroups) htmlBuilder.td(Categories.getCWEByName(scatter.CATEGORY));
         htmlBuilder.td(scatter.CATEGORY);
         htmlBuilder.td(scatter.getCommercialLowToolType() + "");
 
@@ -88,7 +93,13 @@ public class CommercialAveragesTable {
         htmlBuilder.td(scatter.getCommercialAve());
 
         htmlBuilder.td(scatter.getCommercialHigh(), cssClassFor(scatter.getCommercialHigh()));
-        htmlBuilder.td(scatter.getCommercialHighToolType() + "");
+        // If no tools score above 0 in a category, the High type is null, so set it equal to the
+        // low type since they are all zero
+        if (scatter.getCommercialHighToolType() != null) {
+            htmlBuilder.td(scatter.getCommercialHighToolType() + "");
+        } else {
+            htmlBuilder.td(scatter.getCommercialLowToolType() + "");
+        }
         htmlBuilder.endTr();
     }
 
@@ -106,6 +117,7 @@ public class CommercialAveragesTable {
 
     private void addFooterTo(HtmlStringBuilder htmlBuilder) {
         htmlBuilder.beginTr();
+        if (!this.useCategoryGroups) htmlBuilder.td("");
         htmlBuilder.td("Average across all categories for " + commercialToolTotal() + " tools");
         htmlBuilder.td("");
         htmlBuilder.td(
@@ -139,10 +151,10 @@ public class CommercialAveragesTable {
         return !entries.isEmpty();
     }
 
-    public String filename() {
+    public String filename(boolean forCategoryGroups) {
         return format(
                 "{0}_v{1}_Scorecard_for_Commercial_Tools"
-                        + (this.useCategoryGroups ? "_CategoryGroups" : "")
+                        + (forCategoryGroups ? "_CategoryGroups" : "")
                         + ".html",
                 testSuiteName.simpleName(),
                 testSuiteVersion);

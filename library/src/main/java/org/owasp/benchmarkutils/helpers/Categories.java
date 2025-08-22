@@ -313,6 +313,27 @@ public class Categories {
         this.allCategories = allCategories;
     }
 
+    /**
+     * Look up the CWE associated with the supplied vulnerability category long name.
+     *
+     * @param name The category name to look up the CWE for. E.g., Command Injection.
+     * @return the associated CWE.
+     */
+    public static int getCWEByName(String name) {
+        String lowerName = name.toLowerCase(); // The Map uses lowercase names
+        if (_instance == null) {
+            throw new NullPointerException("ERROR: Categories singleton not initialized");
+        }
+        if (_instance.nameToCategoryMap.get(lowerName) == null) {
+            System.err.println(
+                    "ERROR: No matching Category found for name: '"
+                            + name
+                            + "' provided to method: getCWEByName()");
+            return -1;
+        }
+        return _instance.nameToCategoryMap.get(lowerName).getCWE();
+    }
+
     // NOTE: All these methods return the actual internal objects so COULD be modified by the caller
     // causing unexpected side effects.
 

@@ -271,12 +271,10 @@ public class TestCaseResult {
      *
      * @param cwe The CWE # reported by this tool.
      * @param filename The filename that might be a test case.
+     *     <p>public void setCWEAndTestCaseID(int cwe, String filename) { if
+     *     (ExpectedResultsProvider.getExpectedResults().isTestCaseFile(filename)) { // DRW FIXME:TODO -
+     *     Not implemented yet. Maybe just delete? } }
      */
-    public void setCWEAndTestCaseID(int cwe, String filename) {
-        if (ExpectedResultsProvider.getExpectedResults().isTestCaseFile(filename)) {
-            // DRW TODO
-        }
-    }
 
     /**
      * The CWE category name, e.g., pathtraver, hash, cmdi, etc.

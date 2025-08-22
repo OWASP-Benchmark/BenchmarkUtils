@@ -1099,7 +1099,7 @@ public class BenchmarkScore extends AbstractMojo {
                         Paths.get(
                                 scoreCardDir.getAbsolutePath()
                                         + File.separator
-                                        + commercialAveragesTable.filename());
+                                        + commercialAveragesTable.filename(useCategoryGroups));
                 // Resources in a jar file have to be loaded as streams, not directly as Files.
                 InputStream vulnTemplateStream =
                         CL.getResourceAsStream(scoreCardDir + "/commercialAveTemplate.html");

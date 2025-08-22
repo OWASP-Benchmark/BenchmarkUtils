@@ -59,6 +59,19 @@ public class HtmlStringBuilder {
         return this;
     }
 
+    /**
+     * Define header with fixed width in pixels
+     *
+     * @param width
+     * @param content
+     * @return The specified HTML column header
+     */
+    public HtmlStringBuilder th(int width, String content) {
+        sb.append("<th style=\"width: " + width + "px;\">").append(content).append("</th>");
+
+        return this;
+    }
+
     public HtmlStringBuilder th(long content) {
         sb.append("<th>").append(content).append("</th>");
 
