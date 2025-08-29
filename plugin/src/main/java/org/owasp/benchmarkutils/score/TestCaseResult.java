@@ -261,22 +261,6 @@ public class TestCaseResult {
     }
 
     /**
-     * This method is used to abstract away how filenames are matched against a test case, that way
-     * it can be enhanced to support different test suite formats, and the logic on how to do this
-     * isn't implemented in every individual parser. This method expects that
-     * ExpectedResultsProvider.getExpectedResults().isTestCaseFile(filename) was called first to
-     * verify this file is a test case in the test suite being scored. It sets the CWE number and
-     * the test case name in this TestCaseResult if successful. It halts with an error if the
-     * supplied filename is not a valid test case.
-     *
-     * @param cwe The CWE # reported by this tool.
-     * @param filename The filename that might be a test case.
-     *     <p>public void setCWEAndTestCaseID(int cwe, String filename) { if
-     *     (ExpectedResultsProvider.getExpectedResults().isTestCaseFile(filename)) { // DRW FIXME:TODO -
-     *     Not implemented yet. Maybe just delete? } }
-     */
-
-    /**
      * The CWE category name, e.g., pathtraver, hash, cmdi, etc.
      *
      * @return The descriptive name of this CWE, per categories.xml
@@ -349,9 +333,5 @@ public class TestCaseResult {
                 + getCWE()
                 + ", toolPassed: "
                 + isPassed();
-        /*                + ", evidence: "
-                        + getEvidence()
-                        + ", confidence: "
-                        + getConfidence();
-        */ }
+    }
 }

@@ -21,11 +21,14 @@ import static java.lang.Boolean.parseBoolean;
 import static java.lang.Integer.parseInt;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.owasp.benchmarkutils.helpers.Categories;
+import org.owasp.benchmarkutils.helpers.CategoryGroups;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -49,6 +52,11 @@ public class ExpectedResultsProvider {
     private static boolean standardBenchmarkStyleScoring;
     private static TestSuiteResults expectedResults;
 
+    // If Category Groups are enabled, this map keeps counts of the # of TP and FP test cases per
+    // CWE
+    private static final Map<String, CountsPerCWE> testcaseCountsPerCWE =
+            new HashMap<String, CountsPerCWE>();
+
     public static TestSuiteResults parse(ResultFile resultFile) throws IOException {
         TestSuiteResults tr = new TestSuiteResults("Expected", true, null);
 
@@ -57,9 +65,6 @@ public class ExpectedResultsProvider {
             List<CSVRecord> allExpectedResults = parser.getRecords();
 
             CSVRecord firstRecord = allExpectedResults.get(0);
-            // setExpectedResultsMetadata() has side effect of setting
-            // BenchmarkScore.TESTSUITENAME, BenchmarkScore.TESTCASENAME, and
-            // ExpectedResultsProvider.standardBenchmarkStyleScoring
             setExpectedResultsMetadata(parser, firstRecord, tr);
 
             // Parse all the expected results
@@ -68,11 +73,11 @@ public class ExpectedResultsProvider {
 
                 String testCaseFileName = record.get(TEST_NAME);
                 tcr.setTestCaseName(testCaseFileName);
-                //                tcr.setCategory(record.get(CATEGORY));
-                tcr.setTruePositive(parseBoolean(record.get(REAL_VULNERABILITY)));
-                int cwe = parseInt(record.get(CWE));
+                boolean truePositive = parseBoolean(record.get(REAL_VULNERABILITY));
+                tcr.setTruePositive(truePositive);
+                String cweNumber = record.get(CWE);
+                int cwe = parseInt(cweNumber);
                 tcr.setCWE(cwe);
-                //                tcr.setNumber(testNumber(record.get(TEST_NAME), testCaseName));
 
                 if (TestCaseResult.UNMAPPED_CATEGORY.equals(tcr.getCategory())) {
                     System.out.println(
@@ -102,6 +107,20 @@ public class ExpectedResultsProvider {
                 }
 
                 tr.put(tcr);
+
+                // Add this test case to the testcaseCountsPerCWE Map, if CategoryGroups enabled
+                if (CategoryGroups.isCategoryGroupsEnabled()) {
+                    CountsPerCWE cweCounts = testcaseCountsPerCWE.get(cweNumber);
+                    if (cweCounts == null) {
+                        cweCounts = new CountsPerCWE();
+                        if (truePositive) cweCounts.truePositiveCount = 1;
+                        else cweCounts.falsePositiveCount = 1;
+                        testcaseCountsPerCWE.put(cweNumber, cweCounts);
+                    } else {
+                        if (truePositive) cweCounts.truePositiveCount++;
+                        else cweCounts.falsePositiveCount++;
+                    }
+                }
             }
         }
 
@@ -181,5 +200,17 @@ public class ExpectedResultsProvider {
 
     private static boolean isExtendedResultsFile(CSVParser parser) {
         return parser.getHeaderNames().contains(SOURCE);
+    }
+
+    /**
+     * Gets the number of True Positive and/or False Positive test cases in this test suite for the
+     * specified CWE number.
+     *
+     * @param cweNumber The CWE number to look for
+     * @return The Counts for that CWE, or null if there are no test cases for this CWE in this test
+     *     suite
+     */
+    public static CountsPerCWE getTestcaseCountsForCWE(int cwe) {
+        return testcaseCountsPerCWE.get(Integer.toString(cwe));
     }
 }

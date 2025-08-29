@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.commons.io.FileUtils;
@@ -45,6 +46,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.owasp.benchmarkutils.helpers.Categories;
 import org.owasp.benchmarkutils.helpers.Category;
+import org.owasp.benchmarkutils.helpers.CategoryGroup;
 import org.owasp.benchmarkutils.helpers.CategoryGroups;
 import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.domain.TestSuiteName;
@@ -53,10 +55,12 @@ import org.owasp.benchmarkutils.score.report.ScatterHome;
 import org.owasp.benchmarkutils.score.report.ScatterInterpretation;
 import org.owasp.benchmarkutils.score.report.ScatterVulns;
 import org.owasp.benchmarkutils.score.report.html.CommercialAveragesTable;
+import org.owasp.benchmarkutils.score.report.html.HtmlStringBuilder;
 import org.owasp.benchmarkutils.score.report.html.MenuUpdater;
 import org.owasp.benchmarkutils.score.report.html.OverallStatsTable;
 import org.owasp.benchmarkutils.score.report.html.ToolScorecard;
 import org.owasp.benchmarkutils.score.report.html.VulnerabilityStatsTable;
+import org.owasp.benchmarkutils.score.service.CountsPerCWE;
 import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
 import org.owasp.benchmarkutils.score.service.ResultsFileCreator;
 
@@ -505,8 +509,6 @@ public class BenchmarkScore extends AbstractMojo {
                         TESTSUITENAME,
                         TESTSUITEVERSION,
                         commercialAveragesTable,
-                        // commercialCategoryGroupAveragesTable, - DRW TODO - Needed? Have to turn
-                        // on commercial averages to test.
                         tools,
                         vulnSet,
                         catGroupsSet,
@@ -1080,6 +1082,18 @@ public class BenchmarkScore extends AbstractMojo {
                                 config.report.html.precisionKeyEntry
                                         + config.report.html.fsCoreEntry);
 
+                // Add optional details of test cases per CWE included in a Category Group
+                html =
+                        html.replace(
+                                "${CategoryGroupDetailsTitle}",
+                                (useCategoryGroups
+                                        ? "<h2>Test Case Counts for CWEs Included in this Group</h2>"
+                                        : ""));
+                html =
+                        html.replace(
+                                "${CategoryGroupDetailsTable}",
+                                generateCategoryGroupDetailsTable(cat, useCategoryGroups));
+
                 Files.write(htmlFile.toPath(), html.getBytes());
 
                 // Only build commercial stats scorecard if there are 2+ commercial tools
@@ -1123,5 +1137,68 @@ public class BenchmarkScore extends AbstractMojo {
                 e.printStackTrace();
             }
         } // end if commercialAveragesTable.hasEntries()
+    }
+
+    private static String generateCategoryGroupDetailsTable(
+            String categoryGroup, boolean useCategoryGroups) {
+        if (!useCategoryGroups) return "";
+        HtmlStringBuilder htmlBuilder = new HtmlStringBuilder();
+
+        htmlBuilder.beginTable("table");
+
+        htmlBuilder.beginTr();
+        htmlBuilder.th("CWE");
+        htmlBuilder.th("Vulnerability Category");
+        htmlBuilder.th("TPs");
+        htmlBuilder.th("FPs");
+        htmlBuilder.th("Total");
+        htmlBuilder.endTr();
+
+        CategoryGroup currentGroup = CategoryGroups.getCategoryGroupByName(categoryGroup);
+        Set<Integer> cweList = currentGroup.getCWEs();
+
+        // Create a sorted list by Vuln Category name (e.g., Hard-coded Password) where there are
+        // testcases in a CWE in this CategoryGroup
+        SortedMap<String, Integer> sortedCWEList = new TreeMap<>();
+        for (int cwe : cweList) {
+            CountsPerCWE cweCounts = ExpectedResultsProvider.getTestcaseCountsForCWE(cwe);
+            if (cweCounts != null) {
+                Category cat = Categories.getCategoryByCWE(cwe);
+                sortedCWEList.put(cat.getName(), Integer.valueOf(cwe));
+            }
+        }
+
+        // Loop through sortedCWEList and add a row for each CWE with these details to the table
+        int totalTpCount = 0, totalFpCount = 0, totalCount = 0;
+        for (String vulnType : sortedCWEList.keySet()) {
+            Integer CWE = sortedCWEList.get(vulnType);
+            CountsPerCWE cweCounts = ExpectedResultsProvider.getTestcaseCountsForCWE(CWE);
+            htmlBuilder.beginTr();
+            htmlBuilder.td(CWE);
+            htmlBuilder.td(vulnType);
+            int tpCountForCWE = cweCounts.getTPCount();
+            totalTpCount += tpCountForCWE;
+            htmlBuilder.td(tpCountForCWE);
+            int fpCountForCWE = cweCounts.getFPCount();
+            totalFpCount += fpCountForCWE;
+            htmlBuilder.td(fpCountForCWE);
+            int countTotalForCWE = tpCountForCWE + fpCountForCWE;
+            totalCount += countTotalForCWE;
+            htmlBuilder.td(countTotalForCWE);
+            htmlBuilder.endTr();
+        }
+
+        // And final total row
+        htmlBuilder.beginTr();
+        htmlBuilder.td("<b>Grand Total</b>");
+        htmlBuilder.td("");
+        htmlBuilder.td("<b>" + totalTpCount + "</b>");
+        htmlBuilder.td("<b>" + totalFpCount + "</b>");
+        htmlBuilder.td("<b>" + totalCount + "</b>");
+        htmlBuilder.endTr();
+
+        htmlBuilder.endTable();
+
+        return htmlBuilder.toString();
     }
 }

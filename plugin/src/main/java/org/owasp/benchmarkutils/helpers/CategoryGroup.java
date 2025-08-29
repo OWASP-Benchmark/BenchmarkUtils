@@ -19,6 +19,7 @@ package org.owasp.benchmarkutils.helpers;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /*
  * This class contains a single vulnerability group. Each group has a set of associated CWEs, so the entire group can be scored in the same manner that an individual vulnerability category can be scored.
@@ -82,6 +83,15 @@ public class CategoryGroup implements Comparable<CategoryGroup> {
      */
     public CWE getCWE(int cweNum) {
         return this.cweToCategoryGroupMap.get(cweNum);
+    }
+
+    /**
+     * Gets the list of all CWEs in this Category Group.
+     *
+     * @return The list of all CWEs in this Category Group.
+     */
+    public Set<Integer> getCWEs() {
+        return this.cweToCategoryGroupMap.keySet();
     }
 
     public String toString() {
