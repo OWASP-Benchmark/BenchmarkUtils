@@ -32,6 +32,6 @@ public class CountsPerCWE {
     }
 
     public int getFPCount() {
-        return truePositiveCount;
+        return falsePositiveCount;
     }
 }

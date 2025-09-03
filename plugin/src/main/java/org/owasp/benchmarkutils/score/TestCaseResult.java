@@ -150,7 +150,7 @@ public class TestCaseResult {
         if (ExpectedResultsProvider.isBenchmarkStyleScoring()) {
             // Sets the test ID to the test case # or -1 if not a match
             // We format the int with leading zeros so it will sort the results array properly when
-            // its converted to a String
+            // it's converted to a String
             this.testID =
                     String.format(
                             TestCaseResult.TEST_ID_PAD_INT_wZEROS,
