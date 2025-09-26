@@ -29,6 +29,7 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -187,25 +188,33 @@ public class FortifyReader extends Reader {
                 tcr.setActualResultTestID(tc);
                 return tcr;
             } /* commented out - DEBUG only - else
-                         System.out.println(
-                                 "DEBUG: Fortify parser found vulnerability of type: "
-                                         + vulnType
-                                         + " with subType: "
-                                         + vulnSubType
-                                         + " but its enclosingClass value is: "
-                                         + tc
-                                         + " so its being discarded");
+              System.out.println(
+                      "DEBUG: Fortify parser found vulnerability of type: '"
+                              + vulnType
+                              + "' with subType: '"
+                              + vulnSubType
+                              + "' but its enclosingClass value is: '"
+                              + tc
+                              + "' so its being discarded");
               */
-        } else {
+        } else { // if (tc != null) {
             /* if tc is null (from attribute enclosingClass), then this might be a NodeJS finding, or C/C++
-               that looks like this:
-                    <AnalysisInfo>
-                      <Unified>
-                        <Context>
-                          <Function name="processRequest"/>
-                          <FunctionDeclarationSourceLocation path="testcode/TestSuiteTest00010.js" line="21" lineEnd="33" colStart="34" colEnd="0"/>
-                        </Context>
-            */
+                     that looks like this:
+                          <AnalysisInfo>
+                            <Unified>
+                              <Context>
+                                <Function name="processRequest"/>
+                                <FunctionDeclarationSourceLocation path="testcode/TestSuiteTest00010.js" line="21" lineEnd="33" colStart="34" colEnd="0"/>
+                              </Context>
+                      or a CSharp finding that looks like this:
+                        <AnalysisInfo>
+                            <Unified>
+                              <Context>
+              <ClassIdent name="CWE582_Array_Public_Readonly_Static__basic_02" namespace="testcases.CWE582_Array_Public_Readonly_Static"/>
+              <FunctionDeclarationSourceLocation path="testcases/CWE582_Array_Public_Readonly_Static/CWE582_Array_Public_Readonly_Static__basic_02.cs" line="21" lineEnd="21" colStart="0" colEnd="0"/>
+            </Context>
+
+                  */
             Node functionDecl =
                     getNamedNode("FunctionDeclarationSourceLocation", context.getChildNodes());
             if (functionDecl != null) {
@@ -218,40 +227,87 @@ public class FortifyReader extends Reader {
                     } /* Comment out debug code
                       else
                         System.out.println(
-                                "DEBUG: Fortify parser found vulnerability of type: "
+                                "DEBUG: Fortify parser found vulnerability of type: '"
                                         + vulnType
-                                        + " with subType: "
+                                        + "' with subType: '"
                                         + vulnSubType
-                                        + " but its FunctionDeclarationSourceLocation value is: "
+                                        + "' but its FunctionDeclarationSourceLocation value is: '"
                                         + path
-                                        + " so its being discarded");
+                                        + "' so its being discarded");
                       */
-                    // DRW TODO: Remove this OLD / commented out code
-                    /* The following is the old code being replaced:
-                    int i = path.indexOf(BenchmarkScore.TESTCASENAME); // todo: Replace with StartsWith Match for Juliet style test cases.
-                    if (i >= 0) {
-                        tc = path.substring(i);
-                        tc =
-                                tc.substring(
-                                        BenchmarkScore.TESTCASENAME.length(),
-                                        tc.lastIndexOf('.'));
-                        // This strips off inner classes from the test case file name I believe
-                        int dollar = tc.indexOf('$');
-                        if (dollar != -1) {
-                            tc = tc.substring(0, dollar);
-                        }
-                        tcr.setTestID(Integer.parseInt(tc));
-                        return tcr;
-                    }
-                    old code commented out */
+                } else {
+                    System.out.println(
+                            "WARNING: Found <FunctionDeclarationSourceLocation> node under <Context> but found no path element for following <Context>:");
+                    printElements(context, 0);
+                    System.out.println("WARNING: and <FunctionDeclarationSourceLocation>:");
+                    printElements(functionDecl, 0);
                 }
-            } else if (!"Password in Comment".equals(vulnSubType))
-                System.out.println(
-                        "WARNING: Fortify parser found vulnerability of type: "
-                                + vulnType
-                                + " with subType: "
-                                + vulnSubType
-                                + " but it has no FunctionDeclarationSourceLocation Node, so can't determine where the vuln was found.");
+            } else { // if (functionDecl != null) {
+                /* It might also be this for CSharp:
+                      <AnalysisInfo>
+                        <Unified>
+                          <Context/>
+                          <Trace>
+                            <Primary>
+                              <Entry>
+                                <Node isDefault="true">
+                                  <SourceLocation path="testcases/CWE535_Info_Exposure_Shell_Error/CWE535_Info_Exposure_Shell_Error__Database_02.cs" line="65" lineEnd="65" colStart="0" colEnd="0" snippet="4FE327936CEAAE5D7932FC512A0274D6#testcases/CWE535_Info_Exposure_Shell_Error/CWE535_Info_Exposure_Shell_Error__Database_02.cs:65:65"/>
+                                </Node> ...
+                */
+                // Note: In this example the Context is empty, so have to get the Trace node
+                // under <Unified> instead
+                Node trace = getNamedNode("Trace", un.getChildNodes());
+                if (trace != null) {
+                    Node primary = getNamedNode("Primary", trace.getChildNodes());
+                    if (primary != null) {
+                        Node entry = getNamedNode("Entry", primary.getChildNodes());
+                        if (entry != null) {
+                            Node node = getNamedNode("Node", entry.getChildNodes());
+                            if (node != null) {
+                                Node sourceDecl =
+                                        getNamedNode("SourceLocation", node.getChildNodes());
+                                if (sourceDecl != null) {
+                                    String path = getAttributeValue("path", sourceDecl);
+                                    if (path != null) {
+                                        if (isTestCaseFile(path)) {
+                                            path = extractFilenameWithoutEnding(path);
+                                            tcr.setActualResultTestID(path);
+                                            return tcr;
+                                        } /* Comment out debug code
+                                          else
+                                            System.out.println(
+                                                    "DEBUG: Fortify parser found vulnerability of type: '"
+                                                            + vulnType
+                                                            + "' with subType: '"
+                                                            + vulnSubType
+                                                            + "' but its FunctionDeclarationSourceLocation value is: '"
+                                                            + path
+                                                            + "' so its being discarded");
+                                          */
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!"Password in Comment".equals(vulnSubType)
+                        && !"Password in Configuration File".equals(vulnSubType)
+                        && !"Build Misconfiguration".equals(vulnType)
+                        && !"J2EE Misconfiguration".equals(vulnType)) {
+                    // If it falls thru to here, we couldn't figure out which source file this
+                    // non-standard Fortify finding was found in.
+                    System.out.println(
+                            "WARNING: Fortify parser found vulnerability of type: '"
+                                    + vulnType
+                                    + "' with subType: '"
+                                    + vulnSubType
+                                    + "' but it has no FunctionDeclarationSourceLocation Node under <Context> or "
+                                    + "SourceLocation Node under <Trace>, so can't determine where the vuln was found.");
+
+                    System.out.println("DEBUG: <Unified> node contents are: ");
+                    printElements(un, 0);
+                }
+            } // end else for if (functionDecl != null)
         }
         return null;
     }
@@ -272,10 +328,11 @@ public class FortifyReader extends Reader {
                         case "Format String": // NOT specifying CWE 134: Use of
                             // Externally-Controlled Format String
                         case "Off-by-One": // NOT specifying CWE 193: Off-by-one error
-                        case "Signed Comparison": // NOT specifying CWE-839: Numeric Range
-                            // Comparison w/out minimum check
                             return 119; // Improper Restriction of Operations within Bounds of
                             // Memory Buffer
+
+                        case "Signed Comparison":
+                            return 839; // Numeric Range Comparison Without Minimum Check
 
                         default:
                             System.out.println(
@@ -361,11 +418,17 @@ public class FortifyReader extends Reader {
                 return 561; // Dead Code
             case "Denial of Service":
                 return 400; // Uncontrolled Resource Consumption
+            case "Double Free":
+                return 415; // Double Free
             case "Dynamic Code Evaluation":
                 return 95; // Improper Neutralization of Directives in Dynamically Evaluated Code
                 // (Eval Injection)
+            case "Format String":
+                return 134; // Use of Externally-Controlled Format String
             case "Header Manipulation":
                 return 113; // HTTP Response Splitting
+            case "Heap Inspection":
+                return 244; // Improper Clearing of Heap Memory Before Release ('Heap Inspection')
             case "Hidden Field":
                 return 472; // External Control of Assumed-Immutable Web Parameter
             case "Insecure Randomness":
@@ -386,6 +449,8 @@ public class FortifyReader extends Reader {
                     return CweNumber.WEAK_RANDOM;
                 }
 
+            case "Insecure Temporary File":
+                return 377; // Insecure Temporary File
             case "Insecure Transport":
                 return 319; // Cleartext Transmission of Sensitive Info
 
@@ -419,6 +484,9 @@ public class FortifyReader extends Reader {
                     }
                     return CweNumber.UNMAPPED;
                 }
+
+            case "Integer Overflow":
+                return 190; // Integer Overflow or Wraparound
 
             case "J2EE Bad Practices":
                 {
@@ -459,6 +527,8 @@ public class FortifyReader extends Reader {
             case "Mass Assignment":
                 return 915; // Improper Controlled Modif of Dynamically-Determined Obj Attributes
 
+            case "Memory Leak":
+                return 401; // Missing Release of Memory after Effective Lifetime (AKA Memory Leak)
             case "Missing Check against Null":
             case "Missing Check for Null Parameter":
             case "Null Dereference":
@@ -500,9 +570,40 @@ public class FortifyReader extends Reader {
                 }
 
             case "Often Misused":
-                return 510; // Trapdoor
+                {
+                    switch (subtype) {
+                        case "Authentication":
+                            return 477; // Use of Obsolete Function (e.g., DNS for Authentication)
+
+                        default:
+                            System.out.println(
+                                    "Fortify parser found vulnerability type: 'Often Misused', with unmapped subtype: '"
+                                            + subtype
+                                            + "' in class: "
+                                            + classname);
+                    }
+                    return CweNumber.UNMAPPED;
+                }
             case "Open Redirect":
                 return CweNumber.OPEN_REDIRECT;
+            case "Out-of-Bounds Read":
+                {
+                    switch (subtype) {
+                        case "":
+                        case "Off-by-One":
+                            return 125; // Out-of-bounds Read
+                        case "Signed Comparison":
+                            return 839; // Numeric Range Comparison Without Minimum Check
+
+                        default:
+                            System.out.println(
+                                    "Fortify parser found vulnerability type: 'Out-of-Bounds Read', with unmapped subtype: '"
+                                            + subtype
+                                            + "' in class: "
+                                            + classname);
+                            return 125; // Out-of-bounds Read
+                    }
+                }
             case "Password Management":
                 {
                     switch (subtype) {
@@ -543,6 +644,7 @@ public class FortifyReader extends Reader {
                             return 703; // Improper Check or Handling of Exceptional Conditions
 
                         case "Program Catches NullPointerException":
+                        case "Program Catches NullReferenceException":
                             return 395; // Use of NullPointerException Catch to Detect NPE
 
                         case "Return Inside Finally":
@@ -569,8 +671,11 @@ public class FortifyReader extends Reader {
                             return 585; // Empty Synchronized Block
                         case "Explicit Call to finalize()":
                             return 586; // Explicit Call to finalize()
+                        case "Identifier Contains Dollar Symbol ($)":
                         case "Redundant Initialization":
                             return CweNumber.DONTCARE;
+                        case "Variable Never Used":
+                            return 563; // Assignment to Variable without Use
                         default:
                             System.out.println(
                                     "Fortify parser found vulnerability type: 'Poor Style', with unmapped subtype: '"
@@ -598,14 +703,34 @@ public class FortifyReader extends Reader {
                 return 209; // Generation of Error Msg Containing Sensitive Info
             case "Trust Boundary Violation":
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
+
+            case "Type Mismatch":
+                {
+                    switch (subtype) {
+                        case "Negative to Unsigned":
+                            return 681; // Incorrect Conversion between Numeric Types
+                        default:
+                            System.out.println(
+                                    "Fortify parser found vulnerability type: 'Type Mismatch', with unmapped subtype: '"
+                                            + subtype
+                                            + "' in class: "
+                                            + classname);
+                    }
+                    return 704; // Incorrect Type Conversion or Cast
+                }
+
             case "Unchecked Return Value":
                 return 252; // Unchecked Return value
+            case "Uninitialized Variable":
+                return 457; // Use of Uninitialized Variable
             case "Unreleased Resource":
                 return 404; // Improper Resource Shutdown or Release
             case "Unsafe JNI":
                 return 111; // Direct Use of Unsafe JNI
             case "Unsafe Reflection":
                 return 470; // Unsafe Reflection
+            case "Use After Free":
+                return 416; // Use After Free
 
             case "Weak Cryptographic Hash":
                 {
@@ -689,5 +814,54 @@ public class FortifyReader extends Reader {
         } // end switch
 
         return CweNumber.UNMAPPED;
+    }
+
+    // DEBUG Methods for seeing what's actually in Node elements parsed from Fortify .fpr audit.fvdl
+    // file
+    private static void printElements(Node node, int indent) {
+        // Print the current node
+        printIndent(indent);
+        if (node.getNodeValue() == null) {
+            //            if (!"#text".equals(node.getNodeName()))
+            System.out.println("Node: " + node.getNodeName());
+        } else if ("#text".equals(node.getNodeName())) {
+            if (node.getNodeValue().trim().length() > 0)
+                System.out.println(
+                        "Node Name: '"
+                                + node.getNodeName()
+                                + "', Value: '"
+                                + node.getNodeValue().trim()
+                                + "'");
+            // else Don't print #text node with effectively no value
+        } else
+            System.out.println(
+                    "Node Name: '"
+                            + node.getNodeName()
+                            + "', Value: '"
+                            + node.getNodeValue()
+                            + "'");
+
+        // Print attributes if the node is an element
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            NamedNodeMap attributes = node.getAttributes();
+            for (int i = 0; i < attributes.getLength(); i++) {
+                Node attribute = attributes.item(i);
+                printIndent(indent + 2);
+                System.out.println(
+                        "Attribute: " + attribute.getNodeName() + " = " + attribute.getNodeValue());
+            }
+        }
+
+        // Recursively print child nodes
+        NodeList children = node.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            printElements(children.item(i), indent + 1);
+        }
+    }
+
+    private static void printIndent(int indent) {
+        for (int i = 0; i < indent; i++) {
+            System.out.print("  ");
+        }
     }
 }

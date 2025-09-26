@@ -238,7 +238,7 @@ public class Categories {
                 if (parentOfNodeList.getLength() > 0) {
                     String[] parentOfList = parentOfNodeList.item(0).getTextContent().split(",");
                     for (String parentOfString : parentOfList) {
-                        Integer parentOfInt = Integer.valueOf(parentOfString);
+                        Integer parentOfInt = Integer.valueOf(parentOfString.trim());
                         if (!parentOf.add(parentOfInt)) {
                             System.err.println(
                                     "FATAL ERROR: file "

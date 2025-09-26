@@ -22,4 +22,15 @@ public class SnykReader extends SarifReader {
     public SnykReader() {
         super("SnykCode", true, CweSourceType.FIELD);
     }
+
+    @Override
+    public int mapCwe(int cwe) {
+        switch (cwe) {
+            case 121: // Snyk reports all cpp/BufferOverflow as CWE-121 Stack-based Buffer Overflow
+                // even though it might also be on the heap. As such, we map it to the parent
+                // of both
+                return 119; // Improper Restriction of OPerations within Bounds of a Memory Buffer
+        }
+        return cwe;
+    }
 }
