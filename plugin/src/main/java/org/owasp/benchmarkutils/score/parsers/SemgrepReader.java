@@ -140,6 +140,7 @@ public class SemgrepReader extends Reader {
             case 406: // Insufficient Control of Network Message Volume (Network Amplification)
             case 415: // Double Free
             case 416: // Use After Free
+            case 427: // Uncontrolled Search Path Element
             case 441: // Unintended Proxy or Intermediary ('Confused Deputy')
             case 444: // HTTP Request/Response Smuggling
             case 451: // User Interface (UI) Misrepresentation of Critical Information
@@ -165,6 +166,7 @@ public class SemgrepReader extends Reader {
             case 665: // CWE vuln mapping DISCOURAGED: Improper Initialization
             case 667: // Improper Locking
             case 668: // CWE vuln mapping DISCOURAGED: Exposure of Resource to Wrong Sphere
+            case 673: // External Influence of Sphere Definition
             case 676: // Use of Potentially Dangerous Function
             case 681: // Incorrect Conversion between Numeric Types
             case 682: // CWE vuln mapping DISCOURAGED: Incorrect Calculation
@@ -202,13 +204,14 @@ public class SemgrepReader extends Reader {
             case 1021: // TapJacking: Improper Restriction of Rendered UI Layers or Frames
             case 1104: // Use of Unmaintained Third Party Components
             case 1204: // Generation of Weak Initialization Vector (IV)
+            case 1220: // Insufficient Granularity of Access Control
             case 1275: // Sensitive Cookie with Improper SameSite Attribute
             case 1323: // Improper Management of Sensitive Trace Data
             case 1333: // Inefficient Regular Expression Complexity (e.g., RegexDOS)
             case 1336: // Improper Neutralization of Special Elements Used in a Template Engine
                 // TODO: Map to some type of injection?
             case 1390: // Weak Authentication
-                break; // Don't care - So return CWE 'as is'
+                return cwe; // Don't care - So return CWE 'as is'
 
                 // Translated CWEs:
             case 696: // Incorrect Behavior Order
@@ -238,6 +241,7 @@ public class SemgrepReader extends Reader {
             case 611: // CweNumber.XXE;
             case 614: // CweNumber.INSECURE_COOKIE;
             case 643: // CweNumber.XPATH_INJECTION;
+            case 770: // Allocation of Resources Without Limits or Throttling
             case 1004: // CweNumber.COOKIE_WITHOUT_HTTPONLY;
                 return cwe;
 
