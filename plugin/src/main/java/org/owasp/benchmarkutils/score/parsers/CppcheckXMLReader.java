@@ -32,6 +32,9 @@ import org.w3c.dom.Node;
  */
 public class CppcheckXMLReader extends Reader {
 
+    private boolean bugHuntingRulesEnabled =
+            false; // If set, causes BugHunting to be added to toolname
+
     @Override
     public boolean canRead(ResultFile resultFile) {
         /*
@@ -64,7 +67,15 @@ public class CppcheckXMLReader extends Reader {
         String version = "legacy";
         Node cppcheck = getNamedChild("cppcheck", resultFile.xmlRootNode());
         legacyFormat = (cppcheck == null);
-        if (!legacyFormat) version = getAttributeValue("version", cppcheck);
+        if (!legacyFormat) {
+            version = getAttributeValue("version", cppcheck);
+
+            // Check to see if this is Cppcheck Premium. If so, set the name
+            String productName = getAttributeValue("product-name", cppcheck);
+            if (productName != null)
+                // Strip out all white space from name
+                tr.setTool(productName.replaceAll("\\s+", ""));
+        }
         tr.setToolVersion(version);
 
         Node errorsNode =
@@ -183,6 +194,13 @@ public class CppcheckXMLReader extends Reader {
                     "MISRA WARNING: This many source files reported a misra-config issue so couldn't be analyzed by MISRA rules: "
                             + misraConfigIssueCount);
         }
+
+        // Before returning test results, check to see if bugHuntingRulesEnabled is enabled, and add
+        // this to toolname
+        if (bugHuntingRulesEnabled) {
+            String toolname = tr.getToolName();
+            tr.setTool(toolname += "_wBugHunting");
+        }
         return tr;
     }
 
@@ -191,6 +209,12 @@ public class CppcheckXMLReader extends Reader {
      * care about it.
      */
     private int cweLookup(String ruleid, String ruleMsg, String filename, int internalErrorCount) {
+
+        // Check to see if we've seen any premium-bughunting rule findings. If so, set this flag to
+        // true, so BugHunting gets added to toolname
+        if (!bugHuntingRulesEnabled && ruleid.startsWith("premium-bughunting"))
+            bugHuntingRulesEnabled = true;
+
         switch (ruleid) {
                 // These are all from Cppcheck 2.x+
             case "allocaCalled":
@@ -238,8 +262,7 @@ public class CppcheckXMLReader extends Reader {
             case "cstyleCast":
             case "duplicateExpression":
             case "nullPointerRedundantCheck": // Mapped to 476
-            case "operatorEqToSelf": // Should be to CWE-563: Assignment to Variable without
-                // Use?
+            case "operatorEqToSelf": // Should be to CWE-563: Assignment to Variable without Use?
             case "passedByValue":
             case "postfixOperator":
             case "selfAssignment":
@@ -315,8 +338,7 @@ public class CppcheckXMLReader extends Reader {
             case "uninitvar":
                 return 457; // CWE-457: Use of Uninitialized Variable
             case "unsafeClassCanLeak": // Mapped to 398
-                return 401; // CWE-401: Improper Release of Memory Before Removing
-                // Last Reference
+                return 401; // CWE-401: Improper Release of Memory Before Removing Last Reference
             case "duplicateBreak":
             case "unusedFunction":
                 return 561; // CWE-561: Dead Code
@@ -328,6 +350,38 @@ public class CppcheckXMLReader extends Reader {
                 return 685; // CWE-685: Function Call With Incorrect Number of Arguments
             case "zerodiv":
                 return 369; // CWE-369: Divide By Zero
+
+                // CppCheck Premium Rules
+            case "premium-reassignInLoop": // Reassigning 'FOO' in loop. Should loop variables be
+                // used in expression?
+                return 665; // CWE-665: Improper Initialization
+            case "premium-unusedPrivateMember": // Private member data is assigned but not read
+            case "premium-unreadVariable": // Variable 'FOO' is assigned a value that is never used
+                return 563; // CWE-563: Assignment to Variable without Use
+            case "premium-unusedVariable": // Unused variable: FOO
+                return 561; // CWE-561: Dead Code
+            case "premium-useAfterFree": // Attempt to use freed pointer 'FOO'
+                return 416; // CWE-416: Use After Free
+
+                // CppCheck Premium BugHunting Rules
+            case "premium-bughuntingArrayIndexNegative": // Array index out of bounds, cannot
+                // determine that FOO is not negative
+            case "premium-bughuntingArrayIndexOutOfBounds": // Cannot determine that array index is
+                // valid: foo[bar]
+                return 129; // CWE-129 Improper Validation of Array Index
+            case "premium-bughuntingBufferOverflow": // When calling 'wcscpy' it cannot be
+                // determined that 1st argument is not overflowed
+            case "premium-bughuntingPointerAdditionOverflow": // Cannot determine that pointer
+                // addition can not overflow: data+dataLen
+            case "premium-bughuntingPointerSubtractionOverflow": // Cannot determine that pointer
+                // subtraction can not overflow: FOO
+                return 119; // CWE-119 Improper Restriction of Operations within Bounds of Memory
+                // Buffer
+            case "premium-bughuntingUninit": // Cannot determine that 'FOO' is initialized
+            case "premium-bughuntingUninitNonConstArg": // Cannot determine that 'FOO' is
+                // initialized (since function parameter is not 'const' it is assumed it points at
+                // uninitialized data)
+                return 457; // Use of Uninitialized Variable
 
                 // TODO: The MISEA mappings is massively incomplete. It is so huge that its
                 // currently not worth the effort to do all the mappings, so while this incomplete

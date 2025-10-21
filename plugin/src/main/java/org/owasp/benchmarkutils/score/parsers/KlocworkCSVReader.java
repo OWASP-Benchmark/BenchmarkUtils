@@ -27,7 +27,7 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 /**
  * The Klocwork CSV reader parses the CSV generated when you go to a Klocwork project in the web
- * portal and export a projects Issues using the CSV export button.
+ * portal and export a project's Issues using the CSV export button.
  */
 public class KlocworkCSVReader extends Reader {
 
@@ -60,12 +60,15 @@ public class KlocworkCSVReader extends Reader {
 
         for (CSVRecord record : records) {
             String category = record.get("Code"); // e.g., RLK.SQLOBJ
+            String message =
+                    record.get("Message"); // e.g., 'char' used without explicitly specifying
+            // signedness
             String filename = record.get("File"); // e.g., BenchmarkTest00001
 
             TestCaseResult tcr = new TestCaseResult();
             if (isTestCaseFile(filename)) {
                 tcr.setActualResultTestID(TestSuiteResults.getFileNameNoPath(filename));
-                tcr.setCWE(cweLookup(category));
+                tcr.setCWE(cweLookup(category, message));
                 tcr.setEvidence(category);
 
                 int cwe = tcr.getCWE();
@@ -78,67 +81,47 @@ public class KlocworkCSVReader extends Reader {
         return tr;
     }
 
-    static int cweLookup(String checkerKey) {
+    static int cweLookup(String checkerKey, String message) {
 
         switch (checkerKey) {
-            case "CWARN.CONSTCOND.DO": // Condition of do statement is constant
-            case "CWARN.CONSTCOND.SWITCH": // Condition of switch statement is constant
-            case "CWARN.DTOR.NONVIRT.DELETE": // Obj w/ no virt methods & no virt destruct. deleted
+            case "CWARN.DTOR.NONVIRT.DELETE": // Obj w/ virtual methods & no virt destruct. deleted
             case "CWARN.INCL.NO_INTERFACE": // File does not include interface header
+            case "CWARN.NOEFFECT.OUTOFRANGE": // Expression 'FOO' can never reach the value 'VALUE'
             case "ESCMP.EMPTYSTR": // Inefficient empty string comparison
             case "JD.CAST.DOWNCAST": // Possible ClassCastException for subtypes
             case "JD.METHOD.CBS": // Method can be declared static
-            case "LOCRET.GLOB": // Address of local variable returned thru global var
-            case "PORTING.BYTEORDER.SIZE": // Incompatible type used with network macro
-            case "PORTING.CAST.FLTPNT": // Cast of floating pt expr to non-floating pt type
-            case "PORTING.CAST.PTR.SIZE": // Cast to a type of possibly incompatible size
-            case "PORTING.CAST.SIZE": // Expression cast to type of potentially different size
             case "PORTING.MACRO.NUMTYPE": // Macro describing a built-in numeric type is used
             case "PORTING.SIGNED.CHAR": // Char used w/out explicit signedness
-            case "PRECISION.LOSS": // Conversion from A to B may cause data loss
-            case "PRECISION.LOSS.CALL":
             case "REDUN.FINAL": // Redundant Final Modifier
-            case "STRONG.TYPE.ASSIGN": // Strongly typed var assigned to a different strong type
-            case "STRONG.TYPE.ASSIGN.ARG": // Same as prev
-            case "STRONG.TYPE.ASSIGN.CONST": // Const assigned to a var of different strong type
-            case "STRONG.TYPE.ASSIGN.INIT": // Value assigned to a var of different strong type
             case "STRONG.TYPE.ASSIGN.ZERO": // Zero assigned to strongly typed variable
-            case "STRONG.TYPE.JOIN.CMP": // String typed value compared to value of different type
-            case "STRONG.TYPE.JOIN.CONST": // Strong typed value joined w/ constant
-            case "STRONG.TYPE.JOIN.EQ": // Strong typed value compared to value of different type
-            case "STRONG.TYPE.JOIN.OTHER": // Strong typed value joined to value of different type
-            case "STRONG.TYPE.JOIN.ZERO":
             case "SV.BFC.USING_STRUCT": // Prevent server hijacking, don't set addr to INADDR_ANY
             case "SV.EXPOSE.IFIELD": // Non-final public field could be changed by malicious
                 // code/accident
             case "SV.IL.FILE": // File Name Leaking
-            case "SV.IL.SESSION": // Logging of Session ID
             case "SV.IL.SESSION.CLIENT": // Shouldn't use HttpServletRequest.getRequestedSessionId()
             case "SV.LOADLIB.INJ": // Untrusted call to loadLibrary method
             case "SV.SERIAL.NON": // Class implements Serializable
             case "SV.SHARED.VAR": // Unsynchronized access to static variable from servlet
-            case "SV.UMD.MAIN": // Unnecessary Main() method
-            case "SV.USAGERULES.PROCESS_VARIANTS": // DRW TODO: Should this be mapped to CWE 272
-                // (least priv) or others?
-            case "UNUSED.FUNC.WARN": // Consider making FUNC static or add header-file decl
+            case "SV.USAGERULES.PROCESS_VARIANTS":
 
-                // DRW TODO: These are UNMAPPED ITEMS. Figure out if they should be mapped
             case "CERT.ARR.PTR.ARITH":
+            case "CERT.MEM.OBJ_LIFETIME_DTOR": // Dynamically allocated object pointed to by  ''??
             case "CXX.BITOP.BOOL_OPERAND":
             case "CXX.BITOP.NON_CONST_OPERAND":
             case "CXX.ERRNO.NOT_CHECKED":
             case "CXX.ERRNO.NOT_SET":
             case "CERT.EXPR.PARENS":
             case "CXX.CAST.OBJ_PTR_TO_OBJ_PTR":
+            case "CXX.ID_VIS.GLOBAL_VARIABLE.EXTERN": // Extern global variable 'CLASS.VAR' only
+                // used in 'BAR' has a wide visibility
             case "CXX.ID_VIS.GLOBAL_VARIABLE.STATIC":
             case "CXX.LOGICAL_OP.INT_OPERAND":
             case "CXX.POSSIBLE_COPY_PASTE.LOGICAL_OP.CMP_SAME_OBJECT":
             case "CXX.SUSPICIOUS_INDEX_CHECK":
             case "CXX.SUSPICIOUS_INDEX_CHECK.ZERO":
-            case "NUM.OVERFLOW.DF":
             case "SV.STR_PAR.UNDESIRED_STRING_PARAMETER":
-            case "SV.TAINTED.GLOBAL":
-            case "SV.TAINTED.INJECTION":
+            case "SV.TAINTED.GLOBAL": // Unvalidated integer value 'FOO' that is received from
+                // 'atoi' at line NN is used to assign a global variable at line NN
                 return CweNumber.DONTCARE;
 
             case "SV.DATA.BOUND": // Untrusted Data leaks into trusted storage
@@ -147,6 +130,8 @@ public class KlocworkCSVReader extends Reader {
             case "SV.EXEC.ENV": // Process Injection Environment Variables
             case "SV.EXEC.LOCAL": // Process Injection. Local Arguments
             case "SV.EXEC.PATH": // Untrusted Search Path
+            case "SV.TAINTED.INJECTION": // User input can be used to cause arbitrary command
+                // execution on the host system.
                 return CweNumber.COMMAND_INJECTION;
             case "SV.LDAP": // Unvalidated user input is used as LDAP filter
                 return CweNumber.LDAP_INJECTION;
@@ -189,6 +174,8 @@ public class KlocworkCSVReader extends Reader {
             case "ABV.GENERAL": // Array data may use index values greater than array size
             case "ABV.MEMBER": // Array data may use index values greater than array size
             case "ABV.STACK": // Array data may use index values greater than array size
+            case "CERT.MEM.PLACEMENTNEW.MISALIGNED": // Placement new call has misaligned storage
+                // 'FOO'.
             case "STRONG.TYPE.EXTRACT": // Strongly typed value assigned to var of different type
             case "SV.STRBO.BOUND_COPY.OVERFLOW": // Funct may incorrectly check buffer boundaries
             case "SV.STRBO.UNBOUND_COPY": // Func does not check buffer boundaries
@@ -205,15 +192,16 @@ public class KlocworkCSVReader extends Reader {
                 return 134; // Use of Externally-Controlled Format String
             case "PORTING.STORAGE.STRUCT": // Byte position of struct elements could change
                 return 188; // Reliance on Data/Memory Layout
+            case "NUM.OVERFLOW.DF":
             case "SV.INT_OVF":
                 return 190; // Integer Overflow
-                // case "SV.IL.DEV": // App reveals design info in param back to web interface
-                // return 209; // Generation of Error Message Containing Sensitive Info
-            case "PORTING.UNSIGNEDCHAR.OVERFLOW.FALSE": // Express may always be false depending on
-                // char signedness
-            case "PORTING.UNSIGNEDCHAR.OVERFLOW.TRUE": // Express may always be true depending on
+            case "PORTING.UNSIGNEDCHAR.OVERFLOW.FALSE": // Expression may always be false depending
+                // on char signedness
+            case "PORTING.UNSIGNEDCHAR.OVERFLOW.TRUE": // Expression may always be true depending on
                 // char signedness
                 return 191; // Integer underflow
+            case "SV.IL.DEV": // App reveals design info in param back to web interface
+                return 209; // Generation of Error Message Containing Sensitive Info
             case "SV.STRBUF.CLEAN": // Sensitive buffer not cleaned before garbage collection
                 return 226; // Sensitive Info in Resource Not Removed Before Reuse
             case "SV.BANNED.REQUIRED.GETS": // Function gets is deprecated
@@ -222,16 +210,57 @@ public class KlocworkCSVReader extends Reader {
                 return 242; // Use of Inherently Dangerous Function
             case "SV.SOCKETS":
                 return 246; // J2EE: Direct Use of Sockets
+            case "SV.TAINTED.SECURITY_DECISION": // Unvalidated string 'hostInfo->h_name' is
+                // received from an external function through call to 'gethostbyaddr' at line NN and
+                // can be used in a potential security decision through call to 'strcmp' at line NN
+                if (!message.contains("gethostbyaddr")) {
+                    // Unvalidated string 'charString' is received from an external function through
+                    // a call to 'fgets' at line NN and can be used in a potential security decision
+                    // through call to 'strcmp' at line NN.
+                    if (!message.contains("fgets")) {
+                        System.out.println(
+                                "WARNING: Unmapped Klocwork SV.TAINTED.SECURITY_DECISION finding with message: '"
+                                        + message
+                                        + "'");
+                        return CweNumber.UNMAPPED;
+                    } else return CweNumber.DONTCARE;
+                }
+            case "SV.USAGERULES.SPOOFING": // Be careful in your use of gethostbyaddr, it is
+                // dependent on data from a hosts server and therefore
+                // can be spoofed
+                return 247; // CWE-247 Reliance on DNS Lookups in a Security Decision
             case "JD.UNCAUGHT":
                 return 248; // Uncaught Exception
             case "RR.IGNORED":
+            case "SV.RVT.RETVAL_NOTTESTED": // Return value of 'FOO' is not compared with 0
                 return 252; // Unchecked Return Value
             case "SV.PASSWD.PLAIN": // Plain-text Password
                 return 256; // Plaintext Storage of a Password
+            case "HCC": // Use of hardcoded credentials through the call to function 'FOO'
+            case "HCC.PWD": // Use of a hardcoded password through the call to function
+                // 'CLASS_METHOD'
+            case "HCC.USER": // Use of a hardcoded user name through the call to function 'FOO'
             case "SV.PASSWD.HC":
             case "SV.PASSWD.HC.MINLEN": // Minimum 15 char length Hardcoded pwd
             case "SV.PASSWD.PLAIN.HC":
                 return 259; // Hardcoded Password
+            case "SV.BRM.HKEY_LOCAL_MACHINE": // Function 'FOO' is using macro HKEY_LOCAL_MACHINE as
+                // parameter 1.  Use of HKEY_LOCAL_MACHINE makes it impossible for users of the
+                // application to run from a regular user (non-Administrator) account
+            case "SV.DLLPRELOAD.NONABSOLUTE.EXE": // It is possible for such non-absolute process
+                // loads to be hijacked, see Microsoft Security
+                // Advisory 2269637
+            case "SV.LPP.CONST": // Function 'FOO' is using macro KEY_ALL_ACCESS as parameter 2 -
+                // Use of ALL_ACCESS indicates the use of an insecure ACL to access
+                // this resource. Use the least amount of privileges required to
+                // get the job done
+                return 272; // CWE-272 Least Privilege Violation
+            case "SV.PIPE.CONST": // Function 'FOO' is not using macro FILE_FLAG_FIRST_PIPE_INSTANCE
+                // as parameter 2 - Use the FILE_FLAG_FIRST_PIPE_INSTANCE flag and
+                // then check GetLastError() for ERROR_ACCESS_DENIED to protect
+                // yourself from pipe hijacking attacks by ensuring that the pipe
+                // you are creating has not already been created
+                return 284; // CWE-284 Improper Access Control
             case "SV.SENSITIVE.DATA": // Unencrypted sensitive data is written
                 return 312; // Cleartext Storage of Sensitive Info
             case "SV.TOCTOU.FILE_ACCESS":
@@ -254,11 +283,9 @@ public class KlocworkCSVReader extends Reader {
             case "REDUN.DEF": // Assignment of variable to itself
             case "REDUN.OP": // Suspicious operation w/ same expression on both sides
                 return 398; // Code quality
-            case "SV.TAINTED.CALL.LOOP_BOUND": // Unvalidated value is used in loop condition thru
-                // call
-            case "SV.TAINTED.LOOP_BOUND": // Unvalidated value is used in loop condition
-                return 400; // Uncontrolled Resource Consumption
             case "CL.MLK": // Memory leak in class
+            case "CL.MLK.ASSIGN": // Possible memory leak in class 'FOO'. Dynamic memory stored in
+                // 'BAR' can be lost
             case "MLK.MIGHT": // Memory leak
             case "MLK.MUST": // Memory leak
                 return 401; // Missing Release of Memory after Effective Lifetime
@@ -266,6 +293,10 @@ public class KlocworkCSVReader extends Reader {
                 return 404; // Improper Resource Shutdown or Release
             case "CL.FFM.ASSIGN": // Operator = not defined, causing double freeing of memory
             case "CL.FFM.COPY": // Copy constructor not defined, causing double freeing of memory
+            case "CL.SELF-ASSIGN": // Double freeing of freed memory may be in class 'FOO'. Dynamic
+                // memory stored in 'FOO.var' can be freed if self-assignment
+                // occurs. Check for assignment to self in operator
+                // 'FOO::operator='.'
             case "UFM.FFM.MIGHT": // Data freed after being freed
             case "UFM.FFM.MUST": // Data freed after being freed
                 return 415; // Double Free
@@ -276,6 +307,7 @@ public class KlocworkCSVReader extends Reader {
             case "UFM.USE.MIGHT": // Object used after being freed
             case "UFM.USE.MUST": // Object used after being freed
                 return 416; // Use after free
+            case "UNINIT.CTOR.MUST": // 'this->VAR' is not initialized in this constructor
             case "UNINIT.HEAP.MIGHT": // Data gets its value from uninitialized heap
             case "UNINIT.HEAP.MUST": // Data gets its value from uninitialized heap
             case "UNINIT.STACK.ARRAY.MIGHT": // Data might be used uninitialized in this function
@@ -291,6 +323,11 @@ public class KlocworkCSVReader extends Reader {
                 return 468; // Incorrect Pointer Scaling
             case "SV.TAINT": // Unvalidated user input passed to security sensitive method
                 return 470; // Unsafe Reflection
+            case "NPD.CHECK.CALL.MUST": // Pointer 'FOO' checked for NULL at line NN will be passed
+                // to function and may be dereferenced there by passing
+                // argument 1 to function 'BAR' at line NN
+            case "NPD.CHECK.MIGHT": // Pointer 'FOO' may be dereferenced at line NN after having
+                // been checked for NULL
             case "NPD.CONST.DEREF":
             case "NPD.FUNC.MIGHT":
             case "NPD.GEN.CALL.MIGHT":
@@ -299,11 +336,13 @@ public class KlocworkCSVReader extends Reader {
             case "NPD.GEN.MUST": // Null pointer will be dereferenced
             case "NPE.COND":
             case "NPE.CONST":
-            case "NPE.RET.UTIL": // Null Pointer Returned from Map or Collection
             case "NPE.STAT":
             case "REDUN.NULL": // Use of Variable instead of Null Constant
+            case "RNPD.CALL": // Suspicious dereference of pointer 'FOO' by passing argument 1 to
+                // function 'memcpy' at line XX before NULL check
             case "RNPD.DEREF": // Suspicious deref of pointer before null check
                 return 476; // Null Pointer Dereference
+            case "SV.BANNED.RECOMMENDED.ALLOCA": // alloca is deprecated
             case "SV.BANNED.RECOMMENDED.SCANF": // scanf is deprecated
             case "SV.BANNED.RECOMMENDED.SPRINTF": // sprintf is deprecated
             case "SV.BANNED.RECOMMENDED.STRLEN":
@@ -311,6 +350,9 @@ public class KlocworkCSVReader extends Reader {
             case "SV.BANNED.REQUIRED.COPY": // Use of deprecated function.
             case "SV.BANNED.REQUIRED.SPRINTF": // sprintf is deprecated
                 return 477; // Use of Obsolete Function
+            case "CERT.SIG.SIG_HANDLER.ASYNC_SAFE": // Signal handler 'FOO' calls function 'malloc'
+                // which is not asynchronous-safe
+                return 479; // CWE-479: Signal Handler Use of a Non-reentrant Function
             case "CWARN.NULLCHECK.FUNCNAME": //
                 return 480; // Use of Incorrect Operator
             case "ASSIGCOND.GEN": // Assignment in condition
@@ -324,15 +366,24 @@ public class KlocworkCSVReader extends Reader {
             case "SV.EXPOSE.FIELD": // Non-final public static field could be changed
                 return 500; // Public Static Field Not Marked Final
             case "SV.CODE_INJECTION.SHELL_EXEC": // Arbitrary commands can be exec thru environ vars
-            case "SV.FIU.PROCESS_VARIANTS": // Its easy to run arbitrary commands thru environ vars
+            case "SV.FIU.PROCESS_VARIANTS": // It's easy to run arbitrary commands thru environ vars
                 return 506; // Malicious Code
             case "SV.PASSWD.HC.EMPTY": // Empty Password
                 return 521; // Weak Password
+            case "SV.IL.SESSION": // Logging of Session ID
+                return 532; // CWE-532 Insertion of Sensitive Information into Log File
             case "JD.RC.EXPR.DEAD":
             case "JD.UN.MET": // Method is never called
             case "JD.UN.PMET": // Unused Private Method
+            case "SV.UMD.MAIN": // Unnecessary Main() method
             case "UNREACH.GEN": // Code in unreachable
+            case "UNUSED.FUNC.GEN": // Function 'FOO' defined but not used
+            case "UNUSED.FUNC.WARN": // Consider making FUNC static or add header-file decl
                 return 561; // Dead Code
+            case "LOCRET.GLOB": // Address of local variable returned thru global var
+            case "LOCRET.RET": // Address of a local variable is returned via return statement
+                // expression 'charString'
+                return 562; // CWE-562 Return of Stack Variable Address
             case "JD.VNU":
             case "JD.VNU.NULL":
             case "LV_UNUSED.GEN":
@@ -342,12 +393,14 @@ public class KlocworkCSVReader extends Reader {
             case "FIN.EMPTY":
             case "FIN.NOSUPER":
                 return 568; // finalize() without super.finalize()
-            case "CWARN.CONSTCOND.IF": // Condition in IF is constant
             case "CWARN.NOEFFECT.UCMP.LT": // Comparison is always false
             case "INVARIANT_CONDITION.UNREACH": // Condition express always yields same result,
                 // causing unreachable code
                 return 570; // Expression always false
-                // case "CWARN.NOEFFECT.UCMP.GE": // Comparison is always true
+            case "CWARN.CONSTCOND.DO": // Condition of do statement is constant
+            case "CWARN.CONSTCOND.IF": // Condition in IF is constant
+            case "CWARN.CONSTCOND.SWITCH": // Condition of switch statement is constant
+            case "CWARN.NOEFFECT.UCMP.GE": // Comparison is always true
             case "INVARIANT_CONDITION.GEN": // Condition express always yields same result
             case "JD.RC.EXPR.CHECK":
                 return 571; // Expression always true
@@ -373,6 +426,10 @@ public class KlocworkCSVReader extends Reader {
                 return 590; // Free of Memory not on the Heap
             case "CMP.STR":
                 return 597; // Use of Wrong Operator in String Comparison
+            case "SV.TAINTED.CALL.LOOP_BOUND": // Unvalidated value is used in loop condition thru
+                // call
+            case "SV.TAINTED.LOOP_BOUND": // Unvalidated value is used in loop condition
+                return 606; // Unchecked Input for Loop Condition
             case "JD.SYNC.DCL":
                 return 609; // Double-Checked Locking
             case "JD.LOCK": // Lock acquired but not released
@@ -388,13 +445,33 @@ public class KlocworkCSVReader extends Reader {
                 return 676; // Use of Potentially Dangerous Function
             case "SV.TAINTED.ALLOC_SIZE": // Unvalidated int can be be used to alter memory alloc
                 return 680; // Integer Overflow to Buffer Overflow
-            case "SV.TAINTED.BINOP": // Unvalided int used as operand to binary operator
-            case "SV.TAINTED.CALL.BINOP": // Unvalided int used as operand to binary operator
+            case "PORTING.BYTEORDER.SIZE": // Incompatible type used with network macro
+            case "PORTING.CAST.FLTPNT": // Cast of floating pt expr to non-floating pt type
+            case "PORTING.CAST.PTR.SIZE": // Cast to a type of possibly incompatible size
+            case "PORTING.CAST.SIZE": // Expression cast to type of potentially different size
+            case "PORTING.CMPSPEC.TYPE.LONGLONG": // Do not use a 'long long' type as this is
+                // architecture dependent
+            case "PRECISION.LOSS": // Conversion from A to B may cause data loss
+            case "PRECISION.LOSS.CALL":
+            case "PRECISION.LOSS.INIT": // Initializing DWORD from unsigned long long int may cause
+                // loss of data
+                return 681; // CWE-681 Incorrect Conversion between Numeric Types
+            case "STRONG.TYPE.JOIN.CMP": // String typed value compared to value of different type
+            case "STRONG.TYPE.JOIN.CONST": // Strong typed value joined w/ constant
+            case "STRONG.TYPE.JOIN.EQ": // Strong typed value compared to value of different type
+            case "STRONG.TYPE.JOIN.OTHER": // Strong typed value joined to value of different type
+            case "STRONG.TYPE.JOIN.ZERO":
+            case "SV.TAINTED.BINOP": // Unvalidated int used as operand to binary operator
+            case "SV.TAINTED.CALL.BINOP": // Unvalidated int used as operand to binary operator
                 return 682; // Incorrect Calculation
             case "SV.FMT_STR.PRINT_PARAMS_WRONGNUM.FEW": // Too few params provided for sprintf call
                 return 685; // Funct Call w/ Incorrect Number of Args
             case "SV.FMT_STR.PRINT_FORMAT_MISMATCH.BAD": // sprintf fmt spec expects type char* but
                 // has incompatible type
+            case "SV.FMT_STR.PRINT_FORMAT_MISMATCH.UNDESIRED": // printf format spec '%d' expects
+                // type 'int' for 'd', but parameter 2 has a different type 'unsigned long int
+            case "SV.FMT_STR.SCAN_FORMAT_MISMATCH.UNDESIRED": // swscanf format specification '%99S'
+                // expects type 'char *' for 'S', but parameter 3 has a different type 'wchar_t*'
                 return 688; // Call w/ Incorrect Var or Ref as Argument
             case "NPD.CHECK.MUST": // Pointer checked for null will be dereferenced
                 // case "NPD.FUNC.MIGHT": // Pointer ret from call may be null and be dereferenced
@@ -402,13 +479,21 @@ public class KlocworkCSVReader extends Reader {
             case "NPD.FUNC.MUST": // Pointer ret from call may be null and be dereferenced
             case "NPE.RET": // Null Pointer Returned from Method
                 return 690; // Unchecked Return Value to Null Pointer Dereference
+            case "STRONG.TYPE.ASSIGN": // Strongly typed var assigned to a different strong type
+            case "STRONG.TYPE.ASSIGN.ARG": // Same as prev
+            case "STRONG.TYPE.ASSIGN.CONST": // Const assigned to a var of different strong type
+            case "STRONG.TYPE.ASSIGN.INIT": // Value assigned to a var of different strong type
+                return 704; // CWE-704 Incorrect Type Conversion or Cast
             case "JD.BITCMP": // Questionable use of Bit compare operation
                 return 754; // Improper Check for Unusual or Exceptional Conditions
             case "SV.HASH.NO_SALT": // Use of a one-way cryptographic hash without a salt
                 return 759; // CWE-759: Use of a One-Way Hash without a Salt
                 // Not the same as: CweNumber.WEAK_HASH_ALGO; - CWE: 328 Weak Hashing
             case "CL.FMM": // Possible freeing of mismatched memory
+            case "FMM.MIGHT": // Possible freeing of mismatched memory from 'FOO' ...
+            case "FMM.MUST": // Freeing mismatched memory from 'FOO' ...
             case "FREE.INCONSISTENT": // Memory freed here but not at function exit
+            case "FUM.GEN.MIGHT": // Possible freeing of unallocated memory from 'FOO'.
                 return 762; // Mismatched Memory Management Routines
             case "RLK.SQLCON": // SQL Connection not closed on exit
             case "RLK.SQLOBJ": // SQL Object not closed on exit
@@ -425,12 +510,20 @@ public class KlocworkCSVReader extends Reader {
                 return 833; // Deadlock
             case "INFINITE_LOOP.LOCAL":
                 return 835; // Infinite Loop
+            case "CWARN.COPY.NOASSIGN": // Class 'FOO' defines a copy constructor, but no assignment
+                // operator
+                return 1098; // CWE-1098: Data Element containing Pointer Item without Proper Copy
+                // Control Element
             case "SV.DATA.DB": // Data Injection - Untrusted data inserted into a Database
                 return 1287; // Improper Validation of Specified Type of Input
 
             default:
                 System.out.println(
-                        "WARNING: Unmapped Klocwork Vuln category detected: " + checkerKey);
+                        "WARNING: Unmapped Klocwork Vuln category detected: '"
+                                + checkerKey
+                                + "' with message: '"
+                                + message
+                                + "'");
                 return CweNumber.UNMAPPED;
         }
     }

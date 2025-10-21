@@ -57,7 +57,8 @@ public class KlocworkXMLReader extends Reader {
             if (isTestCaseFile(filename)) {
                 tcr.setActualResultTestID(TestSuiteResults.getFileNameNoPath(filename));
                 String category = getNamedChild("code", problem).getTextContent();
-                tcr.setCWE(KlocworkCSVReader.cweLookup(category));
+                String message = getNamedChild("message", problem).getTextContent();
+                tcr.setCWE(KlocworkCSVReader.cweLookup(category, message));
                 tcr.setEvidence(category);
 
                 int cwe = tcr.getCWE();

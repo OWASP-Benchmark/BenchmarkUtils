@@ -1,0 +1,20 @@
+# The configuration is for accessing a SonarQube instance to extract the results of a scan
+
+# This contains the values that match the values in the runSonarQube.sh in BenchmarkJava/scripts
+
+# default SonarQube user account
+sonaruser: admin
+
+# password for this account
+sonarpassword: P4ssword!!!!
+
+# name of project to pull results from
+sonarproject: benchmark
+
+# hostname or IP of sonarqube server
+sonarhost: localhost
+
+# external port number for sonarqube server
+sonarport: 9000
+
+# End of default configuration

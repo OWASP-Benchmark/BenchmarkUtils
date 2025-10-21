@@ -172,7 +172,7 @@ public class SonarQubeReader extends Reader {
             case "S00105": // Replace all tab characters in this file by sequences of white-spaces.
                 return CweNumber.DONTCARE;
             case "S106": // Replace this usage of System.out or System.err by a logger.
-                return CweNumber.DONTCARE;
+                return 200; // CWE-200 Info Leak
             case "S108": // Nested blocks of code should not be left empty
                 return CweNumber.DONTCARE;
             case "S112":
@@ -215,8 +215,8 @@ public class SonarQubeReader extends Reader {
                 return CweNumber.DONTCARE; // URIs should not be hard coded
             case "S1104": // Class variable fields should not have public accessibility
                 return CweNumber.PUBLIC_VAR_WITHOUT_FINAL;
-            case "S1116":
-                return CweNumber.DONTCARE; // Empty statements should be removed
+            case "S1116": // Empty statements should be removed
+                return 1071; // CWE-1071 Empty Code Block
             case "S1117":
                 return CweNumber.DONTCARE; // Local variables should not shadow class fields
             case "S1118":
@@ -225,10 +225,12 @@ public class SonarQubeReader extends Reader {
                 return CweNumber.DONTCARE; // Unnecessary imports should be removed
             case "S1130":
                 return CweNumber.DONTCARE; // "throws" declarations should not be superfluous
-            case "S1132":
-                return CweNumber
-                        .DONTCARE; // Strings literals should be placed on the left side when
-                // checking for equality
+            case "S1132": // Strings literals should be placed on the left side when checking for
+                // equality
+            case "S1168": // Empty arrays and collections should be returned instead of null
+            case "S2225": // "toString()" and"clone()" methods should not return null
+            case "S2259": // Null pointers should not be dereferenced
+                return 476; // CWE-476 Null Pointer Dereference
             case "S1134":
                 return CweNumber.DONTCARE; // Track uses of "FIXME" tags
             case "S1135":
@@ -238,12 +240,18 @@ public class SonarQubeReader extends Reader {
             case "S1143":
                 return CweNumber.RETURN_INSIDE_FINALLY; // "return " statements should not occur in
                 // "finally" blocks
-            case "S1144":
-                return CweNumber.DONTCARE; // Unused "private" methods should be removed
-            case "S1145":
-                return CweNumber
-                        .DONTCARE; // "if" statement conditions should not unconditionally evaluate
-                // to"true" or to"false"
+            case "S1144": // Unused "private" methods should be removed
+            case "S1172": // Unused method parameters should be removed
+            case "S1186": // Methods should not be empty
+            case "S1481": // Remove this unused "c" local variable
+            case "S1905": // Redundant casts should not be used
+            case "S3626": // Jump statements should not be redundant
+                return 561; // CWE-561 Dead Code
+            case "S1145": // "if" statement conditions should not unconditionally evaluate to"true"
+                // or to"false"
+            case "S2583": // Conditions should not unconditionally evaluate to"TRUE" or to"FALSE"
+            case "S2589": // Boolean expressions should not be gratuitous
+                return 571; // Expression is Always True
             case "S1147":
                 return CweNumber.SYSTEM_EXIT; // Exit methods should not be called
             case "S1149":
@@ -259,14 +267,8 @@ public class SonarQubeReader extends Reader {
                 // methods
             case "S1163":
                 return CweNumber.DONTCARE; // Exceptions should not be thrown in finally blocks
-            case "S1168":
-                return CweNumber
-                        .DONTCARE; // Empty arrays and collections should be returned instead of
-                // null
             case "S1171":
                 return CweNumber.DONTCARE; // Only static class initializers should be used
-            case "S1172":
-                return CweNumber.DONTCARE; // Unused method parameters should be removed
             case "S1174":
                 return CweNumber
                         .FINALIZE_DECLARED_PUBLIC; // "Object.finalize()" should remain protected
@@ -278,8 +280,6 @@ public class SonarQubeReader extends Reader {
                 return CweNumber
                         .CLONE_WITHOUT_SUPER_CLONE; // Classes that override "clone" should be
                 // "Cloneable" and call "super.clone()"
-            case "S1186":
-                return CweNumber.DONTCARE; // Methods should not be empty
             case "S1192":
                 return CweNumber.DONTCARE; // String literals should not be duplicated
             case "S1197":
@@ -300,8 +300,6 @@ public class SonarQubeReader extends Reader {
             case "S1301":
                 return CweNumber
                         .DONTCARE; // "switch" statements should have at least 3 "case" clauses
-            case "S1481":
-                return CweNumber.DONTCARE; // Remove this unused "c" local variable.
             case "S1444":
                 return CweNumber.PUBLIC_STATIC_NOT_FINAL; // "public static" fields should always be
                 // constant
@@ -322,9 +320,9 @@ public class SonarQubeReader extends Reader {
             case "S1698":
                 return CweNumber
                         .OBJECT_REFERENCE_COMPARISON; // Objects should be compared with"equals()"
-            case "S1724":
-                return CweNumber.DONTCARE; // Deprecated classes and interfaces should not be
-                // extended/implemented
+            case "S1724": // Deprecated classes and interfaces should not be extended/implemented
+            case "S1874": // "@Deprecated" code should not be used
+                return 477; // Use of Obsolete Function
             case "S1850":
                 return CweNumber
                         .DONTCARE; // "instanceof" operators that always return "true" or"false"
@@ -335,17 +333,13 @@ public class SonarQubeReader extends Reader {
                 return 486; // Classes should not be compared by name
             case "S1873":
                 return 582; // "static final" arrays should be"private"
-            case "S1874":
-                return CweNumber.DONTCARE; // "@Deprecated" code should not be used
-            case "S1905":
-                return CweNumber.DONTCARE; // Redundant casts should not be used
             case "S1948":
                 return 594; // Fields in a"Serializable" class should either be transient or
                 // serializable
             case "S1989":
-                return 600; // Exceptions should not be thrown from servlet methods
-            case "S2068":
-                return 259; // Credentials should not be hard-coded
+                return 600; // Exceptions should not be thrown from Servlet methods
+            case "S2068": // Credentials should not be hard-coded
+                return 259; // CWE-259 Use of Hard-coded Password
             case "S2070":
                 return CweNumber.WEAK_HASH_ALGO; // Benchmark Vuln: SHACweNumber.DONTCARE and
                 // Message-Digest hash algorithms should not be used
@@ -395,8 +389,6 @@ public class SonarQubeReader extends Reader {
                 return 190; // Math operands should be cast before assignment
             case "S2222":
                 return 459; // Locks should be released
-            case "S2225":
-                return 476; // "toString()" and"clone()" methods should not return null
             case "S2245":
                 return CweNumber
                         .WEAK_RANDOM; // Benchmark Vuln: Pseudorandom number generators (PRNGs)
@@ -409,8 +401,6 @@ public class SonarQubeReader extends Reader {
                 return CweNumber
                         .WEAK_CRYPTO_ALGO; // Benchmark Vuln: Only standard cryptographic algorithms
                 // should be used
-            case "S2259":
-                return 476; // Null pointers should not be dereferenced
             case "S2275":
                 return CweNumber
                         .DONTCARE; // Printf-style format strings should not lead to unexpected
@@ -434,18 +424,13 @@ public class SonarQubeReader extends Reader {
                 return CweNumber
                         .DONTCARE; // Whitespace and control characters in literals should be
                 // explicit
-            case "S2583":
-                return 489; // Conditions should not unconditionally evaluate to"TRUE" or to"FALSE"
-            case "S2589":
-                return CweNumber
-                        .DONTCARE; // Boolean expressions should not be gratuitous - CWEs: 570/571
             case "S2658":
                 return 470; // Use of Externally-Controlled Input to Select Classes or Code ('Unsafe
                 // Reflection')
-            case "S2677":
-                return CweNumber.DONTCARE; // "read" and "readLine" return values should be used
+            case "S2677": // "read" and "readLine" return values should be used
+                return 252; // CWE-252 Unchecked Return Value
             case "S2681":
-                return 483; // Multiline blocks should be enclosed in curly braces
+                return 483; // Multi-line blocks should be enclosed in curly braces
             case "S2696":
                 return CweNumber.DONTCARE; // Instance methods should not write to "static" fields
             case "S2755":
@@ -462,14 +447,14 @@ public class SonarQubeReader extends Reader {
                 // convention
             case "S3012":
                 return CweNumber.DONTCARE; // Arrays should not be copied using loops
+            case "S3329": // Use a Dynamically-generated, random Initialization Vector
+                return 1204; // CWE-1204 Generation of Weak Initialization Vector
             case "S3400":
                 return CweNumber.DONTCARE; // Methods should not return constants
-            case "S3518":
-                return 369; // Zero should not be a possible denominator
+            case "S3518": // Zero should not be a possible denominator
+                return 369; // CWE-369 Divide by Zero
             case "S3599":
                 return CweNumber.DONTCARE; // Double Brace Initialization should not be used
-            case "S3626":
-                return CweNumber.DONTCARE; // Jump statements should not be redundant
             case "S3649":
                 return CweNumber
                         .SQL_INJECTION; // Database queries should not be vulnerable to injection
@@ -518,6 +503,8 @@ public class SonarQubeReader extends Reader {
                 return CweNumber.WEAK_HASH_ALGO;
             case "S3330":
                 return CweNumber.COOKIE_WITHOUT_HTTPONLY;
+            case "S6437":
+                return 798; // CWE-798 Hard-Coded Credentials
 
             case "S1153":
             case "S2119":

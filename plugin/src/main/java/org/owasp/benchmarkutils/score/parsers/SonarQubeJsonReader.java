@@ -111,7 +111,7 @@ public class SonarQubeJsonReader extends Reader {
 
     // Quality Issues are normal SonarQube findings that are mostly not relevant to security
     // However, there are a small number of security issues that do show up this way so we have
-    // to support both
+    // to support both.
 
     /**
      * Parse the SonarQube Quality results to see if there is a finding in Benchmark test case.
@@ -124,7 +124,7 @@ public class SonarQubeJsonReader extends Reader {
         try {
             String filename = finding.getString("component");
             filename = filename.replaceAll("\\\\", "/");
-            filename = filename.substring(filename.lastIndexOf('/'));
+            filename = filename.substring(filename.lastIndexOf('/') + 1);
             if (isTestCaseFile(filename)) {
                 TestCaseResult tcr = new TestCaseResult();
                 tcr.setActualResultTestID(filename);
@@ -184,7 +184,7 @@ public class SonarQubeJsonReader extends Reader {
             filename =
                     filename.replaceAll(
                             "\\\\", "/"); // In case there are \ instead of / in the path
-            filename = filename.substring(filename.lastIndexOf('/'));
+            filename = filename.substring(filename.lastIndexOf('/') + 1);
             if (isTestCaseFile(filename)) {
                 TestCaseResult tcr = new TestCaseResult();
                 tcr.setActualResultTestID(filename);
@@ -227,36 +227,51 @@ public class SonarQubeJsonReader extends Reader {
                         .equals(message)
                 || "Ensure that string concatenation is required and safe for this SQL query."
                         .equals(message)
-                || "Make sure using a dynamically formatted SQL query is safe here.".equals(message)
+                || "Make sure creating this cookie without the \"HttpOnly\" flag is safe."
+                        .equals(message)
                 || "Make sure creating this cookie without the \"secure\" flag is safe here."
                         .equals(message)
+                || "Make sure creating this cookie without setting the 'Secure' property is safe here."
+                        .equals(message)
+                || "Make sure publicly writable directories are used safely here.".equals(message)
                 || "Make sure that hashing data is safe here.".equals(message)
+                || "Make sure the \"PATH\" variable only contains fixed, unwriteable directories."
+                        .equals(message)
+                || "Make sure this debug feature is deactivated before delivering the code in production."
+                        .equals(message)
                 || "Make sure this weak hash algorithm is not used in a sensitive context here."
                         .equals(message)
-                || "Make sure creating this cookie without the \"HttpOnly\" flag is safe."
-                        .equals(message))) {
+                || "Make sure using a dynamically formatted SQL query is safe here.".equals(message)
+                || message.startsWith("Make sure using this hardcoded IP address ")
+                || message.contains("hard-coded credential")
+                || message.contains("hard-coded password"))) {
             System.out.println(
-                    "WARN: Found new SonarQube HotSpot rule not seen before. Category: "
+                    "WARN: Found new SonarQube HotSpot rule not seen before. Category: '"
                             + secCat
-                            + " with message: '"
+                            + "' with message: '"
                             + message
                             + "'");
         }
 
         switch (secCat) {
-            case "sql-injection":
-                // "Ensure that string concatenation is required and safe for this SQL query."
-                return CweNumber.SQL_INJECTION;
+            case "auth":
+                {
+                    if (message != null) {
+                        if (message.contains("hard-coded password")
+                                || message.contains("hard-coded credential"))
+                            return 798; // CWE-798 Hard Coded Credentials
+                        System.out.println(
+                                "WARN: Unmapped SonarQube security category: 'auth' with message: '"
+                                        + message
+                                        + "'");
+                    }
+                }
             case "insecure-conf":
                 // "Make sure creating this cookie without the \"secure\" flag is safe here."
                 return CweNumber.INSECURE_COOKIE;
-            case "xss":
-                {
-                    // "Make sure creating this cookie without the \"HttpOnly\" flag is safe."
-                    if (message != null && message.contains("HttpOnly"))
-                        return CweNumber.COOKIE_WITHOUT_HTTPONLY;
-                    else return CweNumber.XSS; // Actual XSS CWE
-                }
+            case "sql-injection":
+                // "Ensure that string concatenation is required and safe for this SQL query."
+                return CweNumber.SQL_INJECTION;
             case "weak-cryptography":
                 {
                     // "Make sure that using this pseudorandom number generator is safe here."
@@ -269,13 +284,32 @@ public class SonarQubeJsonReader extends Reader {
                         // case.
                     } else return CweNumber.WEAK_CRYPTO_ALGO; // Actual Weak Crypto CWE
                 }
+            case "xss":
+                {
+                    // "Make sure creating this cookie without the \"HttpOnly\" flag is safe."
+                    if (message != null && message.contains("HttpOnly"))
+                        return CweNumber.COOKIE_WITHOUT_HTTPONLY;
+                    else return CweNumber.XSS; // Actual XSS CWE
+                }
             case "others":
                 {
-                    if (message != null
-                            && message.equals(
-                                    "Make sure this weak hash algorithm is not used in a sensitive context here.")) {
-                        return CweNumber.WEAK_HASH_ALGO;
+                    if (message != null) {
+                        if (message.equals(
+                                "Make sure this weak hash algorithm is not used in a sensitive context here."))
+                            return CweNumber.WEAK_HASH_ALGO;
+                        else if (message.equals(
+                                "Make sure creating this cookie without the \"HttpOnly\" flag is safe."))
+                            return CweNumber.COOKIE_WITHOUT_HTTPONLY;
+                        else if (message.equals(
+                                        "Make sure publicly writable directories are used safely here.")
+                                || message.equals(
+                                        "Make sure the \"PATH\" variable only contains fixed, unwriteable directories.")
+                                // e.g., Make sure using this hardcoded IP address '10.10.1.10' is
+                                // safe here
+                                || message.startsWith("Make sure using this hardcoded IP address "))
+                            return CweNumber.DONTCARE;
                     }
+
                     // Otherwise deliberately drop through to default error message.
                 }
             default:

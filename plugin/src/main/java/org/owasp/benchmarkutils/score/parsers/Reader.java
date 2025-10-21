@@ -206,6 +206,14 @@ public abstract class Reader {
         return results;
     }
 
+    /**
+     * Returns the specified attribute value if the Node is not null and that attribute exists in
+     * that node.
+     *
+     * @param name Attribute to get value of
+     * @param node Node to get attribute from
+     * @return Attribute value if it exists, or null if node or attribute doesn't exist
+     */
     public static String getAttributeValue(String name, Node node) {
         if (node == null) return null;
         NamedNodeMap nnm = node.getAttributes();
