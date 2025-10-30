@@ -30,6 +30,7 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.parsers.csv.SemgrepCSVReader;
 import org.owasp.benchmarkutils.score.parsers.csv.WhiteHatDynamicReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.BanditReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.CodeQLReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.ContrastScanReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.DatadogSastReader;
@@ -56,6 +57,7 @@ public abstract class Reader {
                 new AppScanDynamicReader(),
                 new AppScanSourceReader(),
                 new ArachniReader(),
+                new BanditReader(),
                 new BearerReader(),
                 new BlackDuckReader(),
                 new BurpJsonReader(),
