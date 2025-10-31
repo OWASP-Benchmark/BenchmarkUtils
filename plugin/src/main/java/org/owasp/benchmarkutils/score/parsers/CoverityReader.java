@@ -38,19 +38,14 @@ public class CoverityReader extends Reader {
         int version = obj.getInt("formatVersion");
 
         String key = version > 1 ? "issues" : "mergedIssues";
-        JSONArray arr = obj.getJSONArray(key);
+        JSONArray issuesArray = obj.getJSONArray(key);
 
         TestSuiteResults tr =
-                new TestSuiteResults(
-                        "Coverity Code Advisor",
-                        true,
-                        TestSuiteResults.ToolType
-                                .SAST); // Coverity is called Code Advisor or Code Advisor On Demand
-        // Fixme: See if we can figure this out from some of the files they provide
+                new TestSuiteResults("Coverity", true, TestSuiteResults.ToolType.SAST);
         tr.setTime(resultFile.file());
 
-        for (int i = 0; i < arr.length(); i++) {
-            TestCaseResult tcr = parseCoverityFinding(arr.getJSONObject(i), version);
+        for (int i = 0; i < issuesArray.length(); i++) {
+            TestCaseResult tcr = parseCoverityFinding(issuesArray.getJSONObject(i), version);
             if (tcr != null) {
                 tr.put(tcr);
             }
@@ -171,6 +166,10 @@ public class CoverityReader extends Reader {
                     cwe_string = "89";
                 } else if (checker_name.equals("ldap_injection")) {
                     cwe_string = "90";
+                } else {
+                    System.out.println(
+                            "WARNING: In parseCoverityFindingV2(), identified unmapped Coverity checker named: "
+                                    + checker_name);
                 }
                 int cwe = fixCWE(cwe_string);
                 if (cwe <= 0) {

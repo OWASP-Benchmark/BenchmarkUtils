@@ -377,6 +377,9 @@ public class CppcheckXMLReader extends Reader {
                 // subtraction can not overflow: FOO
                 return 119; // CWE-119 Improper Restriction of Operations within Bounds of Memory
                 // Buffer
+            case "premium-bughuntingIteratorIncrement": // Iterator increment/decrement: 'i++' is
+                // not checked for bounds
+                return 606; // Unchecked Input for Loop Condition
             case "premium-bughuntingUninit": // Cannot determine that 'FOO' is initialized
             case "premium-bughuntingUninitNonConstArg": // Cannot determine that 'FOO' is
                 // initialized (since function parameter is not 'const' it is assumed it points at

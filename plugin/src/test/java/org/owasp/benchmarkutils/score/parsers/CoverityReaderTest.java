@@ -54,7 +54,7 @@ public class CoverityReaderTest extends ReaderTestBase {
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("Coverity Code Advisor", result.getToolName());
+        assertEquals("Coverity", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
@@ -69,7 +69,7 @@ public class CoverityReaderTest extends ReaderTestBase {
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("Coverity Code Advisor", result.getToolName());
+        assertEquals("Coverity", result.getToolName());
 
         assertEquals(2, result.getTotalResults());
 
