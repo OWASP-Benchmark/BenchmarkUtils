@@ -21,6 +21,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.contrastsecurity</groupId>
+            <artifactId>java-sarif</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <version>2.20</version>
@@ -49,6 +55,14 @@
             <artifactId>guava</artifactId>
             <version>33.5.0-jre</version>
         </dependency>
+
+        <!-- The following dependency might be an upgrade/replacement for jaxb.xml.bind.JAXBContext,
+            but it looks like it requires Java 11.
+            <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>4.0.0</version>
+            </dependency -->
 
         <dependency>
             <groupId>javax.xml.bind</groupId>
@@ -114,15 +128,7 @@
 
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
-            <artifactId>org.eclipse.persistence.core</artifactId>
-            <version>${version.eclipse.persistence}</version>
-        </dependency>
-
-        <!-- Version 3.0.2 gave a weird ClassCastException -->
-        <dependency>
-            <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.moxy</artifactId>
-            <version>${version.eclipse.persistence}</version>
         </dependency>
 
         <dependency>
@@ -143,27 +149,22 @@
             <version>2.5</version>
         </dependency>
 
-        <!-- The following dependency might be an upgrade/replacement for jaxb.xml.bind.JAXBContext,
-            but it looks like it requires Java 11.
-            <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>4.0.0</version>
-            </dependency -->
-
-        <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>2.0.1.Final</version>
-        </dependency>
-
         <dependency>
             <groupId>xml-apis</groupId>
             <artifactId>xml-apis</artifactId>
-            <!-- note that the 2.0.2 version is actually older -->
-            <version>1.4.01</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.json</groupId>
+            <artifactId>javax.json-api</artifactId>
+            <version>1.1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>1.1.4</version>
         </dependency>
 
+        <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
