@@ -160,6 +160,14 @@
         <shortname>SQLI</shortname>
     </category>
     <category>
+        <id>tempfile</id>
+        <name>Insecure Temporary File</name>
+        <cwe>377</cwe>
+        <childof>668</childof>
+        <parentof>378,379</parentof>
+        <shortname>TEMP</shortname>
+    </category>
+    <category>
         <id>trustbound</id>
         <name>Trust Boundary</name>
         <cwe>501</cwe>
