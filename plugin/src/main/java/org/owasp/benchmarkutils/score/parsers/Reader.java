@@ -146,8 +146,29 @@ public abstract class Reader {
     }
 
     /**
+     * Returns the node inside the List<Node> that has an attribute with name 'key' whose value
+     * matches 'keyvalue'
+     *
+     * @param key The name of the attribute to look for
+     * @param keyvalue The value of the key attribute to match against
+     * @param list The list of Nodes to search through
+     * @return The matching Node or null, of not a match.
+     */
+    public static Node getNodeWithMatchingKeyAndValue(
+            String key, String keyValue, List<Node> list) {
+        if ((key == null) || (keyValue == null) || (list == null)) return null;
+        for (int i = 0; i < list.size(); i++) {
+            Node n = list.get(i);
+            if (keyValue.equals(getAttributeValue(key, n))) {
+                return n;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns the node inside this nodelist whose name matches 'name', that also has an attribute
-     * called 'key' whose value matches 'keyvalue'
+     * called 'key' whose value matches 'keyvalue'.
      *
      * @param name The name of the node to get
      * @param keyvalue The name of the key attribute to match against
@@ -226,6 +247,24 @@ public abstract class Reader {
             }
         }
         return null;
+    }
+
+    /**
+     * This is a DEBUG method used to dump all the attribute names and values for the provided node.
+     * It prints all these values to the console.
+     *
+     * @param node
+     */
+    public static void printNodeAttributes(Node node) {
+        // DEBUG code that dumps all attributes for the supplied node
+        NamedNodeMap nnm = node.getAttributes();
+        if (nnm != null) {
+            System.err.println("DEBUG: Attributes of node: " + node.getNodeName());
+            for (int i = 0; i < nnm.getLength(); i++) {
+                Node attr = nnm.item(i);
+                System.err.println("DEBUG: " + attr.getNodeName() + ": " + attr.getNodeValue());
+            }
+        } else System.err.println("DEBUG: This node has NO attributes: " + node.getNodeName());
     }
 
     /**
