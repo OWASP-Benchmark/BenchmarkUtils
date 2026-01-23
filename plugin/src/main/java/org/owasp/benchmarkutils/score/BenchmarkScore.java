@@ -1049,7 +1049,10 @@ public class BenchmarkScore extends AbstractMojo {
                 html = html.replace("${testsuite}", BenchmarkScore.TESTSUITENAME.fullName());
                 String addCatalogGroupDetails = "";
                 if (CategoryGroups.isCategoryGroupsEnabled()) {
-                    addCatalogGroupDetails += (useCategoryGroups ? "CWE Group: " : "CWE: ");
+                    addCatalogGroupDetails +=
+                            (useCategoryGroups
+                                    ? "CWE Group: "
+                                    : "CWE-" + BenchmarkScore.translateNameToCWE(cat) + ": ");
                 }
                 String fullTitle =
                         BenchmarkScore.TESTSUITENAME.fullName()
@@ -1062,12 +1065,12 @@ public class BenchmarkScore extends AbstractMojo {
                 html =
                         html.replace(
                                 "${vulnerability}",
-                                cat
-                                        + (useCategoryGroups
+                                (useCategoryGroups
                                                 ? ""
-                                                : " (CWE #"
+                                                : "CWE-"
                                                         + BenchmarkScore.translateNameToCWE(cat)
-                                                        + ")"));
+                                                        + ": ")
+                                        + cat);
                 html = html.replace("${version}", TESTSUITEVERSION);
                 html = html.replace("${projectlink}", config.report.html.projectLinkEntry);
 
