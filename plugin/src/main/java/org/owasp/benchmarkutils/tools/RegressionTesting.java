@@ -400,11 +400,13 @@ public class RegressionTesting {
             // Count this as "declared unverifiable" and return
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(true);
+            uLogger.print("UNVERIFIABLE (declared): ");
+            printTestCaseDetailsAsText(result, uLogger);
         } else if (testCase.getAttackSuccessString() == null) {
             // Count this as "undeclared unverifiable" and return
             result.setUnverifiable(true);
             result.setDeclaredUnverifiable(false);
-            uLogger.print("UNVERIFIABLE: ");
+            uLogger.print("UNVERIFIABLE (undeclared): ");
             printTestCaseDetailsAsText(result, uLogger);
         }
 
