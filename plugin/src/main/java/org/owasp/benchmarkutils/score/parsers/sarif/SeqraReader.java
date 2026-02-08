@@ -18,7 +18,6 @@
 package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import org.owasp.benchmarkutils.score.CweNumber;
-import org.owasp.benchmarkutils.score.ResultFile;
 
 /**
  * This reader is made for Seqra, a security static analysis tool. It uses the SARIF file produced
@@ -28,11 +27,6 @@ public class SeqraReader extends SarifReader {
 
     public SeqraReader() {
         super("Seqra", false, CweSourceType.TAG);
-    }
-
-    @Override
-    public String toolName(ResultFile resultFile) {
-        return "Seqra";
     }
 
     /**
