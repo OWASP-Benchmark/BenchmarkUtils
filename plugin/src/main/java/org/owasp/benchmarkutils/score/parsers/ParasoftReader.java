@@ -870,8 +870,7 @@ public class ParasoftReader extends Reader {
                     returnValue = 369; // Divide by Zero
                     break;
                 case "CS.EXCEPT.RETHROW": // Avoid clearing stack trace while rethrowing exceptions
-                    // - FIXME (In 390, 396)
-                    returnValue = 390; // Detection of Error Condition Without Action
+                    returnValue = 703; // Improper Check or Handling of Exceptional Conditions
                     break;
                 case "EXCEPT.NCNRE": // Do not catch 'NullReferenceException'
                     returnValue = 395; // Don't catch NullPointerException
