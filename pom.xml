@@ -193,6 +193,10 @@
                             <rules>
                                 <enforceBytecodeVersion>
                                     <maxJdkVersion>${java.target}</maxJdkVersion>
+                                    <excludes>
+                                        <!-- exclude junit test dependencies from this check since they require Java 17 -->
+                                        <exclude>org.junit.*:*</exclude>
+                                    </excludes>
                                     <message>Dependencies shouldn't require Java 12+.</message>
                                 </enforceBytecodeVersion>
                             </rules>
