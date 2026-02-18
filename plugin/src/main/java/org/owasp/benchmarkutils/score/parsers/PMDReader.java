@@ -146,6 +146,7 @@ public class PMDReader extends Reader {
             case "MethodNamingConventions":
             case "MissingOverride":
             case "MissingSerialVersionUID":
+            case "ModifierOrder":
             case "MoreThanOneLogger":
             case "NcssCount": // Generates non-commenting source statements (NCSS) metrics
             case "NonThreadSafeSingleton":
@@ -156,6 +157,7 @@ public class PMDReader extends Reader {
             case "PackageCase":
             case "PrematureDeclaration":
             case "RedundantFieldInitializer":
+            case "RelianceOnDefaultCharset":
             case "ReplaceHashtableWithMap":
             case "ReplaceVectorWithList":
             case "ShortClassName":
@@ -192,6 +194,7 @@ public class PMDReader extends Reader {
             case "UseUnderscoresInNumericLiterals":
             case "UseUtilityClass":
             case "UseVarargs":
+            case "VariableCanBeInlined":
             case "VariableNamingConventions": // Deprecated PMD rule, replaced w/ 3x more specific
                 // rules
                 return CweNumber.DONTCARE;
@@ -247,6 +250,10 @@ public class PMDReader extends Reader {
             case "NULL_DEREFERENCE": // FbInfer Additional rule
             case "PositionLiteralsFirstInComparisons": // Replaced by LiteralsFirstInComparisons
                 return 476; // NULL Pointer Dereference
+
+            case "ReplaceJavaUtilCalendar":
+            case "ReplaceJavaUtilDate":
+                return 477; // Use of Obsolete Function
 
             case "NonExhaustiveSwitch":
             case "SwitchStmtsShouldHaveDefault":
