@@ -48,12 +48,18 @@ import org.xml.sax.InputSource;
 @Mojo(name = "append-time", requiresProject = false, defaultPhase = LifecyclePhase.COMPILE)
 public class WriteTime extends AbstractMojo {
 
+    private static final String GENERIC_RESULTS_FILE_PREFIX = "Benchmark"; // Default value
+    private static final String CSV_TIMES_FILE = "out.csv";
+    private static final String FINDBUGS_FILE = "target/findbugsXml.xml";
+    private static final String PMD_FILE = "target/pmd.xml";
+    private static final String SPOTBUGS_FILE = "target/spotbugsXml.xml";
+
     @Parameter(property = "toolName")
     String toolName;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (null == toolName) {
-            System.out.println("ERROR: A 'toolName' value must be specified.");
+            System.err.println("ERROR: A 'toolName' value must be specified.");
         } else {
             String[] mainArgs = {toolName};
             main(mainArgs);
@@ -83,10 +89,8 @@ public class WriteTime extends AbstractMojo {
                             + "Currently supported: PMD (pmd), FindBugs (findbugs), FindSecBugs (findsecbugs), and SpotBugs (spotbugs).");
         } else toolName = args[0];
 
-        WriteFiles wf = new WriteFiles();
-
         switch (toolName.toLowerCase()) {
-            case "crawler": // TODO: Is this actually used?
+            case "crawler":
                 csvToolName = "exec-maven-plugin:java";
                 break;
             case "findbugs":
@@ -111,31 +115,25 @@ public class WriteTime extends AbstractMojo {
         PropertiesManager propM =
                 new PropertiesManager("src/main/resources", "benchmark.properties");
 
-        propM.saveProperty(toolName, wf.getToolTime(csvToolName));
+        propM.saveProperty(toolName, getToolTime(csvToolName));
 
-        wf.deletePreviousResults(
-                toolName,
-                wf.getVersionNumber(toolName),
-                propM.getProperty("testsuite-version", ""));
+        String resultsFilePrefix =
+                propM.getProperty("resultsfile-prefix", GENERIC_RESULTS_FILE_PREFIX);
+        String testSuiteVersion = propM.getProperty("testsuite-version", "");
+        if (testSuiteVersion.length() != 0) testSuiteVersion = "_" + testSuiteVersion;
 
-        wf.resultsFileName(
+        deletePreviousResults(
+                resultsFilePrefix, toolName, getVersionNumber(toolName), testSuiteVersion);
+
+        resultsFileName(
+                resultsFilePrefix,
                 toolName,
-                propM.getProperty("testsuite-version", ""),
+                testSuiteVersion,
                 propM.getProperty(toolName, ""),
-                wf.getVersionNumber(toolName));
+                getVersionNumber(toolName));
     }
-}
 
-// TODO: Do we really need an inner class here? Seems unnecessary.
-class WriteFiles {
-    private static final String CSV_TIMES_FILE = "out.csv";
-    // TODO: Make GENERIC_FILE Match name of test suite, rather than hardcoded
-    private static final String GENERIC_RESULTS_FILE_PREFIX = "Benchmark_";
-    private static final String FINDBUGS_FILE = "target/findbugsXml.xml";
-    private static final String PMD_FILE = "target/pmd.xml";
-    private static final String SPOTBUGS_FILE = "target/spotbugsXml.xml";
-
-    String getVersionNumber(String toolName) {
+    private static String getVersionNumber(String toolName) {
         try {
             DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
             // Prevent XXE
@@ -148,7 +146,7 @@ class WriteFiles {
 
             File findbugsFile = new File(FINDBUGS_FILE); // default
 
-            switch (toolName) {
+            switch (toolName.toLowerCase()) {
                 case "spotbugs":
                     findbugsFile = new File(SPOTBUGS_FILE);
                     // fall through, on purpose.
@@ -158,7 +156,7 @@ class WriteFiles {
                     root = doc.getDocumentElement();
                     return Reader.getAttributeValue("version", root);
                 case "findsecbugs":
-                    return WriteFiles.getLine(new File("pom.xml"), "findsecbugs-plugin", true)
+                    return getLine(new File("pom.xml"), "findsecbugs-plugin", true)
                             .trim()
                             .replace("<version>", "")
                             .replace("</version>", "");
@@ -178,7 +176,7 @@ class WriteFiles {
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line = "";
-            while (line.equals("")) {
+            while ("".equals(line)) {
                 line = br.readLine();
                 if (line.contains(toFind)) {
                     if (nextLine) return br.readLine();
@@ -207,8 +205,12 @@ class WriteFiles {
         }
     }*/
 
-    void deletePreviousResults(String toolName, String toolVersion, String testSuiteVersion) {
-        if (!toolName.equals("")) {
+    static void deletePreviousResults(
+            String resultsFilePrefix,
+            String toolName,
+            String toolVersion,
+            String testSuiteVersion) {
+        if (!"".equals(toolName)) {
             File targetDir = new File("results/");
             if (targetDir.exists()) {
                 File[] files = targetDir.listFiles();
@@ -216,7 +218,7 @@ class WriteFiles {
                     if (file.isFile()
                             && (file.getName()
                                             .startsWith(
-                                                    GENERIC_RESULTS_FILE_PREFIX
+                                                    resultsFilePrefix
                                                             + testSuiteVersion
                                                             + "-"
                                                             + toolName
@@ -231,10 +233,15 @@ class WriteFiles {
         }
     }
 
-    void resultsFileName(String tool, String testSuiteVersion, String times, String toolVersion) {
+    static void resultsFileName(
+            String resultsFilePrefix,
+            String tool,
+            String testSuiteVersion,
+            String times,
+            String toolVersion) {
         String name =
                 "results/"
-                        + GENERIC_RESULTS_FILE_PREFIX
+                        + resultsFilePrefix
                         + testSuiteVersion
                         + "-"
                         + tool
@@ -250,7 +257,7 @@ class WriteFiles {
             targetDir.mkdir();
         }
 
-        switch (tool) {
+        switch (tool.toLowerCase()) {
             case "findbugs":
                 file = new File(FINDBUGS_FILE);
                 if (file.exists()) {
@@ -276,7 +283,7 @@ class WriteFiles {
                                 "results/"
                                         + findFile(
                                                 "results",
-                                                GENERIC_RESULTS_FILE_PREFIX
+                                                resultsFilePrefix
                                                         + testSuiteVersion
                                                         + "-Contrast"));
                 if (file.exists()) {
@@ -296,7 +303,7 @@ class WriteFiles {
      * @param toolName - The name of the tool to get the time value for.
      * @return The time, in seconds, as a String.
      */
-    String getToolTime(String toolName) {
+    static String getToolTime(String toolName) {
 
         /*
          * The file being parsed looks like:
@@ -329,7 +336,7 @@ class WriteFiles {
      * @param name - The name to look for
      * @return - The first file found starting with that name, if it exists.
      */
-    private String findFile(String path, String name) {
+    private static String findFile(String path, String name) {
         File[] listOfFiles = new File(path).listFiles();
         if (listOfFiles == null)
             System.out.println("Specified path is not an existing directory: " + path);
