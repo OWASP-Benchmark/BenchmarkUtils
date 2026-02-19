@@ -3,7 +3,7 @@
  *
  * <p>This file is part of the Open Web Application Security Project (OWASP) Benchmark Project For
  * details, please see <a
- * href="https://owasp.org/www-project-benchmark/">https:/owasp.org/www-project-benchmark/</a>.
+ * href="https://owasp.org/www-project-benchmark/">https://owasp.org/www-project-benchmark/</a>.
  *
  * <p>The OWASP Benchmark is free software: you can redistribute it and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -13,13 +13,23 @@
  * PURPOSE. See the GNU General Public License for more details.
  *
  * @author David Anderson
- * @created 2021
+ * @created 2024
  */
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.entities;
 
-import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlDiscriminatorValue("SERVLET")
-public class ServletTestCase extends TestCase {
-    public ServletTestCase() {}
+@XmlRootElement
+public class VerifyFixesOutput {
+    private List<VerifyFixOutput> list = new ArrayList<>();
+
+    public List getList() {
+        return this.list;
+    }
+
+    public void setList(List list) {
+        this.list = list;
+    }
 }
