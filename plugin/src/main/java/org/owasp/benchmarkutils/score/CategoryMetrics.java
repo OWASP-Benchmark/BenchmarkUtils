@@ -28,7 +28,7 @@ public class CategoryMetrics {
     public final double score;
 
     /**
-     * The overall metrics for a single vulnerability category for a single tool. F-score and score
+     * The overall metrics for a single vulnerability category for a single tool. F-Score and score
      * are automatically calculated for these results when this is created.
      *
      * @param category - The vulnerability category.

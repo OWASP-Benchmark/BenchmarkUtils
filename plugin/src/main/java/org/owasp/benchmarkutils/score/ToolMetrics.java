@@ -109,10 +109,10 @@ public class ToolMetrics {
     }
 
     /**
-     * Returns the overall F-score for this tool. Calculated as: 2 * precision * TPR / (Precision +
+     * Returns the overall F-Score for this tool. Calculated as: 2 * precision * TPR / (Precision +
      * TPR)
      *
-     * @return This tool's overall F-score.
+     * @return This tool's overall F-Score.
      */
     public double getFScore() {
         return this.FScore;
@@ -127,9 +127,9 @@ public class ToolMetrics {
         return this.precision;
     }
 
-    /** Sets the overall precision for this tool, and updates F-score. */
+    /** Sets the overall precision for this tool, and updates F-Score. */
     public void setPrecision(double precision) {
-        // Update the F-score since it depends on precision and TPR.
+        // Update the F-Score since it depends on precision and TPR.
         double fscore = 2 * precision * this.TPRate / (precision + this.TPRate);
         if (Double.isNaN(fscore)) {
             this.FScore = 0.0;
@@ -147,13 +147,13 @@ public class ToolMetrics {
     }
 
     /**
-     * Sets the overall true positive rate for this tool, updates F-score, and updates overall
+     * Sets the overall true positive rate for this tool, updates F-Score, and updates overall
      * score.
      *
      * @param rate The true positive rate
      */
     public void setTruePositiveRate(double rate) {
-        // Update the F-score since it depends on precision and TPR.
+        // Update the F-Score since it depends on precision and TPR.
         double fscore = 2 * this.precision * rate / (this.precision + rate);
         if (Double.isNaN(fscore)) {
             this.FScore = 0.0;

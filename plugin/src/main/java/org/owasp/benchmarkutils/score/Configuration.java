@@ -248,7 +248,7 @@ public class Configuration {
             public final String precisionKeyEntry;
 
             /**
-             * Key Entry for F-score, which is added to the Key for tables that also include
+             * Key Entry for F-Score, which is added to the Key for tables that also include
              * Precision. Is empty if includePrecision is set to false via config
              */
             public final String fsCoreEntry;
@@ -266,8 +266,8 @@ public class Configuration {
 
             private static final String DEFAULT_FS_CORE_ENTRY =
                     "<tr>\n"
-                            + "                    <th>F-score = 2 * Precision * Recall / (Precision + Recall)</th>\n"
-                            + "                    <td>The harmonic mean of the precision and recall. A value of 1.0 indicates perfect precision and recall. Defined at <a href=\"https://en.wikipedia.org/wiki/F-score\">Wikipedia</a>.</td>\n"
+                            + "                    <th>F-Score = 2 * Precision * Recall / (Precision + Recall)</th>\n"
+                            + "                    <td>The harmonic mean of the precision and recall. A value of 1.0 indicates perfect precision and recall. Defined at <a href=\"https://en.wikipedia.org/wiki/F-Score\">Wikipedia</a>.</td>\n"
                             + "                </tr>\n";
 
             public Html(Map<String, Object> yamlConfig) {

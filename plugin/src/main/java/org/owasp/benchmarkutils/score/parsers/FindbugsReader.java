@@ -96,7 +96,7 @@ public class FindbugsReader extends Reader {
         }
 
         // change the name of the tool if the filename contains findsecbugs
-        if (resultFile.filename().contains("findsecbugs")) {
+        if (resultFile.filename().toLowerCase().contains("findsecbugs")) {
             if (tr.getToolName().startsWith("Find")) {
                 if (hasFbContribPlugin) tr.setTool("FBwFindSecBugs_wFb-contrib");
                 else tr.setTool("FBwFindSecBugs");
@@ -268,6 +268,8 @@ public class FindbugsReader extends Reader {
                 return 235; // HTTP Parameter Pollution (HPP)
             case "IMPROPER_UNICODE":
                 return 176; // Improper Handling of Unicode Encoding
+
+            case "SPP_FIELD_COULD_BE_STATIC": // In category 'CORRECTNESS'
             case "WEAK_FILENAMEUTILS":
                 return CweNumber.DONTCARE; // i.e., not filtering out Null bytes in file names
 

@@ -225,7 +225,7 @@ public class ConfigurationTest {
         assertTrue(config.report.html.precisionKeyEntry.contains("Precision = TP / ( TP + FP )"));
         assertTrue(
                 config.report.html.fsCoreEntry.contains(
-                        "F-score = 2 * Precision * Recall / (Precision + Recall)"));
+                        "F-Score = 2 * Precision * Recall / (Precision + Recall)"));
     }
 
     @Test

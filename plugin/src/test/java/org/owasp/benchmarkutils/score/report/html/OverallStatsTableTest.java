@@ -311,7 +311,7 @@ class OverallStatsTableTest {
 
         String actual = table.generateFor(asSet(firstTool, secondTool));
 
-        assertTrue(actual.contains("<th>Precision*</th><th>F-score*</th>"));
+        assertTrue(actual.contains("<th>Precision*</th><th>F-Score*</th>"));
         assertTrue(
                 actual.contains("<td>Tool A v1.0</td><td>SAST</td><td>12.35%</td><td>0.2099</td>"));
         assertTrue(

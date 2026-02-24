@@ -73,7 +73,7 @@ public class OverallStatsTable {
 
         if (config.includePrecision) {
             htmlBuilder.th("Precision*");
-            htmlBuilder.th("F-score*");
+            htmlBuilder.th("F-Score*");
         }
 
         htmlBuilder.th("${tprlabel}*");

@@ -151,6 +151,7 @@ public class SemgrepReader extends Reader {
             case 477: // Use of Obsolete Function
             case 489: // Active Debug Code
             case 502: // Deserialization of Untrusted Data
+            case 509: // Replicating Malicious Code (Virus or Worm)
             case 521: // Weak Password Requirements
             case 522: // Insufficiently Protected Credentials
             case 523: // Unprotected Transport of Credentials

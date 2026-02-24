@@ -141,7 +141,7 @@ public class ToolReport implements ToolReportProvider {
         sb.append("<th>TN</th>");
         sb.append("<th>FP</th>");
         sb.append("<th>Total</th>");
-        if (BenchmarkScore.config.includePrecision) sb.append("<th>Precision</th><th>F-score</th>");
+        if (BenchmarkScore.config.includePrecision) sb.append("<th>Precision</th><th>F-Score</th>");
         sb.append("<th>${tprlabel}</th>");
         sb.append("<th>FPR</th>");
         sb.append("<th>Score</th>");
@@ -243,7 +243,7 @@ public class ToolReport implements ToolReportProvider {
 
                 // default value hard spaces equal to triangle width
                 String fscoreBonus = "&nbsp;&nbsp;&nbsp;&nbsp;";
-                // FIXME: Fix F-score calculations so they are the same units
+                // FIXME: Fix F-Score calculations so they are the same units
                 double fscoreDiff = 100 * categoryMetrics.fscore - currentCategoryMetrics.fscore;
                 if (fscoreDiff >= 5) fscoreBonus = "<span style=\"color: green\">&#9650;</span>";
                 else if (fscoreDiff <= -5) {
@@ -351,7 +351,7 @@ public class ToolReport implements ToolReportProvider {
                 "<p>*-The Overall Results are averages across all the specified categories. "
                         + " You can't compute these averages by simply calculating the"
                         + (BenchmarkScore.config.includePrecision
-                                ? " Precision, F-score, Recall (TPR),"
+                                ? " Precision, F-Score, Recall (TPR),"
                                 : " TPR")
                         + " and FPR rates using"
                         + " the values in the Totals row. If you did that, categories with larger number of tests would carry "

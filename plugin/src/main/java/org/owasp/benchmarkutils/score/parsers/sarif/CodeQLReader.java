@@ -79,6 +79,16 @@ public class CodeQLReader extends SarifReader {
             // Do nothing it if can't be found.
         }
 
+        // Check to see if the extended ruleset is being used and if so, add '_extended' to version
+        // name
+        // NOTE: This is VERY BRITTLE. We check for the presence of TWO Java specific rules that are
+        // currently in the extended ruleset but not in the default. If they are both there, we add
+        // _extended
+        if (resultFile.content().contains("trust-boundary")
+                && resultFile.content().contains("toctou-race-condition")) {
+            version += "_extended";
+        }
+
         testSuiteResults.setToolVersion(version);
     }
 }
