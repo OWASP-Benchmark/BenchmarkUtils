@@ -64,6 +64,9 @@ public class CweNumber {
     /** CWE-134: Use of Externally-Controlled Format String */
     public static final int EXTERNALLY_CONTROLLED_STRING = 134;
 
+    /** CWE-200: Missing Referrer Policy Header */
+    public static final int MISSING_REFERRER_POLICY_HEADER = 200;
+
     /** CWE-284: Improper Access Control */
     public static final int IMPROPER_ACCESS_CONTROL = 284;
 
