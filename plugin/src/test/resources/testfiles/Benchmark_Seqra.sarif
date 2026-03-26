@@ -1,0 +1,306 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Seqra",
+          "organization": "Seqra",
+          "semanticVersion": "v2.2.0",
+          "rules": [
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "fullDescription": {
+                "markdown": "Detected SHA1 hash algorithm which is considered insecure. SHA1 is not collision resistant and is therefore not suitable as a cryptographic signature. Instead, use PBKDF2 for password hashing or SHA256 or SHA512 for other hash function applications.",
+                "text": "Detected SHA1 hash algorithm which is considered insecure. SHA1 is not collision resistant and is therefore not suitable as a cryptographic signature. Instead, use PBKDF2 for password hashing or SHA256 or SHA512 for other hash function applications."
+              },
+              "id": "java.security.use-of-sha1",
+              "name": "java.security.use-of-sha1",
+              "properties": {
+                "tags": [
+                  "CWE-328"
+                ]
+              },
+              "shortDescription": {
+                "text": "SHA1 is not collision resistant and is therefore not suitable as a cryptographic signature"
+              }
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "fullDescription": {
+                "markdown": "Default session middleware settings: `setSecure` not set to true. This ensures that the cookie is sent only over HTTPS to prevent cross-site scripting attacks.",
+                "text": "Default session middleware settings: `setSecure` not set to true. This ensures that the cookie is sent only over HTTPS to prevent cross-site scripting attacks."
+              },
+              "id": "java.security.cookie-issecure-false",
+              "name": "java.security.cookie-issecure-false",
+              "properties": {
+                "tags": [
+                  "CWE-319",
+                  "CWE-614"
+                ]
+              },
+              "shortDescription": {
+                "text": "Cleartext transmission of sensitive cookie value"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "executionOrder": 0,
+                      "kinds": [
+                        "taint"
+                      ],
+                      "location": {
+                        "logicalLocations": [
+                          {
+                            "decoratedName": "(id:69)org.owasp.benchmark.testcode.BenchmarkTest02670#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse):12:(md = java.security.MessageDigest.getInstance(\"SHA1\", \"SUN\"))",
+                            "fullyQualifiedName": "org.owasp.benchmark.testcode.BenchmarkTest02670#doPost"
+                          }
+                        ],
+                        "message": {
+                          "text": "Call to \"getInstance\" puts marked data to \"md\""
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest02670.java",
+                            "uriBaseId": "%SRCROOT%"
+                          },
+                          "region": {
+                            "endColumn": 75,
+                            "endLine": 57,
+                            "startColumn": 17,
+                            "startLine": 57
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "executionOrder": 1,
+                      "kinds": [
+                        "taint"
+                      ],
+                      "location": {
+                        "logicalLocations": [
+                          {
+                            "decoratedName": "(id:69)org.owasp.benchmark.testcode.BenchmarkTest02670#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse):34:(result = %14.digest())",
+                            "fullyQualifiedName": "org.owasp.benchmark.testcode.BenchmarkTest02670#doPost"
+                          }
+                        ],
+                        "message": {
+                          "text": "Detected SHA1 hash algorithm which is considered insecure. SHA1 is not collision resistant and is therefore not suitable as a cryptographic signature. Instead, use PBKDF2 for password hashing or SHA256 or SHA512 for other hash function applications."
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest02670.java",
+                            "uriBaseId": "%SRCROOT%"
+                          },
+                          "region": {
+                            "endColumn": 39,
+                            "endLine": 75,
+                            "startColumn": 13,
+                            "startLine": 75
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "decoratedName": "(id:69)org.owasp.benchmark.testcode.BenchmarkTest02670#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse):34:(result = %14.digest())",
+                  "fullyQualifiedName": "org.owasp.benchmark.testcode.BenchmarkTest02670#doPost"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest02670.java",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "endColumn": 39,
+                  "endLine": 75,
+                  "startColumn": 13,
+                  "startLine": 75
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Detected SHA1 hash algorithm which is considered insecure. SHA1 is not collision resistant and is therefore not suitable as a cryptographic signature. Instead, use PBKDF2 for password hashing or SHA256 or SHA512 for other hash function applications."
+          },
+          "partialFingerprints": {
+            "vulnerabilityWithTraceHash/v1": "tfBwQtesKkMFhW295OGNEEh/V97jj1YDkiI3YLQh794="
+          },
+          "relatedLocations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "POST /hash-02/BenchmarkTest02670",
+                  "index": 0,
+                  "kind": "function",
+                  "name": "org.owasp.benchmark.testcode.BenchmarkTest02670#doPost"
+                }
+              ],
+              "message": {
+                "text": "Related Spring controller"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest02670.java",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 41
+                }
+              }
+            }
+          ],
+          "ruleId": "java.security.use-of-sha1"
+        },
+        {
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "executionOrder": 0,
+                      "kinds": [
+                        "taint"
+                      ],
+                      "location": {
+                        "logicalLocations": [
+                          {
+                            "decoratedName": "(id:69)org.owasp.benchmark.testcode.BenchmarkTest02710#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse):28:(cookie.<init>(\"SomeCookie\", str))",
+                            "fullyQualifiedName": "org.owasp.benchmark.testcode.BenchmarkTest02710#doPost"
+                          }
+                        ],
+                        "message": {
+                          "text": "Call to \"Cookie\" initializer puts $COOKIE data to \"cookie\""
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest02710.java",
+                            "uriBaseId": "%SRCROOT%"
+                          },
+                          "region": {
+                            "endColumn": 91,
+                            "endLine": 64,
+                            "startColumn": 9,
+                            "startLine": 64
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "executionOrder": 1,
+                      "kinds": [
+                        "taint"
+                      ],
+                      "location": {
+                        "logicalLocations": [
+                          {
+                            "decoratedName": "(id:69)org.owasp.benchmark.testcode.BenchmarkTest02710#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse):33:(response.addCookie(cookie))",
+                            "fullyQualifiedName": "org.owasp.benchmark.testcode.BenchmarkTest02710#doPost"
+                          }
+                        ],
+                        "message": {
+                          "text": "Default session middleware settings: `setSecure` not set to true. This ensures that the cookie is sent only over HTTPS to prevent cross-site scripting attacks."
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest02710.java",
+                            "uriBaseId": "%SRCROOT%"
+                          },
+                          "region": {
+                            "endColumn": 34,
+                            "endLine": 70,
+                            "startColumn": 9,
+                            "startLine": 70
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "decoratedName": "(id:69)org.owasp.benchmark.testcode.BenchmarkTest02710#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse):33:(response.addCookie(cookie))",
+                  "fullyQualifiedName": "org.owasp.benchmark.testcode.BenchmarkTest02710#doPost"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest02710.java",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "endColumn": 34,
+                  "endLine": 70,
+                  "startColumn": 9,
+                  "startLine": 70
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Default session middleware settings: `setSecure` not set to true. This ensures that the cookie is sent only over HTTPS to prevent cross-site scripting attacks."
+          },
+          "partialFingerprints": {
+            "vulnerabilityWithTraceHash/v1": "JXUVBFuoUt6kGO3e63JNgeg2K9+YxegTsw0mIuCu548="
+          },
+          "relatedLocations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "POST /securecookie-00/BenchmarkTest02710",
+                  "index": 0,
+                  "kind": "function",
+                  "name": "org.owasp.benchmark.testcode.BenchmarkTest02710#doPost"
+                }
+              ],
+              "message": {
+                "text": "Related Spring controller"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest02710.java",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 41
+                }
+              }
+            }
+          ],
+          "ruleId": "java.security.cookie-issecure-false"
+        }
+      ]
+    }
+  ]
+}
