@@ -78,7 +78,8 @@ public class HCLAppScanIASTReader extends Reader {
         vulnerabilityToCweNumber.put("attJavaDeserCodeExec", CweNumber.INSECURE_DESERIALIZATION);
         vulnerabilityToCweNumber.put("GV_JSONXSS", CweNumber.XSS);
         vulnerabilityToCweNumber.put("attRedirectInURL", CweNumber.OPEN_REDIRECT);
-        vulnerabilityToCweNumber.put("attReferrerPolicyHeaderExist", CweNumber.MISSING_REFERRER_POLICY_HEADER);
+        vulnerabilityToCweNumber.put("attReferrerPolicyHeaderExist", CweNumber.DONTCARE);
+        vulnerabilityToCweNumber.put("DetectedAPIs", CweNumber.DONTCARE);
     }
 
     @Override
