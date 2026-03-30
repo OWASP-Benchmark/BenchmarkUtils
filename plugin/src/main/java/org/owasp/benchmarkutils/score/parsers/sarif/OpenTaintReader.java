@@ -20,20 +20,20 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 import org.owasp.benchmarkutils.score.CweNumber;
 
 /**
- * This reader is made for Seqra, a security static analysis tool. It uses the SARIF file produced
- * by the tool.
+ * This reader is made for OpenTaint, a security static analysis tool. It uses the SARIF file
+ * produced by the tool.
  */
-public class SeqraReader extends SarifReader {
+public class OpenTaintReader extends SarifReader {
 
-    public SeqraReader() {
-        super("Seqra", false, CweSourceType.TAG);
+    public OpenTaintReader() {
+        super("OpenTaint", false, CweSourceType.TAG);
     }
 
     /**
-     * Maps Seqra CWE numbers to Benchmark expected CWEs.
+     * Maps OpenTaint CWE numbers to Benchmark expected CWEs.
      *
-     * <p>The SarifReader base class only uses the first CWE tag from each rule. Some Seqra rules
-     * have multiple CWE tags where the first one doesn't match Benchmark's expected CWE. This
+     * <p>The SarifReader base class only uses the first CWE tag from each rule. Some OpenTaint
+     * rules have multiple CWE tags where the first one doesn't match Benchmark's expected CWE. This
      * method provides ad-hoc mappings for such cases.
      *
      * <p>Example: The rule "java.security.cookie-issecure-false" has tags [CWE-319, CWE-614]. The

@@ -29,28 +29,28 @@ import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
 
-public class SeqraReaderTest extends ReaderTestBase {
+public class OpenTaintReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Seqra.sarif");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_OpenTaint.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlySeqraReaderTestReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, SeqraReader.class);
+    public void onlyOpenTaintReaderTestReportsCanReadAsTrue() {
+        assertOnlyMatcherClassIs(this.resultFile, OpenTaintReader.class);
     }
 
     @Test
     void readerHandlesGivenResultFile() throws Exception {
-        SeqraReader reader = new SeqraReader();
+        OpenTaintReader reader = new OpenTaintReader();
         TestSuiteResults result = reader.parse(resultFile);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
-        assertEquals("Seqra", result.getToolName());
+        assertEquals("OpenTaint", result.getToolName());
         assertEquals("v2.2.0", result.getToolVersion());
         assertFalse(result.isCommercial());
 
@@ -62,7 +62,7 @@ public class SeqraReaderTest extends ReaderTestBase {
 
     @Test
     void mapCweMapsInsecureCookieCwe() {
-        SeqraReader reader = new SeqraReader();
+        OpenTaintReader reader = new OpenTaintReader();
 
         // CWE-319 (Cleartext Transmission) should map to CWE-614 (Insecure Cookie)
         assertEquals(CweNumber.INSECURE_COOKIE, reader.mapCwe(319));

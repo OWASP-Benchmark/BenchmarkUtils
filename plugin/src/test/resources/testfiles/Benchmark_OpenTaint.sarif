@@ -5,9 +5,9 @@
     {
       "tool": {
         "driver": {
-          "name": "Seqra",
+          "name": "OpenTaint",
           "organization": "Seqra",
-          "semanticVersion": "v2.2.0",
+          "semanticVersion": "v0.1.0",
           "rules": [
             {
               "defaultConfiguration": {
