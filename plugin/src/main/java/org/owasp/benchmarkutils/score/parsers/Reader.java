@@ -38,6 +38,7 @@ import org.owasp.benchmarkutils.score.parsers.sarif.FortifySarifReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PTAIReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.SemgrepSarifReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.SiteShadowReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.SnykReader;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -106,6 +107,7 @@ public abstract class Reader {
                 new ShiftLeftReader(),
                 new ShiftLeftScanReader(),
                 new SnappyTickReader(),
+                new SiteShadowReader(),
                 new SnykReader(),
                 new SonarQubeJsonReader(),
                 new SonarQubeReader(),
