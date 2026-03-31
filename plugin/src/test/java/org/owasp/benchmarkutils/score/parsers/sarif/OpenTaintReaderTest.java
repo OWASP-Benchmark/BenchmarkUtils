@@ -51,7 +51,7 @@ public class OpenTaintReaderTest extends ReaderTestBase {
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertEquals("OpenTaint", result.getToolName());
-        assertEquals("v2.2.0", result.getToolVersion());
+        assertEquals("v0.1.0", result.getToolVersion());
         assertFalse(result.isCommercial());
 
         assertEquals(2, result.getTotalResults());
