@@ -15,7 +15,7 @@
  * @author Cognium Labs
  * @created 2026
  */
-package org.owasp.benchmarkutils.score.parsers.csv;
+package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,7 +35,7 @@ public class CogniumReaderTest extends ReaderTestBase {
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Cognium.csv");
+        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Cognium.sarif");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
@@ -51,11 +51,12 @@ public class CogniumReaderTest extends ReaderTestBase {
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertFalse(result.isCommercial());
-        assertEquals("Cognium", result.getToolName());
+        assertEquals("cognium", result.getToolName());
+        assertEquals("1.4.2", result.getToolVersion());
 
         assertEquals(2, result.getTotalResults());
 
-        assertEquals(CweNumber.COMMAND_INJECTION, result.get(1).get(0).getCWE());
-        assertEquals(CweNumber.XSS, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.XSS, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get(2).get(0).getCWE());
     }
 }
