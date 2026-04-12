@@ -31,10 +31,13 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 public class KlocworkCSVReaderTest extends ReaderTestBase {
 
     private ResultFile resultFile;
+    private ResultFile resultFileSvDataDb;
 
     @BeforeEach
     void setUp() {
         resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Klocwork.csv");
+        resultFileSvDataDb =
+                TestHelper.resultFileOf("testfiles/Benchmark_Klocwork_SV_DATA_DB.csv");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
@@ -56,5 +59,17 @@ public class KlocworkCSVReaderTest extends ReaderTestBase {
 
         assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.PATH_TRAVERSAL, result.get(2).get(0).getCWE());
+    }
+
+    @Test
+    void svDataDbMapsToSqlInjection() throws Exception {
+        KlocworkCSVReader reader = new KlocworkCSVReader();
+        TestSuiteResults result = reader.parse(resultFileSvDataDb);
+
+        assertEquals(1, result.getTotalResults(), "SV.DATA.DB finding should not be dropped");
+        assertEquals(
+                CweNumber.SQL_INJECTION,
+                result.get(3).get(0).getCWE(),
+                "SV.DATA.DB should map to SQL_INJECTION, not DONTCARE");
     }
 }

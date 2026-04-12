@@ -19,9 +19,11 @@ package org.owasp.benchmarkutils.score;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.security.SecureRandom;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,5 +110,23 @@ public class BenchmarkScoreTest {
                 () -> BenchmarkScore.loadConfigFromCommandLineArguments(new String[] {null, "b"}));
 
         expectUsageMessage();
+    }
+
+    @Test
+    void nextIntWithBoundAlwaysProducesValidIndex() throws Exception {
+        SecureRandom generator = SecureRandom.getInstance("SHA1PRNG");
+        int bound = 100;
+
+        for (int i = 0; i < 10000; i++) {
+            int index = generator.nextInt(bound);
+            assertTrue(index >= 0 && index < bound, "nextInt(bound) must be in [0, bound)");
+        }
+    }
+
+    @Test
+    void absOfMinValueOverflows() {
+        assertTrue(
+                Math.abs(Integer.MIN_VALUE) < 0,
+                "Math.abs(MIN_VALUE) is negative -- the old nextInt() * -1 pattern is unsafe");
     }
 }

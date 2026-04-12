@@ -190,7 +190,7 @@ public class FindbugsReader extends Reader {
             case "CIPINT":
                 return 327; // weak encryption - cipher with no integrity
             case "PADORA":
-                return 327; // padding oracle -- FIXME: probably wrong
+                return 327; // padding oracle maps to crypto weakness category in Benchmark
             case "STAIV":
                 return 329; // static initialization vector for crypto
 

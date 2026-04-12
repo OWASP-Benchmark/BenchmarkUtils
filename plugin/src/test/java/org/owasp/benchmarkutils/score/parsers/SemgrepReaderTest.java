@@ -32,6 +32,7 @@ public class SemgrepReaderTest extends ReaderTestBase {
 
     private ResultFile resultFileV65;
     private ResultFile resultFileV121;
+    private ResultFile resultFileCweMappings;
 
     @BeforeEach
     void setUp() {
@@ -39,6 +40,8 @@ public class SemgrepReaderTest extends ReaderTestBase {
         resultFileV121 =
                 TestHelper.resultFileWithoutLineBreaksOf(
                         "testfiles/Benchmark_semgrep-v0.121.0.json");
+        resultFileCweMappings =
+                TestHelper.resultFileOf("testfiles/Benchmark_semgrep-cwe-mappings.json");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
@@ -80,5 +83,62 @@ public class SemgrepReaderTest extends ReaderTestBase {
 
         assertEquals(CweNumber.COMMAND_INJECTION, result.get(3).get(0).getCWE());
         assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(4).get(0).getCWE());
+    }
+
+    @Test
+    void translateCwe77ReturnsCommandInjection() {
+        assertEquals(
+                CweNumber.COMMAND_INJECTION,
+                SemgrepReader.translate(77),
+                "CWE-77 (Command Injection parent) should map to 78 (COMMAND_INJECTION)");
+    }
+
+    @Test
+    void translateCwe780ReturnsWeakCrypto() {
+        assertEquals(
+                CweNumber.WEAK_CRYPTO_ALGO,
+                SemgrepReader.translate(780),
+                "CWE-780 (RSA without OAEP) should map to 327 (WEAK_CRYPTO_ALGO)");
+    }
+
+    @Test
+    void translateCwe943ReturnsSqlInjection() {
+        assertEquals(
+                CweNumber.SQL_INJECTION,
+                SemgrepReader.translate(943),
+                "CWE-943 (Data Query Injection) should map to 89 (SQL_INJECTION)");
+    }
+
+    @Test
+    void cwe77MapsToCommandInjectionEndToEnd() throws Exception {
+        SemgrepReader reader = new SemgrepReader();
+        TestSuiteResults result = reader.parse(resultFileCweMappings);
+
+        assertEquals(
+                CweNumber.COMMAND_INJECTION,
+                result.get(5).get(0).getCWE(),
+                "CWE-77 finding should produce COMMAND_INJECTION in parsed results");
+    }
+
+    @Test
+    void cwe780MapsToWeakCryptoEndToEnd() throws Exception {
+        SemgrepReader reader = new SemgrepReader();
+        TestSuiteResults result = reader.parse(resultFileCweMappings);
+
+        assertEquals(
+                CweNumber.WEAK_CRYPTO_ALGO,
+                result.get(6).get(0).getCWE(),
+                "CWE-780 finding should produce WEAK_CRYPTO_ALGO in parsed results");
+    }
+
+    @Test
+    void cwe943MapsToSqlInjectionEndToEnd() throws Exception {
+        SemgrepReader reader = new SemgrepReader();
+        TestSuiteResults result = reader.parse(resultFileCweMappings);
+
+        assertEquals(
+                CweNumber.SQL_INJECTION,
+                result.get(7).get(0).getCWE(),
+                "CWE-943 finding should produce SQL_INJECTION in parsed results");
     }
 }

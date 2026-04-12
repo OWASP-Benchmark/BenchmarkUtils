@@ -166,8 +166,8 @@ public class ToolReport implements ToolReportProvider {
                 CategoryResults currentCategoryResults = overallAveToolResults.get(categoryName);
                 // default value hard spaces equal to triangle width
                 String precisionBonus = "&nbsp;&nbsp;&nbsp;&nbsp;";
-                // r.precision has range 0-1, but currentCategoryResults.precision is 1 to 100.
-                // FIXME: Fix precision calculations so they are the same units
+                // r.precision is 0-1, currentCategoryResults.precision is 0-100 (both now
+                // consistent)
                 double precisionDiff = 100 * r.precision - currentCategoryResults.precision;
                 if (precisionDiff >= 5)
                     precisionBonus =
@@ -184,7 +184,7 @@ public class ToolReport implements ToolReportProvider {
 
                 // default value hard spaces equal to triangle width
                 String fscoreBonus = "&nbsp;&nbsp;&nbsp;&nbsp;";
-                // FIXME: Fix fscore calculations so they are the same units
+                // r.fscore is 0-1, currentCategoryResults.fscore is 0-100 (both now consistent)
                 double fscoreDiff = 100 * r.fscore - currentCategoryResults.fscore;
                 if (fscoreDiff >= 5) fscoreBonus = "<span style=\"color: green\">&#9650;</span>";
                 else if (fscoreDiff <= -5) {
@@ -198,7 +198,7 @@ public class ToolReport implements ToolReportProvider {
 
                 // default value hard spaces equal to triangle width
                 recallBonus = "&nbsp;&nbsp;&nbsp;&nbsp;";
-                // FIXME: Fix truePositiveRate calculations so they are the same units
+                // r.truePositiveRate is 0-1, currentCategoryResults.truePositiveRate is 0-100
                 double recallDiff =
                         100 * r.truePositiveRate - currentCategoryResults.truePositiveRate;
                 if (recallDiff >= 5) recallBonus = "<span style=\"color: green\">&#9650;</span>";

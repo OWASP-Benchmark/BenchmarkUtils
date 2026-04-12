@@ -1,0 +1,54 @@
+{
+  "errors": [],
+  "results": [
+    {
+      "check_id": "java.lang.security.audit.command-injection",
+      "path": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00005.java",
+      "start": {"line": 48, "col": 3},
+      "end": {"line": 62, "col": 4},
+      "extra": {
+        "message": "Command injection finding",
+        "metavars": {},
+        "metadata": {
+          "cwe": "CWE-77: Improper Neutralization of Special Elements used in a Command",
+          "owasp": "A1: Injection"
+        },
+        "severity": "WARNING",
+        "lines": "Runtime.exec(cmd)"
+      }
+    },
+    {
+      "check_id": "java.lang.security.audit.rsa-no-oaep",
+      "path": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00006.java",
+      "start": {"line": 48, "col": 3},
+      "end": {"line": 62, "col": 4},
+      "extra": {
+        "message": "RSA without OAEP finding",
+        "metavars": {},
+        "metadata": {
+          "cwe": "CWE-780: Use of RSA Algorithm without OAEP",
+          "owasp": "A3: Sensitive Data Exposure"
+        },
+        "severity": "WARNING",
+        "lines": "Cipher.getInstance(RSA)"
+      }
+    },
+    {
+      "check_id": "java.lang.security.audit.data-query-injection",
+      "path": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00007.java",
+      "start": {"line": 48, "col": 3},
+      "end": {"line": 62, "col": 4},
+      "extra": {
+        "message": "Data query injection finding",
+        "metavars": {},
+        "metadata": {
+          "cwe": "CWE-943: Improper Neutralization of Special Elements in Data Query Logic",
+          "owasp": "A1: Injection"
+        },
+        "severity": "WARNING",
+        "lines": "query.filter(input)"
+      }
+    }
+  ],
+  "version": "0.99.0"
+}

@@ -74,8 +74,8 @@ public class SemgrepReader extends Reader {
                 // Output Used by a Downstream Component ('Injection')
             case 75: // CWE vuln mapping DISCOURAGED: Failure to Sanitize Special Elements into a
                 // Different Plane (Special Element Injection)
-            case 77: // Improper Neutralization of Special Elements used in a Command ('Command
-                // Injection') - TODO: Map to Command Injection?
+            case 77:
+                return 78; // Command Injection parent CWE maps to Benchmark cmdi category
             case 91: // XML Injection (aka Blind XPath Injection)
             case 93: // Improper Neutralization of CRLF Sequences ('CRLF Injection')
             case 94: // Improper Control of Generation of Code ('Code Injection') - Reported when it
@@ -182,8 +182,8 @@ public class SemgrepReader extends Reader {
             case 776: // XEE: Improper Restriction of Recursive Entity References in DTDs ('XML
                 // Entity Expansion')
             case 778: // Insufficient Logging
-            case 780: // Use of RSA Algorithm without OAEP
-                // TODO: Map to Weak Crypto?
+            case 780:
+                return 327; // RSA without OAEP maps to Benchmark crypto category
             case 787: // Out of bounds Write
             case 798: // Use of Hard-coded Credentials
             case 837: // Improper Enforcement of a Single, Unique Action
@@ -197,16 +197,15 @@ public class SemgrepReader extends Reader {
             case 926: // Improper Export of Android Application Components
             case 939: // Improper Authorization in Handler for Custom URL Scheme
             case 942: // Permissive Cross-domain Policy with Untrusted Domains
-            case 943: // Improper Neutralization of Special Elements in Data Query Logic
-                // TODO: Map this as parent of for various Injection flaw CWEs in Benchmark
+            case 943:
+                return 89; // Data Query Logic injection maps to Benchmark sqli category
             case 1021: // TapJacking: Improper Restriction of Rendered UI Layers or Frames
             case 1104: // Use of Unmaintained Third Party Components
             case 1204: // Generation of Weak Initialization Vector (IV)
             case 1275: // Sensitive Cookie with Improper SameSite Attribute
             case 1323: // Improper Management of Sensitive Trace Data
             case 1333: // Inefficient Regular Expression Complexity (e.g., RegexDOS)
-            case 1336: // Improper Neutralization of Special Elements Used in a Template Engine
-                // TODO: Map to some type of injection?
+            case 1336: // Template Engine Injection -- no Benchmark category exists yet
             case 1390: // Weak Authentication
                 break; // Don't care - So return CWE 'as is'
 
