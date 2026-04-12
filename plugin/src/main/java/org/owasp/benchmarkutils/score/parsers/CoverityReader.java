@@ -176,6 +176,12 @@ public class CoverityReader extends Reader {
                     cwe_string = "89";
                 } else if (checker_name.equals("ldap_injection")) {
                     cwe_string = "90";
+                } else {
+                    System.out.println(
+                            "WARNING: Coverity-Unmapped checker: "
+                                    + checker_name
+                                    + " / "
+                                    + subcategory);
                 }
                 int cwe = fixCWE(cwe_string);
                 if (cwe <= 0) {

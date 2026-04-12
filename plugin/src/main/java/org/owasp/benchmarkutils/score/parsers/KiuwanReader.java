@@ -125,10 +125,11 @@ public class KiuwanReader extends Reader {
 
         if (cwe == 564) {
             cwe = CweNumber.SQL_INJECTION;
-        }
-
-        if (cwe == 77) {
+        } else if (cwe == 77) {
             cwe = CweNumber.COMMAND_INJECTION;
+        } else {
+            System.out.println(
+                    "INFO: Kiuwan - unmapped CWE: " + cwe + ". Passing through as-is.");
         }
         return cwe;
     }

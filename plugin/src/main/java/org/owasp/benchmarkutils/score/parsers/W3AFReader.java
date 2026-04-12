@@ -129,6 +129,7 @@ public class W3AFReader extends Reader {
                 //        case "trust-boundary-violation"  :  return 501;  // trust boundary
                 //        case "xxe"                       :  return 611;  // xml entity
         }
+        System.out.println("WARNING: W3AF-Unmapped finding name: " + name);
         return 0000;
     }
 }
