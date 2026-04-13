@@ -378,7 +378,7 @@ public class ScatterVulns extends ScatterPlot {
                 if (ch == 'Z') ch = 'a';
                 else ch++;
 
-                noncommercialTotalScore += categoryMetrics.score;
+                noncommercialTotalScore += categoryMetrics.score * 100;
                 noncommercialTotalPrecision += categoryMetrics.precision;
                 noncommercialTotalTPR += categoryMetrics.truePositiveRate;
                 noncommercialTotalFPR += categoryMetrics.falsePositiveRate;
@@ -445,7 +445,7 @@ public class ScatterVulns extends ScatterPlot {
 
                 this.commercialToolCount++;
                 this.overallToolCount++;
-                double score = categoryMetrics.score;
+                double score = categoryMetrics.score * 100;
                 double tpr = categoryMetrics.truePositiveRate;
                 double fpr = categoryMetrics.falsePositiveRate;
                 // don't show the commercial tool results if in 'show ave only mode'
