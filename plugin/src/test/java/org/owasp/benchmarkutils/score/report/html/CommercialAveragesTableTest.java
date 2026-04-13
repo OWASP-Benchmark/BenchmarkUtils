@@ -52,16 +52,16 @@ class CommercialAveragesTableTest {
                                         .addCategoryResult(
                                                 new CategoryMetrics(
                                                         "Availability",
-                                                        50.0,
-                                                        6.666666666666667,
-                                                        5.0,
+                                                        0.5,
+                                                        0.06666666666666667,
+                                                        0.05,
                                                         35))
                                         .addCategoryResult(
                                                 new CategoryMetrics(
                                                         "Command Injection",
-                                                        51.85185185185185,
-                                                        93.33333333333333,
-                                                        65.0,
+                                                        0.5185185185185185,
+                                                        0.9333333333333333,
+                                                        0.65,
                                                         35))
                                         .build())
                         .build();
@@ -74,16 +74,16 @@ class CommercialAveragesTableTest {
                                         .addCategoryResult(
                                                 new CategoryMetrics(
                                                         "Availability",
-                                                        73.21428571428571,
-                                                        100.0,
-                                                        53.0622009569378,
+                                                        0.7321428571428571,
+                                                        1.0,
+                                                        0.530622009569378,
                                                         455))
                                         .addCategoryResult(
                                                 new CategoryMetrics(
                                                         "Command Injection",
-                                                        95.23809523809523,
-                                                        58.130081300813008,
-                                                        20.4784688995215311,
+                                                        0.9523809523809523,
+                                                        0.58130081300813008,
+                                                        0.204784688995215311,
                                                         455))
                                         .build())
                         .build();
@@ -155,16 +155,16 @@ class CommercialAveragesTableTest {
                                         .addCategoryResult(
                                                 new CategoryMetrics(
                                                         "Availability",
-                                                        50.0,
-                                                        66.666666666666667,
-                                                        5.0,
+                                                        0.5,
+                                                        0.66666666666666667,
+                                                        0.05,
                                                         35))
                                         .addCategoryResult(
                                                 new CategoryMetrics(
                                                         "Command Injection",
-                                                        51.85185185185185,
-                                                        93.33333333333333,
-                                                        35.0,
+                                                        0.5185185185185185,
+                                                        0.9333333333333333,
+                                                        0.35,
                                                         35))
                                         .build())
                         .build();
@@ -211,16 +211,16 @@ class CommercialAveragesTableTest {
                                         .addCategoryResult(
                                                 new CategoryMetrics(
                                                         "Availability",
-                                                        5.0,
-                                                        6.66666666666667,
-                                                        65.0,
+                                                        0.05,
+                                                        0.0666666666666667,
+                                                        0.65,
                                                         35))
                                         .addCategoryResult(
                                                 new CategoryMetrics(
                                                         "Command Injection",
-                                                        51.85185185185185,
-                                                        33.33333333333333,
-                                                        95.0,
+                                                        0.5185185185185185,
+                                                        0.3333333333333333,
+                                                        0.95,
                                                         35))
                                         .build())
                         .build();
