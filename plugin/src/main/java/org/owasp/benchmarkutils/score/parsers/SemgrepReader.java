@@ -74,8 +74,6 @@ public class SemgrepReader extends Reader {
                 // Output Used by a Downstream Component ('Injection')
             case 75: // CWE vuln mapping DISCOURAGED: Failure to Sanitize Special Elements into a
                 // Different Plane (Special Element Injection)
-            case 77:
-                return 78; // Command Injection parent CWE maps to Benchmark cmdi category
             case 91: // XML Injection (aka Blind XPath Injection)
             case 93: // Improper Neutralization of CRLF Sequences ('CRLF Injection')
             case 94: // Improper Control of Generation of Code ('Code Injection') - Reported when it
@@ -182,8 +180,6 @@ public class SemgrepReader extends Reader {
             case 776: // XEE: Improper Restriction of Recursive Entity References in DTDs ('XML
                 // Entity Expansion')
             case 778: // Insufficient Logging
-            case 780:
-                return 327; // RSA without OAEP maps to Benchmark crypto category
             case 787: // Out of bounds Write
             case 798: // Use of Hard-coded Credentials
             case 837: // Improper Enforcement of a Single, Unique Action
@@ -197,8 +193,6 @@ public class SemgrepReader extends Reader {
             case 926: // Improper Export of Android Application Components
             case 939: // Improper Authorization in Handler for Custom URL Scheme
             case 942: // Permissive Cross-domain Policy with Untrusted Domains
-            case 943:
-                return 89; // Data Query Logic injection maps to Benchmark sqli category
             case 1021: // TapJacking: Improper Restriction of Rendered UI Layers or Frames
             case 1104: // Use of Unmaintained Third Party Components
             case 1204: // Generation of Weak Initialization Vector (IV)
@@ -214,12 +208,14 @@ public class SemgrepReader extends Reader {
             case 23: // Relative Path Traversal
             case 35: // Path Traversal: '.../...//'
                 return CweNumber.PATH_TRAVERSAL;
+            case 77: // Command Injection parent CWE
             case 78:
                 return CweNumber.COMMAND_INJECTION;
             case 79:
             case 80: // Basic XSS
                 return CweNumber.XSS;
             case 89:
+            case 943: // Data Query Logic injection
                 return CweNumber.SQL_INJECTION;
             case 90:
                 return CweNumber.LDAP_INJECTION;
@@ -228,6 +224,7 @@ public class SemgrepReader extends Reader {
             case 329: // Generation of Predictable IV with CBC Mode - Has no affect on Benchmark -
                 // but leaving mapping in anyway
             case 696: // Incorrect Behavior Order
+            case 780: // RSA without OAEP
                 return CweNumber.WEAK_CRYPTO_ALGO; // weak encryption
             case 328:
                 return CweNumber.WEAK_HASH_ALGO;
