@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -32,6 +33,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.helpers.DefaultValidationEventHandler;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -43,6 +45,7 @@ import org.apache.commons.lang.time.StopWatch;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
@@ -146,22 +149,18 @@ public class BenchmarkCrawler_newv2 extends BenchmarkCrawler {
 
         RequestConfig config = configBuilder.build();
 
-        HttpHost httpHost = null;
+        HttpClientBuilder builder =
+                HttpClients.custom()
+                        .setDefaultRequestConfig(config)
+                        .setConnectionManager(cm);
+
         String pHost = System.getProperty("proxyHost");
         String pPort = System.getProperty("proxyPort");
         if (pHost != null && pPort != null) {
-            httpHost = new HttpHost(pHost, Integer.parseInt(pPort));
-            return HttpClients.custom()
-                    .setDefaultRequestConfig(config)
-                    .setConnectionManager(cm)
-                    .setProxy(httpHost)
-                    .build();
-        } else {
-            return HttpClients.custom()
-                    .setDefaultRequestConfig(config)
-                    .setConnectionManager(cm)
-                    .build();
+            builder.setProxy(new HttpHost(pHost, Integer.parseInt(pPort)));
         }
+
+        return builder.build();
     }
 
     /**
@@ -263,8 +262,7 @@ public class BenchmarkCrawler_newv2 extends BenchmarkCrawler {
             if (selectedTestCaseName != null) {
                 for (AbstractTestCaseRequest request : this.testSuite.getTestCases()) {
                     if (request.getName().equals(selectedTestCaseName)) {
-                        java.util.List<AbstractTestCaseRequest> requests =
-                                new java.util.ArrayList<>();
+                        List<AbstractTestCaseRequest> requests = new ArrayList<>();
                         requests.add(request);
                         this.testSuite = new TestSuite();
                         this.testSuite.setTestCases(requests);
@@ -289,7 +287,7 @@ public class BenchmarkCrawler_newv2 extends BenchmarkCrawler {
                 JAXBContextFactory.createContext(
                         new Class[] {TestSuite.class, CommandLineTestCaseRequest.class}, null);
         Unmarshaller unmarshaller = context.createUnmarshaller();
-        unmarshaller.setEventHandler(new javax.xml.bind.helpers.DefaultValidationEventHandler());
+        unmarshaller.setEventHandler(new DefaultValidationEventHandler());
         return (TestSuite) unmarshaller.unmarshal(new FileReader(file));
     }
 
@@ -360,6 +358,7 @@ public class BenchmarkCrawler_newv2 extends BenchmarkCrawler {
 
         if (null == this.crawlerFile) {
             System.out.println("ERROR: A crawlerFile parameter must be specified.");
+            System.exit(-1);
         } else {
             String[] mainArgs = {"-f", this.crawlerFile};
             main(mainArgs);

@@ -563,6 +563,7 @@ public class BenchmarkCrawlerVerification_newv2 extends BenchmarkCrawler_newv2 {
 
         if (null == this.crawlerFile) {
             System.out.println("ERROR: An attack crawlerFile parameter must be specified.");
+            System.exit(-1);
         } else {
             String[] mainArgs = {"-f", this.crawlerFile};
             main(mainArgs);
