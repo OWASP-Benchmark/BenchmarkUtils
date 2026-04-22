@@ -22,16 +22,7 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.owasp.benchmarkutils.score.CweNumber;
 
-/**
- * Reader for <a href="https://cognium.dev">Cognium</a> SARIF results generated via:
- *
- * <pre>cognium scan &lt;path&gt; --format sarif --output results.sarif</pre>
- *
- * <p>Cognium embeds the CWE in each result's {@code properties.cwe} field (e.g. {@code "CWE-79"})
- * rather than in the rules section, so CWE resolution uses a static ruleId-to-CWE mapping.
- * Non-security findings (reliability, performance, etc.) have no entry in the map and are silently
- * skipped by the base class.
- */
+/** Reader for <a href="https://cognium.dev">Cognium</a> SARIF results. */
 public class CogniumReader extends SarifReader {
 
     public CogniumReader() {
