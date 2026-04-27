@@ -31,6 +31,7 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.parsers.csv.SemgrepCSVReader;
 import org.owasp.benchmarkutils.score.parsers.csv.WhiteHatDynamicReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.BanditReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.CogniumReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.CodeQLReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.ContrastScanReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.DatadogSastReader;
@@ -67,6 +68,7 @@ public abstract class Reader {
                 new CheckmarxIASTReader(),
                 new CheckmarxReader(),
                 new CodeQLReader(),
+                new CogniumReader(),
                 new ContrastAssessReader(),
                 new ContrastScanReader(),
                 new CoverityReader(),
