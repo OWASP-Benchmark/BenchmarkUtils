@@ -196,6 +196,84 @@
         "line": 42,
         "offset": 1802
       }
+    },
+    {
+      "check_id": "java.lang.security.audit.command-injection-general",
+      "end": { "col": 4, "line": 62, "offset": 2300 },
+      "extra": {
+        "fingerprint": "aaa111",
+        "is_ignored": false,
+        "lines": "Runtime.exec(cmd)",
+        "message": "Command injection finding",
+        "metadata": {
+          "category": "security",
+          "confidence": "LOW",
+          "cwe": [
+            "CWE-77: Improper Neutralization of Special Elements used in a Command"
+          ],
+          "impact": "HIGH",
+          "likelihood": "LOW",
+          "owasp": [
+            "A03:2021 - Injection"
+          ]
+        },
+        "metavars": {},
+        "severity": "WARNING"
+      },
+      "path": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00005.java",
+      "start": { "col": 3, "line": 48, "offset": 2000 }
+    },
+    {
+      "check_id": "java.lang.security.audit.rsa-no-oaep",
+      "end": { "col": 4, "line": 62, "offset": 2300 },
+      "extra": {
+        "fingerprint": "bbb222",
+        "is_ignored": false,
+        "lines": "Cipher.getInstance(RSA)",
+        "message": "RSA without OAEP finding",
+        "metadata": {
+          "category": "security",
+          "confidence": "LOW",
+          "cwe": [
+            "CWE-780: Use of RSA Algorithm without OAEP"
+          ],
+          "impact": "HIGH",
+          "likelihood": "LOW",
+          "owasp": [
+            "A02:2021 - Cryptographic Failures"
+          ]
+        },
+        "metavars": {},
+        "severity": "WARNING"
+      },
+      "path": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00006.java",
+      "start": { "col": 3, "line": 48, "offset": 2000 }
+    },
+    {
+      "check_id": "java.lang.security.audit.data-query-injection",
+      "end": { "col": 4, "line": 62, "offset": 2300 },
+      "extra": {
+        "fingerprint": "ccc333",
+        "is_ignored": false,
+        "lines": "query.filter(input)",
+        "message": "Data query injection finding",
+        "metadata": {
+          "category": "security",
+          "confidence": "LOW",
+          "cwe": [
+            "CWE-943: Improper Neutralization of Special Elements in Data Query Logic"
+          ],
+          "impact": "HIGH",
+          "likelihood": "LOW",
+          "owasp": [
+            "A03:2021 - Injection"
+          ]
+        },
+        "metavars": {},
+        "severity": "WARNING"
+      },
+      "path": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00007.java",
+      "start": { "col": 3, "line": 48, "offset": 2000 }
     }
   ],
   "version": "0.121.0"
