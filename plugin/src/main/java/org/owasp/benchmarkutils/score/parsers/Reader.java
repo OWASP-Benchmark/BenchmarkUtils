@@ -36,6 +36,7 @@ import org.owasp.benchmarkutils.score.parsers.sarif.CodeQLReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.ContrastScanReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.DatadogSastReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.FortifySarifReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.OpenTaintReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PTAIReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.SemgrepSarifReader;
@@ -105,6 +106,7 @@ public abstract class Reader {
                 new SemgrepReader(),
                 new SemgrepCSVReader(),
                 new SemgrepSarifReader(),
+                new OpenTaintReader(),
                 new ShiftLeftReader(),
                 new ShiftLeftScanReader(),
                 new SnappyTickReader(),
