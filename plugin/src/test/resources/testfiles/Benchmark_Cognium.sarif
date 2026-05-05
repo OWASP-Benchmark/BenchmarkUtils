@@ -1,0 +1,61 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "cognium",
+          "version": "1.4.2",
+          "informationUri": "https://cognium.dev",
+          "rules": [
+            {
+              "id": "xss",
+              "name": "xss",
+              "shortDescription": { "text": "xss" },
+              "defaultConfiguration": { "level": "error" },
+              "properties": { "security-severity": "7.0" }
+            },
+            {
+              "id": "sql_injection",
+              "name": "sql_injection",
+              "shortDescription": { "text": "sql_injection" },
+              "defaultConfiguration": { "level": "error" },
+              "properties": { "security-severity": "9.0" }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "xss",
+          "level": "error",
+          "message": { "text": "xss vulnerability: tainted data flows from line 41 to line 86" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "BenchmarkTest00001.java" },
+                "region": { "startLine": 86 }
+              }
+            }
+          ],
+          "properties": { "cwe": "CWE-79", "severity": "high" }
+        },
+        {
+          "ruleId": "sql_injection",
+          "level": "error",
+          "message": { "text": "sql_injection vulnerability: tainted data flows from line 38 to line 55" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "BenchmarkTest00002.java" },
+                "region": { "startLine": 55 }
+              }
+            }
+          ],
+          "properties": { "cwe": "CWE-89", "severity": "critical" }
+        }
+      ]
+    }
+  ]
+}

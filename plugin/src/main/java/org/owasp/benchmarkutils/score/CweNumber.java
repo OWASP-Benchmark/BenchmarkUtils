@@ -55,6 +55,9 @@ public class CweNumber {
     /** CWE-93: Improper Neutralization of CRLF Sequences ('CRLF Injection') */
     public static final int CRLF_INJECTION = 93;
 
+    /** CWE-94: Improper Control of Generation of Code ('Code Injection') */
+    public static final int CODE_INJECTION = 94;
+
     /**
      * CWE-113: Improper Neutralization of CRLF Sequences in HTTP Headers ('HTTP Response
      * Splitting')
