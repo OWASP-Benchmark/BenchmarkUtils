@@ -159,9 +159,7 @@ public class HCLAppScanSourceReader extends Reader {
             case "Validation.Required.WriteToStream":
                 return CweNumber.INSECURE_DESERIALIZATION;
             case "ErrorHandling.RevealDetails.StackTrace":
-                return CweNumber.SENSITIVE_LOGFILE;
-            case "attRedirectInURL":
-                return CweNumber.OPEN_REDIRECT;            
+                return CweNumber.SENSITIVE_LOGFILE;  
             default:
                 reportWarning("WARNING: HCL AppScan Source-Unrecognized finding type: " + vtype);
         }
