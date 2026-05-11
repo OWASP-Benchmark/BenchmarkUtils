@@ -1,0 +1,380 @@
+{
+  "version": "15.1.0",
+  "vulnerabilities": [
+    {
+      "id": "55fbae4bfbd000f5b526729b5a2639465e26c95f0c8c421e81882b7587b9c4ad",
+      "category": "sast",
+      "name": "Use of cryptographically weak pseudo-random number generator (PRNG)",
+      "description": "This rule identifies use of cryptographically weak random number generators.\nUsing cryptographically weak random number generators like `crypto.pseudoRandomBytes()` \nand `Math.random()` for security-critical tasks can expose systems to significant \nvulnerabilities. Attackers might predict the generated random numbers, compromising \nthe integrity and confidentiality of cryptographic operations. This could lead to \nbreaches where sensitive data is accessed or manipulated, authentication mechanisms \nare bypassed, or secure communications are intercepted, ultimately undermining the \nsecurity of the entire system or application.\n\nMitigation strategy:\nReplace the use of these cryptographically weak random number generators with \n`crypto.randomBytes()`, a method provided by Node.js's `crypto` module that \ngenerates cryptographically secure random numbers. This method should be used \nfor all operations requiring secure randomness, such as generating keys, tokens, \nor any cryptographic material.\n\nSecure Code Example:\n```\nconst crypto = require('crypto');\nconst secureBytes = crypto.randomBytes(256);\nconsole.log(`Secure random bytes: ${secureBytes.toString('hex')}`);\n```\n",
+      "cve": "semgrep_id:nodejs_scan.javascript-crypto-rule-node_insecure_random_generator:1642:1642",
+      "severity": "Medium",
+      "scanner": {
+        "id": "semgrep",
+        "name": "Semgrep"
+      },
+      "location": {
+        "file": "scorecard/content/js/bootstrap.js",
+        "start_line": 1642
+      },
+      "identifiers": [
+        {
+          "type": "semgrep_id",
+          "name": "nodejs_scan.javascript-crypto-rule-node_insecure_random_generator",
+          "value": "nodejs_scan.javascript-crypto-rule-node_insecure_random_generator"
+        },
+        {
+          "type": "cwe",
+          "name": "CWE-338",
+          "value": "338",
+          "url": "https://cwe.mitre.org/data/definitions/338.html"
+        },
+        {
+          "type": "owasp",
+          "name": "A02:2021 - Cryptographic Failures",
+          "value": "A02:2021"
+        },
+        {
+          "type": "owasp",
+          "name": "A3:2017 - Sensitive Data Exposure",
+          "value": "A3:2017"
+        },
+        {
+          "type": "njsscan_rule_type",
+          "name": "NodeJS Scan ID javascript-crypto-rule-node_insecure_random_generator",
+          "value": "crypto.pseudoRandomBytes()/Math.random() is a cryptographically weak random number generator."
+        }
+      ]
+    },
+    {
+      "id": "f6257f2ca6c4fab2f604a4489b6e18ae19afdaa779900511b4b35597ab89ca43",
+      "category": "sast",
+      "name": "Use of a broken or risky cryptographic algorithm",
+      "description": "Cryptographic algorithms provide many different modes of operation, only some of which provide\nmessage integrity. Without message integrity it could be possible for an adversary to attempt\nto tamper with the ciphertext which could lead to compromising the encryption key. Newer\nalgorithms\napply message integrity to validate ciphertext has not been tampered with.\n\nInstead of using an algorithm that requires configuring a cipher mode, an algorithm\nthat has built-in message integrity should be used. Consider using `ChaCha20Poly1305` or\n`AES-256-GCM` instead.\n\nFor older applications that don't have support for `ChaCha20Poly1305`, `AES-256-GCM` is\nrecommended, however it has many drawbacks:\n  - Slower than `ChaCha20Poly1305`.\n  - Catastrophic failure if nonce values are reused.\n\nExample using `ChaCha20Poly1305`:\n```\npublic encrypt() throws Exception {\n    chaChaEncryption(\"Secret text to encrypt\".getBytes(StandardCharsets.UTF_8));\n}\n\npublic SecureRandom getSecureRandomDRBG() throws NoSuchAlgorithmException {\n// Use DRBG according to\nhttp://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-90Ar1.pdf\n    return SecureRandom.getInstance(\"DRBG\",\n            // Security strength in bits (default is 128)\n            DrbgParameters.instantiation(256,\n                // Set prediction resistance and re-seeding\n                DrbgParameters.Capability.PR_AND_RESEED,\n                // Set the personalization string (optional, not necessary)\n                \"some_personalization_string\".getBytes()\n            )\n    );\n}\n\npublic Cipher getChaCha20Poly1305(int mode, byte[] ivKey, byte[] secretKey) throws\nNoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,\nInvalidAlgorithmParameterException  {\n    // Get a DRBG random number generator instance\n    SecureRandom random = getSecureRandomDRBG();\n    // Create a ChaCha20-Poly1305 cipher instance\n    Cipher chaChaCipher = Cipher.getInstance(\"ChaCha20-Poly1305/None/NoPadding\");\n    // Create our parameterSpec using our ivKey\n    AlgorithmParameterSpec parameterSpec = new IvParameterSpec(ivKey);\n    // Create a SecretKeySpec using our secretKey\n    SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, \"ChaCha20\");\n    // Initialize and return the cipher for the provided mode\n    chaChaCipher.init(mode, secretKeySpec, parameterSpec, random);\n    return chaChaCipher;\n}\n\npublic void chaChaEncryption(byte[] plainText) throws NoSuchAlgorithmException,\nNoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {\n    // Get a DRBG random number generator instance\n    SecureRandom random = getSecureRandomDRBG();\n    // Create secretKey\n    byte[] secretKey = new byte[32];\n    random.nextBytes(secretKey);\n    // Create an IV Key\n    byte[] ivKey = new byte[12];\n    random.nextBytes(ivKey);\n\n    // Create a chaCha encryption cipher instance\n    Cipher chaChaEncryptor = getChaCha20Poly1305(Cipher.ENCRYPT_MODE, ivKey, secretKey);\n\n    // Encrypt the text using ChaCha20Poly1305\n    byte[] cipherText = null;\n    try {\n        cipherText = chaChaEncryptor.doFinal(plainText);\n    } catch (IllegalBlockSizeException | BadPaddingException e) {\n        System.out.println(\"failed to encrypt text\");\n        return;\n    }\n    System.out.println(\"encrypted: \" + Base64.getEncoder().encodeToString(cipherText));\n\n     // Create a chaCha decryption cipher instance\n    Cipher chaChaDecryptor = getChaCha20Poly1305(Cipher.DECRYPT_MODE, ivKey, secretKey);\n\n    // Decrypt the text\n    byte[] decryptedText = null;\n    try {\n        decryptedText = chaChaDecryptor.doFinal(cipherText);\n    } catch (IllegalBlockSizeException | BadPaddingException e) {\n        System.out.println(\"failed to decrypt text\");\n        return;\n    }\n    System.out.println(\"decrypted: \" + new String(decryptedText, StandardCharsets.UTF_8));\n}\n```\n\nFor more information on Java Cryptography see:\nhttps://docs.oracle.com/en/java/javase/15/security/java-cryptography-architecture-jca-reference-guide.html\n",
+      "cve": "semgrep_id:find_sec_bugs.CIPHER_INTEGRITY-1:71:71",
+      "severity": "Medium",
+      "scanner": {
+        "id": "semgrep",
+        "name": "Semgrep"
+      },
+      "location": {
+        "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java",
+        "start_line": 71
+      },
+      "identifiers": [
+        {
+          "type": "semgrep_id",
+          "name": "find_sec_bugs.CIPHER_INTEGRITY-1",
+          "value": "find_sec_bugs.CIPHER_INTEGRITY-1"
+        },
+        {
+          "type": "cwe",
+          "name": "CWE-327",
+          "value": "327",
+          "url": "https://cwe.mitre.org/data/definitions/327.html"
+        },
+        {
+          "type": "owasp",
+          "name": "A02:2021 - Cryptographic Failures",
+          "value": "A02:2021"
+        },
+        {
+          "type": "owasp",
+          "name": "A3:2017 - Sensitive Data Exposure",
+          "value": "A3:2017"
+        },
+        {
+          "type": "find_sec_bugs_type",
+          "name": "Find Security Bugs-CIPHER_INTEGRITY",
+          "value": "CIPHER_INTEGRITY"
+        }
+      ],
+      "tracking": {
+        "type": "source",
+        "items": [
+          {
+            "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00614.java",
+            "line_start": 71,
+            "line_end": 71,
+            "signatures": [
+              {
+                "algorithm": "scope_offset_compressed",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00614.java|BenchmarkTest00614[0]|doPost[0]:18"
+              },
+              {
+                "algorithm": "scope_offset",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00614.java|BenchmarkTest00614[0]|doPost[0]:33"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "495c1ce376eaa30612723cf238ab83e3324e221ad8ce47e8c6baaac813407f4c",
+      "category": "sast",
+      "name": "Sensitive cookie without 'HttpOnly' flag",
+      "description": "The `HttpOnly` attribute when set to `true` protects the cookie value from being accessed by\nclient side JavaScript such\nas reading the `document.cookie` values. By enabling this protection, a website that is\nvulnerable to\nCross-Site Scripting (XSS) will be able to block malicious scripts from accessing the cookie\nvalue from JavaScript.\n\nExample of protecting a `Cookie`:\n```\n// Create an HttpOnly cookie.\nCookie someCookie = new Cookie(\"SomeCookieName\", \"SomeValue\");\n// Set HttpOnly flag to true\nsomeCookie.setHttpOnly(true);\n```\n\nFor more information see:\nhttps://jakarta.ee/specifications/servlet/4.0/apidocs/javax/servlet/http/cookie#setHttpOnly-boolean-\n\nSession cookies should be configured with the following security directives:\n\n- [HTTPOnly](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)\n- [Secure](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)\n- [SameSite](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite)\n",
+      "cve": "semgrep_id:java_cookie_rule-CookieHTTPOnly:42:42",
+      "severity": "Low",
+      "scanner": {
+        "id": "semgrep",
+        "name": "Semgrep"
+      },
+      "location": {
+        "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00002.java",
+        "start_line": 42
+      },
+      "identifiers": [
+        {
+          "type": "semgrep_id",
+          "name": "java_cookie_rule-CookieHTTPOnly",
+          "value": "java_cookie_rule-CookieHTTPOnly"
+        },
+        {
+          "type": "cwe",
+          "name": "CWE-1004",
+          "value": "1004",
+          "url": "https://cwe.mitre.org/data/definitions/1004.html"
+        },
+        {
+          "type": "owasp",
+          "name": "A05:2021 - Security Misconfiguration",
+          "value": "A05:2021"
+        },
+        {
+          "type": "owasp",
+          "name": "A6:2017 - Security Misconfiguration",
+          "value": "A6:2017"
+        }
+      ],
+      "tracking": {
+        "type": "source",
+        "items": [
+          {
+            "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00963.java",
+            "line_start": 42,
+            "line_end": 42,
+            "signatures": [
+              {
+                "algorithm": "scope_offset_compressed",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00963.java|BenchmarkTest00963[0]|doGet[0]:8"
+              },
+              {
+                "algorithm": "scope_offset",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00963.java|BenchmarkTest00963[0]|doGet[0]:10"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "848bf059acdd454937903a565afc6af42eafba984cebe9850c014b393ca5f7d0",
+      "category": "sast",
+      "name": "Improper neutralization of special elements used in an LDAP query ('LDAP Injection')",
+      "description": "LDAP injection attacks exploit LDAP queries to influence how data is returned by\nthe LDAP server.\n\nLater versions of Java's `InitialDirContext.search` introduced a four argument method, one of\nwhich is the `filterArg` parameter. The `filterArg` will be automatically encoded when\nquerying\nthe LDAP server. If this method signature is not available, the application must encode the\nLDAP strings manually.\n\nMore details on the four argument `search` method can be found here:\nhttps://docs.oracle.com/en/java/javase/20/docs/api/java.naming/javax/naming/directory/InitialDirContext.html#search(javax.naming.Name,java.lang.String,java.lang.Object[],javax.naming.directory.SearchControls)\n\nTo encode the string manually, it is recommended that all input passed to LDAP querying\nsystems\nencode the following values:\n\n- Any occurrence of the null character must be escaped as \u201c\\00\u201d.\n- Any occurrence of the open parenthesis character must be escaped as \u201c\\28\u201d.\n- Any occurrence of the close parenthesis character must be escaped as \u201c\\29\u201d.\n- Any occurrence of the asterisk character must be escaped as \u201c\\2a\u201d.\n- Any occurrence of the backslash character must be escaped as \u201c\\5c\u201d.\n\nExample function that safely encodes user-supplied input to be used in an LDAP query.\n```\npublic static String encodeLDAPString(String input) {\n  // Note the \\ character is replaced first\n  CharSequence[] chars = new CharSequence[] { \"\\\\\", \"\\0\", \"(\", \")\", \"*\" };\n  CharSequence[] encoded = new CharSequence[] { \"\\\\5c\", \"\\\\00\", \"\\\\28\", \"\\\\29\", \"\\\\2a\" };\n  // Iterate over each character sequence, replacing the raw value with an encoded version of\nit\n  for (int i = 0; i < chars.length; i++)\n  {\n      // re-assign to input\n      input = input.replace(chars[i], encoded[i]);\n  }\n  // return our modified input string\n  return input;\n}\n```\n\nExample code that using the `filterArgs` parameter which automatically encodes for us:\n```\n// Create a properties to hold the ldap connection details\nProperties props = new Properties();\n// Use the com.sun.jndi.ldap.LdapCtxFactory factory provider\nprops.put(Context.INITIAL_CONTEXT_FACTORY, \"com.sun.jndi.ldap.LdapCtxFactory\");\n// The LDAP server URL\nprops.put(Context.PROVIDER_URL, \"ldap://ldap.example.org:3889\");\n// User details for the connection\nprops.put(Context.SECURITY_PRINCIPAL, \"cn=admin,dc=example,dc=org\");\n// LDAP account password\nString ldapAccountPassword = getAccountPasswordFromSecureStoreOrKMS();\n// Pass in the LDAP password\nprops.put(Context.SECURITY_CREDENTIALS, ldapAccountPassword);\n\n// Create the LDAPContext\nInitialDirContext ldapContext = new InitialDirContext(props);\n// Example using SUBTREE_SCOPE SearchControls\nSearchControls searchControls = new SearchControls();\nsearchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);\n\n// Get user input for query\nString userQuery = someUserInput;\n// Use searchArguments to hold the user-supplied input\nObject[] searchArguments = new Object[]{userQuery};\n// Hardcode the BaseDN, use the {0} format specifier to use the searchArguments array value,\nand pass in the search controls.\n// searchArguments automatically encode\nNamingEnumeration answer = ldapContext.search(\"dc=example,dc=org\", \"(cn={0})\",\nsearchArguments, searchControls);\n// Process the response answer\nwhile (answer.hasMoreElements()) {\n  ...\n}\n```\n\nFor more information on LDAP Injection see OWASP:\nhttps://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html\n",
+      "cve": "semgrep_id:find_sec_bugs.LDAP_INJECTION-1:67:67",
+      "severity": "Medium",
+      "scanner": {
+        "id": "semgrep",
+        "name": "Semgrep"
+      },
+      "location": {
+        "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00003.java",
+        "start_line": 67
+      },
+      "identifiers": [
+        {
+          "type": "semgrep_id",
+          "name": "find_sec_bugs.LDAP_INJECTION-1",
+          "value": "find_sec_bugs.LDAP_INJECTION-1"
+        },
+        {
+          "type": "cwe",
+          "name": "CWE-90",
+          "value": "90",
+          "url": "https://cwe.mitre.org/data/definitions/90.html"
+        },
+        {
+          "type": "owasp",
+          "name": "A03:2021 - Injection",
+          "value": "A03:2021"
+        },
+        {
+          "type": "owasp",
+          "name": "A1:2017 - Injection",
+          "value": "A1:2017"
+        },
+        {
+          "type": "find_sec_bugs_type",
+          "name": "Find Security Bugs-LDAP_INJECTION",
+          "value": "LDAP_INJECTION"
+        }
+      ],
+      "tracking": {
+        "type": "source",
+        "items": [
+          {
+            "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest01154.java",
+            "line_start": 67,
+            "line_end": 67,
+            "signatures": [
+              {
+                "algorithm": "scope_offset_compressed",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest01154.java|BenchmarkTest01154[0]|doPost[0]:10"
+              },
+              {
+                "algorithm": "scope_offset",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest01154.java|BenchmarkTest01154[0]|doPost[0]:29"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "9858d7dcc18a7efd19967095e4b895507f55262747fffb28bb08a806c8b4129c",
+      "category": "sast",
+      "name": "Sensitive cookie without 'HttpOnly' flag",
+      "description": "The `HttpOnly` attribute when set to `true` protects the cookie value from being accessed by\nclient side JavaScript such\nas reading the `document.cookie` values. By enabling this protection, a website that is\nvulnerable to\nCross-Site Scripting (XSS) will be able to block malicious scripts from accessing the cookie\nvalue from JavaScript.\n\nExample of protecting a `Cookie`:\n```\n// Create an HttpOnly cookie.\nCookie someCookie = new Cookie(\"SomeCookieName\", \"SomeValue\");\n// Set HttpOnly flag to true\nsomeCookie.setHttpOnly(true);\n```\n\nFor more information see:\nhttps://jakarta.ee/specifications/servlet/4.0/apidocs/javax/servlet/http/cookie#setHttpOnly-boolean-\n\nSession cookies should be configured with the following security directives:\n\n- [HTTPOnly](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)\n- [Secure](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)\n- [SameSite](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite)\n",
+      "cve": "semgrep_id:java_cookie_rule-CookieHTTPOnly:42:42",
+      "severity": "Low",
+      "scanner": {
+        "id": "semgrep",
+        "name": "Semgrep"
+      },
+      "location": {
+        "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00004.java",
+        "start_line": 42
+      },
+      "identifiers": [
+        {
+          "type": "semgrep_id",
+          "name": "java_cookie_rule-CookieHTTPOnly",
+          "value": "java_cookie_rule-CookieHTTPOnly"
+        },
+        {
+          "type": "cwe",
+          "name": "CWE-1004",
+          "value": "1004",
+          "url": "https://cwe.mitre.org/data/definitions/1004.html"
+        },
+        {
+          "type": "owasp",
+          "name": "A05:2021 - Security Misconfiguration",
+          "value": "A05:2021"
+        },
+        {
+          "type": "owasp",
+          "name": "A6:2017 - Security Misconfiguration",
+          "value": "A6:2017"
+        }
+      ],
+      "tracking": {
+        "type": "source",
+        "items": [
+          {
+            "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest01850.java",
+            "line_start": 42,
+            "line_end": 42,
+            "signatures": [
+              {
+                "algorithm": "scope_offset_compressed",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest01850.java|BenchmarkTest01850[0]|doGet[0]:8"
+              },
+              {
+                "algorithm": "scope_offset",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest01850.java|BenchmarkTest01850[0]|doGet[0]:10"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "0f1c4f64bcfaff264d127e13e0f290633e366dfd91c6df487f97bd8fdc2ceb6e",
+      "category": "sast",
+      "name": "Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')",
+      "description": "Detected a potential path traversal. A malicious actor could control\nthe location of this file, to include going backwards in the directory\nwith '../'. \n\nTo address this, ensure that user-controlled variables in file\npaths are sanitized. You may also consider using a utility method such as\norg.apache.commons.io.FilenameUtils.getName(...) to only retrieve the file\nname from the path.\n\nExample code using FilenameUtils.getName(...)\n\n```\npublic void ok(HttpServletRequest request, HttpServletResponse response)\n        throws ServletException, IOException {\n    String image = request.getParameter(\"image\");\n    File file = new File(\"static/images/\", FilenameUtils.getName(image));\n\n    if (!file.exists()) {\n        log.info(image + \" could not be created.\");\n        response.sendError();\n    }\n\n    response.sendRedirect(\"/index.html\");\n}\n```\n",
+      "cve": "semgrep_id:java_file_rule-FilePathTraversalHttpServlet:56:56",
+      "severity": "Critical",
+      "scanner": {
+        "id": "semgrep",
+        "name": "Semgrep"
+      },
+      "location": {
+        "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00005.java",
+        "start_line": 56
+      },
+      "identifiers": [
+        {
+          "type": "semgrep_id",
+          "name": "java_file_rule-FilePathTraversalHttpServlet",
+          "value": "java_file_rule-FilePathTraversalHttpServlet"
+        },
+        {
+          "type": "cwe",
+          "name": "CWE-22",
+          "value": "22",
+          "url": "https://cwe.mitre.org/data/definitions/22.html"
+        },
+        {
+          "type": "owasp",
+          "name": "A01:2021 - Broken Access Control",
+          "value": "A01:2021"
+        },
+        {
+          "type": "owasp",
+          "name": "A5:2017 - Broken Access Control",
+          "value": "A5:2017"
+        }
+      ],
+      "tracking": {
+        "type": "source",
+        "items": [
+          {
+            "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest02470.java",
+            "line_start": 56,
+            "line_end": 56,
+            "signatures": [
+              {
+                "algorithm": "scope_offset_compressed",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest02470.java|BenchmarkTest02470[0]|doPost[0]:9"
+              },
+              {
+                "algorithm": "scope_offset",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest02470.java|BenchmarkTest02470[0]|doPost[0]:18"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "dependency_files": null,
+  "scan": {
+    "analyzer": {
+      "id": "semgrep",
+      "name": "Semgrep",
+      "url": "https://gitlab.com/gitlab-org/security-products/analyzers/semgrep",
+      "vendor": {
+        "name": "GitLab"
+      },
+      "version": "5.3.3"
+    },
+    "scanner": {
+      "id": "semgrep",
+      "name": "Semgrep",
+      "url": "https://github.com/returntocorp/semgrep",
+      "vendor": {
+        "name": "GitLab"
+      },
+      "version": "1.72.0"
+    },
+    "primary_identifiers": [],
+    "type": "sast",
+    "start_time": "2024-07-03T08:44:11",
+    "end_time": "2024-07-03T08:44:45",
+    "status": "success"
+  }
+}
