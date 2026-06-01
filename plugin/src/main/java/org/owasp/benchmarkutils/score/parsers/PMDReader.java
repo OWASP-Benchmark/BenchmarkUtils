@@ -220,7 +220,8 @@ public class PMDReader extends Reader {
             case "EmptyCatchBlock":
                 return 390; // Detection of Error Condition w/out Action
             case "AvoidCatchingNPE":
-                return 395; // Use of NPE Catch to Detect NULL Pointer Dereference
+                return 395; // Use of NPE Catch to Detect NULL Pointer Dereference. Deprecated PMD
+                // rule, replaced w/ AvoidCatchingGenericException
 
             case "AvoidCatchingGenericException":
             case "AvoidCatchingThrowable":
@@ -235,6 +236,8 @@ public class PMDReader extends Reader {
             case "EmptyWhileStmt": // Deprecated PMD rule, replaced with EmptyControlStatement
             case "EmptyStatementNotInLoop": // Deprecated PMD rule, replaced w/ UnnecessarySemicolon
             case "IdempotentOperations":
+            case "IdenticalConditionalBranches":
+            case "UnnecessaryInterfaceDeclaration":
             case "UnnecessarySemicolon":
                 return 398; // Code Quality - prohibited mapping category
 
@@ -335,6 +338,10 @@ public class PMDReader extends Reader {
 
             case "DoubleCheckedLocking":
                 return 609; // Double-Checked Locking
+
+            case "PublicMemberInNonPublicType": // Don't know how critical it is, so not mapping to
+                // 766: Critical Data Element Declared Public
+                return 668; // Exposure of Resource to Wrong Sphere
 
             case "AvoidSynchronizedAtMethodLevel":
             case "AvoidSynchronizedStatement":

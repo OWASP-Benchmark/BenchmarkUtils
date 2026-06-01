@@ -19,11 +19,14 @@ package org.owasp.benchmarkutils.score;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.owasp.benchmarkutils.score.service.ExpectedResultsProvider;
 
@@ -82,6 +85,33 @@ public class TestSuiteResults {
                             + " with toolType = null");
         }
         this.toolType = toolType;
+    }
+
+    // Return a copy of the current TestSuiteResults which does not share any RESULTS data directly
+    // with the original TestSuiteResults. That way these results can be combined with other results
+    // without affecting the results associated with the current tool.
+    public TestSuiteResults cloneCopyOfResults() {
+        // Create a new copy
+        TestSuiteResults testSuiteResultsCopy =
+                new TestSuiteResults(this.toolName, this.isCommercial, this.getToolType());
+        testSuiteResultsCopy.anonymous = this.anonymous;
+        testSuiteResultsCopy.scanTime = this.scanTime;
+        testSuiteResultsCopy.testSuiteName = this.testSuiteName;
+        testSuiteResultsCopy.testSuiteVersion = this.testSuiteVersion;
+        // testCaseResults is empty, so have to iterate through this.testCaseResults, and add them
+        // to this copy
+        Iterator<String> allTestCaseResults = this.testCaseResults.keySet().iterator();
+        while (allTestCaseResults.hasNext()) {
+            String key = allTestCaseResults.next();
+            List<TestCaseResult> resultsForKey = this.testCaseResults.get(key);
+
+            // Have to copy results into a new List<TestCaseResult>
+            List<TestCaseResult> copiedResultsForKey = new ArrayList<TestCaseResult>();
+            copiedResultsForKey.addAll(resultsForKey);
+
+            testSuiteResultsCopy.testCaseResults.put(key, copiedResultsForKey);
+        }
+        return testSuiteResultsCopy;
     }
 
     // Set the test suite name for this specific set of TestResults
@@ -154,8 +184,9 @@ public class TestSuiteResults {
         // There is a list of results for each test case
         List<TestCaseResult> results = this.testCaseResults.get(testCaseKey);
         if (results == null) {
-            // If there are no results yet for this test case, create a List.
-            // Add this entry for this test case to the set of results
+            // If there are no results yet for this test case, create an empty List.
+            // Add this empty entry for the specified testCaseKey so the add can add the new
+            // TestCaseResult to the new list.
             results = new ArrayList<TestCaseResult>();
             this.testCaseResults.put(testCaseKey, results);
         }
@@ -188,12 +219,30 @@ public class TestSuiteResults {
     }
 
     /**
-     * Adds the results passed in to the set of existing results for this test suite.
+     * Adds the results passed in to the set of existing results for this test suite. Note that this
+     * creates a NEW set of TestSuiteResults and leaves the two original TestSuiteResults lists
+     * unchanged. So you can send in original TestSuiteResults and not worry about any side-affects.
      *
      * @param otherResults
      */
     public void combineResults(TestSuiteResults otherResults) {
-        this.testCaseResults.putAll(otherResults.testCaseResults);
+
+        Map<String, List<TestCaseResult>> mergedResults =
+                Stream.concat(
+                                this.testCaseResults.entrySet().stream(),
+                                otherResults.testCaseResults.entrySet().stream())
+                        .collect(
+                                Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        Map.Entry::getValue,
+                                        (testCaseResult1, testCaseResult2) -> {
+                                            List<TestCaseResult> mergedTestCaseResults =
+                                                    new ArrayList<TestCaseResult>();
+                                            mergedTestCaseResults.addAll(testCaseResult1);
+                                            mergedTestCaseResults.addAll(testCaseResult2);
+                                            return mergedTestCaseResults;
+                                        }));
+        this.testCaseResults = mergedResults;
     }
 
     /**

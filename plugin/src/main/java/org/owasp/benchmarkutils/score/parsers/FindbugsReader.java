@@ -202,6 +202,9 @@ public class FindbugsReader extends Reader {
             case "COMMAND_INJECTION":
                 return CweNumber.COMMAND_INJECTION;
 
+            case "WEAK_MESSAGE_DIGEST":
+                return CweNumber.WEAK_HASH_ALGO;
+
             case "PREDICTABLE_RANDOM":
                 return CweNumber.WEAK_RANDOM;
 

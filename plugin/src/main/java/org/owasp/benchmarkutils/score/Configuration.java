@@ -92,6 +92,19 @@ public class Configuration {
      */
     public static boolean includeAllCWEsInCSVFile = false;
 
+    /**
+     * Flag which can be set to then calculate the combined Precision and Recall (TPR) rates for
+     * each combination of tools scored. Results are simply output to the console during scorecard
+     * generation.
+     */
+    public static boolean calcCombinedPrecisionRecall = false;
+
+    /**
+     * Flag which can be set to then calculate the average score per category group. Results are
+     * simply output to the console during scorecard generation.
+     */
+    public static boolean calcAveCatGroupsScore = false;
+
     public final Report report;
 
     private static final Yaml yaml = new Yaml(defaultLoaderOptions());
@@ -191,6 +204,24 @@ public class Configuration {
         // Optional config parameter for debugging/testing only
         if (yamlConfig.get("includecwesincsvresults") != null)
             includeAllCWEsInCSVFile = (Boolean) yamlConfig.get("includecwesincsvresults");
+
+        // Optional config parameter for calculating the Precision/Recall(TPR) rates for every
+        // combination of two tools scored
+        if (yamlConfig.get("calccombinedprecisionrecall") != null)
+            calcCombinedPrecisionRecall = (Boolean) yamlConfig.get("calccombinedprecisionrecall");
+
+        // Optional config parameter for calculating the Precision/Recall(TPR) rates for every
+        // combination of two tools scored
+        if (yamlConfig.get("calcaveragecategorygroupscore") != null) {
+            if (calcAveCatGroupsScore = (Boolean) yamlConfig.get("calcaveragecategorygroupscore")) {
+                // If calcAveCatGroupsScore is true, verify category groups are enabled and if not,
+                // issue a warning
+                if (mapCategoriesXMLFileName == null) {
+                    System.out.println(
+                            "WARNING: enabling 'calcaveragecategorygroupscore' doesn't do anything if no mapCategoriesXMLFileName value is specified in the .yaml scoring configuraiton file");
+                }
+            }
+        }
 
         report = new Report(yamlConfig);
     }

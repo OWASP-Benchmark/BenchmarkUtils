@@ -17,11 +17,17 @@
  */
 package org.owasp.benchmarkutils.score;
 
+import static org.owasp.benchmarkutils.score.report.Formats.twoDecimalPlacesPercentage;
+
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,6 +55,7 @@ import org.owasp.benchmarkutils.helpers.Category;
 import org.owasp.benchmarkutils.helpers.CategoryGroup;
 import org.owasp.benchmarkutils.helpers.CategoryGroups;
 import org.owasp.benchmarkutils.helpers.Utils;
+import org.owasp.benchmarkutils.score.TestSuiteResults.ToolType;
 import org.owasp.benchmarkutils.score.domain.TestSuiteName;
 import org.owasp.benchmarkutils.score.parsers.Reader;
 import org.owasp.benchmarkutils.score.report.ScatterHome;
@@ -421,17 +428,205 @@ public class BenchmarkScore extends AbstractMojo {
                     // process() populates tools with the supplied tool's results
                     process(resultsFileOrDir, expectedResults, tools, resultsFileCreator);
                 } // end else ( f.isDirectory() )
+
+                // Optional Step 6:
+
+                // Now that we have processed all the individual results per tool, we check to see
+                // if calcCombinedPrecisionRecall is enabled. If so, we calculate the combined
+                // Precision and Recall (TPR) rates for every combination of tools
+                if (Configuration.calcCombinedPrecisionRecall && (tools.size()) > 1) {
+
+                    // Open up the Precision-Recall Combined Tools .csv file so we can write the
+                    // results to it
+                    String PRECISION_RECALL_COMBINED_RESULTS_FILENAME =
+                            "Precision-Recall_Combined_Tools.csv";
+                    String fullCombinedFileName =
+                            scoreCardDir.getAbsolutePath()
+                                    + File.separator
+                                    + PRECISION_RECALL_COMBINED_RESULTS_FILENAME;
+                    File precisionRecallCombinedResultsFile = new File(fullCombinedFileName);
+                    try (FileOutputStream fos =
+                                    new FileOutputStream(
+                                            precisionRecallCombinedResultsFile, false);
+                            PrintStream ps = new PrintStream(fos)) {
+
+                        // Write out header
+                        ps.println("# tool name 1, tool name 2, Precision, Recall (TPR)");
+
+                        // We also calculate the combined results for ALL tools, so we can determine
+                        // how many of the True Positives in each category were actually detected by
+                        // any of the tools.
+
+                        // So we create an empty tool results object that we can then add ALL the
+                        // results for every tool to, to perform this calculation.
+                        TestSuiteResults allToolResults =
+                                new TestSuiteResults("AllToolsCombined", true, ToolType.Hybrid);
+                        // We use this to only calculate the combined results the first time thru,
+                        // which includes ALL tools. Subsequent loops thru the for loop eliminate a
+                        // tool each time.
+                        boolean firstTimeThru = true;
+
+                        // Loop through all the tools and combine each tool's Precision/Recall with
+                        // the remaining tools
+                        for (Tool tool : tools) {
+                            // Get current tool's results so we can combine them with the other tool
+                            TestSuiteResults currentToolResults = tool.getActualResults();
+
+                            // Copy the first tool's results into the allToolResults entry
+                            if (firstTimeThru) allToolResults.combineResults(currentToolResults);
+
+                            // Get an Iterator that keeps track of which tools we need to combine
+                            // with the current tool in the following for loop
+                            Iterator<Tool> toolsList = tools.iterator();
+                            // This advances toolsList to point to the current tool
+                            while (toolsList.next().compareTo(tool) != 0)
+                                ; // Do nothing, on purpose
+
+                            // Iterate through the rest of the tools to make the calculation
+                            while (toolsList.hasNext()) {
+                                Tool nextTool = toolsList.next();
+
+                                // Get a COPY of the current Tool's results so we don't affect that
+                                // tool's results when combining with the next tool
+                                TestSuiteResults combinedToolResults =
+                                        currentToolResults.cloneCopyOfResults();
+
+                                // Merge the results together with a copy of the 2nd tool's results
+                                // so we can calculate the combined results.
+                                TestSuiteResults nextToolResults = nextTool.getActualResults();
+                                combinedToolResults.combineResults(nextToolResults);
+
+                                // Copy each subsequent tool's results into the allToolResults
+                                // entry.
+                                // But only do this during the first pass thru the for loop, so it
+                                // combines the results for ALL tools.
+                                if (firstTimeThru) allToolResults.combineResults(nextToolResults);
+
+                                // Calculate Precision and Recall values for the combined tools
+
+                                // Clone the expected results so there is no side effect when we
+                                // do this again for the next combination of tools
+                                TestSuiteResults expectedResultsCopy =
+                                        expectedResults.cloneCopyOfResults();
+
+                                // note: side effect is that "pass/fail" value is set for each
+                                // expected result so it can be used to produce scorecard for this
+                                // tool. CweMatch details are set too. NOTE: In this use case we are
+                                // NOT producing a scorecard of the combined tool results.
+                                TestSuiteResults actualResults =
+                                        analyze(expectedResultsCopy, combinedToolResults);
+                                Map<String, TP_FN_TN_FP_Counts> scores =
+                                        calculateScores(actualResults);
+                                ToolMetrics metrics = calculateMetrics(scores);
+
+                                // Round the Precision/Recall numbers to the nearest 2 decimals
+                                BigDecimal bdPrecision =
+                                        new BigDecimal(Double.toString(metrics.getPrecision()));
+                                bdPrecision = bdPrecision.setScale(2, RoundingMode.HALF_UP);
+                                BigDecimal bdTPR =
+                                        new BigDecimal(
+                                                Double.toString(metrics.getTruePositiveRate()));
+                                bdTPR = bdTPR.setScale(2, RoundingMode.HALF_UP);
+
+                                // Then write combined results to .csv file
+                                ps.println(
+                                        tool.getToolNameAndVersion()
+                                                + ", "
+                                                + nextTool.getToolNameAndVersion()
+                                                + ", "
+                                                + bdPrecision.doubleValue()
+                                                + ", "
+                                                + bdTPR.doubleValue());
+                            } // end while (toolsList.hasNext())
+
+                            // Disable this after we've calculated the combined results for ALL
+                            // tools the first time thru
+                            firstTimeThru = false;
+                        } // end for (Tool tool : tools)
+
+                        // After all the tool combinations have been calculated, we write out the
+                        // combined results for ALL tools at the bottom of the .csv file
+                        TestSuiteResults actualResults =
+                                analyze(expectedResults.cloneCopyOfResults(), allToolResults);
+
+                        // Write out the .CSV file for these combined all results
+                        resultsFileCreator.createFor(actualResults);
+
+                        Map<String, TP_FN_TN_FP_Counts> combinedAllScores =
+                                calculateScores(actualResults);
+                        ToolMetrics combinedAllmetrics = calculateMetrics(combinedAllScores);
+
+                        // Round the Precision/Recall numbers to the nearest 2 decimals
+                        BigDecimal bdPrecision =
+                                new BigDecimal(Double.toString(combinedAllmetrics.getPrecision()));
+                        bdPrecision = bdPrecision.setScale(2, RoundingMode.HALF_UP);
+                        BigDecimal bdTPR =
+                                new BigDecimal(
+                                        Double.toString(combinedAllmetrics.getTruePositiveRate()));
+                        bdTPR = bdTPR.setScale(2, RoundingMode.HALF_UP);
+
+                        ps.println(
+                                "AllToolsCombined, N/A, "
+                                        + bdPrecision.doubleValue()
+                                        + ", "
+                                        + bdTPR.doubleValue());
+
+                        // Now, calculate the metrics per category group for ALL tools combined, and
+                        // output those too.
+
+                        // Constructing the Tool object causes all the CategoryGroup stats to be
+                        // calculated.
+                        Tool combinedAllTools =
+                                new Tool(
+                                        actualResults,
+                                        combinedAllScores,
+                                        combinedAllmetrics,
+                                        "AllToolsCombined",
+                                        true);
+
+                        // Now loop thru all the Category Groups and output the metrics for each
+                        // category
+
+                        for (String categoryGroup : combinedAllTools.getCategoryGroups()) {
+
+                            CategoryMetrics categoryMetrics =
+                                    combinedAllTools.getCategoryMetrics(categoryGroup, true);
+
+                            ps.println(
+                                    "AllToolsCombined, "
+                                            + categoryGroup
+                                            + ", "
+                                            + twoDecimalPlacesPercentage.format(
+                                                    categoryMetrics.precision)
+                                            + ", "
+                                            + twoDecimalPlacesPercentage.format(
+                                                    categoryMetrics.truePositiveRate));
+                        }
+
+                        System.out.println(
+                                "\nPrecision-Recall combined tool results file generated: "
+                                        + fullCombinedFileName
+                                        + "\n");
+
+                        // end try (FileOutputStream fos = new
+                        // FileOutputStream(precisionRecallCombinedResultsFile, false)
+                    } catch (FileNotFoundException e) {
+                        System.out.println(
+                                "ERROR: Can't create Precision-Recall combined results file: "
+                                        + fullCombinedFileName);
+                    }
+                } // end if (Configuration.calcCombinedPrecisionRecall && (tools.size()) > 1)
             } // end else "Not mixed"
 
             System.out.println("Tool scorecards computed.");
 
-            // catch try for Steps 4 & 5
+            // catch try for Steps 4, 5, and optional step 6
         } catch (Exception e) {
             System.err.println("Error during processing: " + e.getMessage());
             e.printStackTrace();
         }
 
-        // Step 6: Generate scorecards for each vulnerability type across all the tools now that
+        // Step 7: Generate scorecards for each vulnerability type across all the tools now that
         // the results for all the individual tools have been calculated.
 
         // First, we have to figure out all the vulnerability types that were scored
@@ -448,7 +643,7 @@ public class BenchmarkScore extends AbstractMojo {
                 tools, vulnSet, scoreCardDir, commercialAveragesTable, false);
         System.out.println("Vulnerability scorecards computed.");
 
-        // Step 7: Generate the tool scorecards now that the overall Vulnerability scorecards and
+        // Step 8: Generate the tool scorecards now that the overall Vulnerability scorecards and
         // stats have been calculated
         ToolScorecard toolScorecard =
                 new ToolScorecard(
@@ -458,8 +653,8 @@ public class BenchmarkScore extends AbstractMojo {
             toolScorecard.generate(tool, tool.getOverallMetrics().getCategoryMetrics());
         }
 
-        // Optional Step 8: If CategoryGroups are enabled do steps 8a & 8b
-        // Step 8a: generate scorecards for each CategoryGroup across all the tools
+        // Optional Step 9: If CategoryGroups are enabled do steps 9a & 9b
+        // Step 9a: generate scorecards for each CategoryGroup across all the tools
 
         Set<String> catGroupsSet = new TreeSet<String>();
         if (CategoryGroups.isCategoryGroupsEnabled()) {
@@ -481,7 +676,7 @@ public class BenchmarkScore extends AbstractMojo {
                         true);
                 System.out.println("Category Group scorecards computed.");
 
-                // Step 8b: Generate the tool scorecards now that the overall Vulnerability
+                // Step 9b: Generate the tool scorecards now that the overall Vulnerability
                 // scorecards and stats have been calculated for CategoryGroups
                 ToolScorecard toolScorecardCatGroups =
                         new ToolScorecard(
@@ -502,7 +697,7 @@ public class BenchmarkScore extends AbstractMojo {
             }
         }
 
-        // Step 9: Update all the menus for all the generated pages to reflect the tools and
+        // Step 10: Update all the menus for all the generated pages to reflect the tools and
         // vulnerability categories
         new MenuUpdater(
                         config,
@@ -516,10 +711,10 @@ public class BenchmarkScore extends AbstractMojo {
                         toolScorecard)
                 .updateMenus();
 
-        // Step 10: Generate the overall comparison chart for all the tools in this test
+        // Step 11: Generate the overall comparison chart for all the tools in this test
         ScatterHome.generateComparisonChart(tools, config.focus, scoreCardDir);
 
-        // Step 11: Generate the results table across all the tools in this test
+        // Step 12: Generate the results table across all the tools in this test
         try {
             OverallStatsTable overallStatsTable = new OverallStatsTable(config, TESTSUITENAME);
 
@@ -539,7 +734,7 @@ public class BenchmarkScore extends AbstractMojo {
             e.printStackTrace();
         }
 
-        // Step 12: Create Interpretation Guide image with name of this particular test suite
+        // Step 13: Create Interpretation Guide image with name of this particular test suite
         ScatterInterpretation scatter = new ScatterInterpretation(800);
         try {
             scatter.writeChartToFile(new File(scoreCardDir, "content/testsuite_guide.png"), 800);
@@ -607,8 +802,7 @@ public class BenchmarkScore extends AbstractMojo {
                             rawToolResults.combineResults(prevToolResults);
 
                             // Now that we've combined the previous results into a single results
-                            // set,
-                            // remove the existing Tool results so we can calculated combined
+                            // set, remove the existing Tool results so we can calculated combined
                             // results below, and add a new result to the set of tool results.
                             tools.remove(sameToolAndVersion);
                             break;
@@ -921,7 +1115,7 @@ public class BenchmarkScore extends AbstractMojo {
                 return new CweMatchDetails(
                         expectedCWE,
                         exp.isTruePositive(),
-                        exp.isTruePositive(),
+                        exp.isTruePositive(), // If a match, a TP passes. If a match, a FP fails.
                         actualCWE,
                         "",
                         actList);
@@ -937,7 +1131,7 @@ public class BenchmarkScore extends AbstractMojo {
                 return new CweMatchDetails(
                         expectedCWE,
                         exp.isTruePositive(),
-                        exp.isTruePositive(),
+                        exp.isTruePositive(), // If a match, a TP passes. If a match, a FP fails.
                         actualCWE,
                         "ChildOf",
                         actList);
@@ -946,7 +1140,7 @@ public class BenchmarkScore extends AbstractMojo {
                 return new CweMatchDetails(
                         expectedCWE,
                         exp.isTruePositive(),
-                        exp.isTruePositive(),
+                        exp.isTruePositive(), // If a match, a TP passes. If a match, a FP fails.
                         actualCWE,
                         "ParentOf",
                         actList);
@@ -1000,7 +1194,8 @@ public class BenchmarkScore extends AbstractMojo {
             CommercialAveragesTable commercialAveragesTable,
             boolean useCategoryGroups) {
 
-        // A side effect of this method is to calculate these averages
+        // A side effect of this method is to calculate these averages per CWE included in this
+        // Benchmark
         BenchmarkScore.averageCommercialToolMetrics = new HashMap<String, CategoryMetrics>();
         BenchmarkScore.averageNonCommerciaToolMetrics = new HashMap<String, CategoryMetrics>();
         BenchmarkScore.overallAveToolMetrics = new HashMap<String, CategoryMetrics>();
@@ -1077,7 +1272,8 @@ public class BenchmarkScore extends AbstractMojo {
                 html =
                         html.replace(
                                 "${table}",
-                                vulnerabilityStatsTable.generateFor(cat, useCategoryGroups));
+                                vulnerabilityStatsTable.generateFor(
+                                        cat, useCategoryGroups, scoreCardDir));
                 html = html.replace("${tprlabel}", config.tprLabel);
                 html =
                         html.replace(
@@ -1109,6 +1305,15 @@ public class BenchmarkScore extends AbstractMojo {
                 e.printStackTrace();
             }
         } // end for loop
+
+        // If these are both enabled, a special CSV file for these metrics is generated as a side
+        // effect but we put the message here so its not mixed in with the normal console output for
+        // the work done earlier.
+        if (useCategoryGroups && Configuration.calcAveCatGroupsScore)
+            System.out.println(
+                    "\nCategoryGroup Average Metrics file generated: "
+                            + VulnerabilityStatsTable.categoryGroupsAveragesFile
+                            + "\r\n");
 
         if (commercialAveragesTable.hasEntries()) {
             try {

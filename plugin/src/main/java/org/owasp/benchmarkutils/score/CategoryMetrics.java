@@ -25,7 +25,7 @@ public class CategoryMetrics {
     public final double falsePositiveRate;
     public final double fscore; // 2 * precision * TPR / ( precision + TPR )
     public final int totalTestCases;
-    public final double score;
+    public final double score; // scale is 0 to 1
 
     /**
      * The overall metrics for a single vulnerability category for a single tool. F-Score and score
@@ -64,6 +64,6 @@ public class CategoryMetrics {
             this.fscore = 0.0;
         } else this.fscore = fscore;
         this.totalTestCases = totalTestCases;
-        this.score = tpr - fpr;
+        this.score = tpr - fpr; // Range 1 to 0
     }
 }

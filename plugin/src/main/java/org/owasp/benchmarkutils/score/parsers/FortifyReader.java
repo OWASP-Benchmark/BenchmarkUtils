@@ -291,7 +291,7 @@ public class FortifyReader extends Reader {
                     }
                 }
                 if (!"Password in Comment".equals(vulnSubType)
-                        && !"Password in Configuration File".equals(vulnSubType)
+                        && !vulnSubType.endsWith("Password in Configuration File")
                         && !"Build Misconfiguration".equals(vulnType)
                         && !"J2EE Misconfiguration".equals(vulnType)) {
                     // If it falls thru to here, we couldn't figure out which source file this

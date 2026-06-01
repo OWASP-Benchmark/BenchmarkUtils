@@ -51,9 +51,9 @@ public class ScatterVulns extends ScatterPlot {
     // Non-Commercial Scores
     private CategoryMetrics noncommercialCategoryMetrics;
     private int noncommercialToolCount = 0;
-    private double noncommercialLow = 100;
+    private double noncommercialLow = 100; // Start high and go down
     private TestSuiteResults.ToolType noncommercialLowToolType = null;
-    private double noncommercialHigh = 0;
+    private double noncommercialHigh = 0; // Start low and go up
     private TestSuiteResults.ToolType noncommercialHighToolType = null;
     private double noncommercialAveScore = 0;
     private double noncommercialAvePrecision = 0;
@@ -378,12 +378,13 @@ public class ScatterVulns extends ScatterPlot {
                 if (ch == 'Z') ch = 'a';
                 else ch++;
 
-                noncommercialTotalScore += categoryMetrics.score * 100;
+                noncommercialTotalScore +=
+                        categoryMetrics.score * 100; // Range 0-100 for HTML report
                 noncommercialTotalPrecision += categoryMetrics.precision;
                 noncommercialTotalTPR += categoryMetrics.truePositiveRate;
                 noncommercialTotalFPR += categoryMetrics.falsePositiveRate;
 
-                double score = categoryMetrics.score * 100;
+                double score = categoryMetrics.score * 100; // Range 0-100 for HTML report
                 if (score < noncommercialLow) {
                     this.noncommercialLow = score;
                     this.noncommercialLowToolType = tool.getToolType();
@@ -445,7 +446,7 @@ public class ScatterVulns extends ScatterPlot {
 
                 this.commercialToolCount++;
                 this.overallToolCount++;
-                double score = categoryMetrics.score * 100;
+                double score = categoryMetrics.score * 100; // Range 0-100 for HTML report
                 double tpr = categoryMetrics.truePositiveRate;
                 double fpr = categoryMetrics.falsePositiveRate;
                 // don't show the commercial tool results if in 'show ave only mode'
@@ -585,7 +586,7 @@ public class ScatterVulns extends ScatterPlot {
     }
 
     /**
-     * Generates a ScatterVulns chart for this category of vulnerabilities or this CategoryGroup
+     * Generates a ScatterVulns chart for this category of vulnerabilities or this CategoryGroup.
      *
      * @param category The vuln category or categoryGroup to generate this for.
      * @param toolResults The set of tool results for the tools to chart
