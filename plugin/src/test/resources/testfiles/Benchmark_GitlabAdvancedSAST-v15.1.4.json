@@ -1,0 +1,261 @@
+{
+  "version": "15.1.4",
+  "vulnerabilities": [
+    {
+      "id": "1111111111111111111111111111111111111111111111111111111111111111",
+      "category": "sast",
+      "name": "Improper limitation of a pathname to a restricted directory ('Path Traversal')",
+      "description": "The application was found to take a parameter from user input to construct a path name. If an\nunfiltered parameter is passed to this file API, files from an arbitrary filesystem location\ncould be read. When data from an untrusted source is untrusted source is used to construct\na file path, an attacker could potentially gain access to restricted files locations outside\nthe relevant context.\n\nFor example, if the application tries to access the users profile picture based on their user\nname by concatenating the username to the filepath:\n\n\"images/userprofiles/\" + username\n\nThe expected result of this would be \"images/userprofiles/alice\", however an attacker could\nuse a malicious input such as \"../../../etc/passwd\" to gain access to and/or manipulate\nsensitive information.\n\nAssume all input is malicious. Use an \"accept known good\" input validation strategy.\n\nInputs can be sanitized by using the getName() method with concat() method to remove the \npotentially malicious path traversal and limit the scope to a restricted directory. Or \ninput can also be sanitized by using resolve() method alongwith startsWith() method to \nverify that the base path of the file is safe and expected.\n\nExample using `Path.resolve` and not allowing direct user input:\n```\n// Class to store our user data along with a randomly generated file name\npublic static class UserData {\n    private String userFileNameUnsafe;\n    private String fileName;\n    public UserData(String userFileName) {\n        this.userFileNameUnsafe = userFileName;\n        // Generate a random ID for the filename\n        this.fileName = UUID.randomUUID().toString();\n    }\n    public String getUserFileNameUnsafe() { return userFileNameUnsafe; };\n    public String getFileName() { return fileName; };\n}\n\npublic static void main(String[] args) throws Exception {\n    // User input, saved only as a reference\n    UserData userData = new UserData(\"..\\\\test.txt\");\n    // Restrict all file processing to this directory only\n    String base = \"/var/app/restricted\";\n    Path basePath = Paths.get(base);\n    // Resolve the full path, but only use our random generated filename\n    Path fullPath = basePath.resolve(userData.getFileName());\n    // verify the path is contained within our basePath\n    if (!fullPath.startsWith(base)) {\n        throw new Exception(\"Invalid path specified!\");\n    }\n    // process / work with file\n}\n```\n",
+      "cve": "gitlab-advanced-sast_id:java-lang-pathtraversal-file-taint:1:1",
+      "severity": "High",
+      "scanner": {
+        "id": "gitlab-advanced-sast",
+        "name": "GitLab Advanced SAST"
+      },
+      "location": {
+        "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java",
+        "start_line": 1
+      },
+      "identifiers": [
+        {
+          "type": "gitlab-advanced-sast_id",
+          "name": "java-lang-pathtraversal-file-taint",
+          "value": "java-lang-pathtraversal-file-taint"
+        },
+        {
+          "type": "owasp",
+          "name": "A5:2017 - Broken Access Control",
+          "value": "A5:2017"
+        },
+        {
+          "type": "owasp",
+          "name": "A01:2021 - Broken Access Control",
+          "value": "A01:2021"
+        },
+        {
+          "type": "semgrep_id",
+          "name": "SAST Rules ID - java_file_rule_rule-FilePathTraversalHttpServlet",
+          "value": "java_file_rule_rule-FilePathTraversalHttpServlet"
+        },
+        {
+          "type": "semgrep_id",
+          "name": "Gitlab java_file_rule-FilePathTraversalHttpServlet",
+          "value": "java_file_rule-FilePathTraversalHttpServlet"
+        },
+        {
+          "type": "semgrep_id",
+          "name": "SAST Rules ID - java_traversal_rule-RelativePathTraversal",
+          "value": "java_traversal_rule-RelativePathTraversal"
+        },
+        {
+          "type": "semgrep_id",
+          "name": "Gitlab java_traversal_rule-RelativePathTraversal",
+          "value": "java_traversal_rule-RelativePathTraversal"
+        },
+        {
+          "type": "semgrep_id",
+          "name": "SAST Rules ID - java_inject_rule-SpotbugsPathTraversalAbsolute",
+          "value": "java_inject_rule-SpotbugsPathTraversalAbsolute"
+        },
+        {
+          "type": "semgrep_id",
+          "name": "Find Security Bugs-find_sec_bugs.PT_ABSOLUTE_PATH_TRAVERSAL-1",
+          "value": "find_sec_bugs.PT_ABSOLUTE_PATH_TRAVERSAL-1"
+        },
+        {
+          "type": "cwe",
+          "name": "CWE-22",
+          "value": "22",
+          "url": "https://cwe.mitre.org/data/definitions/22.html"
+        }
+      ],
+      "tracking": {
+        "type": "source",
+        "items": [
+          {
+            "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java",
+            "line_start": 1,
+            "line_end": 1,
+            "signatures": [
+              {
+                "algorithm": "scope_offset_compressed",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java|BenchmarkTest00001[0]|doPost[0]:19"
+              },
+              {
+                "algorithm": "scope_offset",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java|BenchmarkTest00001[0]|doPost[0]:23"
+              }
+            ]
+          }
+        ]
+      },
+      "details": {
+        "code_flows": {
+          "items": [
+            [
+              {
+                "file_location": {
+                  "file_name": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java",
+                  "line_end": 54,
+                  "line_start": 54,
+                  "type": "file-location"
+                },
+                "node_type": "source",
+                "type": "code-flow-node"
+              },
+              {
+                "file_location": {
+                  "file_name": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java",
+                  "line_end": 54,
+                  "line_start": 54,
+                  "type": "file-location"
+                },
+                "node_type": "propagation",
+                "type": "code-flow-node"
+              },
+              {
+                "file_location": {
+                  "file_name": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java",
+                  "line_end": 58,
+                  "line_start": 58,
+                  "type": "file-location"
+                },
+                "node_type": "propagation",
+                "type": "code-flow-node"
+              },
+              {
+                "file_location": {
+                  "file_name": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java",
+                  "line_end": 60,
+                  "line_start": 60,
+                  "type": "file-location"
+                },
+                "node_type": "propagation",
+                "type": "code-flow-node"
+              },
+              {
+                "file_location": {
+                  "file_name": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java",
+                  "line_end": 70,
+                  "line_start": 70,
+                  "type": "file-location"
+                },
+                "node_type": "propagation",
+                "type": "code-flow-node"
+              },
+              {
+                "file_location": {
+                  "file_name": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java",
+                  "line_end": 1,
+                  "line_start": 1,
+                  "type": "file-location"
+                },
+                "node_type": "sink",
+                "type": "code-flow-node"
+              }
+            ]
+          ],
+          "name": "code_flows",
+          "type": "code-flows"
+        }
+      }
+    },
+    {
+      "id": "2222222222222222222222222222222222222222222222222222222222222222",
+      "category": "sast",
+      "name": "Sensitive cookie without 'HttpOnly' flag",
+      "description": "The application is adding a cookie without setting the `HttpOnly` flag\nor by explicitly setting the flag value as `false`. Without the `HttpOnly` \nflag being set to `true`, cookies can be accessed via client-side scripts, \nmaking them susceptible to theft through XSS attacks. Attackers can exploit \nthis to hijack user sessions or perform unauthorized actions on behalf of the \nuser.\n\nTo mitigate the vulnerability, ensure that all cookies, especially those \ncontaining sensitive information, are set with the `HttpOnly` flag. This can \nbe achieved by calling the `setHttpOnly(true)` method on the `Cookie` object \nbefore adding it to the response.\n\nSecure Code Example:\n```\n  import javax.servlet.http.Cookie;\n  import javax.servlet.http.HttpServletResponse;\n\n  public class SecureCookieExample {\n      public void addSecureCookie(HttpServletResponse response) {\n          Cookie cookie = new Cookie(\"session\", \"abc123\");\n          cookie.setHttpOnly(true); // Ensuring the HttpOnly flag is set\n          response.addCookie(cookie);\n      }\n  }\n  ```\n\nFor more information see:\nhttps://jakarta.ee/specifications/servlet/4.0/apidocs/javax/servlet/http/cookie#setHttpOnly-boolean-\n\nSession cookies should be configured with the following security directives:\n\n- [HTTPOnly](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)\n- [Secure](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#restrict_access_to_cookies)\n- [SameSite](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite)\n",
+      "cve": "gitlab-advanced-sast_id:java-lang-misconfiguration-cookie-httponly-atomic:2:2",
+      "severity": "Low",
+      "scanner": {
+        "id": "gitlab-advanced-sast",
+        "name": "GitLab Advanced SAST"
+      },
+      "location": {
+        "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00002.java",
+        "start_line": 2
+      },
+      "identifiers": [
+        {
+          "type": "gitlab-advanced-sast_id",
+          "name": "java-lang-misconfiguration-cookie-httponly-atomic",
+          "value": "java-lang-misconfiguration-cookie-httponly-atomic"
+        },
+        {
+          "type": "cwe",
+          "name": "CWE-1004",
+          "value": "1004",
+          "url": "https://cwe.mitre.org/data/definitions/1004.html"
+        },
+        {
+          "type": "owasp",
+          "name": "A6:2017 - Security Misconfiguration",
+          "value": "A6:2017"
+        },
+        {
+          "type": "owasp",
+          "name": "A05:2021 - Security Misconfiguration",
+          "value": "A05:2021"
+        },
+        {
+          "type": "semgrep_id",
+          "name": "SAST Rules ID - java_cookie_rule-CookieHTTPOnly",
+          "value": "java_cookie_rule-CookieHTTPOnly"
+        },
+        {
+          "type": "semgrep_id",
+          "name": "Gitlab java_cookie_rule-CookieHTTPOnly",
+          "value": "java_cookie_rule-CookieHTTPOnly"
+        }
+      ],
+      "tracking": {
+        "type": "source",
+        "items": [
+          {
+            "file": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00002.java",
+            "line_start": 2,
+            "line_end": 2,
+            "signatures": [
+              {
+                "algorithm": "scope_offset",
+                "value": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00002.java|BenchmarkTest00002[0]|doGet[0]:10"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "dependency_files": null,
+  "scan": {
+    "analyzer": {
+      "id": "gitlab-advanced-sast",
+      "name": "GitLab Advanced SAST",
+      "url": "https://gitlab.com/gitlab-org/security-products/analyzers/gitlab-advanced-sast-src",
+      "vendor": {
+        "name": "GitLab"
+      },
+      "version": "1.1.18"
+    },
+    "scanner": {
+      "id": "gitlab-advanced-sast",
+      "name": "GitLab Advanced SAST",
+      "url": "https://gitlab.com",
+      "vendor": {
+        "name": "GitLab"
+      },
+      "version": "v1.1.133"
+    },
+    "primary_identifiers": [
+      {
+        "type": "gitlab-advanced-sast_id",
+        "name": "java-jdbc-sqli-formatted-string-taint",
+        "value": "java-jdbc-sqli-formatted-string-taint"
+      }
+    ],
+    "type": "sast",
+    "start_time": "1970-01-01T01:01:01",
+    "end_time": "1970-01-01T02:02:02",
+    "status": "success"
+  }
+}
