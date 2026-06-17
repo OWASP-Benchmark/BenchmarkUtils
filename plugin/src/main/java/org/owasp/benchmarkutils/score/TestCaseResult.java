@@ -17,7 +17,7 @@
  */
 package org.owasp.benchmarkutils.score;
 
-import org.owasp.benchmarkutils.tools.AbstractTestCaseRequest;
+import org.owasp.benchmarkutils.entities.TestCase;
 
 /* This class represents a single test case result. It documents the expected result (real),
  * and the actual result (result).
@@ -49,7 +49,7 @@ public class TestCaseResult {
      *
      * @param request The request object used to access this test case.
      */
-    public TestCaseResult(AbstractTestCaseRequest request) {
+    public TestCaseResult(TestCase request) {
         this.testCaseName = request.getName();
         this.number = request.getNumber();
         this.truePositive = request.isVulnerability();

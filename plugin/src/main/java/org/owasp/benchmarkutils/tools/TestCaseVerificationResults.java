@@ -17,9 +17,14 @@
  */
 package org.owasp.benchmarkutils.tools;
 
-import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import org.owasp.benchmarkutils.entities.ResponseInfo;
+import org.owasp.benchmarkutils.entities.TestCase;
 
 /** Not a great class name. */
+@XmlRootElement(name = "TestCaseVerificationResult")
 public class TestCaseVerificationResults {
 
     private ResponseInfo responseToAttackValue;
@@ -32,22 +37,26 @@ public class TestCaseVerificationResults {
 
     private boolean isPassed;
 
-    private HttpUriRequest attackRequest;
+    private String attackTestExecutorDescription;
 
-    private HttpUriRequest safeRequest;
+    private String safeTestExecutorDescription;
 
-    private AbstractTestCaseRequest requestTemplate;
+    private TestCase testCase;
+
+    public TestCaseVerificationResults() {
+        super();
+    }
 
     public TestCaseVerificationResults(
-            HttpUriRequest attackRequest,
-            HttpUriRequest safeRequest,
-            AbstractTestCaseRequest requestTemplate,
+            String attackTestExecutorDescription,
+            String safeTestExecutorDescription,
+            TestCase testCase,
             ResponseInfo responseToAttackValue,
             ResponseInfo responseToSafeValue) {
         this(
-                attackRequest,
-                safeRequest,
-                requestTemplate,
+                attackTestExecutorDescription,
+                safeTestExecutorDescription,
+                testCase,
                 responseToAttackValue,
                 responseToSafeValue,
                 true,
@@ -56,18 +65,18 @@ public class TestCaseVerificationResults {
     }
 
     public TestCaseVerificationResults(
-            HttpUriRequest attackRequest,
-            HttpUriRequest safeRequest,
-            AbstractTestCaseRequest requestTemplate,
+            String attackTestExecutorDescription,
+            String safeTestExecutorDescription,
+            TestCase testCase,
             ResponseInfo responseToAttackValue,
             ResponseInfo responseToSafeValue,
             boolean isUnverifiable,
             boolean isDeclaredVerifiable,
             boolean isPassed) {
         super();
-        this.attackRequest = attackRequest;
-        this.safeRequest = safeRequest;
-        this.requestTemplate = requestTemplate;
+        this.attackTestExecutorDescription = attackTestExecutorDescription;
+        this.safeTestExecutorDescription = safeTestExecutorDescription;
+        this.testCase = testCase;
         this.responseToAttackValue = responseToAttackValue;
         this.responseToSafeValue = responseToSafeValue;
         this.isUnverifiable = isUnverifiable;
@@ -75,6 +84,7 @@ public class TestCaseVerificationResults {
         this.isPassed = isPassed;
     }
 
+    @XmlElement(name = "AttackResponseInfo")
     public ResponseInfo getResponseToAttackValue() {
         return responseToAttackValue;
     }
@@ -83,6 +93,7 @@ public class TestCaseVerificationResults {
         this.responseToAttackValue = responseToAttackValue;
     }
 
+    @XmlElement(name = "SafeResponseInfo", required = true)
     public ResponseInfo getResponseToSafeValue() {
         return responseToSafeValue;
     }
@@ -91,6 +102,7 @@ public class TestCaseVerificationResults {
         this.responseToSafeValue = responseToSafeValue;
     }
 
+    @XmlAttribute(name = "Unverifiable")
     public boolean isUnverifiable() {
         return isUnverifiable;
     }
@@ -99,6 +111,7 @@ public class TestCaseVerificationResults {
         this.isUnverifiable = isUnverifiable;
     }
 
+    @XmlAttribute(name = "DeclaredUnverifiable")
     public boolean isDeclaredUnverifiable() {
         return isDeclaredUnverifiable;
     }
@@ -107,35 +120,39 @@ public class TestCaseVerificationResults {
         this.isDeclaredUnverifiable = isDeclaredUnverifiable;
     }
 
-    public void setPassed(boolean isPassed) {
-        this.isPassed = isPassed;
-    }
-
+    @XmlAttribute(name = "Passed")
     public boolean isPassed() {
         return isPassed;
     }
 
-    public HttpUriRequest getAttackRequest() {
-        return attackRequest;
+    public void setPassed(boolean isPassed) {
+        this.isPassed = isPassed;
     }
 
-    public void setAttackRequest(HttpUriRequest attackRequest) {
-        this.attackRequest = attackRequest;
+    @XmlElement(name = "AttackRequestInfo")
+    public String getAttackTestExecutorDescription() {
+        return attackTestExecutorDescription;
     }
 
-    public HttpUriRequest getSafeRequest() {
-        return safeRequest;
+    public void setAttackTestExecutorDescription(String attackTestExecutor) {
+        this.attackTestExecutorDescription = attackTestExecutorDescription;
     }
 
-    public void setSafeRequest(HttpUriRequest safeRequest) {
-        this.safeRequest = safeRequest;
+    @XmlElement(name = "SafeRequestInfo")
+    public String getSafeTestExecutorDescription() {
+        return safeTestExecutorDescription;
     }
 
-    public AbstractTestCaseRequest getRequestTemplate() {
-        return requestTemplate;
+    public void setSafeTestExecutorDescription(String safeTestExecutor) {
+        this.safeTestExecutorDescription = safeTestExecutorDescription;
     }
 
-    public void setRequestTemplate(AbstractTestCaseRequest requestTemplate) {
-        this.requestTemplate = requestTemplate;
+    @XmlElement(name = "TestCase")
+    public TestCase getTestCase() {
+        return testCase;
+    }
+
+    public void setTestCase(TestCase testCase) {
+        this.testCase = testCase;
     }
 }
