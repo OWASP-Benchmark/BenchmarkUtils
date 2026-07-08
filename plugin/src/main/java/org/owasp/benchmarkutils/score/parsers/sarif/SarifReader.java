@@ -103,9 +103,12 @@ public abstract class SarifReader extends Reader {
     }
 
     private static boolean hasInvocationTimes(ResultFile resultFile) {
-        return firstRun(resultFile).has("invocations")
-                && firstInvocation(resultFile).has("startTimeUtc")
-                && firstInvocation(resultFile).has("endTimeUtc");
+        JSONObject firstRun = firstRun(resultFile);
+        if (firstRun.has("invocations") && !firstRun.getJSONArray("invocations").isEmpty()) {
+            JSONObject firstInvocation = firstInvocation(resultFile);
+            return firstInvocation.has("startTimeUtc") && firstInvocation.has("endTimeUtc");
+        }
+        return false;
     }
 
     private static JSONObject firstInvocation(ResultFile resultFile) {
