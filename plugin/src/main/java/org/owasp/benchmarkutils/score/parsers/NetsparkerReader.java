@@ -129,6 +129,8 @@ public class NetsparkerReader extends Reader {
                 //        case "trust-boundary-violation"  :  return 501;  // trust boundary
                 //        case "xxe"                       :  return 611;  // xml entity
         }
+        System.out.println(
+                "INFO: Netsparker - unmapped CWE: " + cwe + ". Passing through as-is.");
         return cwe;
     }
 }
