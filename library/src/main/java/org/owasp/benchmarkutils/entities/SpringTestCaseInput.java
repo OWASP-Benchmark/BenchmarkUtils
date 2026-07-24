@@ -10,35 +10,25 @@
  *
  * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU General Public License for more details
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Juan Gama
- * @created 2017
+ * @author David Anderson
+ * @created 2024
  */
-package org.owasp.benchmarkutils.tools;
+package org.owasp.benchmarkutils.entities;
 
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
-import org.owasp.benchmarkutils.helpers.RequestVariable;
 
-@XmlDiscriminatorValue("SPRINGWS")
-public class SpringTestCaseRequest extends AbstractTestCaseRequest {
-
-    public SpringTestCaseRequest() {}
+@XmlDiscriminatorValue("Spring")
+// @XmlType(name = "HttpPostTestCaseInput")
+public class SpringTestCaseInput extends HttpTestCaseInput {
 
     @Override
     void buildQueryString() {
-        setQuery("");
-    }
-
-    @Override
-    HttpUriRequestBase createRequestInstance(String URL) {
-        // Apparently all Spring Requests are POSTS. Never any query string params per buildQuery()
-        // above.
-        HttpPost httpPost = new HttpPost(URL);
-        return httpPost;
+        setQueryString("");
     }
 
     @Override
@@ -68,7 +58,7 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
     void buildBodyParameters(HttpUriRequestBase request) {
         boolean first = true;
         String params = "{";
-        for (RequestVariable field : getFormParams()) {
+        for (RequestVariable field : getFormParameters()) {
             String name = field.getName();
             String value = field.getValue();
             // System.out.println(name+"="+value);
@@ -82,5 +72,13 @@ public class SpringTestCaseRequest extends AbstractTestCaseRequest {
         params += "}";
         StringEntity paramsEnt = new StringEntity(params);
         request.setEntity(paramsEnt);
+    }
+
+    @Override
+    HttpUriRequestBase createRequestInstance(String url) {
+        // Apparently all Spring Requests are POSTS. Never any query string params per buildQuery()
+        // above.
+        HttpPost httpPost = new HttpPost(url);
+        return httpPost;
     }
 }
