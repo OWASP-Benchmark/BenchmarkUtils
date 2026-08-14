@@ -31,11 +31,12 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.parsers.csv.SemgrepCSVReader;
 import org.owasp.benchmarkutils.score.parsers.csv.WhiteHatDynamicReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.BanditReader;
-import org.owasp.benchmarkutils.score.parsers.sarif.CogniumReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.CodeQLReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.CogniumReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.ContrastScanReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.DatadogSastReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.FortifySarifReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.MendSarifReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.OpenTaintReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PTAIReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
@@ -92,6 +93,7 @@ public abstract class Reader {
                 new KlocworkCSVReader(),
                 new KiuwanReader(),
                 new MendReader(),
+                new MendSarifReader(),
                 new NetsparkerReader(),
                 new NJSScanReader(),
                 new NoisyCricketReader(),
