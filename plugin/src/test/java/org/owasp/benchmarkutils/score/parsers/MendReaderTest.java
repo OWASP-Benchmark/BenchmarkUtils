@@ -12,7 +12,7 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Sascha Knoop
+ * @author Sascha Knoop, Jan Kühl
  * @created 2022
  */
 package org.owasp.benchmarkutils.score.parsers;
@@ -30,32 +30,56 @@ import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class MendReaderTest extends ReaderTestBase {
 
-    private ResultFile resultFile;
+    private ResultFile resultFileLegacy;
+    private ResultFile resultFile2023;
 
     @BeforeEach
     void setUp() {
-        resultFile = TestHelper.resultFileOf("testfiles/Benchmark_Mend.xml");
+        resultFileLegacy = TestHelper.resultFileOf("testfiles/Benchmark_Mend.xml");
+        resultFile2023 = TestHelper.resultFileOf("testfiles/Benchmark_Mend_2023.xml");
         BenchmarkScore.TESTCASENAME = "BenchmarkTest";
     }
 
     @Test
-    public void onlyMendReaderReportsCanReadAsTrue() {
-        assertOnlyMatcherClassIs(this.resultFile, MendReader.class);
+    public void onlyMendReaderReportsCanReadAsTrueForLegacyFormat() {
+        assertOnlyMatcherClassIs(this.resultFileLegacy, MendReader.class);
     }
 
     @Test
-    void readerHandlesGivenResultFile() throws Exception {
+    public void onlyMendReaderReportsCanReadAsTrueForFormat2023() {
+        assertOnlyMatcherClassIs(this.resultFile2023, MendReader.class);
+    }
+
+    @Test
+    void readerHandlesLegacyReportFormat() throws Exception {
         MendReader reader = new MendReader();
-        TestSuiteResults result = reader.parse(resultFile);
+        TestSuiteResults result = reader.parse(resultFileLegacy);
 
         assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
         assertTrue(result.isCommercial());
-        assertEquals("Mend", result.getToolName());
+        assertEquals("Mend SAST", result.getToolName());
         assertEquals("01:23:45", result.getTime());
 
         assertEquals(2, result.getTotalResults());
 
         assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
         assertEquals(CweNumber.COMMAND_INJECTION, result.get(2).get(0).getCWE());
+    }
+
+    @Test
+    void readerHandlesReportFormat2023() throws Exception {
+        MendReader reader = new MendReader();
+        TestSuiteResults result = reader.parse(resultFile2023);
+
+        assertEquals(TestSuiteResults.ToolType.SAST, result.getToolType());
+        assertTrue(result.isCommercial());
+        assertEquals("Mend SAST", result.getToolName());
+        assertEquals("01:23:45", result.getTime());
+
+        assertEquals(3, result.getTotalResults());
+
+        assertEquals(CweNumber.SQL_INJECTION, result.get(1).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get(2).get(0).getCWE());
+        assertEquals(CweNumber.WEAK_RANDOM, result.get(3).get(0).getCWE());
     }
 }
