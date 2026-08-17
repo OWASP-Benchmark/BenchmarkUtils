@@ -76,17 +76,8 @@ public class MendReader extends Reader {
     private void parseVulnerabilities(Report.EngineResults.Result result, TestSuiteResults tr) {
         for (Report.EngineResults.Result.Vulnerability vulnerability : result.vulnerabilities) {
             try {
-                String testfile = extractFilenameWithoutEnding(vulnerability.filename);
-
-                if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    TestCaseResult tcr = new TestCaseResult();
-
-                    tcr.setCategory(result.type.name);
-                    tcr.setCWE(result.type.cwe.asNumber());
-                    tcr.setNumber(testNumber(testfile));
-
-                    tr.put(tcr);
-                }
+                String testFile = extractFilenameWithoutEnding(vulnerability.filename);
+                createAndAddTestCase(result, result.type.cwe.asNumber(), testFile, tr);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -98,21 +89,27 @@ public class MendReader extends Reader {
 
         for (Report.EngineResults.Result.Finding finding : result.findings) {
             try {
-                String testfile = extractFilenameWithoutEnding(finding.sharedStep.file);
-
-                if (testfile.startsWith(BenchmarkScore.TESTCASENAME)) {
-                    TestCaseResult tcr = new TestCaseResult();
-
-                    tcr.setCategory(result.type.name);
-                    tcr.setCWE(cwe);
-                    tcr.setNumber(testNumber(testfile));
-
-                    tr.put(tcr);
-                }
+                String testFile = extractFilenameWithoutEnding(finding.sharedStep.file);
+                createAndAddTestCase(result, cwe, testFile, tr);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void createAndAddTestCase(
+            Report.EngineResults.Result result, int cwe, String testFile, TestSuiteResults tr) {
+        if (!testFile.startsWith(BenchmarkScore.TESTCASENAME)) {
+            return;
+        }
+
+        TestCaseResult tcr = new TestCaseResult();
+
+        tcr.setCategory(result.type.name);
+        tcr.setCWE(cwe);
+        tcr.setNumber(testNumber(testFile));
+
+        tr.put(tcr);
     }
 
     // CWE remap required for the Findings-based report format, since 2023

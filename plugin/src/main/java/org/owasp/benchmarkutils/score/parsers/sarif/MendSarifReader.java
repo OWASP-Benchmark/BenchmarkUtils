@@ -28,12 +28,6 @@ import org.owasp.benchmarkutils.score.CweNumber;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 
-/**
- * This reader is made for Mend SAST reports using the SARIF format. Mend rules don't carry a CWE
- * tag or field - the CWE is only present as the trailing number of each rule's {@code helpUri}
- * (e.g. https://cwe.mitre.org/data/definitions/78.html), so CWEs are scraped from there
- * automatically instead of providing a mapping of Mend rule id to CWE.
- */
 public class MendSarifReader extends SarifReader {
 
     public MendSarifReader() {
@@ -76,7 +70,13 @@ public class MendSarifReader extends SarifReader {
             try {
                 JSONObject rule = rules.getJSONObject(i);
 
-                ruleCweMap.put(rule.getString("id"), mapCwe(extractCwe(rule.getString("helpUri"))));
+                // Mend rules don't carry a CWE tag or field in a SARIF report.
+                // The CWE is only present as the trailing number of each rule's helpUri
+                // (e.g. https://cwe.mitre.org/data/definitions/78.html),
+                // so CWEs are scraped from there.
+                int cwe = mapCwe(extractCwe(rule.getString("helpUri")));
+
+                ruleCweMap.put(rule.getString("id"), cwe);
             } catch (JSONException e) {
                 // Skip rules without a helpUri-based CWE reference.
             }
