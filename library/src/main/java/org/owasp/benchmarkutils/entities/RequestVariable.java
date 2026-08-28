@@ -13,13 +13,14 @@
  * PURPOSE. See the GNU General Public License for more details.
  *
  * @author David Anderson
- * @created 2021
+ * @created 2024
  */
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.entities;
 
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 
@@ -56,6 +57,19 @@ public class RequestVariable {
         this.attackValue = attackValue;
         this.safeName = safeName;
         this.safeValue = safeValue;
+        if (name == null) throw new NullPointerException("name parameter cannot be null");
+        if (value == null) throw new NullPointerException("value parameter cannot be null");
+        isSafe = name.equals(safeName) && value.equals(safeValue);
+    }
+
+    public RequestVariable(RequestVariable otherRequestVariable) {
+        super();
+        this.name = otherRequestVariable.getName();
+        this.value = otherRequestVariable.getValue();
+        this.attackName = otherRequestVariable.getAttackName();
+        this.attackValue = otherRequestVariable.getAttackValue();
+        this.safeName = otherRequestVariable.getSafeName();
+        this.safeValue = otherRequestVariable.getSafeValue();
         if (name == null) throw new NullPointerException("name parameter cannot be null");
         if (value == null) throw new NullPointerException("value parameter cannot be null");
         isSafe = name.equals(safeName) && value.equals(safeValue);
@@ -121,6 +135,7 @@ public class RequestVariable {
         return new BasicNameValuePair(name, value);
     }
 
+    @XmlTransient
     public boolean isSafe() {
         return isSafe;
     }

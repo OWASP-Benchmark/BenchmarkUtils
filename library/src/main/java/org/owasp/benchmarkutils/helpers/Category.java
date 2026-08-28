@@ -29,6 +29,11 @@ public class Category implements Comparable<Category> {
     private final boolean isInjection;
     private final String shortName; // PATH
 
+    /** Unused but necessary to make JAXB happy. */
+    public Category() {
+        this(null, null, -1, false, null);
+    }
+
     /**
      * Create a vuln category.
      *

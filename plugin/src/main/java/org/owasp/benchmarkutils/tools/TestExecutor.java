@@ -3,7 +3,7 @@
  *
  * <p>This file is part of the Open Web Application Security Project (OWASP) Benchmark Project For
  * details, please see <a
- * href="https://owasp.org/www-project-benchmark/">https:/owasp.org/www-project-benchmark/</a>.
+ * href="https://owasp.org/www-project-benchmark/">https://owasp.org/www-project-benchmark/</a>.
  *
  * <p>The OWASP Benchmark is free software: you can redistribute it and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software Foundation, version 2.
@@ -13,13 +13,19 @@
  * PURPOSE. See the GNU General Public License for more details.
  *
  * @author David Anderson
- * @created 2021
+ * @created 2024
  */
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.tools;
 
-import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
+import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 
-@XmlDiscriminatorValue("SPRINGWS")
-public class SpringTestCase extends TestCase {
-    public SpringTestCase() {}
+@XmlRootElement(name = "TestCaseRequest")
+@XmlSeeAlso({CliExecutor.class, HttpExecutor.class})
+public abstract class TestExecutor {
+    @XmlAttribute(name = "RequestDescription", required = true)
+    @NotNull
+    public abstract String getExecutorDescription();
 }

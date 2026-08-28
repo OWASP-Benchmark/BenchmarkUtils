@@ -40,6 +40,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.owasp.benchmarkutils.entities.TestCase;
 import org.owasp.benchmarkutils.helpers.CodeblockUtils;
 import org.owasp.benchmarkutils.helpers.Utils;
 import org.owasp.benchmarkutils.score.TestCaseResult;
@@ -84,100 +85,6 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
         }
     }
 
-    /**
-     * Process the command line arguments that make any configuration changes.
-     *
-     * @param args - args passed to main().
-     * @return specified crawler file if valid command line arguments provided. Null otherwise.
-     */
-    @Override
-    protected void processCommandLineArgs(String[] args) {
-
-        // 1. Load testsuite-attack XML file so we have the codeblocks for every test case  - DONE
-        // 1a. TestSuite instance has all the TestCases
-        // 1b. Codeblocks are attributes of each instance of TestCase, created/read in from XML.
-
-        // Example: -DcrawlerFile=data/benchmark-attack-http.xml
-
-        // 2. Load the .csv results for the selected tool - DONE
-
-        // Example:
-        // -DresultsCSVFile=../../BenchmarkJavaBaseApp/scorecard/Benchmark_v1.3_Scorecard_for_Contrast_Assess_v4.8.0.csv
-
-        // Do the work in run().
-
-        // Set default attack crawler file, if it exists
-        // This value can be changed by the -f parameter for other test suites with different names
-        File defaultAttackCrawlerFile = new File(Utils.DATA_DIR, "benchmark-attack-http.xml");
-        if (defaultAttackCrawlerFile.exists()) {
-            setCrawlerFile(defaultAttackCrawlerFile.getPath());
-        }
-
-        RegressionTesting.isTestingEnabled = true;
-
-        // Create the command line parser
-        CommandLineParser parser = new DefaultParser();
-
-        HelpFormatter formatter = new HelpFormatter();
-
-        // Create the Options
-        Options options = new Options();
-        options.addOption(
-                Option.builder("f")
-                        .longOpt("file")
-                        .desc("a TESTSUITE-attack-http.xml file")
-                        .hasArg()
-                        .required()
-                        .build());
-        options.addOption(
-                Option.builder("r")
-                        .longOpt("file")
-                        .desc("a scorecard generated toolResults.csv file")
-                        .hasArg()
-                        .required()
-                        .build());
-        /*        options.addOption(Option.builder("h").longOpt("help").desc("Usage").build());
-                options.addOption(
-                        Option.builder("n")
-                                .longOpt("name")
-                                .desc("tescase name (e.g. BenchmarkTestCase00025)")
-                                .hasArg()
-                                .build());
-                options.addOption(
-                        Option.builder("t")
-                                .longOpt("time")
-                                .desc("testcase timeout (in seconds)")
-                                .hasArg()
-                                .type(Integer.class)
-                                .build());
-        */
-        try {
-            // Parse the command line arguments
-            CommandLine line = parser.parse(options, args);
-
-            if (line.hasOption("f")) {
-                // Following throws a RuntimeException if the attack crawler file doesn't exist
-                setCrawlerFile(line.getOptionValue("f"));
-            }
-            if (line.hasOption("r")) {
-                setScorecardResultsFile(line.getOptionValue("r"));
-            }
-            /*            if (line.hasOption("h")) {
-                            formatter.printHelp("BenchmarkCrawlerVerification", options, true);
-                        }
-                        if (line.hasOption("n")) {
-                            selectedTestCaseName = line.getOptionValue("n");
-                        }
-                        if (line.hasOption("t")) {
-                            maxTimeInSeconds = (Integer) line.getParsedOptionValue("t");
-                        }
-            */
-        } catch (ParseException | IOException e) {
-            formatter.printHelp("CalculateToolCodeBlocksSupport", options);
-            throw new RuntimeException("Error parsing arguments: ", e);
-        }
-    }
-
     /** Calculate the code block support for the specified tool for the specified test suite. */
     @Override
     protected void run() {
@@ -199,7 +106,7 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
                 new TestSuiteResults(this.testSuite.getName(), false, ToolType.SAST);
 
         // Get all the TestCase info loaded from TESTSUITE-attack-http.xml file
-        List<AbstractTestCaseRequest> theTestcases = this.testSuite.getTestCases();
+        List<TestCase> theTestcases = this.testSuite.getTestCases();
         int testSuiteSize = theTestcases.size();
 
         try {
@@ -633,6 +540,99 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
                             + this.csvResultsFilenameParam);
             String[] mainArgs = {"-f", this.crawlerFile, "-r", this.csvResultsFilenameParam};
             main(mainArgs);
+        }
+    }
+
+    /**
+     * Process the command line arguments that make any configuration changes.
+     *
+     * @param args - args passed to main().
+     * @return specified crawler file if valid command line arguments provided. Null otherwise.
+     */
+    protected void processCommandLineArgs(String[] args) {
+
+        // 1. Load testsuite-attack XML file so we have the codeblocks for every test case  - DONE
+        // 1a. TestSuite instance has all the TestCases
+        // 1b. Codeblocks are attributes of each instance of TestCase, created/read in from XML.
+
+        // Example: -DcrawlerFile=data/benchmark-attack-http.xml
+
+        // 2. Load the .csv results for the selected tool - DONE
+
+        // Example:
+        // -DresultsCSVFile=../../BenchmarkJavaBaseApp/scorecard/Benchmark_v1.3_Scorecard_for_Contrast_Assess_v4.8.0.csv
+
+        // Do the work in run().
+
+        // Set default attack crawler file, if it exists
+        // This value can be changed by the -f parameter for other test suites with different names
+        File defaultAttackCrawlerFile = new File(Utils.DATA_DIR, "benchmark-attack-http.xml");
+        if (defaultAttackCrawlerFile.exists()) {
+            setCrawlerFile(defaultAttackCrawlerFile);
+        }
+
+        RegressionTesting.isTestingEnabled = true;
+
+        // Create the command line parser
+        CommandLineParser parser = new DefaultParser();
+
+        HelpFormatter formatter = new HelpFormatter();
+
+        // Create the Options
+        Options options = new Options();
+        options.addOption(
+                Option.builder("f")
+                        .longOpt("file")
+                        .desc("a TESTSUITE-attack-http.xml file")
+                        .hasArg()
+                        .required()
+                        .build());
+        options.addOption(
+                Option.builder("r")
+                        .longOpt("file")
+                        .desc("a scorecard generated toolResults.csv file")
+                        .hasArg()
+                        .required()
+                        .build());
+        /*        options.addOption(Option.builder("h").longOpt("help").desc("Usage").build());
+                options.addOption(
+                        Option.builder("n")
+                                .longOpt("name")
+                                .desc("tescase name (e.g. BenchmarkTestCase00025)")
+                                .hasArg()
+                                .build());
+                options.addOption(
+                        Option.builder("t")
+                                .longOpt("time")
+                                .desc("testcase timeout (in seconds)")
+                                .hasArg()
+                                .type(Integer.class)
+                                .build());
+        */
+        try {
+            // Parse the command line arguments
+            CommandLine line = parser.parse(options, args);
+
+            if (line.hasOption("f")) {
+                // Following throws a RuntimeException if the attack crawler file doesn't exist
+                setCrawlerFile(new File(line.getOptionValue("f")));
+            }
+            if (line.hasOption("r")) {
+                setScorecardResultsFile(line.getOptionValue("r"));
+            }
+            /*            if (line.hasOption("h")) {
+                            formatter.printHelp("BenchmarkCrawlerVerification", options, true);
+                        }
+                        if (line.hasOption("n")) {
+                            selectedTestCaseName = line.getOptionValue("n");
+                        }
+                        if (line.hasOption("t")) {
+                            maxTimeInSeconds = (Integer) line.getParsedOptionValue("t");
+                        }
+            */
+        } catch (ParseException | IOException e) {
+            formatter.printHelp("CalculateToolCodeBlocksSupport", options);
+            throw new RuntimeException("Error parsing arguments: ", e);
         }
     }
 

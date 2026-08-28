@@ -28,7 +28,6 @@ import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestHelper;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
 import org.owasp.benchmarkutils.score.parsers.ReaderTestBase;
-import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
 
 class PrecautionReaderTest extends ReaderTestBase {
 

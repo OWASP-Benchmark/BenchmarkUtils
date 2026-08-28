@@ -15,15 +15,11 @@
  * @author David Anderson
  * @created 2021
  */
-package org.owasp.benchmarkutils.helpers;
+package org.owasp.benchmarkutils.entities;
 
-public class TestCaseRequestFileParseException extends Exception {
+import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 
-    public TestCaseRequestFileParseException(String message) {
-        super(message);
-    }
-
-    public TestCaseRequestFileParseException(String message, Exception e) {
-        super(message, e);
-    }
+@XmlDiscriminatorValue("JERSEYWS")
+public class JerseyTestCase extends TestCase {
+    public JerseyTestCase() {}
 }

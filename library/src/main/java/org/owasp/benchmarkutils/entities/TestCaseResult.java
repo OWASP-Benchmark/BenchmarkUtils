@@ -12,26 +12,38 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Julien Delange
+ * @author David Anderson
  * @created 2024
  */
-package org.owasp.benchmarkutils.score.parsers.sarif;
+package org.owasp.benchmarkutils.entities;
 
-import org.owasp.benchmarkutils.score.ResultFile;
+import javax.xml.bind.annotation.XmlRootElement;
 
-/**
- * This reader is made for the datadog-static-analyzer available on <a
- * href="https://github.com/DataDog/datadog-static-analyzer">...</a>. It uses the SARIF file
- * produces by the tool.
- */
-public class DatadogSastReader extends SarifReader {
+@XmlRootElement(name = "testcaseresult")
+public class TestCaseResult {
 
-    public DatadogSastReader() {
-        super("datadog-static-analyzer", false, CweSourceType.TAG);
+    private String output;
+
+    private boolean isPassed;
+
+    public TestCaseResult(boolean isPassed, String output) {
+        this.isPassed = isPassed;
+        this.output = output;
     }
 
-    @Override
-    public String toolName(ResultFile resultFile) {
-        return "DatadogSast";
+    public String getOutput() {
+        return output;
+    }
+
+    public void setOutput(String output) {
+        this.output = output;
+    }
+
+    public boolean isPassed() {
+        return isPassed;
+    }
+
+    public void setPassed(boolean isPassed) {
+        this.isPassed = isPassed;
     }
 }
