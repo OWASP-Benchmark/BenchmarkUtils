@@ -17,19 +17,14 @@
  */
 package org.owasp.benchmarkutils.score.parsers;
 
-import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 public class VeracodeReader extends Reader {
 
@@ -45,7 +40,6 @@ public class VeracodeReader extends Reader {
 
     @Override
     public TestSuiteResults parse(ResultFile resultFile) throws Exception {
-
 
         TestSuiteResults tr =
                 new TestSuiteResults("Veracode SAST", true, TestSuiteResults.ToolType.SAST);
@@ -135,6 +129,7 @@ public class VeracodeReader extends Reader {
         if (cwe == 80) return 79;
         if (cwe == 331) return 330;
         if (cwe == 91) return 643;
+        if (cwe == 95) return 94;
         return cwe;
     }
 }
