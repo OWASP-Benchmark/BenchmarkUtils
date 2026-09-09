@@ -1,0 +1,1839 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Blue Sentinel",
+          "version": "1.0.0",
+          "informationUri": "https://bluesentinel.io",
+          "rules": [
+            {
+              "id": "xss",
+              "name": "xss",
+              "shortDescription": {
+                "text": "xss"
+              },
+              "fullDescription": {
+                "text": "Cross-Site Scripting (XSS) attacks occur when an attacker uses a web application to send malicious code, generally in the form of a browser side script, to a different end user. Flaws that allow these attacks to succeed are quite widespread and occur anywhere a web application uses input from a user within the output it generates without validating or encoding it. XSS attacks can be used to steal user sessions, deface websites, redirect users to malicious sites, and perform actions on behalf of users."
+              },
+              "help": {
+                "text": "1. **Use framework auto-escape.** React's `{value}`, Vue's `{{ value }}`, lit-html's `${value}` all escape by default. Avoid `dangerouslySetInnerHTML`, `v-html`, and `unsafeHTML` on user-controlled data.\n2. **For raw DOM updates use `textContent`, not `innerHTML`.** If you must produce HTML, sanitise with **DOMPurify** (`DOMPurify.sanitize(html, { USE_PROFILES: { html: true } })`) which is battle-tested and ships an `RETURN_TRUSTED_TYPE` mode.\n3. **Set Content-Security-Policy** with nonces: `Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-RANDOM' 'strict-dynamic'; object-src 'none'; base-uri 'self'`. Add `require-trusted-types-for 'script'` once ready — it converts entire classes of XSS into thrown exceptions.\n4. **Set cookies with `HttpOnly`, `Secure`, `SameSite=Strict` (or Lax)** so cross-site script can't steal sessions.\n5. **Encode by output context.** `encodeURIComponent` for URL params, JSON.stringify for `<script>` blocks, HTML escape for HTML body. The OWASP Java Encoder pattern applies to Node too — pick by sink.\n6. **Run `eslint-plugin-no-unsanitized`** in CI to flag `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write` calls.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-79",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-79",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "prototype_pollution",
+              "name": "prototype_pollution",
+              "shortDescription": {
+                "text": "prototype_pollution"
+              },
+              "fullDescription": {
+                "text": "When user-supplied data is merged into an object without rejecting the special keys __proto__, constructor, and prototype, an attacker can write properties onto Object.prototype. Because almost every object inherits from it, the injected property appears globally — including on objects that are later used for authorization decisions, configuration, or template rendering. The impact ranges from privilege escalation (injecting isAdmin: true so a later check passes) through denial of service to remote code execution, where a polluted property reaches a template engine or child-process option and is interpreted as code. The bug is often introduced by a small utility function or an outdated version of a popular library such as lodash."
+              },
+              "help": {
+                "text": "1. **Block the dangerous keys** explicitly in any recursive merge or assignment path.\n2. **Use safe containers.** Prefer `Map`, or `Object.create(null)`, for data derived from user input so there is no prototype to pollute.\n3. **Freeze the prototype.** `Object.freeze(Object.prototype)` at startup blocks the write globally where compatible.\n4. **Update dependencies.** Upgrade lodash (≥4.17.21) and any other library with known pollution advisories.\n5. **Validate with a schema.** Parse request bodies into typed objects (JSON Schema, zod, joi) instead of merging raw input.\n6. **Do not rely on inherited properties** for security decisions; use `Object.hasOwn()` when reading flags.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-1321"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-1321"
+              }
+            },
+            {
+              "id": "request",
+              "name": "request",
+              "shortDescription": {
+                "text": "request"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type request detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-0"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-0"
+              }
+            },
+            {
+              "id": "code_injection",
+              "name": "code_injection",
+              "shortDescription": {
+                "text": "code_injection"
+              },
+              "fullDescription": {
+                "text": "Code injection is a general term for attack types that involve injecting code that is then interpreted and executed by the application. This type of attack exploits poor handling of untrusted data. These types of attacks are usually made possible due to a lack of proper input/output data validation, for example when a user input is directly concatenated into a dynamically evaluated code snippet."
+              },
+              "help": {
+                "text": "1. **Eradicate `eval()`, `new Function(...)`, `setTimeout(string, ...)`, `setInterval(string, ...)`** from any path that touches user input. There is no safe way to evaluate untrusted JavaScript source — even `vm.runInNewContext` and `vm.runInNewVM` have escapes.\n2. **Replace 'parse a config blob' use cases with `JSON.parse()` or `YAML.parse()` (yaml package, safe schema).** If the blob must support expressions, use a tiny purpose-built DSL (e.g. JEXL with safe context) — never the full JS engine.\n3. **For browser-side dynamic templates**, use a templating library with auto-escape (lit-html, Vue, React JSX) instead of `innerHTML = string` or `document.write`.\n4. **Never use `child_process.exec(string)` from user input** — that's command injection. Use `execFile(file, [args])` with the array form.\n5. **Set a Content-Security-Policy** that forbids inline scripts and `eval`: `Content-Security-Policy: default-src 'self'; script-src 'self'; require-trusted-types-for 'script'`. CSP catches eval at runtime.\n6. **Run `eslint-plugin-security` and `eslint-plugin-no-unsanitized`** in CI — they flag `eval`, `Function`, `setTimeout/setInterval` with non-literal first arguments.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-94",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-94",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "open_redirect",
+              "name": "open_redirect",
+              "shortDescription": {
+                "text": "open_redirect"
+              },
+              "fullDescription": {
+                "text": "Open redirects borrow the credibility of your domain. A link that begins with your hostname passes casual inspection, survives many email filters, and is trusted by users — yet lands on an attacker-controlled page. Beyond phishing, redirects are a standard component of OAuth and SSO flows, so an unvalidated redirect_uri can leak authorization codes or tokens to the attacker, converting a 'low severity' finding into full account takeover. They are also used to bypass SSRF and CSRF defences that allow-list the trusted host."
+              },
+              "help": {
+                "text": "1. **Map, don't pass.** Accept an identifier (`?next=dashboard`) and resolve it server-side to a fixed URL.\n2. **Allow-list hosts** if external redirects are genuinely required, comparing the parsed host exactly — not with `startswith`.\n3. **Accept relative paths only**, rejecting values containing a scheme, `//`, or a backslash.\n4. **Pin OAuth redirect_uri** to pre-registered exact values; never allow wildcards.\n5. **Warn on exit** with an interstitial for any permitted external redirect.\n6. **Test** with protocol-relative and encoded payloads to confirm the check holds.\n\nPriority: HIGH"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-601",
+                  "OWASP/A01:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-601",
+                "owasp": "A01:2021 - Broken Access Control"
+              }
+            },
+            {
+              "id": "insecure_cookie",
+              "name": "insecure_cookie",
+              "shortDescription": {
+                "text": "insecure_cookie"
+              },
+              "fullDescription": {
+                "text": "Each missing attribute removes a distinct protection. Without HttpOnly the cookie is readable by JavaScript, so any XSS becomes full session theft. Without Secure it is transmitted over plain HTTP, where a network attacker can capture it. Without SameSite the browser attaches it to cross-site requests, enabling CSRF. These flags cost nothing and are the cheapest hardening available for session management, yet defaults in many frameworks still omit them."
+              },
+              "help": {
+                "text": "1. **HttpOnly** on anything the client script never needs to read.\n2. **Secure** always, and serve the site over HTTPS with HSTS.\n3. **SameSite=Lax** by default (Strict for admin flows); use None only with Secure and a documented reason.\n4. **Scope tightly** — narrow Path/Domain rather than the registrable domain.\n5. **Rotate on privilege change** and invalidate server-side on logout.\n6. **Set it centrally** in framework session config so individual handlers cannot regress it.\n\nPriority: HIGH"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-1004",
+                  "OWASP/A05:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-1004",
+                "owasp": "A05:2021 - Security Misconfiguration"
+              }
+            },
+            {
+              "id": "inefficient_regex_redos",
+              "name": "inefficient_regex_redos",
+              "shortDescription": {
+                "text": "inefficient_regex_redos"
+              },
+              "fullDescription": {
+                "text": "Backtracking regex engines explore every way a pattern can match. Patterns containing nested or adjacent quantifiers over overlapping character classes — (a+)+, (a|a)*, (\\\\s*)*$ — have exponentially many candidate paths on a non-matching input, so a request of a few dozen characters can pin a CPU core for seconds or minutes. Because most web servers evaluate regexes on the request thread, a handful of such requests exhausts the worker pool and takes the service down without any authentication."
+              },
+              "help": {
+                "text": "1. **Remove ambiguity.** Avoid nested quantifiers over overlapping classes ((a+)+, (a|a)*); make alternatives mutually exclusive and anchor patterns.\n2. **Bound the input.** Reject over-length values BEFORE evaluating the regex — this alone defeats most ReDoS.\n3. **Use a linear-time engine** (RE2, rust regex) or a library-level timeout where available.\n4. **Prefer parsers over regex** for structured formats such as URLs and emails.\n5. **Scan patterns in CI** with a ReDoS linter and keep regex-carrying dependencies current.\n\nPriority: HIGH"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-1333"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-1333"
+              }
+            },
+            {
+              "id": "path_traversal",
+              "name": "path_traversal",
+              "shortDescription": {
+                "text": "path_traversal"
+              },
+              "fullDescription": {
+                "text": "Path traversal attacks (also known as directory traversal) aim to access files and directories that are stored outside the web root folder. In C# applications, this typically occurs through File.ReadAllText, FileStream, StreamReader, or similar file operations. By manipulating variables that reference files with \"dot-dot-slash (../)\" sequences and its variations or by using absolute file paths, it may be possible to access arbitrary files and directories stored on file system."
+              },
+              "help": {
+                "text": "1. **Confine paths**: `var root = Path.GetFullPath(\"/var/app/uploads\"); var target = Path.GetFullPath(Path.Combine(root, userPath)); if (!target.StartsWith(root + Path.DirectorySeparatorChar)) throw new UnauthorizedAccessException();`. `Path.GetFullPath` resolves `..` segments before the comparison.\n2. **Reject control characters and reserved names.** Block input containing `\\0`, `\\r`, `\\n`, characters in `Path.GetInvalidFileNameChars()`, and Windows reserved names (`CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`).\n3. **Use indirect identifiers.** Map opaque user IDs to filenames server-side: `var file = REPORTS.TryGetValue(id, out var f) ? f : throw new FileNotFoundException();`.\n4. **Use `IFileProvider`** (e.g. `PhysicalFileProvider` rooted at the safe directory) for static-file delivery. ASP.NET Core checks the boundary internally.\n5. **Keep file uploads out of the web-root.** Store under a non-served directory and serve via a download action that authorises the request and streams the file.\n6. **Run `SecurityCodeScan` rule `SCS0018`** (path traversal) — it flags `Path.Combine` followed by direct file ops on user input.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-22",
+                  "OWASP/A01:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-22",
+                "owasp": "A01:2021 - Broken Access Control"
+              }
+            },
+            {
+              "id": "reflection",
+              "name": "reflection",
+              "shortDescription": {
+                "text": "reflection"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type reflection detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-0"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-0"
+              }
+            },
+            {
+              "id": "deserialization",
+              "name": "deserialization",
+              "shortDescription": {
+                "text": "deserialization"
+              },
+              "fullDescription": {
+                "text": "Java deserialization vulnerabilities arise when applications deserialize untrusted data using ObjectInputStream.readObject() or similar methods. Since Java serialization can reconstruct entire object graphs including executable code, attackers can craft malicious serialized objects that execute arbitrary code during deserialization. This is particularly dangerous because it can lead to remote code execution without any user interaction."
+              },
+              "help": {
+                "text": "1. **Replace Java serialization with Jackson + JSON**. `ObjectInputStream.readObject()` on untrusted bytes is RCE; the only safe path is to abandon Java serialization for any external boundary.\n2. **Disable Jackson polymorphic / default typing.** `objectMapper.deactivateDefaultTyping();`. Use explicit `@JsonTypeInfo` with `Id.NAME` and a registered subtype list — never `Id.CLASS` or `Id.MINIMAL_CLASS`.\n3. **If Java serialization is unavoidable, install a Look-Ahead Object Input Stream** (e.g. Apache Commons IO `ValidatingObjectInputStream`) with a strict allowlist of accepted classes. Reject the rest.\n4. **Drop XStream from new code** unless you can keep the allowlist + security framework current. Same for Snake YAML — use the SafeConstructor.\n5. **Patch known gadget chains.** Run `dependency-check` / Snyk / OSV scanner against the dependency tree; Commons Collections, Spring Core, Hibernate, Apache Log4j 1.x, and Apache CXF have all shipped gadget chains.\n6. **Avoid `RMI` / `JMX` / `JNDI lookup` on remote URIs.** These transport Java-serialized objects by default and have produced decades of RCE bugs (Log4Shell being the most famous).\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-502",
+                  "OWASP/A08:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-502",
+                "owasp": "A08:2021 - Software and Data Integrity Failures"
+              }
+            },
+            {
+              "id": "sql_injection",
+              "name": "sql_injection",
+              "shortDescription": {
+                "text": "sql_injection"
+              },
+              "fullDescription": {
+                "text": "SQL injection is a code injection technique that exploits security vulnerabilities in the database layer of Java applications. The vulnerability occurs when user input is incorrectly filtered for string literal escape characters embedded in SQL statements or user input is not strongly typed. SQL injection attacks can bypass application security measures, authentication and authorization, and retrieve the contents of entire databases."
+              },
+              "help": {
+                "text": "1. **Use `PreparedStatement` with bound parameters**: `PreparedStatement p = c.prepareStatement(\"SELECT * FROM u WHERE id = ?\"); p.setLong(1, id); ResultSet rs = p.executeQuery();`. Never use `Statement` for queries that include user input.\n2. **For JPA/Hibernate use `setParameter`**: `em.createQuery(\"SELECT u FROM User u WHERE u.email = :e\").setParameter(\"e\", email)`. Avoid `createNativeQuery` with concatenated strings, and avoid `@Query` annotations that interpolate `#{...}`.\n3. **For Spring Data JPA prefer derived methods or @Query with named params.** Spring Data's `findByEmail(email)` is parameterised; `@Query(\"SELECT u FROM User u WHERE u.email = ?1\")` with positional binding is also safe.\n4. **Allowlist identifiers.** Column / table names cannot be parameterised — validate them against a fixed list: `String col = ALLOWED_SORT.contains(input) ? input : \"name\";`.\n5. **Apply DB-level least privilege.** The web user gets `SELECT, INSERT, UPDATE` only — no `DROP`, `ALTER`, or DBA. Use a separate DB account per microservice.\n6. **Run static analysis in CI**: SpotBugs + FindSecBugs catches `SQL_INJECTION_JDBC`, `SQL_INJECTION_HIBERNATE`, `SQL_INJECTION_JPA` patterns. Make those rules build-failures.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-89",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-89",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "missing_auth_check",
+              "name": "missing_auth_check",
+              "shortDescription": {
+                "text": "missing_auth_check"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type missing_auth_check detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-862",
+                  "OWASP/A01:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-862",
+                "owasp": "A01:2021 - Broken Access Control"
+              }
+            },
+            {
+              "id": "weak_crypto",
+              "name": "weak_crypto",
+              "shortDescription": {
+                "text": "weak_crypto"
+              },
+              "fullDescription": {
+                "text": "Java applications often implement cryptographic functions using the Java Cryptography Architecture (JCA). However, many applications still use deprecated or weak algorithms like MD5 for hashing, DES for encryption, or insecure random number generators. These weaknesses can compromise data confidentiality, integrity, and authentication mechanisms."
+              },
+              "help": {
+                "text": "1. **Hash passwords with Argon2id** via Spring Security 6's `Argon2PasswordEncoder` (or directly with the Bouncy Castle `Argon2BytesGenerator`): memory=65536, iterations=3, parallelism=1 are sane defaults. Bcrypt with cost ≥ 12 is acceptable for legacy systems.\n2. **Replace MD5 / SHA-1 / DES / 3DES / RC4** with SHA-256 / SHA-3 / AES-256-GCM / RSA-2048-OAEP / Ed25519. Use Google **Tink** (`com.google.crypto.tink:tink:1.x`) — it makes correct usage the default and refuses to expose footguns.\n3. **Use `java.security.SecureRandom`** for tokens, IVs, salts. Never `java.util.Random`, `Math.random()`, `System.currentTimeMillis()`. On Linux, prefer `SecureRandom.getInstanceStrong()`.\n4. **Avoid `Cipher.getInstance(\"AES\")`** (defaults to ECB!) — always specify mode + padding: `Cipher.getInstance(\"AES/GCM/NoPadding\")`. Better still, use Tink's `Aead`.\n5. **Manage keys with a KMS.** AWS KMS / GCP KMS / HashiCorp Vault for envelope encryption + audit. Don't ship keys in `application.properties` or Git. Use Spring Cloud Config + Vault Spring integration.\n6. **Enforce TLS 1.2+ (preferably 1.3) at the JVM level.** `-Dhttps.protocols=TLSv1.2,TLSv1.3 -Djdk.tls.client.protocols=TLSv1.2,TLSv1.3`. Spring Boot 3 / Tomcat 10 default to safe ciphers; verify in production.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-327",
+                  "OWASP/A02:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-327",
+                "owasp": "A02:2021 - Cryptographic Failures"
+              }
+            },
+            {
+              "id": "reflection_abuse",
+              "name": "reflection_abuse",
+              "shortDescription": {
+                "text": "reflection_abuse"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type reflection_abuse detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-0"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-0"
+              }
+            },
+            {
+              "id": "weak_random",
+              "name": "weak_random",
+              "shortDescription": {
+                "text": "weak_random"
+              },
+              "fullDescription": {
+                "text": "General-purpose PRNGs (Python's random, Java's java.util.Random, JavaScript's Math.random, C's rand) are built for statistical quality and speed, not unpredictability. They are deterministic functions of an internal state that an attacker can often recover after observing a modest number of outputs — the Mersenne Twister used by Python and Java requires 624 observed 32-bit outputs to reconstruct state and predict all future values. Seeding from the clock makes it worse, reducing the search space to the seconds around a known event. Any token generated this way — password reset links, session IDs, API keys, CSRF tokens, OTPs — is predictable rather than secret."
+              },
+              "help": {
+                "text": "1. **Switch the API.** Python: `secrets.token_urlsafe(32)`; Java: `java.security.SecureRandom`; Node: `crypto.randomBytes(32)`; .NET: `RandomNumberGenerator.GetBytes`; Go: `crypto/rand`.\n2. **Size it properly.** At least 128 bits (16 bytes) of entropy for tokens and session identifiers.\n3. **Never seed manually** with time, PID, or another predictable value; let the OS CSPRNG seed itself.\n4. **Keep fast PRNGs for non-security use** only (simulation, sampling, test data) and comment the distinction.\n5. **Bind and expire.** Tie tokens to a user and a short lifetime so prediction has a narrow window.\n\nPriority: HIGH"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-330",
+                  "OWASP/A02:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-330",
+                "owasp": "A02:2021 - Cryptographic Failures"
+              }
+            },
+            {
+              "id": "missing_input_validation",
+              "name": "missing_input_validation",
+              "shortDescription": {
+                "text": "missing_input_validation"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type missing_input_validation detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-20",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-20",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "weak_hash",
+              "name": "weak_hash",
+              "shortDescription": {
+                "text": "weak_hash"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type weak_hash detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-328",
+                  "OWASP/A02:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-328",
+                "owasp": "A02:2021 - Cryptographic Failures"
+              }
+            },
+            {
+              "id": "weak_cryptography_potentially_weak_cryptographic_algorithm",
+              "name": "Weak Cryptography (potentially weak cryptographic algorithm)",
+              "shortDescription": {
+                "text": "Weak Cryptography (potentially weak cryptographic algorithm)"
+              },
+              "fullDescription": {
+                "text": "Java applications often implement cryptographic functions using the Java Cryptography Architecture (JCA). However, many applications still use deprecated or weak algorithms like MD5 for hashing, DES for encryption, or insecure random number generators. These weaknesses can compromise data confidentiality, integrity, and authentication mechanisms."
+              },
+              "help": {
+                "text": "1. **Hash passwords with Argon2id** via Spring Security 6's `Argon2PasswordEncoder` (or directly with the Bouncy Castle `Argon2BytesGenerator`): memory=65536, iterations=3, parallelism=1 are sane defaults. Bcrypt with cost ≥ 12 is acceptable for legacy systems.\n2. **Replace MD5 / SHA-1 / DES / 3DES / RC4** with SHA-256 / SHA-3 / AES-256-GCM / RSA-2048-OAEP / Ed25519. Use Google **Tink** (`com.google.crypto.tink:tink:1.x`) — it makes correct usage the default and refuses to expose footguns.\n3. **Use `java.security.SecureRandom`** for tokens, IVs, salts. Never `java.util.Random`, `Math.random()`, `System.currentTimeMillis()`. On Linux, prefer `SecureRandom.getInstanceStrong()`.\n4. **Avoid `Cipher.getInstance(\"AES\")`** (defaults to ECB!) — always specify mode + padding: `Cipher.getInstance(\"AES/GCM/NoPadding\")`. Better still, use Tink's `Aead`.\n5. **Manage keys with a KMS.** AWS KMS / GCP KMS / HashiCorp Vault for envelope encryption + audit. Don't ship keys in `application.properties` or Git. Use Spring Cloud Config + Vault Spring integration.\n6. **Enforce TLS 1.2+ (preferably 1.3) at the JVM level.** `-Dhttps.protocols=TLSv1.2,TLSv1.3 -Djdk.tls.client.protocols=TLSv1.2,TLSv1.3`. Spring Boot 3 / Tomcat 10 default to safe ciphers; verify in production.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-327",
+                  "OWASP/A02:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-327",
+                "owasp": "A02:2021 - Cryptographic Failures"
+              }
+            },
+            {
+              "id": "command_injection",
+              "name": "command_injection",
+              "shortDescription": {
+                "text": "command_injection"
+              },
+              "fullDescription": {
+                "text": "Command injection attacks are possible when a Java application passes unsafe user input as part of a system command through Runtime.exec(), ProcessBuilder, or similar APIs. During this attack, attacker-supplied operating system commands are usually executed with the privileges of the vulnerable application. Command injection attacks can lead to complete system compromise including unauthorized data access, data destruction, data modification, or denial of service."
+              },
+              "help": {
+                "text": "1. **Use `ProcessBuilder(List.of(...))`** with the executable + each argument as a separate list element: `new ProcessBuilder(\"git\", \"log\", \"--max-count=10\", \"--\", userPath).start()`. The list-form does not invoke a shell, so injection metacharacters (`;`, `|`, `` ` ``, `$()`) are inert.\n2. **Never use `Runtime.getRuntime().exec(String)`** with a string concatenated from user input. The single-string form goes through a `StringTokenizer` and is fragile in addition to being injectable.\n3. **Allowlist user values.** Validate against a fixed regex or `EnumSet`: `if (!ALLOWED_HOSTS.contains(host)) throw new IllegalArgumentException(\"unknown host\");`.\n4. **Use stdlib equivalents instead of shelling out.** `java.nio.file.Files.copy/move/delete` not `cp/mv/rm`, the JGit library not `git`, Apache Commons Compress not `tar`/`zip`. Shellouts are rarely the right tool inside a JVM.\n5. **Use `Process.waitFor(timeout, TimeUnit.SECONDS)` and `Process.destroyForcibly()`** to bound runaway children. Capture both stdout and stderr to avoid back-pressure deadlocks.\n6. **Run the JVM under a SecurityManager / SELinux profile / Docker user namespace** so even successful command injection has limited blast radius.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-78",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-78",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "concatenated_command_line",
+              "name": "Concatenated Command Line",
+              "shortDescription": {
+                "text": "Concatenated Command Line"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Concatenated Command Line detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-78"
+                ],
+                "precision": "medium",
+                "security-severity": "9",
+                "cwe": "CWE-78"
+              }
+            },
+            {
+              "id": "des_is_deprecated",
+              "name": "Des Is Deprecated",
+              "shortDescription": {
+                "text": "Des Is Deprecated"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Des Is Deprecated detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-326",
+                  "OWASP/A02:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-326",
+                "owasp": "A02:2021 - Cryptographic Failures"
+              }
+            },
+            {
+              "id": "exec_tainted_environment",
+              "name": "Exec Tainted Environment",
+              "shortDescription": {
+                "text": "Exec Tainted Environment"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Exec Tainted Environment detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-78"
+                ],
+                "precision": "medium",
+                "security-severity": "9",
+                "cwe": "CWE-78"
+              }
+            },
+            {
+              "id": "os_command_injection_java_taint_command_injection",
+              "name": "OS Command Injection (java taint command injection)",
+              "shortDescription": {
+                "text": "OS Command Injection (java taint command injection)"
+              },
+              "fullDescription": {
+                "text": "Command injection attacks are possible when a Java application passes unsafe user input as part of a system command through Runtime.exec(), ProcessBuilder, or similar APIs. During this attack, attacker-supplied operating system commands are usually executed with the privileges of the vulnerable application. Command injection attacks can lead to complete system compromise including unauthorized data access, data destruction, data modification, or denial of service."
+              },
+              "help": {
+                "text": "1. **Use `ProcessBuilder(List.of(...))`** with the executable + each argument as a separate list element: `new ProcessBuilder(\"git\", \"log\", \"--max-count=10\", \"--\", userPath).start()`. The list-form does not invoke a shell, so injection metacharacters (`;`, `|`, `` ` ``, `$()`) are inert.\n2. **Never use `Runtime.getRuntime().exec(String)`** with a string concatenated from user input. The single-string form goes through a `StringTokenizer` and is fragile in addition to being injectable.\n3. **Allowlist user values.** Validate against a fixed regex or `EnumSet`: `if (!ALLOWED_HOSTS.contains(host)) throw new IllegalArgumentException(\"unknown host\");`.\n4. **Use stdlib equivalents instead of shelling out.** `java.nio.file.Files.copy/move/delete` not `cp/mv/rm`, the JGit library not `git`, Apache Commons Compress not `tar`/`zip`. Shellouts are rarely the right tool inside a JVM.\n5. **Use `Process.waitFor(timeout, TimeUnit.SECONDS)` and `Process.destroyForcibly()`** to bound runaway children. Capture both stdout and stderr to avoid back-pressure deadlocks.\n6. **Run the JVM under a SecurityManager / SELinux profile / Docker user namespace** so even successful command injection has limited blast radius.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-78",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "9",
+                "cwe": "CWE-78",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "command_line_injection",
+              "name": "Command Line Injection",
+              "shortDescription": {
+                "text": "Command Line Injection"
+              },
+              "fullDescription": {
+                "text": "Command injection attacks are possible when a Java application passes unsafe user input as part of a system command through Runtime.exec(), ProcessBuilder, or similar APIs. During this attack, attacker-supplied operating system commands are usually executed with the privileges of the vulnerable application. Command injection attacks can lead to complete system compromise including unauthorized data access, data destruction, data modification, or denial of service."
+              },
+              "help": {
+                "text": "1. **Use `ProcessBuilder(List.of(...))`** with the executable + each argument as a separate list element: `new ProcessBuilder(\"git\", \"log\", \"--max-count=10\", \"--\", userPath).start()`. The list-form does not invoke a shell, so injection metacharacters (`;`, `|`, `` ` ``, `$()`) are inert.\n2. **Never use `Runtime.getRuntime().exec(String)`** with a string concatenated from user input. The single-string form goes through a `StringTokenizer` and is fragile in addition to being injectable.\n3. **Allowlist user values.** Validate against a fixed regex or `EnumSet`: `if (!ALLOWED_HOSTS.contains(host)) throw new IllegalArgumentException(\"unknown host\");`.\n4. **Use stdlib equivalents instead of shelling out.** `java.nio.file.Files.copy/move/delete` not `cp/mv/rm`, the JGit library not `git`, Apache Commons Compress not `tar`/`zip`. Shellouts are rarely the right tool inside a JVM.\n5. **Use `Process.waitFor(timeout, TimeUnit.SECONDS)` and `Process.destroyForcibly()`** to bound runaway children. Capture both stdout and stderr to avoid back-pressure deadlocks.\n6. **Run the JVM under a SecurityManager / SELinux profile / Docker user namespace** so even successful command injection has limited blast radius.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-78"
+                ],
+                "precision": "medium",
+                "security-severity": "9",
+                "cwe": "CWE-78"
+              }
+            },
+            {
+              "id": "os_command_injection_tainted_cmd_from_http_request",
+              "name": "OS Command Injection (tainted cmd from http request)",
+              "shortDescription": {
+                "text": "OS Command Injection (tainted cmd from http request)"
+              },
+              "fullDescription": {
+                "text": "Command injection attacks are possible when a Java application passes unsafe user input as part of a system command through Runtime.exec(), ProcessBuilder, or similar APIs. During this attack, attacker-supplied operating system commands are usually executed with the privileges of the vulnerable application. Command injection attacks can lead to complete system compromise including unauthorized data access, data destruction, data modification, or denial of service."
+              },
+              "help": {
+                "text": "1. **Use `ProcessBuilder(List.of(...))`** with the executable + each argument as a separate list element: `new ProcessBuilder(\"git\", \"log\", \"--max-count=10\", \"--\", userPath).start()`. The list-form does not invoke a shell, so injection metacharacters (`;`, `|`, `` ` ``, `$()`) are inert.\n2. **Never use `Runtime.getRuntime().exec(String)`** with a string concatenated from user input. The single-string form goes through a `StringTokenizer` and is fragile in addition to being injectable.\n3. **Allowlist user values.** Validate against a fixed regex or `EnumSet`: `if (!ALLOWED_HOSTS.contains(host)) throw new IllegalArgumentException(\"unknown host\");`.\n4. **Use stdlib equivalents instead of shelling out.** `java.nio.file.Files.copy/move/delete` not `cp/mv/rm`, the JGit library not `git`, Apache Commons Compress not `tar`/`zip`. Shellouts are rarely the right tool inside a JVM.\n5. **Use `Process.waitFor(timeout, TimeUnit.SECONDS)` and `Process.destroyForcibly()`** to bound runaway children. Capture both stdout and stderr to avoid back-pressure deadlocks.\n6. **Run the JVM under a SecurityManager / SELinux profile / Docker user namespace** so even successful command injection has limited blast radius.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-78",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "9",
+                "cwe": "CWE-78",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "missing_authorization",
+              "name": "missing_authorization",
+              "shortDescription": {
+                "text": "missing_authorization"
+              },
+              "fullDescription": {
+                "text": "Rather than an endpoint that was never protected, this is a route *around* an existing control: an early return, an exception handler, a cached branch, a debug or feature-flag shortcut, or a conditional that skips the guard for certain inputs. These are dangerous precisely because the control appears present during review — the code reads as protected, and only path analysis reveals the gap. Common concrete forms include checks placed after the sensitive action, guards that only run when an optional parameter is present, comparisons that treat a missing token as a match, and administrative shortcuts left enabled outside development."
+              },
+              "help": {
+                "text": "1. **Check before acting.** Perform authorization before any side effect, never after.\n2. **Enforce centrally.** Use middleware, a filter, or a policy layer that runs for every request, instead of per-branch checks that can be bypassed.\n3. **Fail closed.** Every exception path, timeout, and unexpected value must deny access — never default to allow.\n4. **Delete shortcuts.** Remove debug/impersonation bypasses from production builds; gate them behind a build flag that cannot ship.\n5. **Use constant-time, type-safe comparison** for tokens, rejecting null/empty explicitly.\n6. **Test negatively.** Add tests for each identified bypass path asserting a 401/403.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-862",
+                  "OWASP/A01:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-862",
+                "owasp": "A01:2021 - Broken Access Control"
+              }
+            },
+            {
+              "id": "xxe",
+              "name": "xxe",
+              "shortDescription": {
+                "text": "xxe"
+              },
+              "fullDescription": {
+                "text": "Java applications that parse XML data are vulnerable to XXE attacks when XML parsers are configured to process external entities. Attackers can craft malicious XML documents that reference external entities, leading to disclosure of internal files, denial of service through resource exhaustion, or server-side request forgery attacks."
+              },
+              "help": {
+                "text": "1. **Harden `DocumentBuilderFactory`**: ```java\nDocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();\ndbf.setFeature(\"http://apache.org/xml/features/disallow-doctype-decl\", true);\ndbf.setFeature(\"http://xml.org/sax/features/external-general-entities\", false);\ndbf.setFeature(\"http://xml.org/sax/features/external-parameter-entities\", false);\ndbf.setExpandEntityReferences(false);\n``` Apply the same to `SAXParserFactory`, `XMLInputFactory`, `TransformerFactory`, `Validator`.\n2. **For `XMLInputFactory` (StAX)**: `xif.setProperty(XMLInputFactory.SUPPORT_DTD, false); xif.setProperty(\"javax.xml.stream.isSupportingExternalEntities\", false);`.\n3. **For `TransformerFactory`**: `tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, \"\"); tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, \"\");`.\n4. **For `Schema` validation**: same pattern with `ACCESS_EXTERNAL_SCHEMA`.\n5. **Centralise XML parsing in a hardened utility class** so every parse goes through the same secured factory. Audit the codebase for direct `DocumentBuilderFactory.newInstance()` calls and route them through the utility.\n6. **Audit downstream tooling.** Office documents (DOCX/XLSX/ODT), SOAP, SAML, SVG, RSS, sitemap.xml all parse XML. FindSecBugs detects `XXE_DOCUMENT`, `XXE_SAXPARSER`, `XXE_XMLREADER`, `XXE_XMLSTREAMREADER`, `XXE_DTD_TRANSFORM_FACTORY`, etc.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-611",
+                  "OWASP/A05:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-611",
+                "owasp": "A05:2021 - Security Misconfiguration"
+              }
+            },
+            {
+              "id": "hardcoded_secret",
+              "name": "hardcoded_secret",
+              "shortDescription": {
+                "text": "hardcoded_secret"
+              },
+              "fullDescription": {
+                "text": "Embedded secrets are disclosed to everyone who can read the code — every developer, every CI job, every fork, and anyone who obtains the built artifact or container image. Version control makes this worse: a secret committed once remains in history even after it is deleted from the current file, so the exposure window is permanent until the credential is rotated at its source. Public repositories are continuously scraped by automated scanners that harvest keys within minutes of a push. Because the value is fixed at build time, incident response is slow: rotating requires editing code, re-reviewing, rebuilding, and redeploying, during which the compromised credential usually remains valid."
+              },
+              "help": {
+                "text": "1. **Rotate first.** Assume disclosure: revoke and reissue the credential before anything else. Cleaning the code without rotating leaves the attacker's copy valid.\n2. **Externalise.** Read the value at runtime from an environment variable or a managed store (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault) — prefer short-lived, automatically rotated credentials.\n3. **Purge history if warranted.** Deleting the line does not remove it from git history; use `git filter-repo` or BFG when the repository is shared or public.\n4. **Prevent recurrence.** Add a pre-commit secret scanner and a CI gate that fails the build on detection.\n5. **Prefer keyless auth.** Where the platform supports it, use workload identity / OIDC federation so no long-lived secret exists to leak.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-798",
+                  "OWASP/A07:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-798",
+                "owasp": "A07:2021 - Identification and Authentication Failures"
+              }
+            },
+            {
+              "id": "ldap_injection",
+              "name": "Ldap Injection",
+              "shortDescription": {
+                "text": "Ldap Injection"
+              },
+              "fullDescription": {
+                "text": "LDAP injection is a type of injection attack that exploits web-based applications that construct LDAP statements based on user input. In C# applications, this typically involves DirectorySearcher, DirectoryEntry, or similar Active Directory operations. When an application fails to properly sanitize user input before constructing and executing LDAP queries, it creates an opportunity for attackers to inject malicious LDAP statements."
+              },
+              "help": {
+                "text": "1. **Escape every interpolated value into LDAP filters** per RFC 4515: replace `\\` `*` `(` `)` `\\0` with `\\5c`, `\\2a`, `\\28`, `\\29`, `\\00`. `Novell.Directory.Ldap` and `System.DirectoryServices.Protocols` do NOT escape for you.\n2. **Use a helper**: `static string EscapeLdapFilter(string s) => string.Concat(s.Select(c => c switch { '\\\\' => \"\\\\5c\", '*' => \"\\\\2a\", '(' => \"\\\\28\", ')' => \"\\\\29\", '\\0' => \"\\\\00\", _ => c.ToString() }));`. Apply to every user-supplied piece.\n3. **For DN composition use the DN escaping rules (RFC 4514)** which differ from filter rules: escape `, + \" \\ < > ;` plus leading/trailing space.\n4. **Bind under a read-only service account** for authentication queries. The bind account should not be able to write, delete, or enumerate sensitive attributes (e.g. `userPassword` hashes).\n5. **Use LDAPS or StartTLS with certificate verification.** Cleartext LDAP exposes credentials. Pin the directory CA via `LdapConnection.SessionOptions.VerifyServerCertificate`.\n6. **Apply rate limiting + lockout** on login endpoints — boolean blind LDAP injection can enumerate users at scale.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-90"
+                ],
+                "precision": "medium",
+                "security-severity": "9",
+                "cwe": "CWE-90"
+              }
+            },
+            {
+              "id": "tainted_format_string",
+              "name": "Tainted Format String",
+              "shortDescription": {
+                "text": "Tainted Format String"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Tainted Format String detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-134"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-134"
+              }
+            },
+            {
+              "id": "hardcoded_password",
+              "name": "hardcoded_password",
+              "shortDescription": {
+                "text": "hardcoded_password"
+              },
+              "fullDescription": {
+                "text": "Embedded secrets are disclosed to everyone who can read the code — every developer, every CI job, every fork, and anyone who obtains the built artifact or container image. Version control makes this worse: a secret committed once remains in history even after it is deleted from the current file, so the exposure window is permanent until the credential is rotated at its source. Public repositories are continuously scraped by automated scanners that harvest keys within minutes of a push. Because the value is fixed at build time, incident response is slow: rotating requires editing code, re-reviewing, rebuilding, and redeploying, during which the compromised credential usually remains valid."
+              },
+              "help": {
+                "text": "1. **Rotate first.** Assume disclosure: revoke and reissue the credential before anything else. Cleaning the code without rotating leaves the attacker's copy valid.\n2. **Externalise.** Read the value at runtime from an environment variable or a managed store (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault) — prefer short-lived, automatically rotated credentials.\n3. **Purge history if warranted.** Deleting the line does not remove it from git history; use `git filter-repo` or BFG when the repository is shared or public.\n4. **Prevent recurrence.** Add a pre-commit secret scanner and a CI gate that fails the build on detection.\n5. **Prefer keyless auth.** Where the platform supports it, use workload identity / OIDC federation so no long-lived secret exists to leak.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-798",
+                  "OWASP/A07:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-798",
+                "owasp": "A07:2021 - Identification and Authentication Failures"
+              }
+            },
+            {
+              "id": "dangerous_command",
+              "name": "dangerous_command",
+              "shortDescription": {
+                "text": "dangerous_command"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type dangerous_command detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-676"
+                ],
+                "precision": "medium",
+                "security-severity": "2.5",
+                "cwe": "CWE-676"
+              }
+            },
+            {
+              "id": "missing_errexit",
+              "name": "missing_errexit",
+              "shortDescription": {
+                "text": "missing_errexit"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type missing_errexit detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-754"
+                ],
+                "precision": "medium",
+                "security-severity": "2.5",
+                "cwe": "CWE-754"
+              }
+            },
+            {
+              "id": "missing_nounset",
+              "name": "missing_nounset",
+              "shortDescription": {
+                "text": "missing_nounset"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type missing_nounset detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-457"
+                ],
+                "precision": "medium",
+                "security-severity": "2.5",
+                "cwe": "CWE-457"
+              }
+            },
+            {
+              "id": "network_issues",
+              "name": "network_issues",
+              "shortDescription": {
+                "text": "network_issues"
+              },
+              "fullDescription": {
+                "text": "Cleartext transport exposes traffic to anyone on the path: other users of the same Wi-Fi, a compromised router, a hostile ISP, or an attacker performing ARP/DNS spoofing. Beyond passive disclosure, the absence of TLS means the endpoint is not authenticated, so an active attacker can modify responses — injecting scripts into returned HTML, tampering with downloaded updates or dependencies, or redirecting the client entirely. This is especially severe for API calls carrying bearer tokens or session cookies, and for any URL used to fetch executable content or configuration."
+              },
+              "help": {
+                "text": "1. **Switch to https://** and verify the endpoint presents a valid certificate — never disable verification to make it work.\n2. **Enforce transport policy.** Redirect all HTTP to HTTPS and send `Strict-Transport-Security` so browsers refuse the cleartext version.\n3. **Block cleartext at the platform level** (Android `cleartextTrafficPermitted=false`, iOS ATS, .NET `RequireHttps`).\n4. **Pin or restrict where warranted** for high-value machine-to-machine calls.\n5. **Exempt deliberately.** Genuine local-only URLs (http://localhost in tests) should be annotated so the finding is not re-raised.\n\nPriority: HIGH"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-918",
+                  "OWASP/A10:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-918",
+                "owasp": "A10:2021 - Server-Side Request Forgery (SSRF)"
+              }
+            },
+            {
+              "id": "env_injection",
+              "name": "env_injection",
+              "shortDescription": {
+                "text": "env_injection"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type env_injection detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-74",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-74",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "uninitialized_variable_use",
+              "name": "uninitialized_variable_use",
+              "shortDescription": {
+                "text": "uninitialized_variable_use"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type uninitialized_variable_use detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-457"
+                ],
+                "precision": "medium",
+                "security-severity": "1.0",
+                "cwe": "CWE-457"
+              }
+            },
+            {
+              "id": "unsafe_variable_handling",
+              "name": "unsafe_variable_handling",
+              "shortDescription": {
+                "text": "unsafe_variable_handling"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type unsafe_variable_handling detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-0"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-0"
+              }
+            },
+            {
+              "id": "dangerous_function_call_command_execution",
+              "name": "dangerous_function_call_command_execution",
+              "shortDescription": {
+                "text": "dangerous_function_call_command_execution"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type dangerous_function_call_command_execution detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-0"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-0"
+              }
+            },
+            {
+              "id": "unquoted_variable_usage",
+              "name": "unquoted_variable_usage",
+              "shortDescription": {
+                "text": "unquoted_variable_usage"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type unquoted_variable_usage detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-0"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-0"
+              }
+            },
+            {
+              "id": "undefined_variable_use",
+              "name": "undefined_variable_use",
+              "shortDescription": {
+                "text": "undefined_variable_use"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type undefined_variable_use detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-0"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-0"
+              }
+            },
+            {
+              "id": "shell_injection",
+              "name": "shell_injection",
+              "shortDescription": {
+                "text": "shell_injection"
+              },
+              "fullDescription": {
+                "text": "Command injection vulnerabilities in shell scripts occur when user-controlled data is incorporated into system commands without proper validation or sanitization. Shell scripts are particularly vulnerable due to their direct interaction with the operating system and the powerful command substitution and expansion features. Attackers can exploit these to execute arbitrary commands on the host operating system."
+              },
+              "help": {
+                "text": "**Prevention Strategies:**\n1. **Quote variables**: Always quote variables with double quotes\n2. **Input validation**: Validate input against strict patterns\n3. **Avoid eval**: Never use eval with user-controlled data\n4. **Use arrays**: Use bash arrays for safer argument handling\n5. **Whitelist approach**: Only allow known, safe values\n\n**Secure Implementation:**\n```bash\n# Secure: Quoted variables\nls \"$user_input\"\n\n# Secure: Input validation\nif [[ \"$filename\" =~ ^[a-zA-Z0-9._-]+$ ]]; then\n    cat \"$filename\"\nfi\n\n# Secure: Array usage\ncommand_args=(\"ls\" \"-la\" \"$user_directory\")\n\"${command_args[@]}\"\n```"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-78",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-78",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "dangerous_function_call_file_operations",
+              "name": "dangerous_function_call_file_operations",
+              "shortDescription": {
+                "text": "dangerous_function_call_file_operations"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type dangerous_function_call_file_operations detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-0"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-0"
+              }
+            },
+            {
+              "id": "unused_variable",
+              "name": "unused_variable",
+              "shortDescription": {
+                "text": "unused_variable"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type unused_variable detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-0"
+                ],
+                "precision": "medium",
+                "security-severity": "1.0",
+                "cwe": "CWE-0"
+              }
+            },
+            {
+              "id": "unquoted_variable",
+              "name": "unquoted_variable",
+              "shortDescription": {
+                "text": "unquoted_variable"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type unquoted_variable detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-78",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-78",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "dangerous_function_call_network_operations",
+              "name": "dangerous_function_call_network_operations",
+              "shortDescription": {
+                "text": "dangerous_function_call_network_operations"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type dangerous_function_call_network_operations detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-0"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-0"
+              }
+            },
+            {
+              "id": "input_validation",
+              "name": "input_validation",
+              "shortDescription": {
+                "text": "input_validation"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type input_validation detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-0"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-0"
+              }
+            },
+            {
+              "id": "hardcoded_paths",
+              "name": "hardcoded_paths",
+              "shortDescription": {
+                "text": "hardcoded_paths"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type hardcoded_paths detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-1188"
+                ],
+                "precision": "medium",
+                "security-severity": "2.5",
+                "cwe": "CWE-1188"
+              }
+            },
+            {
+              "id": "dependabot_missing_cooldown",
+              "name": "Dependabot Missing Cooldown",
+              "shortDescription": {
+                "text": "Dependabot Missing Cooldown"
+              },
+              "fullDescription": {
+                "text": "[Semgrep · package_managers.dependabot.dependabot-missing-cooldown.dependabot-missing-cooldown · CWE-829 · A08:2021 - Software and Data Integrity Failures]\n\nThis Dependabot configuration does not set a cooldown period. Newly published packages can be malicious or unstable. Add a `cooldown` block with `default-days: 7` to each `package-ecosystem` entry under `updates` to wait 7 days before proposing updates to newly published package versions. Reference: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file#cooldown"
+              },
+              "help": {
+                "text": "Follow the guidance in the referenced rule docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file#cooldown; https://semgrep.dev/r/package_managers.dependabot.dependabot-missing-cooldown.dependabot-missing-cooldown\n\nReferences & resources:\n  - https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file#cooldown\n  - https://semgrep.dev/r/package_managers.dependabot.dependabot-missing-cooldown.dependabot-missing-cooldown"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-829",
+                  "OWASP/A08:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-829",
+                "owasp": "A08:2021 - Software and Data Integrity Failures"
+              }
+            },
+            {
+              "id": "github_actions_mutable_action_tag",
+              "name": "Github Actions Mutable Action Tag",
+              "shortDescription": {
+                "text": "Github Actions Mutable Action Tag"
+              },
+              "fullDescription": {
+                "text": "[Semgrep · yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag · CWE-1357 · A08:2021 - Software and Data Integrity Failures]\n\nGitHub Actions step uses a mutable tag or branch reference. Tags and branch names can be silently repointed by the action owner, enabling supply-chain attacks — as seen in the trivy-action and kics-github-action compromises. Pin the reference to a full 40-character commit SHA instead, e.g. `uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608`.\n\nRelated CWEs: CWE-1357, CWE-353"
+              },
+              "help": {
+                "text": "Follow the guidance in the referenced rule docs: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions; https://semgrep.dev/r/yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag\n\nReferences & resources:\n  - https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions\n  - https://semgrep.dev/r/yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-1357"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-1357"
+              }
+            },
+            {
+              "id": "overly_permissive_file_permission",
+              "name": "Overly Permissive File Permission",
+              "shortDescription": {
+                "text": "Overly Permissive File Permission"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Overly Permissive File Permission detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-276",
+                  "OWASP/A01:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-276",
+                "owasp": "A01:2021 - Broken Access Control"
+              }
+            },
+            {
+              "id": "path_injection",
+              "name": "Path Injection",
+              "shortDescription": {
+                "text": "Path Injection"
+              },
+              "fullDescription": {
+                "text": "Path traversal attacks (also known as directory traversal) aim to access files and directories that are stored outside the web root folder. In C# applications, this typically occurs through File.ReadAllText, FileStream, StreamReader, or similar file operations. By manipulating variables that reference files with \"dot-dot-slash (../)\" sequences and its variations or by using absolute file paths, it may be possible to access arbitrary files and directories stored on file system."
+              },
+              "help": {
+                "text": "1. **Confine paths**: `var root = Path.GetFullPath(\"/var/app/uploads\"); var target = Path.GetFullPath(Path.Combine(root, userPath)); if (!target.StartsWith(root + Path.DirectorySeparatorChar)) throw new UnauthorizedAccessException();`. `Path.GetFullPath` resolves `..` segments before the comparison.\n2. **Reject control characters and reserved names.** Block input containing `\\0`, `\\r`, `\\n`, characters in `Path.GetInvalidFileNameChars()`, and Windows reserved names (`CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`).\n3. **Use indirect identifiers.** Map opaque user IDs to filenames server-side: `var file = REPORTS.TryGetValue(id, out var f) ? f : throw new FileNotFoundException();`.\n4. **Use `IFileProvider`** (e.g. `PhysicalFileProvider` rooted at the safe directory) for static-file delivery. ASP.NET Core checks the boundary internally.\n5. **Keep file uploads out of the web-root.** Store under a non-served directory and serve via a download action that authorises the request and streams the file.\n6. **Run `SecurityCodeScan` rule `SCS0018`** (path traversal) — it flags `Path.Combine` followed by direct file ops on user input.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-22"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-22"
+              }
+            },
+            {
+              "id": "cross-site_scripting_xss_no_direct_response_writer",
+              "name": "Cross-Site Scripting (XSS) (no direct response writer)",
+              "shortDescription": {
+                "text": "Cross-Site Scripting (XSS) (no direct response writer)"
+              },
+              "fullDescription": {
+                "text": "XSS vulnerabilities in Java web applications occur when user-controlled data is included in web pages without proper validation or encoding. This can happen through servlets, JSPs, or web frameworks. Attackers can inject malicious JavaScript that executes in victim browsers, potentially stealing session cookies, defacing websites, or performing actions on behalf of victims."
+              },
+              "help": {
+                "text": "1. **Encode at the sink with the OWASP Java Encoder**: `Encode.forHtml(s)`, `Encode.forHtmlAttribute(s)`, `Encode.forJavaScript(s)`, `Encode.forCssString(s)`, `Encode.forUriComponent(s)`. Choose by output context, not by input.\n2. **Use Thymeleaf / JSP STL with auto-escape.** Thymeleaf's `[[${var}]]` and JSTL's `<c:out value='${var}'/>` escape by default. Never use `<c:out value='${var}' escapeXml='false'/>` or Thymeleaf `[(${var})]` on user-controlled data.\n3. **Set Content-Security-Policy via Spring Security**: `http.headers(h -> h.contentSecurityPolicy(c -> c.policyDirectives(\"default-src 'self'; script-src 'self' 'nonce-{nonce}'; object-src 'none'\")))`. Generate a per-request nonce and apply it to inline scripts.\n4. **Configure cookies** with `HttpOnly`, `Secure`, `SameSite=Strict` (or `Lax`). Spring Security sets these by default; verify in production.\n5. **Sanitise rich-text input** with OWASP HTML Sanitizer when the app must accept HTML (forums, WYSIWYG): `PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS); String safe = policy.sanitize(userHtml);`.\n6. **Run FindSecBugs / SonarQube** with XSS rules enabled — they flag `response.getWriter().print(userInput)` and similar sinks.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-79",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-79",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "desede_is_deprecated",
+              "name": "Desede Is Deprecated",
+              "shortDescription": {
+                "text": "Desede Is Deprecated"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Desede Is Deprecated detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-326",
+                  "OWASP/A02:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-326",
+                "owasp": "A02:2021 - Cryptographic Failures"
+              }
+            },
+            {
+              "id": "weak_cryptography_weak_cryptographic_algorithm",
+              "name": "Weak Cryptography (weak cryptographic algorithm)",
+              "shortDescription": {
+                "text": "Weak Cryptography (weak cryptographic algorithm)"
+              },
+              "fullDescription": {
+                "text": "Java applications often implement cryptographic functions using the Java Cryptography Architecture (JCA). However, many applications still use deprecated or weak algorithms like MD5 for hashing, DES for encryption, or insecure random number generators. These weaknesses can compromise data confidentiality, integrity, and authentication mechanisms."
+              },
+              "help": {
+                "text": "1. **Hash passwords with Argon2id** via Spring Security 6's `Argon2PasswordEncoder` (or directly with the Bouncy Castle `Argon2BytesGenerator`): memory=65536, iterations=3, parallelism=1 are sane defaults. Bcrypt with cost ≥ 12 is acceptable for legacy systems.\n2. **Replace MD5 / SHA-1 / DES / 3DES / RC4** with SHA-256 / SHA-3 / AES-256-GCM / RSA-2048-OAEP / Ed25519. Use Google **Tink** (`com.google.crypto.tink:tink:1.x`) — it makes correct usage the default and refuses to expose footguns.\n3. **Use `java.security.SecureRandom`** for tokens, IVs, salts. Never `java.util.Random`, `Math.random()`, `System.currentTimeMillis()`. On Linux, prefer `SecureRandom.getInstanceStrong()`.\n4. **Avoid `Cipher.getInstance(\"AES\")`** (defaults to ECB!) — always specify mode + padding: `Cipher.getInstance(\"AES/GCM/NoPadding\")`. Better still, use Tink's `Aead`.\n5. **Manage keys with a KMS.** AWS KMS / GCP KMS / HashiCorp Vault for envelope encryption + audit. Don't ship keys in `application.properties` or Git. Use Spring Cloud Config + Vault Spring integration.\n6. **Enforce TLS 1.2+ (preferably 1.3) at the JVM level.** `-Dhttps.protocols=TLSv1.2,TLSv1.3 -Djdk.tls.client.protocols=TLSv1.2,TLSv1.3`. Spring Boot 3 / Tomcat 10 default to safe ciphers; verify in production.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-327",
+                  "OWASP/A02:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-327",
+                "owasp": "A02:2021 - Cryptographic Failures"
+              }
+            },
+            {
+              "id": "sql_injection_tainted_sql_from_http_request",
+              "name": "SQL Injection (tainted sql from http request)",
+              "shortDescription": {
+                "text": "SQL Injection (tainted sql from http request)"
+              },
+              "fullDescription": {
+                "text": "SQL injection is a code injection technique that exploits security vulnerabilities in the database layer of Java applications. The vulnerability occurs when user input is incorrectly filtered for string literal escape characters embedded in SQL statements or user input is not strongly typed. SQL injection attacks can bypass application security measures, authentication and authorization, and retrieve the contents of entire databases."
+              },
+              "help": {
+                "text": "1. **Use `PreparedStatement` with bound parameters**: `PreparedStatement p = c.prepareStatement(\"SELECT * FROM u WHERE id = ?\"); p.setLong(1, id); ResultSet rs = p.executeQuery();`. Never use `Statement` for queries that include user input.\n2. **For JPA/Hibernate use `setParameter`**: `em.createQuery(\"SELECT u FROM User u WHERE u.email = :e\").setParameter(\"e\", email)`. Avoid `createNativeQuery` with concatenated strings, and avoid `@Query` annotations that interpolate `#{...}`.\n3. **For Spring Data JPA prefer derived methods or @Query with named params.** Spring Data's `findByEmail(email)` is parameterised; `@Query(\"SELECT u FROM User u WHERE u.email = ?1\")` with positional binding is also safe.\n4. **Allowlist identifiers.** Column / table names cannot be parameterised — validate them against a fixed list: `String col = ALLOWED_SORT.contains(input) ? input : \"name\";`.\n5. **Apply DB-level least privilege.** The web user gets `SELECT, INSERT, UPDATE` only — no `DROP`, `ALTER`, or DBA. Use a separate DB account per microservice.\n6. **Run static analysis in CI**: SpotBugs + FindSecBugs catches `SQL_INJECTION_JDBC`, `SQL_INJECTION_HIBERNATE`, `SQL_INJECTION_JPA` patterns. Make those rules build-failures.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-89",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-89",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "trust_boundary_violation",
+              "name": "Trust Boundary Violation",
+              "shortDescription": {
+                "text": "Trust Boundary Violation"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Trust Boundary Violation detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-501",
+                  "OWASP/A04:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-501",
+                "owasp": "A04:2021 - Insecure Design"
+              }
+            },
+            {
+              "id": "xpath_injection_tainted_xpath_from_http_request",
+              "name": "XPath Injection (tainted xpath from http request)",
+              "shortDescription": {
+                "text": "XPath Injection (tainted xpath from http request)"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type XPath Injection (tainted xpath from http request) detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-643",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-643",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "ldap_injection_tainted_ldapi_from_http_request",
+              "name": "LDAP Injection (tainted ldapi from http request)",
+              "shortDescription": {
+                "text": "LDAP Injection (tainted ldapi from http request)"
+              },
+              "fullDescription": {
+                "text": "LDAP injection is a type of injection attack that exploits web-based applications that construct LDAP statements based on user input. In C# applications, this typically involves DirectorySearcher, DirectoryEntry, or similar Active Directory operations. When an application fails to properly sanitize user input before constructing and executing LDAP queries, it creates an opportunity for attackers to inject malicious LDAP statements."
+              },
+              "help": {
+                "text": "1. **Escape every interpolated value into LDAP filters** per RFC 4515: replace `\\` `*` `(` `)` `\\0` with `\\5c`, `\\2a`, `\\28`, `\\29`, `\\00`. `Novell.Directory.Ldap` and `System.DirectoryServices.Protocols` do NOT escape for you.\n2. **Use a helper**: `static string EscapeLdapFilter(string s) => string.Concat(s.Select(c => c switch { '\\\\' => \"\\\\5c\", '*' => \"\\\\2a\", '(' => \"\\\\28\", ')' => \"\\\\29\", '\\0' => \"\\\\00\", _ => c.ToString() }));`. Apply to every user-supplied piece.\n3. **For DN composition use the DN escaping rules (RFC 4514)** which differ from filter rules: escape `, + \" \\ < > ;` plus leading/trailing space.\n4. **Bind under a read-only service account** for authentication queries. The bind account should not be able to write, delete, or enumerate sensitive attributes (e.g. `userPassword` hashes).\n5. **Use LDAPS or StartTLS with certificate verification.** Cleartext LDAP exposes credentials. Pin the directory CA via `LdapConnection.SessionOptions.VerifyServerCertificate`.\n6. **Apply rate limiting + lockout** on login endpoints — boolean blind LDAP injection can enumerate users at scale.\n\nPriority: IMMEDIATE"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-90",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-90",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "xpath_injection",
+              "name": "XPath Injection",
+              "shortDescription": {
+                "text": "XPath Injection"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type XPath Injection detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-643",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "9",
+                "cwe": "CWE-643",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "tainted_session_from_http_request",
+              "name": "Tainted Session From Http Request",
+              "shortDescription": {
+                "text": "Tainted Session From Http Request"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Tainted Session From Http Request detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-501",
+                  "OWASP/A04:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-501",
+                "owasp": "A04:2021 - Insecure Design"
+              }
+            },
+            {
+              "id": "http_response_splitting",
+              "name": "HTTP Response Splitting",
+              "shortDescription": {
+                "text": "HTTP Response Splitting"
+              },
+              "fullDescription": {
+                "text": "HTTP Response Splitting attacks occur when an application includes user-controlled data in HTTP response headers without proper validation. In Go web applications, this typically happens when using http.ResponseWriter.Header().Set() or similar functions with untrusted input. Attackers can inject carriage return (\\r) and line feed (\\n) characters to split the response and inject additional headers or even a second response, potentially leading to cache poisoning, cross-site scripting, or other attacks."
+              },
+              "help": {
+                "text": "1. **Go's `net/http` package rejects CR/LF in header values** since Go 1.6 (issue 7202). On modern Go (1.18+), `Header().Set(k, v)` with embedded `\\r\\n` returns an `http.ErrAbortHandler`-like state. Verify your runtime is current.\n2. **Validate header values explicitly** for defence-in-depth: `if strings.ContainsAny(v, \"\\r\\n\") { return errors.New(\"invalid header\") }`.\n3. **Validate redirect targets.** `http.Redirect(w, r, userURL, ...)` lets the user-supplied URL appear in the `Location` header. Allowlist target paths or hosts: `if !strings.HasPrefix(userURL, \"/\") { reject }`.\n4. **Avoid unfiltered cookie values.** `http.Cookie.Value` is escaped, but other libraries may not escape — verify or sanitise.\n5. **Use a structured logger** (`log/slog` in Go 1.21+) for log writes — never `log.Printf(\"%s\", userInput)` to log files that are shipped to a terminal; CR/LF in user data corrupts log parsing.\n6. **Run `gosec G201/G202` and `staticcheck`** to flag user input flowing into `Header().Set` without validation.\n\nPriority: HIGH"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-113",
+                  "OWASP/A03:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-113",
+                "owasp": "A03:2021 - Injection"
+              }
+            },
+            {
+              "id": "information_exposure_via_error_error_message_exposure",
+              "name": "Information Exposure via Error (error message exposure)",
+              "shortDescription": {
+                "text": "Information Exposure via Error (error message exposure)"
+              },
+              "fullDescription": {
+                "text": "Verbose errors are a reconnaissance gift. Stack traces reveal absolute paths, framework and library versions, and internal class or module names; database errors expose table and column names and often confirm injection points; and configuration dumps can leak credentials outright. None of this is exploitable on its own, which is why it is frequently dismissed — but it materially shortens the time an attacker needs to find and weaponise a real flaw, and it turns blind injection into a straightforward one by providing direct feedback."
+              },
+              "help": {
+                "text": "1. **Separate audiences.** Show users a neutral message plus a reference ID; send the stack trace to your logging pipeline only.\n2. **Handle globally.** Register a catch-all error handler so no unhandled exception can reach the client.\n3. **Disable debug output** in production configuration (see also the debug_mode finding).\n4. **Sanitise messages** from lower layers — never pass a raw database or filesystem error through to the response.\n5. **Set custom error pages** for 4xx/5xx at the web-server level as a backstop.\n6. **Test** that forced errors return no internal detail.\n\nPriority: MEDIUM"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-209",
+                  "OWASP/A04:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-209",
+                "owasp": "A04:2021 - Insecure Design"
+              }
+            },
+            {
+              "id": "information_exposure_via_error_stack_trace_exposure",
+              "name": "Information Exposure via Error (stack trace exposure)",
+              "shortDescription": {
+                "text": "Information Exposure via Error (stack trace exposure)"
+              },
+              "fullDescription": {
+                "text": "Verbose errors are a reconnaissance gift. Stack traces reveal absolute paths, framework and library versions, and internal class or module names; database errors expose table and column names and often confirm injection points; and configuration dumps can leak credentials outright. None of this is exploitable on its own, which is why it is frequently dismissed — but it materially shortens the time an attacker needs to find and weaponise a real flaw, and it turns blind injection into a straightforward one by providing direct feedback."
+              },
+              "help": {
+                "text": "1. **Separate audiences.** Show users a neutral message plus a reference ID; send the stack trace to your logging pipeline only.\n2. **Handle globally.** Register a catch-all error handler so no unhandled exception can reach the client.\n3. **Disable debug output** in production configuration (see also the debug_mode finding).\n4. **Sanitise messages** from lower layers — never pass a raw database or filesystem error through to the response.\n5. **Set custom error pages** for 4xx/5xx at the web-server level as a backstop.\n6. **Test** that forced errors return no internal detail.\n\nPriority: MEDIUM"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-209",
+                  "OWASP/A04:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-209",
+                "owasp": "A04:2021 - Insecure Design"
+              }
+            },
+            {
+              "id": "insecure_randomness",
+              "name": "Insecure Randomness",
+              "shortDescription": {
+                "text": "Insecure Randomness"
+              },
+              "fullDescription": {
+                "text": "General-purpose PRNGs (Python's random, Java's java.util.Random, JavaScript's Math.random, C's rand) are built for statistical quality and speed, not unpredictability. They are deterministic functions of an internal state that an attacker can often recover after observing a modest number of outputs — the Mersenne Twister used by Python and Java requires 624 observed 32-bit outputs to reconstruct state and predict all future values. Seeding from the clock makes it worse, reducing the search space to the seconds around a known event. Any token generated this way — password reset links, session IDs, API keys, CSRF tokens, OTPs — is predictable rather than secret."
+              },
+              "help": {
+                "text": "1. **Switch the API.** Python: `secrets.token_urlsafe(32)`; Java: `java.security.SecureRandom`; Node: `crypto.randomBytes(32)`; .NET: `RandomNumberGenerator.GetBytes`; Go: `crypto/rand`.\n2. **Size it properly.** At least 128 bits (16 bytes) of entropy for tokens and session identifiers.\n3. **Never seed manually** with time, PID, or another predictable value; let the OS CSPRNG seed itself.\n4. **Keep fast PRNGs for non-security use** only (simulation, sampling, test data) and comment the distinction.\n5. **Bind and expire.** Tie tokens to a user and a short lifetime so prediction has a narrow window.\n\nPriority: HIGH"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-330",
+                  "OWASP/A02:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-330",
+                "owasp": "A02:2021 - Cryptographic Failures"
+              }
+            },
+            {
+              "id": "concatenated_sql_query",
+              "name": "Concatenated Sql Query",
+              "shortDescription": {
+                "text": "Concatenated Sql Query"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Concatenated Sql Query detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-89"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-89"
+              }
+            },
+            {
+              "id": "insecure_basic_auth",
+              "name": "Insecure Basic Auth",
+              "shortDescription": {
+                "text": "Insecure Basic Auth"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Insecure Basic Auth detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-522",
+                  "OWASP/A04:2021"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-522",
+                "owasp": "A04:2021 - Insecure Design"
+              }
+            },
+            {
+              "id": "unsafe_jquery_plugin",
+              "name": "Unsafe Jquery Plugin",
+              "shortDescription": {
+                "text": "Unsafe Jquery Plugin"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Unsafe Jquery Plugin detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-79"
+                ],
+                "precision": "medium",
+                "security-severity": "5",
+                "cwe": "CWE-79"
+              }
+            },
+            {
+              "id": "xss_through_dom",
+              "name": "Xss Through Dom",
+              "shortDescription": {
+                "text": "Xss Through Dom"
+              },
+              "fullDescription": {
+                "text": "Security vulnerability of type Xss Through Dom detected."
+              },
+              "help": {
+                "text": "Review the code and implement proper security controls based on the vulnerability type."
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-79"
+                ],
+                "precision": "medium",
+                "security-severity": "7.5",
+                "cwe": "CWE-79"
+              }
+            }
+          ]
+        }
+      },
+      "automationDetails": {
+        "id": "BenchmarkJava-master/6380150b-b8a0-40f0-90ad-dab78f0b7d27",
+        "description": {
+          "text": "Static analysis of BenchmarkJava-master"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "endTimeUtc": "2026-03-09T18:50:01.000Z"
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "deserialization",
+          "ruleIndex": 9,
+          "level": "warning",
+          "message": {
+            "text": "Java deserialization vulnerabilities arise when applications deserialize untrusted data using ObjectInputStream.readObject() or similar methods. Since Java serialization can reconstruct entire object graphs including executable code, attackers can craft malicious serialized objects that execute arbitrary code during deserialization. This is particularly dangerous because it can lead to remote code execution without any user interaction."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "BenchmarkJava-master/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "snippet": {
+                    "text": "\n        String bar = doSomething(request, param);\n\n        try {\n            java.util.Properties benchmarkprops = new java.util.Properties();\n            benchmarkprops.load(\n                    this.getClass().getClassLoader().getResourceAsStream(\"benchmark.properties\"));\n            String algorithm = benchmarkprops.getProperty(\"hashAlg1\", \"SHA512\");\n            java.security.MessageDigest md = java.security.MessageDigest.getInstance(algorithm);\n            byte[] input = {(byte) '?'};\n            Object inputParam = bar;"
+                  }
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "Unknown Function",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "codeFlows": [
+            {
+              "message": {
+                "text": "Call chain"
+              },
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "BenchmarkJava-master/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java"
+                          },
+                          "region": {
+                            "startLine": 1
+                          }
+                        },
+                        "message": {
+                          "text": "Untrusted input enters the application"
+                        }
+                      },
+                      "properties": {
+                        "function": "user_input"
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "BenchmarkJava-master/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java"
+                          },
+                          "region": {
+                            "startLine": 1
+                          }
+                        },
+                        "message": {
+                          "text": "Data flow through application"
+                        }
+                      },
+                      "properties": {
+                        "function": "data_flow"
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "BenchmarkJava-master/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java"
+                          },
+                          "region": {
+                            "startLine": 1
+                          }
+                        },
+                        "message": {
+                          "text": "Vulnerable deserialization at Unknown Function()"
+                        }
+                      },
+                      "properties": {
+                        "function": "Unknown Function"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "message": {
+                "text": "Data flow"
+              },
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "BenchmarkJava-master/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java"
+                          },
+                          "region": {
+                            "startLine": 1
+                          }
+                        },
+                        "message": {
+                          "text": "untrusted serialized data enters the application as untrusted input"
+                        }
+                      },
+                      "properties": {
+                        "function": "user_input"
+                      }
+                    },
+                    {
+                      "location": {
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "uri": "BenchmarkJava-master/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java"
+                          },
+                          "region": {
+                            "startLine": 1
+                          }
+                        },
+                        "message": {
+                          "text": "Unknown Source propagates toward the sink"
+                        }
+                      },
+                      "properties": {
+                        "function": "data_flow"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "4b348c71"
+          },
+          "properties": {
+            "severity": "medium",
+            "confidence": "medium",
+            "status": "open",
+            "engine": "Java Lexical Engine",
+            "exploitability": "LOW",
+            "detectionCount": 1,
+            "taintSource": "BenchmarkJava-master/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java:user_input",
+            "taintSink": "BenchmarkJava-master/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java:Unknown Function",
+            "exploitPayload": "ysoserial CommonsCollections6 'id' | base64  -> POSTed as the serialized blob"
+          }
+        },
+        {
+          "ruleId": "weak_random",
+          "ruleIndex": 14,
+          "level": "warning",
+          "message": {
+            "text": "General-purpose PRNGs (Python's random, Java's java.util.Random, JavaScript's Math.random, C's rand) are built for statistical quality and speed, not unpredictability. They are deterministic functions of an internal state that an attacker can often recover after observing a modest number of outputs — the Mersenne Twister used by Python and Java requires 624 observed 32-bit outputs to reconstruct state and predict all future values. Seeding from the clock makes it worse, reducing the search space to the seconds around a known event. Any token generated this way — password reset links, session IDs, API keys, CSRF tokens, OTPs — is predictable rather than secret."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "BenchmarkJava-master/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00002.java",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "snippet": {
+                    "text": "            }\n        }\n\n        String bar = doSomething(request, param);\n\n        double value = java.lang.Math.random();\n        String rememberMeKey = Double.toString(value).substring(2); // Trim off the 0. at the front.\n\n        String user = \"Doug\";\n        String fullClassName = this.getClass().getName();\n        String testCaseNumber ="
+                  }
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "random",
+                  "kind": "function"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "8f4844c3"
+          },
+          "properties": {
+            "severity": "medium",
+            "confidence": "high",
+            "status": "open",
+            "engine": "Java Lexical Engine",
+            "exploitability": "LOW",
+            "corroboratingEngines": [
+              "lexical",
+              "semgrep"
+            ],
+            "detectionCount": 2,
+            "taintSource": "BenchmarkJava-master/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00002.java:random",
+            "taintSink": "BenchmarkJava-master/src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00002.java:random",
+            "exploitPayload": "Observe 624 consecutive outputs -> reconstruct Mersenne Twister state -> predict every future token"
+          }
+        }
+      ]
+    }
+  ]
+}
