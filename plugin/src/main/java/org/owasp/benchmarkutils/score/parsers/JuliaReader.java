@@ -20,7 +20,6 @@ package org.owasp.benchmarkutils.score.parsers;
 import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.owasp.benchmarkutils.score.BenchmarkScore;
 import org.owasp.benchmarkutils.score.ResultFile;
 import org.owasp.benchmarkutils.score.TestCaseResult;
 import org.owasp.benchmarkutils.score.TestSuiteResults;
@@ -30,11 +29,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 public class JuliaReader extends Reader {
-
-    // refactoring resilient
-    // TODO: Update to handle package paths from other test suites
-    private final String prefixOfTest =
-            "org.owasp.benchmark.testcode." + BenchmarkScore.TESTCASENAME;
 
     @Override
     public boolean canRead(ResultFile resultFile) {

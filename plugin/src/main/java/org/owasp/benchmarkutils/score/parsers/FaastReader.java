@@ -86,8 +86,7 @@ public class FaastReader extends Reader {
     }
 
     private String getCategory(String url) {
-        // TODO: Use APPNAME constant rather than 'benchmark' here.
-        String flag = "benchmark/";
+        String flag = BenchmarkScore.TESTSUITENAME.simpleName().toLowerCase() + "/";
         int locator_start = url.lastIndexOf(flag) + flag.length();
         int locator_end = url.lastIndexOf("/" + BenchmarkScore.TESTCASENAME);
         return url.substring(locator_start, locator_end);

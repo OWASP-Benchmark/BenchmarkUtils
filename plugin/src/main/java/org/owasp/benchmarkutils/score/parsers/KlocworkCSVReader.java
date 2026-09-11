@@ -91,7 +91,8 @@ public class KlocworkCSVReader extends Reader {
             case "RLK.IN": // Input stream not closed on exit
             case "RLK.OUT": // Output stream not closed on exit
 
-            case "SV.DATA.DB": // Data Injection - what does that mean? TODO
+            case "SV.DATA.DB":
+                return CweNumber.SQL_INJECTION;
             case "SV.PASSWD.HC": // Hardcoded Password
             case "SV.PASSWD.HC.EMPTY": // Empty Password
             case "SV.PASSWD.PLAIN": // Plain-text Password
