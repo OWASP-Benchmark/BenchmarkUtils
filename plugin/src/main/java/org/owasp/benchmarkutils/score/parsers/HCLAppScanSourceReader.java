@@ -167,8 +167,6 @@ public class HCLAppScanSourceReader extends Reader {
     }
 
     private void reportWarning(String message) {
-        if (System.getProperty("DEBUG") != null) {
-            System.out.println(message);
-        }
+        System.out.println(message);
     }
 }

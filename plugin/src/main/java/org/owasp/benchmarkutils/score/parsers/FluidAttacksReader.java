@@ -100,6 +100,7 @@ public class FluidAttacksReader extends Reader {
             case "xpathi":
                 return 643;
             default:
+                System.out.println("WARNING: Fluid Attacks-Unmapped category: " + cwe);
                 return 0;
         }
     }
@@ -131,6 +132,8 @@ public class FluidAttacksReader extends Reader {
             case "643":
                 return "xpathi";
             default:
+                System.out.println(
+                        "INFO: Fluid Attacks - unmapped CWE: " + cwe + ". Categorized as other.");
                 return "other";
         }
     }

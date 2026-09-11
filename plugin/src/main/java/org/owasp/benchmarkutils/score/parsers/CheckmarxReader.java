@@ -214,6 +214,8 @@ public class CheckmarxReader extends Reader {
             case 338:
                 return CweNumber.WEAK_RANDOM;
         }
+        System.out.println(
+                "INFO: Checkmarx - unmapped CWE: " + cwe + ". Passing through as-is.");
         return cwe;
     }
 }

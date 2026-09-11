@@ -198,6 +198,8 @@ public class AppScanDynamicReader extends Reader {
                 // case "Weak Encryption" : return 327;
                 // case "XPath Injection" : return 643;
         }
+        System.out.println(
+                "INFO: AppScan Dynamic - unmapped CWE: " + id + ". Passing through as-is.");
         return id;
     }
 }

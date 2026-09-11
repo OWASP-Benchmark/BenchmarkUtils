@@ -135,6 +135,8 @@ public class VeracodeReader extends Reader {
         if (cwe == 80) return 79;
         if (cwe == 331) return 330;
         if (cwe == 91) return 643;
+        System.out.println(
+                "INFO: Veracode - unmapped CWE: " + cwe + ". Passing through as-is.");
         return cwe;
     }
 }

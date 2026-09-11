@@ -178,6 +178,7 @@ public class AppScanSourceReader extends Reader {
             case "Vulnerability.Validation.Required":
                 return CweNumber.TRUST_BOUNDARY_VIOLATION;
         }
+        System.out.println("WARNING: AppScan Source-Unmapped finding type: " + vtype);
         return 0;
     }
 
