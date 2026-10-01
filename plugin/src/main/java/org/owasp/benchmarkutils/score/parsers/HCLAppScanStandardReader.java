@@ -138,6 +138,12 @@ public class HCLAppScanStandardReader extends Reader {
             return CweNumber.DONTCARE;
         }
 
+        System.out.println(
+                "INFO: HCL AppScan Standard - unmapped finding type: "
+                        + vtype
+                        + " (CWE "
+                        + xmlCwe
+                        + "). Passing through as-is.");
         return xmlCwe;
     }
 }

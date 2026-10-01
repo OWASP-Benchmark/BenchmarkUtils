@@ -60,6 +60,8 @@ public class BearerReader extends Reader {
             case 327:
                 return CweNumber.WEAK_HASH_ALGO;
             default:
+                System.out.println(
+                        "INFO: Bearer - unmapped CWE: " + cwe + ". Passing through as-is.");
                 return cwe;
         }
     }

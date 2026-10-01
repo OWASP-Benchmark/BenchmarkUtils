@@ -177,6 +177,7 @@ public class WebInspectReader extends Reader {
                 //        case "trust-boundary-violation"  :  return 501;  // trust boundary
                 //        case "xxe"                       :  return 611;  // xml entity
         }
+        System.out.println("WARNING: WebInspect-Unmapped rule: " + rule);
         return 0;
     }
 }
