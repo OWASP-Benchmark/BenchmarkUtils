@@ -1,5 +1,8 @@
 package org.owasp.benchmarkutils.tools;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /*
  * This class is used to contain the results, per codeblock type, of how well a tool did with respect
  * to that codeblock.
@@ -38,6 +41,13 @@ class CodeBlockSupportResults {
     // the tool to always flag this test case as a TP
     int numFPSinksWhereSourceDataflowAreTruePositivesUsed = 0;
     int numFPSinksWhereSourceDataflowAreTruePositivesPassed = 0;
+
+    // Issue #5: Track actual test case names for bidirectional mapping and isolation analysis
+    Set<String> fnTestCases = new HashSet<>();
+    // FNs where THIS is the single unsupported snippet (isolated root cause)
+    Set<String> isolatedFnCause = new HashSet<>();
+    // FPs where THIS is the single safe snippet the tool fails to recognize
+    Set<String> isolatedFpCause = new HashSet<>();
 
     CodeBlockSupportResults(String name, String type, boolean truePositive) {
         this.name = name;
@@ -116,6 +126,15 @@ class CodeBlockSupportResults {
                 + numFPTestCasesPassed
                 + ", supported: "
                 + supported;
+    }
+
+    public String toIsolationString() {
+        String displayName = ("DATAFLOW".equals(type) && "".equals(name)) ? "NoDataFlow" : name;
+        return "[" + type + "] " + displayName
+                + ("SINK".equals(type) ? " (" + vulnCat + ")" : "")
+                + " -- " + isolatedFnCause.size() + " FNs isolated to this snippet"
+                + (isolatedFpCause.isEmpty() ? ""
+                        : ", " + isolatedFpCause.size() + " FPs isolated to this snippet");
     }
 
     public String toStringForFalsePositiveSinks() {

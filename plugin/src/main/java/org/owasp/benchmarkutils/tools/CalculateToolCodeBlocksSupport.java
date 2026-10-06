@@ -131,8 +131,8 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
                         .build());
         options.addOption(
                 Option.builder("r")
-                        .longOpt("file")
-                        .desc("a scorecard generated toolResults.csv file")
+                        .longOpt("results")
+                        .desc("a scorecard generated toolResults.csv file, or a directory of them")
                         .hasArg()
                         .required()
                         .build());
@@ -178,32 +178,52 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
         }
     }
 
-    /** Calculate the code block support for the specified tool for the specified test suite. */
+    /** Calculate the code block support for the specified tool(s) for the specified test suite. */
     @Override
     protected void run() {
+        // If the results parameter is a directory, iterate all scorecard CSVs in it
+        if (csvResultsFile.isDirectory()) {
+            File[] scorecardFiles = csvResultsFile.listFiles(
+                    f -> f.isFile() && f.getName().contains("Scorecard_for_")
+                            && f.getName().endsWith(".csv"));
+            if (scorecardFiles == null || scorecardFiles.length == 0) {
+                System.out.println(
+                        "ERROR: No scorecard CSV files found in directory: "
+                                + csvResultsFile.getAbsolutePath());
+                return;
+            }
+            System.out.println(
+                    "Processing " + scorecardFiles.length + " scorecard files from: "
+                            + csvResultsFile.getAbsolutePath() + "\n");
+            for (File scorecardFile : scorecardFiles) {
+                // Extract tool name from filename
+                String fileName = scorecardFile.getName();
+                int forIdx = fileName.indexOf("Scorecard_for_");
+                String toolName = fileName.substring(forIdx + "Scorecard_for_".length())
+                        .replace(".csv", "");
+                System.out.println(
+                        "\n========================================================");
+                System.out.println("=== Tool: " + toolName + " ===");
+                System.out.println(
+                        "========================================================");
+                runForOneTool(scorecardFile);
+            }
+            return;
+        }
 
-        // Initialize the expected and actual results data structure from the
-        //   TESTSUITE-attack-http.xml and results.csv already loaded.
-        // Merge the .csv results with the codeblock details so you know which test cases
-        //   pass/fail.
-        //  - Probably can use the same structures used in ScoreCard generation, which is: TBD
-        //  - Should use an array of: TestCaseResult - This class represents a single test case
-        // result. It documents the expected result (real),
-        //    and the actual result (result). Such an array is already contained in:
-        // TestSuiteResults, but its contents have to be created using
-        //    put(TestCaseResult) one test case at a time.
-        // List<AbstractTestCaseRequest> testcases = this.testSuite.getTestCases() is already loaded
+        // Single file mode
+        runForOneTool(csvResultsFile);
+    }
 
-        // NOTE: The last 2 params are dummy values as I don't think we care about their type (yet)
+    private void runForOneTool(File toolCsvFile) {
         TestSuiteResults theToolResults =
                 new TestSuiteResults(this.testSuite.getName(), false, ToolType.SAST);
 
-        // Get all the TestCase info loaded from TESTSUITE-attack-http.xml file
         List<AbstractTestCaseRequest> theTestcases = this.testSuite.getTestCases();
         int testSuiteSize = theTestcases.size();
 
         try {
-            java.io.Reader inReader = new java.io.FileReader(csvResultsFile);
+            java.io.Reader inReader = new java.io.FileReader(toolCsvFile);
             CSVParser recordParser = CSVFormat.Builder.create().setHeader().build().parse(inReader);
 
             List<CSVRecord> records = recordParser.getRecords();
@@ -457,6 +477,72 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
                 }
             }
 
+            // 3b2. Issue #5 Pass 2: Single-unknown isolation.
+            // For each FN, count how many of its snippets are NOT supported.
+            // If exactly 1 is unsupported, that snippet is the isolated root cause.
+            List<TestCaseResult> combinationFailures = new ArrayList<>();
+            for (int tc : theToolResults.keySet()) {
+                TestCaseResult theResult = theToolResults.get(tc).get(0);
+                if (!theResult.isTruePositive() || theResult.isPassed()) continue;
+
+                CodeBlockSupportResults source =
+                        sourceCodeBlocksResults.get(theResult.getSource());
+                CodeBlockSupportResults dataflow =
+                        dataflowCodeBlocksResults.get(theResult.getDataFlow());
+                CodeBlockSupportResults sink = sinkCodeBlocksResults.get(theResult.getSink());
+
+                source.fnTestCases.add(theResult.getName());
+                if (dataflow != null && !dataflow.name.isEmpty())
+                    dataflow.fnTestCases.add(theResult.getName());
+                sink.fnTestCases.add(theResult.getName());
+
+                List<CodeBlockSupportResults> unknowns = new ArrayList<>();
+                if (!source.supported) unknowns.add(source);
+                if (dataflow != null && !dataflow.name.isEmpty() && !dataflow.supported)
+                    unknowns.add(dataflow);
+                if (!sink.supported) unknowns.add(sink);
+
+                if (unknowns.size() == 1) {
+                    unknowns.get(0).isolatedFnCause.add(theResult.getName());
+                } else if (unknowns.isEmpty()) {
+                    combinationFailures.add(theResult);
+                }
+            }
+
+            // 3b3. Issue #5 Stage 2: FP isolation.
+            // For each FP, identify which snippet(s) make it safe.
+            // If exactly 1 safe snippet, the tool fails to recognize it as safe.
+            List<TestCaseResult> sanityCheckFailures = new ArrayList<>();
+            for (int tc : theToolResults.keySet()) {
+                TestCaseResult theResult = theToolResults.get(tc).get(0);
+                if (theResult.isTruePositive() || theResult.isPassed()) continue;
+
+                CodeBlockSupportResults source =
+                        sourceCodeBlocksResults.get(theResult.getSource());
+                CodeBlockSupportResults dataflow =
+                        dataflowCodeBlocksResults.get(theResult.getDataFlow());
+                CodeBlockSupportResults sink = sinkCodeBlocksResults.get(theResult.getSink());
+
+                // Sanity check: all snippets are supported but tool still FPs
+                boolean allSupported = source.supported
+                        && (dataflow.name.isEmpty() || dataflow.supported)
+                        && sink.supported;
+                if (allSupported) {
+                    sanityCheckFailures.add(theResult);
+                }
+
+                // Which snippet makes this test case safe (not a real vuln)?
+                List<CodeBlockSupportResults> safeSnippets = new ArrayList<>();
+                if (!source.truePositive) safeSnippets.add(source);
+                if (!dataflow.name.isEmpty() && !dataflow.truePositive)
+                    safeSnippets.add(dataflow);
+                if (!sink.truePositive) safeSnippets.add(sink);
+
+                if (safeSnippets.size() == 1) {
+                    safeSnippets.get(0).isolatedFpCause.add(theResult.getName());
+                }
+            }
+
             // 3c. Calculate which sinks appear to be unsupported or always cause false positives
             String Always_FP_Output = "\n"; // Used to print all the FPs AFTER the Always FN values
             for (CodeBlockSupportResults sinkResult : sinkCodeBlocksResults.values()) {
@@ -568,28 +654,87 @@ public class CalculateToolCodeBlocksSupport extends BenchmarkCrawler {
                     System.out.println("Always FP: " + dataflowResult);
             }
 
-            /*
-                        // Print out codeblock coordinates of suspect False Positives
-                        for (int tc : theToolResults.keySet()) {
-                            TestCaseResult theResult = theToolResults.get(tc).get(0); // Always only one.
-                            boolean passed = theResult.isPassed();
-                            CodeBlockSupportResults source = sourceCodeBlocksResults.get(theResult.getSource());
-                            CodeBlockSupportResults dataflow =
-                                    dataflowCodeBlocksResults.get(theResult.getDataFlow());
-                            CodeBlockSupportResults sink = sinkCodeBlocksResults.get(theResult.getSink());
+            // --- Issue #5 Pass 2 Report: Isolated FN Root Causes ---
+            System.out.println("\n--- Pass 2: Isolated FN Root Causes ---");
+            boolean foundIsolated = false;
+            for (CodeBlockSupportResults sinkResult : sinkCodeBlocksResults.values()) {
+                if (!sinkResult.isolatedFnCause.isEmpty()) {
+                    System.out.println("  " + sinkResult.toIsolationString());
+                    foundIsolated = true;
+                }
+            }
+            for (CodeBlockSupportResults sourceResult : sourceCodeBlocksResults.values()) {
+                if (!sourceResult.isolatedFnCause.isEmpty()) {
+                    System.out.println("  " + sourceResult.toIsolationString());
+                    foundIsolated = true;
+                }
+            }
+            for (CodeBlockSupportResults dataflowResult : dataflowCodeBlocksResults.values()) {
+                if (!dataflowResult.isolatedFnCause.isEmpty()) {
+                    System.out.println("  " + dataflowResult.toIsolationString());
+                    foundIsolated = true;
+                }
+            }
+            if (!foundIsolated) {
+                System.out.println("  (none found)");
+            }
+            if (!combinationFailures.isEmpty()) {
+                System.out.println(
+                        "  Combination failures (all snippets supported, tool still misses): "
+                                + combinationFailures.size());
+                for (TestCaseResult cf : combinationFailures) {
+                    System.out.println("    " + cf.toString());
+                }
+            }
 
-                            if (!theResult.isTruePositive() && !passed && !sink.reported && !source.reported) {
-                                if (source.supported && dataflow.supported) {
-                                    System.out.println(
-                                            "False Positive possibly caused by SINK, since both source and dataflow supported. For: "
-                                                    + theResult.toString());
-                                    System.out.println("  " + source.toString());
-                                    System.out.println("  " + dataflow.toString());
-                                    System.out.println("  " + sink.toString());
-                                }
-                            }
-                        }
-            */
+            // --- Issue #5 Sanity Check ---
+            if (!sanityCheckFailures.isEmpty()) {
+                System.out.println(
+                        "\n--- Sanity Check: FPs where all snippets are supported ("
+                                + sanityCheckFailures.size() + ") ---");
+                for (TestCaseResult sf : sanityCheckFailures) {
+                    System.out.println("  " + sf.toString());
+                }
+            }
+
+            // --- Issue #5 Stage 2 Report: Isolated FP Root Causes ---
+            System.out.println("\n--- Stage 2: FP Root Causes (safe snippets tool doesn't recognize) ---");
+            boolean foundFPIsolated = false;
+            for (CodeBlockSupportResults sinkResult : sinkCodeBlocksResults.values()) {
+                if (!sinkResult.isolatedFpCause.isEmpty()) {
+                    System.out.println(
+                            "  [SINK] " + sinkResult.name
+                                    + " (" + sinkResult.vulnCat + ", safe) -- "
+                                    + sinkResult.isolatedFpCause.size()
+                                    + " FPs isolated to this snippet");
+                    foundFPIsolated = true;
+                }
+            }
+            for (CodeBlockSupportResults sourceResult : sourceCodeBlocksResults.values()) {
+                if (!sourceResult.isolatedFpCause.isEmpty()) {
+                    System.out.println(
+                            "  [SOURCE] " + sourceResult.name
+                                    + " (safe) -- "
+                                    + sourceResult.isolatedFpCause.size()
+                                    + " FPs isolated to this snippet");
+                    foundFPIsolated = true;
+                }
+            }
+            for (CodeBlockSupportResults dataflowResult : dataflowCodeBlocksResults.values()) {
+                if (!dataflowResult.isolatedFpCause.isEmpty()) {
+                    String displayName =
+                            dataflowResult.name.isEmpty() ? "NoDataFlow" : dataflowResult.name;
+                    System.out.println(
+                            "  [DATAFLOW] " + displayName
+                                    + " (safe) -- "
+                                    + dataflowResult.isolatedFpCause.size()
+                                    + " FPs isolated to this snippet");
+                    foundFPIsolated = true;
+                }
+            }
+            if (!foundFPIsolated) {
+                System.out.println("  (none found)");
+            }
 
             // Print out codeblock coordinates of the rest of the False Positives, ignoring all with
             // sinks or sources already known to cause FPs
