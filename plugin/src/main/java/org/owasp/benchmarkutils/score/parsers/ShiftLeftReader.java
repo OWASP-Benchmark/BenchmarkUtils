@@ -91,7 +91,8 @@ public class ShiftLeftReader extends Reader {
             case "xss":
                 return 79;
             default:
-                throw new RuntimeException("Unknown category: " + category);
+                System.out.println("WARNING: ShiftLeft-Unknown category: " + category);
+                return 0;
         }
     }
 }
