@@ -387,10 +387,7 @@ public class BenchmarkScore extends AbstractMojo {
 
                         SecureRandom generator = SecureRandom.getInstance("SHA1PRNG");
                         while (files.size() > 0) {
-                            int randomNum = generator.nextInt();
-                            // FIXME: Get Absolute Value better
-                            if (randomNum < 0) randomNum *= -1;
-                            int fileToGet = randomNum % files.size();
+                            int fileToGet = generator.nextInt(files.size());
                             File actual = files.remove(fileToGet);
                             // Don't confuse the expected results file as an actual results file if
                             // its in the same directory

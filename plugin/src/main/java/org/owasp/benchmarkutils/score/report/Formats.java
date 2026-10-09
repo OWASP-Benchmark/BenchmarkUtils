@@ -18,11 +18,19 @@
 package org.owasp.benchmarkutils.score.report;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 public class Formats {
 
-    public static final DecimalFormat twoDecimalPlacesPercentage = new DecimalFormat("#0.00%");
+    private static final DecimalFormatSymbols US_SYMBOLS =
+            DecimalFormatSymbols.getInstance(Locale.US);
 
-    public static final DecimalFormat singleDecimalPlaceNumber = new DecimalFormat("0.0");
-    public static final DecimalFormat fourDecimalPlacesNumber = new DecimalFormat("#0.0000");
+    public static final DecimalFormat twoDecimalPlacesPercentage =
+            new DecimalFormat("#0.00%", US_SYMBOLS);
+
+    public static final DecimalFormat singleDecimalPlaceNumber =
+            new DecimalFormat("0.0", US_SYMBOLS);
+    public static final DecimalFormat fourDecimalPlacesNumber =
+            new DecimalFormat("#0.0000", US_SYMBOLS);
 }
