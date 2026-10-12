@@ -1,0 +1,118 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "invocations": [],
+      "tool": {
+        "driver": {
+          "name": "PVS-Studio",
+          "semanticVersion": "7.42.105218.307",
+          "informationUri": "https://pvs-studio.com",
+          "rules": [
+            {
+              "id": "V5315",
+              "name": "RuleV5315",
+              "help": {
+                "text": "https://pvs-studio.com/en/docs/warnings/v5315/"
+              },
+              "helpUri": "https://pvs-studio.com/en/docs/warnings/v5315/",
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-327"
+                ]
+              }
+            },
+            {
+              "id": "V5321",
+              "name": "RuleV5321",
+              "help": {
+                "text": "https://pvs-studio.com/en/docs/warnings/v5321/"
+              },
+              "helpUri": "https://pvs-studio.com/en/docs/warnings/v5321/",
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-90"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "V5315",
+          "message": {
+            "text": "message."
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00002.java"
+                },
+                "region": {
+                  "startLine": 63,
+                  "endLine": 63
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "V5321",
+          "message": {
+            "text": "message."
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/org/owasp/benchmark/testcode/BenchmarkTest00001.java"
+                },
+                "region": {
+                  "startLine": 58,
+                  "endLine": 58
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "message": {
+                "text": "message."
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/org/owasp/benchmark/testcode/foo.java"
+                },
+                "region": {
+                  "endLine": 44,
+                  "startLine": 44
+                }
+              }
+            },
+            {
+              "message": {
+                "text": "message."
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file://src/main/java/org/owasp/benchmark/testcode/bar.java"
+                },
+                "region": {
+                  "endLine": 58,
+                  "startLine": 58
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
