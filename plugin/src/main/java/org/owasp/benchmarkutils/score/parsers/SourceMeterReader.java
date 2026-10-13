@@ -125,6 +125,7 @@ public class SourceMeterReader extends Reader {
                 //        case "xxe":
                 //            return 611; // xml entity
         }
+        System.out.println("WARNING: SourceMeter-Unmapped vulnerability type: " + vuln);
         return 0;
     }
 }

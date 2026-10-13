@@ -188,6 +188,7 @@ public class ParasoftReader extends Reader {
                 //        case "Weak Cryptographic Hash" : return 328;
                 //        case "Weak Encryption" : return 327;
         }
+        System.out.println("WARNING: Parasoft-Unmapped finding category: " + cat);
         return -1;
     }
 }
