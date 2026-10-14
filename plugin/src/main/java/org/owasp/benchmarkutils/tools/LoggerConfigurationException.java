@@ -10,10 +10,10 @@
  *
  * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU General Public License for more details
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Dave Wichers
- * @created 2021
+ * @author Juan Gama
+ * @created 2017
  */
 package org.owasp.benchmarkutils.tools;
 

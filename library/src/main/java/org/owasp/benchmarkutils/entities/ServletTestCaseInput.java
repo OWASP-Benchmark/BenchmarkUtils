@@ -10,14 +10,13 @@
  *
  * <p>The OWASP Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- * PURPOSE. See the GNU General Public License for more details
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * @author Juan Gama
- * @created 2017
+ * @author David Anderson
+ * @created 2024
  */
-package org.owasp.benchmarkutils.tools;
+package org.owasp.benchmarkutils.entities;
 
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -26,45 +25,25 @@ import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.core5.http.NameValuePair;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
-import org.owasp.benchmarkutils.helpers.RequestVariable;
 
-/*
- * This class is used by the crawlers to test the target Benchmark style web application. It tests Servlet style
- * web applications that use traditional GET parameters in URLs, POST body parameters, header name/values, cookies,
- * etc. Nothing fancy, specific to particular frameworks, like parameters embedded in the URL path, etc.
- */
+@XmlDiscriminatorValue("Servlet")
+public class ServletTestCaseInput extends HttpTestCaseInput {
 
-@XmlDiscriminatorValue("SERVLET")
-public class ServletTestCaseRequest extends AbstractTestCaseRequest {
-
-    public ServletTestCaseRequest() {}
-
-    @SuppressWarnings("deprecation")
     @Override
     void buildQueryString() {
-        setQuery("");
+        setQueryString("");
         boolean first = true;
-        for (RequestVariable field : getGetParams()) {
+        for (RequestVariable field : getGetParameters()) {
             if (first) {
-                setQuery("?");
+                setQueryString("?");
                 first = false;
             } else {
-                setQuery(getQuery() + "&");
+                setQueryString(getQueryString() + "&");
             }
             String name = field.getName();
             String value = field.getValue();
             // System.out.println(query);
-            setQuery(getQuery() + (name + "=" + URLEncoder.encode(value)));
-        }
-    }
-
-    @Override
-    HttpUriRequestBase createRequestInstance(String URL) {
-        // If there are query parameters, this must be a GET, otherwise a POST.
-        if (getQuery().length() == 0) {
-            return new HttpPost(URL);
-        } else {
-            return new HttpGet(URL);
+            setQueryString(getQueryString() + (name + "=" + urlEncode(value)));
         }
     }
 
@@ -72,7 +51,8 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
     void buildHeaders(HttpUriRequestBase request) {
         // AJAX does: text/plain;charset=UTF-8, while HTML Form: application/x-www-form-urlencoded
         // request.addHeader("Content-Type", ";charset=UTF-8"); --This BREAKS BenchmarkCrawling
-        request.addHeader("Content-Type", "application/x-www-form-urlencoded"); // Works for both though
+        request.addHeader(
+                "Content-Type", "application/x-www-form-urlencoded"); // Works for both though
 
         for (RequestVariable header : getHeaders()) {
             String name = header.getName();
@@ -82,7 +62,6 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     void buildCookies(HttpUriRequestBase request) {
         for (RequestVariable cookie : getCookies()) {
@@ -91,14 +70,14 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
             // Note: URL encoding of a space becomes a +, which is OK for Java, but
             // not other languages. So after URLEncoding, replace all + with %20, which is the
             // standard URL encoding for a space char.
-            request.addHeader("Cookie", name + "=" + URLEncoder.encode(value).replace("+", "%20"));
+            request.addHeader("Cookie", name + "=" + urlEncode(value).replace("+", "%20"));
         }
     }
 
     @Override
     void buildBodyParameters(HttpUriRequestBase request) {
         List<NameValuePair> fields = new ArrayList<>();
-        for (RequestVariable formParam : getFormParams()) {
+        for (RequestVariable formParam : getFormParameters()) {
             fields.add(formParam.getNameValuePair());
         }
 
@@ -106,5 +85,16 @@ public class ServletTestCaseRequest extends AbstractTestCaseRequest {
         if (fields.size() > 0) {
             request.setEntity(new UrlEncodedFormEntity(fields));
         }
+    }
+
+    @Override
+    HttpUriRequestBase createRequestInstance(String url) {
+        HttpUriRequestBase httpUriRequestBase;
+        if (getQueryString().length() == 0) {
+            httpUriRequestBase = new HttpPost(url);
+        } else {
+            httpUriRequestBase = new HttpGet(url);
+        }
+        return httpUriRequestBase;
     }
 }

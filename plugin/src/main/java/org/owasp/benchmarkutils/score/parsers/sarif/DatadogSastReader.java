@@ -20,9 +20,9 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 import org.owasp.benchmarkutils.score.ResultFile;
 
 /**
- * This reader is made for the datadog-static-analyzer available on
- * <a href="https://github.com/DataDog/datadog-static-analyzer">...</a>.
- * It uses the SARIF file produces by the tool.
+ * This reader is made for the datadog-static-analyzer available on <a
+ * href="https://github.com/DataDog/datadog-static-analyzer">...</a>. It uses the SARIF file
+ * produces by the tool.
  */
 public class DatadogSastReader extends SarifReader {
 

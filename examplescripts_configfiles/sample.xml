@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestSuite name="benchmark" version="1.3">
+    <TestCase Category="crypto" DataflowFile="" Name="BenchmarkTest00001" NotAutoverifiable="The Crypto test cases do not return any value in the response that can be used to automatically verify whether the attack worked or not." SinkFile="CipherGetInstance-S4.code" SourceFile="RequestGetCookies.code" SourceUIType="post_getCookies" TemplateFile="/Users/David.H.Anderson/git/Generator/codeblocks/templates/_NoDataflowTemplate.code" UITemplateFile="/Users/David.H.Anderson/git/Generator/codeblocks/uitemplates/UI_HTML_post_getCookies.code" Configuration="HttpClientConfig" Vulnerable="false">
+        <Input type="HttpGet">
+            <url value="https://localhost:8443/benchmark/pathtraver-00/BenchmarkTest00001" />
+            <getParams>
+                <getParam safeName="BenchmarkTest00001" safeValue="someSecret" attackValue="anotherSensitiveValue" />
+            </getParams>
+        </Input>
+        <Setup class="HttpClientConfig" />
+    </TestCase>
+    <TestCase AttackSuccess="conf&amp;#x2f;tomcat-users.xml" Category="pathtraver" DataflowFile="" Name="BenchmarkTest00002" SinkFile="FileOutputStream-F.code" SourceFile="RequestGetCookies.code" SourceUIType="post_getCookies" TemplateFile="/Users/David.H.Anderson/git/Generator/codeblocks/templates/_NoDataflowTemplate.code" BodyFormat="Json" UITemplateFile="/Users/David.H.Anderson/git/Generator/codeblocks/uitemplates/UI_HTML_post_getCookies.code" Configuration="HttpClientConfig" Vulnerable="true">
+        <Input type="HttpPost">
+            <url value="https://localhost:8443/benchmark/pathtraver-00/BenchmarkTest00002" />
+            <cookies>
+                <cookie safeName="BenchmarkTest00002" safeValue="someSecret" attackValue="anotherSensitiveValue" />
+            </cookies>
+            <content format="Json" />
+        </Input>
+        <Setup class="HttpClientConfig" />
+    </TestCase>
+    <TestCase AttackSuccess="conf&amp;#x2f;tomcat-users.xml" Category="sqli" DataflowFile="" Name="BenchmarkTest00003" SinkFile="FileOutputStream-F.code" SourceFile="HibernateResultSet.code" SourceUIType="sql_resultset" TemplateFile="/Users/David.H.Anderson/git/Generator/codeblocks/templates/_NoDataflowTemplate.code" UITemplateFile="/Users/David.H.Anderson/git/Generator/codeblocks/uitemplates/UI_HTML_sql_resultset.code" Configuration="HibernateDatabaseConfig" Vulnerable="true">
+        <Input type="CliArg">
+            <command value="benchmark-python.py -t BenchmarkTest00003" />
+            <args>
+                <arg safeName="BenchmarkTest00003" safeValue="someSecret" attackValue="anotherSensitiveValue" />
+            </args>
+        </Input>
+        <Setup class="Sqlite3Config" script="BenchmarkTest00003.sql" />
+    </TestCase>
+</TestSuite>
