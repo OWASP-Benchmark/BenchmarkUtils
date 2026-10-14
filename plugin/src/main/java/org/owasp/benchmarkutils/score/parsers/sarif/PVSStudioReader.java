@@ -24,7 +24,7 @@ public class PVSStudioReader extends SarifReader {
     static final int PVS_CWE_OS_COMMAND_INJECTION = 77;
     static final int PVS_CWE_OS_ARGUMENT_INJECTION = 88;
     static final int PVS_CWE_HASH_ALGO_NOT_RECOMMENDED = 1240;
-    static final int PVS_XPATH_INJECTION = 91;
+    static final int PVS_CWE_XPATH_INJECTION = 91;
 
     static final String TOOL_NAME = "PVS-Studio";
 
@@ -40,7 +40,7 @@ public class PVSStudioReader extends SarifReader {
                 return CweNumber.COMMAND_INJECTION;
             case PVS_CWE_HASH_ALGO_NOT_RECOMMENDED:
                 return CweNumber.WEAK_HASH_ALGO;
-            case PVS_XPATH_INJECTION:
+            case PVS_CWE_XPATH_INJECTION:
                 return CweNumber.XPATH_INJECTION;
         }
         return cwe;
