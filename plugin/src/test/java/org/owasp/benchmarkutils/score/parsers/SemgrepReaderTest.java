@@ -76,9 +76,44 @@ public class SemgrepReaderTest extends ReaderTestBase {
         assertFalse(result.isCommercial());
         assertEquals("Semgrep", result.getToolName());
 
-        assertEquals(2, result.getTotalResults());
+        assertEquals(5, result.getTotalResults());
 
         assertEquals(CweNumber.COMMAND_INJECTION, result.get(3).get(0).getCWE());
         assertEquals(CweNumber.COOKIE_WITHOUT_HTTPONLY, result.get(4).get(0).getCWE());
+        assertEquals(CweNumber.COMMAND_INJECTION, result.get(5).get(0).getCWE());
+        assertEquals(CweNumber.WEAK_CRYPTO_ALGO, result.get(6).get(0).getCWE());
+        assertEquals(CweNumber.SQL_INJECTION, result.get(7).get(0).getCWE());
+    }
+
+    @Test
+    void translateCwe77ReturnsCommandInjection() {
+        assertEquals(
+                CweNumber.COMMAND_INJECTION,
+                SemgrepReader.translate(77),
+                "CWE-77 (Command Injection parent) should map to 78 (COMMAND_INJECTION)");
+    }
+
+    @Test
+    void translateCwe780ReturnsWeakCrypto() {
+        assertEquals(
+                CweNumber.WEAK_CRYPTO_ALGO,
+                SemgrepReader.translate(780),
+                "CWE-780 (RSA without OAEP) should map to 327 (WEAK_CRYPTO_ALGO)");
+    }
+
+    @Test
+    void translateCwe943ReturnsSqlInjection() {
+        assertEquals(
+                CweNumber.SQL_INJECTION,
+                SemgrepReader.translate(943),
+                "CWE-943 (Data Query Injection) should map to 89 (SQL_INJECTION)");
+    }
+
+    @Test
+    void translateDontCareCwesReturnAsIs() {
+        assertEquals(75, SemgrepReader.translate(75), "CWE-75 should pass through unchanged");
+        assertEquals(778, SemgrepReader.translate(778), "CWE-778 should pass through unchanged");
+        assertEquals(942, SemgrepReader.translate(942), "CWE-942 should pass through unchanged");
+        assertEquals(502, SemgrepReader.translate(502), "CWE-502 should pass through unchanged");
     }
 }
