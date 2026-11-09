@@ -40,6 +40,7 @@ import org.owasp.benchmarkutils.score.parsers.sarif.FortifySarifReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.MendSarifReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.OpenTaintReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PTAIReader;
+import org.owasp.benchmarkutils.score.parsers.sarif.PVSStudioReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.PrecautionReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.SemgrepSarifReader;
 import org.owasp.benchmarkutils.score.parsers.sarif.SnykReader;
@@ -104,6 +105,7 @@ public abstract class Reader {
                 new PrecautionReader(),
                 new PMDReader(),
                 new PTAIReader(),
+                new PVSStudioReader(),
                 new QualysWASReader(),
                 new Rapid7Reader(),
                 new ReshiftReader(),
