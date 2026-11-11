@@ -18,9 +18,11 @@
 package org.owasp.benchmarkutils.score;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.PrintStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,5 +110,17 @@ public class BenchmarkScoreTest {
                 () -> BenchmarkScore.loadConfigFromCommandLineArguments(new String[] {null, "b"}));
 
         expectUsageMessage();
+    }
+
+    @Test
+    void commercialAveTemplateResolvesViaClasspathConstant() {
+        String resourcePath =
+                BenchmarkScore.SCORECARDDIRNAME + "/commercialAveTemplate.html";
+        InputStream stream =
+                BenchmarkScore.class.getClassLoader().getResourceAsStream(resourcePath);
+
+        assertNotNull(
+                stream,
+                "commercialAveTemplate.html must be loadable via SCORECARDDIRNAME classpath lookup");
     }
 }
