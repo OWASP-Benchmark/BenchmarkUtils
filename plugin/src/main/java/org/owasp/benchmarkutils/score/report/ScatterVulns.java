@@ -341,10 +341,10 @@ public class ScatterVulns extends ScatterPlot {
                 if (ch == 'Z') ch = 'a';
                 else ch++;
 
-                noncommercialTotalScore += or.getCategoryResults(category).score;
-                noncommercialTotalPrecision += or.getCategoryResults(category).precision;
-                noncommercialTotalTPR += or.getCategoryResults(category).truePositiveRate;
-                noncommercialTotalFPR += or.getCategoryResults(category).falsePositiveRate;
+                noncommercialTotalScore += or.getCategoryResults(category).score * 100;
+                noncommercialTotalPrecision += or.getCategoryResults(category).precision * 100;
+                noncommercialTotalTPR += or.getCategoryResults(category).truePositiveRate * 100;
+                noncommercialTotalFPR += or.getCategoryResults(category).falsePositiveRate * 100;
 
                 double score = or.getCategoryResults(category).score * 100;
                 if (score < noncommercialLow) {
