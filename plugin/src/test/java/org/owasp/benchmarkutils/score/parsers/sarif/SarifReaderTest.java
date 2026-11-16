@@ -19,9 +19,11 @@ package org.owasp.benchmarkutils.score.parsers.sarif;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.owasp.benchmarkutils.score.parsers.sarif.SarifReader;
+import org.owasp.benchmarkutils.score.ResultFile;
+import org.owasp.benchmarkutils.score.TestSuiteResults;
 
 public class SarifReaderTest {
 
@@ -35,5 +37,22 @@ public class SarifReaderTest {
             })
     void extractsCweNumberFromInput(String input) {
         assertEquals(326, SarifReader.extractCwe(input));
+    }
+
+    @Test
+    void fallsBackToFilenameTimeWhenInvocationsArrayIsEmpty() throws Exception {
+        String sarif =
+                "{\"runs\": [{"
+                        + "\"invocations\": [],"
+                        + "\"tool\": {\"driver\": {\"name\": \"SomeTool\", \"rules\": []}},"
+                        + "\"results\": []"
+                        + "}]}";
+
+        ResultFile resultFile = new ResultFile("Benchmark_SomeTool-90.sarif", sarif);
+        SarifReader reader = new SarifReader("SomeTool", false, SarifReader.CweSourceType.TAG) {};
+
+        TestSuiteResults result = reader.parse(resultFile);
+
+        assertEquals(TestSuiteResults.formatTime(90_000), result.getTime());
     }
 }

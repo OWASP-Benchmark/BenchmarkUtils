@@ -110,7 +110,7 @@ public class CheckmarxESReader extends Reader {
                 || name.equals("Unprotected_Cookie");
     }
 
-    private static TestCaseResult parseCheckmarxFindings(
+    private TestCaseResult parseCheckmarxFindings(
             int cwe, String category, String evidence, JSONObject result) {
         try {
             TestCaseResult tcr = new TestCaseResult();

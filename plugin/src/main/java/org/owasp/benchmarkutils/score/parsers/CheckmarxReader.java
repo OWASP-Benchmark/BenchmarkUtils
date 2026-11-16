@@ -206,6 +206,7 @@ public class CheckmarxReader extends Reader {
             case 15:
                 return CweNumber.COMMAND_INJECTION;
         }
+        System.out.println("INFO: Checkmarx - unmapped CWE: " + cwe + ". Passing through as-is.");
         return cwe;
     }
 }

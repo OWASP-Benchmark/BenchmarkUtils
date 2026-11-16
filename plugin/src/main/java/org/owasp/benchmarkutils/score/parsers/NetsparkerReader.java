@@ -109,6 +109,7 @@ public class NetsparkerReader extends Reader {
             case 80: // TODO/FIXME - Is this correct? Shouldn't this be mapped to XSS?
                 return CweNumber.INSECURE_COOKIE; // insecure cookie use
         }
+        System.out.println("INFO: Netsparker - unmapped CWE: " + cwe + ". Passing through as-is.");
         return cwe;
     }
 }
