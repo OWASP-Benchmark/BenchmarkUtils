@@ -337,19 +337,35 @@ public class Categories {
     // NOTE: All these methods return the actual internal objects so COULD be modified by the caller
     // causing unexpected side effects.
 
-    /* Get all the categories defined. They are returned in order by LONG name. - Unused so commented out.
+    /**
+     * Get all the categories defined. They are returned in order by LONG name. Used by
+     * BenchmarkGenerator.
+     */
     public static List<Category> getAllCategories() {
         if (_instance == null) {
             throw new NullPointerException("ERROR: Categories singleton not initialized");
         }
         return _instance.allCategories;
-    } */
+    }
 
     public static Category getCategoryByCWE(int cwe) {
         if (_instance == null) {
             throw new NullPointerException("ERROR: Categories singleton not initialized");
         }
         return _instance.cweToCategoryMap.get(Integer.valueOf(cwe));
+    }
+
+    /**
+     * Return the Category matching the String ID for this CWE.
+     *
+     * @param id The ID to search for (e.g., hash, sqli, pathtraver)
+     * @return The matching Category or null, if not found.
+     * @deprecated Replaced by getCategoryById(String) below. But retained until Generator updated
+     *     to use new method name.
+     */
+    @Deprecated
+    public static Category getById(String id) {
+        return getCategoryById(id);
     }
 
     /**
