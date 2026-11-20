@@ -22,9 +22,24 @@ import static org.owasp.benchmarkutils.score.report.Formats.fourDecimalPlacesNum
 import static org.owasp.benchmarkutils.score.report.Formats.singleDecimalPlaceNumber;
 import static org.owasp.benchmarkutils.score.report.Formats.twoDecimalPlacesPercentage;
 
+import java.util.Locale;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class FormatsTest {
+
+    private Locale originalLocale;
+
+    @BeforeEach
+    void saveLocale() {
+        originalLocale = Locale.getDefault();
+    }
+
+    @AfterEach
+    void restoreLocale() {
+        Locale.setDefault(originalLocale);
+    }
 
     @Test
     void hasFormatterForTwoDecimalPlacesPercentage() {
@@ -39,5 +54,23 @@ class FormatsTest {
     @Test
     void hasFormatterForSingleDecimalPlace() {
         assertEquals("12.3", singleDecimalPlaceNumber.format(12.345678));
+    }
+
+    @Test
+    void formatsUseDotDecimalSeparatorRegardlessOfLocale() {
+        Locale.setDefault(Locale.GERMANY);
+
+        assertEquals(
+                "1234.57%",
+                twoDecimalPlacesPercentage.format(12.345678),
+                "Percentage formatter must use dot separator even under German locale");
+        assertEquals(
+                "12.3",
+                singleDecimalPlaceNumber.format(12.345678),
+                "Single decimal formatter must use dot separator even under German locale");
+        assertEquals(
+                "12.3457",
+                fourDecimalPlacesNumber.format(12.345678),
+                "Four decimal formatter must use dot separator even under German locale");
     }
 }
