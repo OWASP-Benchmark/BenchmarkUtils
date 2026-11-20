@@ -962,7 +962,7 @@ public class BenchmarkScore extends AbstractMojo {
                                         + commercialAveragesTable.filename());
                 // Resources in a jar file have to be loaded as streams. Not directly as Files.
                 InputStream vulnTemplateStream =
-                        CL.getResourceAsStream(scoreCardDir + "/commercialAveTemplate.html");
+                        CL.getResourceAsStream(SCORECARDDIRNAME + "/commercialAveTemplate.html");
                 String html = IOUtils.toString(vulnTemplateStream, StandardCharsets.UTF_8);
                 html = html.replace("${testsuite}", BenchmarkScore.TESTSUITENAME.fullName());
                 html = html.replace("${version}", TESTSUITEVERSION);
